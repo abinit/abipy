@@ -1,11 +1,11 @@
 """Tests for gs_works module"""
+
 from abipy import flowtk
 from abipy.core.testing import AbipyTest
 from abipy.flowtk import gs_works
 
 
 class TestGsWorks(AbipyTest):
-
     def test_eos_work(self):
         """Testing EosWork."""
         scf_input = self.get_gsinput_si()

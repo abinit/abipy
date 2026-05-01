@@ -1,4 +1,5 @@
 """Tools for ipython notebooks."""
+
 from __future__ import annotations
 
 
@@ -10,6 +11,7 @@ def find_free_port():
     """
     import socket
     from contextlib import closing
+
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
         s.bind(("", 0))
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -53,7 +55,8 @@ def print_source(function, **kwargs):  # pragma: no cover
     from pygments.formatters import HtmlFormatter
     from pygments.lexers import PythonLexer
 
-    if "full" not in kwargs: kwargs["full"] = True
+    if "full" not in kwargs:
+        kwargs["full"] = True
     return HTML(highlight(getsource(function), PythonLexer(), HtmlFormatter(**kwargs)))
 
 
@@ -78,14 +81,17 @@ def print_doc(function, **kwargs):  # pragma: no cover
     lines, count = [], 0
     for l in getsource(function).splitlines():
         lines.append(l)
-        if l.lstrip().startswith('"""'): count += 1
-        if count == 2: break
+        if l.lstrip().startswith('"""'):
+            count += 1
+        if count == 2:
+            break
 
-    if "full" not in kwargs: kwargs["full"] = True
+    if "full" not in kwargs:
+        kwargs["full"] = True
     return HTML(highlight("\n".join(lines), PythonLexer(), HtmlFormatter(**kwargs)))
 
 
-def ipw_listdir(top=".", recurse=True, widget_type="dropdown"):   # pragma: no cover
+def ipw_listdir(top=".", recurse=True, widget_type="dropdown"):  # pragma: no cover
     """
     Return an ipython widget listing all the files located within the directory ``top``
     that can be inspected with abiopen.py. The user can select the file in the widget
@@ -117,10 +123,10 @@ def ipw_listdir(top=".", recurse=True, widget_type="dropdown"):   # pragma: no c
         """Callback"""
         clear_output()
         path = change["new"]
-        #print(change)
+        # print(change)
         with abilab.abiopen(path) as abifile:
             print(abifile)
-            #display(abifile)
+            # display(abifile)
 
     # Get dict: dirname --> list_of_files supported by abiopen.
     dir2files = abilab.dir2abifiles(top, recurse=recurse)

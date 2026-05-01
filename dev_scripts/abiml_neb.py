@@ -18,7 +18,7 @@ VERBOSE = 0
 
 def run():
     # IMPORTANT: Please customize the slurm options according to your machine.
-    conda_env = os.environ['CONDA_DEFAULT_ENV']
+    conda_env = os.environ["CONDA_DEFAULT_ENV"]
     print(f"Slurm script will be executed in {conda_env=}")
 
     header = f"""\
@@ -51,7 +51,7 @@ Performing NEB calculations with the following parameters:
     arr_options = []
     for nn_name in NN_NAMES:
         for i in range(npaths):
-            dirpath = Path(f"path{i+1}")
+            dirpath = Path(f"path{i + 1}")
             workdir = dirpath / nn_name
             ini_vasp = str(dirpath / "ini.vasp")
             fin_vasp = str(dirpath / "fin.vasp")
@@ -68,11 +68,13 @@ def process():
     json_paths = find_exts(TOP, "neb_data.json")
     neb_data_list = []
     for path in json_paths:
-        if VERBOSE: print("About to read json data from", path)
+        if VERBOSE:
+            print("About to read json data from", path)
         parts = path.split(os.sep)
         path_index, nn_name = parts[-3], parts[-2]
         path_index = int(path_index.replace("path", ""))
-        if VERBOSE: print(parts, "\n", path_index, nn_name)
+        if VERBOSE:
+            print(parts, "\n", path_index, nn_name)
         with open(path, "rt") as fh:
             d = json.load(fh)
             d["path"] = path_index
@@ -96,12 +98,12 @@ def process():
         d_list.append({k: d[k] for k in keys})
 
     df = pd.DataFrame(d_list)
-    #df.to_csv("XXX_ML_barriers.csv")
+    # df.to_csv("XXX_ML_barriers.csv")
     print(df)
 
     from abipy.tools.plotting import get_axarray_fig_plt
-    ax_list, fig, plt = get_axarray_fig_plt(
-        None, nrows=1, ncols=3, sharex=True, sharey=True, squeeze=False)
+
+    ax_list, fig, plt = get_axarray_fig_plt(None, nrows=1, ncols=3, sharex=True, sharey=True, squeeze=False)
     ax_list = ax_list.ravel()
     cmap = plt.get_cmap("jet")
     fontsize = 8
@@ -112,11 +114,11 @@ def process():
 
         for i, data in enumerate(my_data_list):
             enes = np.array(data["energies_images"])
-            ax.plot(enes - enes[0], label=f"path{i+1}", color=cmap(i/len(my_data_list)))
+            ax.plot(enes - enes[0], label=f"path{i + 1}", color=cmap(i / len(my_data_list)))
 
         ax.set_title(nn_name)
-        ax.set_xlabel('Image index', fontsize=fontsize)
-        ax.set_ylabel(r'$\Delta$ energy [eV]', fontsize=fontsize)
+        ax.set_xlabel("Image index", fontsize=fontsize)
+        ax.set_ylabel(r"$\Delta$ energy [eV]", fontsize=fontsize)
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
     fig.suptitle("K2Cu3Ge5O14")

@@ -1,4 +1,5 @@
 """This module provides objects and helper functions for atomic calculations."""
+
 from __future__ import annotations
 
 import collections
@@ -12,7 +13,7 @@ import numpy as np
 from monty.string import marquee  # is_string, list_strings,
 from scipy.interpolate import UnivariateSpline
 
-try :
+try:
     from scipy.integrate import cumulative_trapezoid as cumtrapz
 except ImportError:
     from scipy.integrate import cumtrapz
@@ -80,6 +81,7 @@ def states_from_string(confstr: str) -> list[QState]:
 
 def parse_orbtoken(orbtoken: str) -> QState:
     import re
+
     m = re.match(r"(\d+)([spdfghi]+)(\d+)", orbtoken.strip())
     if m:
         return QState(n=m.group(1), l=m.group(2), occ=m.group(3))
@@ -109,7 +111,7 @@ class NlkState(collections.namedtuple("NlkState", "n, l, k")):
             if l == 0 and k != 1:
                 raise ValueError(f"When l is 0, k must be 1 while it is: {k}")
 
-        #if n <= 0:
+        # if n <= 0:
         #    raise ValueError(f"Invalid value for n: {n}")
         if l < 0:
             raise ValueError(f"Invalid value for l: {l}")
@@ -120,11 +122,11 @@ class NlkState(collections.namedtuple("NlkState", "n, l, k")):
     def from_nlkap(cls, n: int, l: int, kap: int | None) -> NlkState:
         k = None
         if kap is not None:
-            #if(ikap==1) kap=-(ll+1)
-            #if(ikap==2) kap=  ll
+            # if(ikap==1) kap=-(ll+1)
+            # if(ikap==2) kap=  ll
             k = 1
             if l != 0:
-                k = {-(l + 1): 1, l:2}[kap]
+                k = {-(l + 1): 1, l: 2}[kap]
 
         return cls(n=n, l=l, k=k)
 
@@ -147,7 +149,7 @@ class NlkState(collections.namedtuple("NlkState", "n, l, k")):
     def latex_l(self) -> str:
         lc = l2char[self.l]
         # e.g. s or s^+
-        return f"${lc}$"  if self.k is None else f"${lc}^{self.ksign}$"
+        return f"${lc}$" if self.k is None else f"${lc}^{self.ksign}$"
 
     @cached_property
     def ksign(self) -> str:
@@ -157,8 +159,9 @@ class NlkState(collections.namedtuple("NlkState", "n, l, k")):
     def j(self) -> int:
         """Total angular momentum"""
         l = self.l
-        if self.k is None: return l
-        return l - 1/2 if self.k == l else l + 1/2
+        if self.k is None:
+            return l
+        return l - 1 / 2 if self.k == l else l + 1 / 2
 
     @pmg_serialize
     def as_dict(self) -> dict:
@@ -190,13 +193,11 @@ class QState(collections.namedtuple("QState", "n, l, occ, eig, j, s")):
         j: J quantum number. None if spin is a good quantum number.
         s: Spin polarization. None if spin is not taken into account.
     """
+
     # TODO
     # Spin +1, -1 or 1,2 or 0,1?
 
-    def __new__(cls, n: int, l: int, occ: float,
-                eig: float | None = None,
-                j: int | None = None,
-                s: int | None = None):
+    def __new__(cls, n: int, l: int, occ: float, eig: float | None = None, j: int | None = None, s: int | None = None):
         """
         Extends super.__new__ adding type conversion and default values.
         """
@@ -218,6 +219,7 @@ class AtomicConfiguration:
     """
     Atomic configuration of an all-electron atom.
     """
+
     def __init__(self, Z: int, states: list[QState]) -> None:
         """
         Args:
@@ -228,8 +230,7 @@ class AtomicConfiguration:
         self.states = states
 
     @classmethod
-    def from_string(cls, Z: int, string: str,
-                    has_s: bool = False, has_j: bool = False) -> AtomicConfiguration:
+    def from_string(cls, Z: int, string: str, has_s: bool = False, has_j: bool = False) -> AtomicConfiguration:
         if not has_s and not has_j:
             # Ex: [He] 2s2 2p3
             states = states_from_string(string)
@@ -263,8 +264,7 @@ class AtomicConfiguration:
         if len(self.states) != len(other.states):
             return False
 
-        return (self.Z == other.Z and
-                all(s1 == s2 for s1, s2 in zip(self.states, other.states, strict=False)))
+        return self.Z == other.Z and all(s1 == s2 for s1, s2 in zip(self.states, other.states, strict=False))
 
     def __ne__(self, other) -> bool:
         return not self == other
@@ -298,7 +298,7 @@ class AtomicConfiguration:
     @property
     def isneutral(self) -> bool:
         """True if self is a neutral configuration."""
-        return abs(self.echarge + self.Z) < 1.e-8
+        return abs(self.echarge + self.Z) < 1.0e-8
 
     def add_state(self, **qnumbers) -> None:
         """Add a list of :class:`QState` instances to self."""
@@ -349,7 +349,7 @@ class RadialFunction:
             cols: List with the index of the columns containing the radial mesh and the values.
         """
         data = np.loadtxt(filename)
-        rmesh, values = data[:,cols[0]], data[:,cols[1]]
+        rmesh, values = data[:, cols[0]], data[:, cols[1]]
         name = filename if rfunc_name is None else rfunc_name
         return cls(name, rmesh, values)
 
@@ -385,6 +385,7 @@ class RadialFunction:
     def pprint(self, what: str = "rmesh+values", stream=None) -> None:
         """Pprint method (useful for debugging)"""
         from pprint import pprint
+
         if "rmesh" in what:
             pprint("rmesh:", stream=stream)
             pprint(self.rmesh, stream=stream)
@@ -414,19 +415,19 @@ class RadialFunction:
 
     @property
     def inodes(self) -> list[int]:
-        """"
+        """ "
         List with the index of the nodes of the radial function.
         """
         inodes = []
-        for i in range(len(self.values)-1):
-            if self.values[i] * self.values[i+1] <= 0:
+        for i in range(len(self.values) - 1):
+            if self.values[i] * self.values[i + 1] <= 0:
                 inodes.append(i)
         return inodes
 
     @cached_property
     def spline(self):
         """Cubic spline."""
-        #return UnivariateSpline(self.rmesh, self.values, s=0)
+        # return UnivariateSpline(self.rmesh, self.values, s=0)
         return UnivariateSpline(self.rmesh, self.values, s=None)
 
     @cached_property
@@ -435,9 +436,9 @@ class RadialFunction:
         return self.spline.roots()
 
     def get_peaks(self, **kwargs):
-        """
-        """
+        """ """
         from scipy.signal import find_peaks
+
         inds, properties = find_peaks(self.values, **kwargs)
         xs = self.rmesh[inds] if len(inds) else []
         ys = self.values[inds] if len(inds) else []
@@ -478,7 +479,7 @@ class RadialFunction:
         """
         The index of the point in the radial mesh.
         """
-        for (i, r) in enumerate(self.rmesh):
+        for i, r in enumerate(self.rmesh):
             if r > rpoint:
                 return i - 1
 
@@ -497,7 +498,7 @@ class RadialFunction:
 
             Assumes that self.values are tending to zero for r --> infinity.
         """
-        for i in range(len(self.rmesh)-1, -1, -1):
+        for i in range(len(self.rmesh) - 1, -1, -1):
             if abs(self.values[i]) > abs_tol:
                 break
         return i
@@ -536,9 +537,10 @@ class RadialFunction:
         for i, q in enumerate(qmesh[1:]):
             twopiqr = 2 * np.pi * q * self.rmesh
             f = 4 * np.pi * (np.sin(twopiqr) / twopiqr) * self.rmesh**2 * self.values
-            outs[i+1] = cumtrapz(f, x=self.rmesh)[-1]
+            outs[i + 1] = cumtrapz(f, x=self.rmesh)[-1]
 
         from abipy.core.func1d import Function1D
+
         ecuts = 2 * np.pi**2 * qmesh**2
         return Function1D(ecuts, outs)
 
@@ -559,10 +561,11 @@ class Peaks:
     """
     Store information on the peaks of the radial functions.
     """
-    xs: np.ndarray     # Absissas of the peaks
-    ys: np.ndarray     # Values of the peaks
-    inds: np.ndarray   # Indices of the peaks.
-    properties: dict   # Dict with peaks properties.
+
+    xs: np.ndarray  # Absissas of the peaks
+    ys: np.ndarray  # Values of the peaks
+    inds: np.ndarray  # Indices of the peaks.
+    properties: dict  # Dict with peaks properties.
 
     def __bool__(self) -> bool:
         return bool(len(self.xs))
@@ -574,8 +577,10 @@ class Peaks:
         """
         String representation.
         """
-        lines = []; app = lines.append
-        if title is not None: app(marquee(title, mark="="))
+        lines = []
+        app = lines.append
+        if title is not None:
+            app(marquee(title, mark="="))
 
         if self:
             app(f"last peak at: {round(self.xs[-1], 2)}, num peaks: {len(self.xs)}")

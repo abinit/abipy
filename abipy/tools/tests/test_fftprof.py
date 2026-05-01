@@ -1,4 +1,5 @@
 """Tests for fftprof module."""
+
 import os
 
 import abipy.data as abidata
@@ -7,7 +8,6 @@ from abipy.tools.fftprof import FFTBenchmark
 
 
 class FftProfTest(AbipyTest):
-
     def test_fft_benchmark(self):
         """Testing FFt benchmark."""
         # Plot the benchmark results saved in the files
@@ -26,5 +26,5 @@ class FftProfTest(AbipyTest):
         test0.speedup_wrt(test1)
 
         if self.has_matplotlib():
-            #test0.plot_ax()
+            # test0.plot_ax()
             assert bench.plot(show=False)

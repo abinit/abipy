@@ -1,4 +1,5 @@
 """Classes for the analysis of Bethe-Salpeter calculations"""
+
 from __future__ import annotations
 
 import itertools
@@ -35,6 +36,7 @@ class _DielectricTensor:
     This object stores the frequency-dependent macroscopic dielectric tensor
     obtained from the dielectric functions for different q-directions.
     """
+
     def __init__(self, mdf, structure):
         nfreq = len(mdf.wmesh)
 
@@ -50,8 +52,9 @@ class _DielectricTensor:
         # One tensor for each frequency
         all_tensors = []
         for ifrq, freq in enumerate(mdf.wmesh):
-            tensor = _SymmetricTensor.from_directions(mdf.qfrac_coords, all_emacros[:,ifrq],
-                                                     structure.lattice.reciprocal_lattice, space="g")
+            tensor = _SymmetricTensor.from_directions(
+                mdf.qfrac_coords, all_emacros[:, ifrq], structure.lattice.reciprocal_lattice, space="g"
+            )
             all_tensors.append(tensor)
 
         self._all_tensors = all_tensors
@@ -87,7 +90,7 @@ class _DielectricTensor:
 
         for i in np.arange(3):
             for j in np.arange(3):
-                all_funcs.append(Function1D(self._wmesh, table[:,i,j]))
+                all_funcs.append(Function1D(self._wmesh, table[:, i, j]))
 
         return all_funcs
 
@@ -113,7 +116,7 @@ class _DielectricTensor:
         ax.set_xlabel("Frequency (eV)")
         ax.set_ylabel("Dielectric tensor")
 
-        #if not kwargs:
+        # if not kwargs:
         #    kwargs = {"color": "black", "linewidth": 2.0}
 
         # Plot the 6 independent components
@@ -200,7 +203,7 @@ class DielectricFunction:
         lines = []
         app = lines.append
         app(self.__class__.__name__)
-        #app("calc_type: %s, has_lfe: %s, num_qpoints: %d" % (self.calc_type, self.has_lfe, self.num_qpoints))
+        # app("calc_type: %s, has_lfe: %s, num_qpoints: %d" % (self.calc_type, self.has_lfe, self.num_qpoints))
         app("num_qpoints: %d" % (self.num_qpoints))
         if with_info or verbose:
             app(str(self.info))
@@ -221,13 +224,13 @@ class DielectricFunction:
         """|numpy-array| with the fractional coordinates of the q-points."""
         return self.qpoints.frac_coords
 
-    #@property
-    #def has_lfe(self):
+    # @property
+    # def has_lfe(self):
     #    """True if MDF includes local field effects."""
     #    return bool(self.info["lfe"])
 
-    #@property
-    #def calc_type(self):
+    # @property
+    # def calc_type(self):
     #    """String with the type of calculation."""
     #    return self.info["calc_type"]
 
@@ -254,7 +257,7 @@ class DielectricFunction:
         ax.set_xlabel("Frequency (eV)")
         ax.set_ylabel("Macroscopic DF")
 
-        #if not kwargs:
+        # if not kwargs:
         #    kwargs = {"color": "black", "linewidth": 2.0}
 
         # Plot the average value
@@ -316,6 +319,7 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: MdfFile
     """
+
     @classmethod
     def from_file(cls, filepath: str) -> MdfFile:
         """Initialize the object from a Netcdf file"""
@@ -326,7 +330,7 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
         self.r = MdfReader(filepath)
 
         # TODO Add electron Bands.
-        #self._ebands = r.read_ebands()
+        # self._ebands = r.read_ebands()
 
     def __str__(self) -> str:
         """String representation."""
@@ -334,7 +338,8 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     def to_string(self, verbose=0) -> str:
         """String representation."""
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
 
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
@@ -389,12 +394,10 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return self.r.read_params()
 
     def get_mdf(self, mdf_type="exc"):
-        """"
+        """ "
         Returns the macroscopic dielectric function.
         """
-        return {"exc": self.exc_mdf,
-                "rpa": self.rpanlf_mdf,
-                "gwrpa": self.gwnlf_mdf}[mdf_type.lower()]
+        return {"exc": self.exc_mdf, "rpa": self.rpanlf_mdf, "gwrpa": self.gwnlf_mdf}[mdf_type.lower()]
 
     def plot_mdfs(self, cplx_mode="Im", mdf_type="all", qpoint=None, **kwargs) -> Figure:
         """
@@ -457,7 +460,7 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         Used in abiview.py to get a quick look at the results.
         """
-        #yield self.ebands.plot(show=False)
+        # yield self.ebands.plot(show=False)
         yield self.plot_mdfs(cplx_mode="Re", mdf_type="all", qpoint=None, show=False)
         yield self.plot_mdfs(cplx_mode="Im", mdf_type="all", qpoint=None, show=False)
 
@@ -468,29 +471,32 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        nb.cells.extend([
-            nbv.new_code_cell("mdf_file = abilab.abiopen('%s')" % self.filepath),
-            nbv.new_code_cell("print(mdf_file)"),
-            nbv.new_code_cell("mdf_file.plot_mdfs(cplx_mode='Re');"),
-            nbv.new_code_cell("mdf_file.plot_mdfs(cplx_mode='Im');"),
-            # TODO:
-            #nbv.new_code_cell("tensor_exc = mdf_file.get_tensor("exc")")
-            #tensor_exc.symmetrize(mdf_file.structure)
-            #tensor_exc.plot(title=title)
-        ])
+        nb.cells.extend(
+            [
+                nbv.new_code_cell("mdf_file = abilab.abiopen('%s')" % self.filepath),
+                nbv.new_code_cell("print(mdf_file)"),
+                nbv.new_code_cell("mdf_file.plot_mdfs(cplx_mode='Re');"),
+                nbv.new_code_cell("mdf_file.plot_mdfs(cplx_mode='Im');"),
+                # TODO:
+                # nbv.new_code_cell("tensor_exc = mdf_file.get_tensor("exc")")
+                # tensor_exc.symmetrize(mdf_file.structure)
+                # tensor_exc.plot(title=title)
+            ]
+        )
 
         return self._write_nb_nbpath(nb, nbpath)
 
 
 # TODO Add band energies to MDF file.
-#from abipy.electrons import ElectronsReader
-class MdfReader(ETSF_Reader): #ElectronsReader
+# from abipy.electrons import ElectronsReader
+class MdfReader(ETSF_Reader):  # ElectronsReader
     """
     This object reads data from the MDF.nc file produced by ABINIT.
 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: MdfReader
     """
+
     def __init__(self, path):
         """Initialize the object from a filename."""
         super().__init__(path)
@@ -518,9 +524,21 @@ class MdfReader(ETSF_Reader): #ElectronsReader
         # TODO: Add more info.
         # soenergy replaced by mbpt_sciss
         keys = [
-            "nsppol", "ecutwfn", "ecuteps",
-            "eps_inf", "mbpt_sciss", "broad", "nkibz", "nkbz", "nkibz_interp", "nkbz_interp",
-            "wtype", "interp_mode", "nreh", "lomo_spin", "humo_spin"
+            "nsppol",
+            "ecutwfn",
+            "ecuteps",
+            "eps_inf",
+            "mbpt_sciss",
+            "broad",
+            "nkibz",
+            "nkbz",
+            "nkibz_interp",
+            "nkbz_interp",
+            "wtype",
+            "interp_mode",
+            "nreh",
+            "lomo_spin",
+            "humo_spin",
         ]
         return self.read_keys(keys)
 
@@ -560,6 +578,7 @@ class MdfPlotter:
         plotter.add_mdf("KS-RPA", rpanlf_mdf)
         plotter.plot()
     """
+
     def __init__(self):
         self._mdfs = {}
 
@@ -577,8 +596,7 @@ class MdfPlotter:
         self._mdfs[label] = mdf
 
     @add_fig_kwargs
-    def plot(self, ax=None, cplx_mode="Im", qpoint=None, xlims=None, ylims=None,
-             fontsize=8, **kwargs) -> Figure:
+    def plot(self, ax=None, cplx_mode="Im", qpoint=None, xlims=None, ylims=None, fontsize=8, **kwargs) -> Figure:
         """
         Get a matplotlib plot showing the MDFs.
 
@@ -633,22 +651,25 @@ class MultipleMdfPlotter:
         plotter.add_mdf_file("file2", mdf_file2)
         plotter.plot()
     """
+
     # By default the plotter will extracts these MDF types.
     MDF_TYPES = ("exc", "rpa", "gwrpa")
 
     # Mapping mdf_type --> color used in plots.
-    #MDF_TYPE2COLOR = {"exc": "red", "rpa": "blue", "gwrpa": "yellow"}
+    # MDF_TYPE2COLOR = {"exc": "red", "rpa": "blue", "gwrpa": "yellow"}
 
-    #MDF_TYPE2LINESTYLE = {"exc": "red", "rpa": "blue", "gwrpa": "yellow"}
+    # MDF_TYPE2LINESTYLE = {"exc": "red", "rpa": "blue", "gwrpa": "yellow"}
 
     # Mapping [mdf_type][cplx_mode] --> ylable used in plots.
     MDF_TYPECPLX2TEX = {
         "exc": dict(re=r"$\Re(\varepsilon_{exc})$", im=r"$\Im(\varepsilon_{exc}$)", abs=r"$|\varepsilon_{exc}|$"),
         "rpa": dict(re=r"$\Re(\varepsilon_{rpa})$", im=r"$\Im(\varepsilon_{rpa})$", abs=r"$|\varepsilon_{rpa}|$"),
-        "gwrpa": dict(re=r"$\Re(\varepsilon_{gw-rpa})$", im=r"$\Im(\varepsilon_{gw-rpa})$", abs=r"$|\varepsilon_{gw-rpa}|$"),
-        }
+        "gwrpa": dict(
+            re=r"$\Re(\varepsilon_{gw-rpa})$", im=r"$\Im(\varepsilon_{gw-rpa})$", abs=r"$|\varepsilon_{gw-rpa}|$"
+        ),
+    }
 
-    #alpha = 0.6
+    # alpha = 0.6
 
     def __init__(self):
         # [label][mdf_type] --> DielectricFunction
@@ -693,8 +714,7 @@ class MultipleMdfPlotter:
                 self._mdfs[label][mdf_type] = obj.get_mdf(mdf_type=mdf_type)
 
     @add_fig_kwargs
-    def plot(self, mdf_type="exc", qview="avg", xlims=None, ylims=None,
-             fontsize=8, **kwargs) -> Figure:
+    def plot(self, mdf_type="exc", qview="avg", xlims=None, ylims=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot all macroscopic dielectric functions (MDF) stored in the plotter
 
@@ -720,35 +740,72 @@ class MultipleMdfPlotter:
         else:
             raise ValueError(f"Invalid value of {qview=}")
 
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=True, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols, sharex=True, sharey=True, squeeze=False)
 
         if qview == "avg":
             # Plot averaged values
-            self.plot_mdftype_cplx(mdf_type, "Re", ax=ax_mat[0, 0], xlims=xlims, ylims=ylims,
-                                   fontsize=fontsize, with_legend=True, show=False)
-            self.plot_mdftype_cplx(mdf_type, "Im", ax=ax_mat[0, 1], xlims=xlims, ylims=ylims,
-                                   fontsize=fontsize, with_legend=False, show=False)
+            self.plot_mdftype_cplx(
+                mdf_type,
+                "Re",
+                ax=ax_mat[0, 0],
+                xlims=xlims,
+                ylims=ylims,
+                fontsize=fontsize,
+                with_legend=True,
+                show=False,
+            )
+            self.plot_mdftype_cplx(
+                mdf_type,
+                "Im",
+                ax=ax_mat[0, 1],
+                xlims=xlims,
+                ylims=ylims,
+                fontsize=fontsize,
+                with_legend=False,
+                show=False,
+            )
 
         elif qview == "all":
             # Plot MDF(q)
             nqpt = len(qpoints)
             for iq, qpt in enumerate(qpoints):
-                islast = (iq == nqpt - 1)
-                self.plot_mdftype_cplx(mdf_type, "Re", qpoint=qpt, ax=ax_mat[iq, 0], xlims=xlims, ylims=ylims,
-                    fontsize=fontsize, with_legend=(iq == 0), with_xlabel=islast, with_ylabel=islast, show=False)
-                self.plot_mdftype_cplx(mdf_type, "Im", qpoint=qpt, ax=ax_mat[iq, 1], xlims=xlims, ylims=ylims,
-                    fontsize=fontsize, with_legend=False, with_xlabel=islast, with_ylabel=islast, show=False)
+                islast = iq == nqpt - 1
+                self.plot_mdftype_cplx(
+                    mdf_type,
+                    "Re",
+                    qpoint=qpt,
+                    ax=ax_mat[iq, 0],
+                    xlims=xlims,
+                    ylims=ylims,
+                    fontsize=fontsize,
+                    with_legend=(iq == 0),
+                    with_xlabel=islast,
+                    with_ylabel=islast,
+                    show=False,
+                )
+                self.plot_mdftype_cplx(
+                    mdf_type,
+                    "Im",
+                    qpoint=qpt,
+                    ax=ax_mat[iq, 1],
+                    xlims=xlims,
+                    ylims=ylims,
+                    fontsize=fontsize,
+                    with_legend=False,
+                    with_xlabel=islast,
+                    with_ylabel=islast,
+                    show=False,
+                )
 
         else:
             raise ValueError(f"Invalid value of {qview=}")
 
-        #ax_mat[0, 0].legend(loc="best", fontsize=fontsize, shadow=True)
+        # ax_mat[0, 0].legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
-    #@add_fig_kwargs
-    #def plot_mdf_types(self, qview="avg", xlims=None, ylims=None, **kwargs):
+    # @add_fig_kwargs
+    # def plot_mdf_types(self, qview="avg", xlims=None, ylims=None, **kwargs):
     #    """
     #    Args:
     #        qview:
@@ -790,9 +847,20 @@ class MultipleMdfPlotter:
     #    return fig
 
     @add_fig_kwargs
-    def plot_mdftype_cplx(self, mdf_type, cplx_mode, qpoint=None, ax=None, xlims=None, ylims=None,
-                          with_legend=True, with_xlabel=True, with_ylabel=True,
-                          fontsize=8, **kwargs) -> Figure:
+    def plot_mdftype_cplx(
+        self,
+        mdf_type,
+        cplx_mode,
+        qpoint=None,
+        ax=None,
+        xlims=None,
+        ylims=None,
+        with_legend=True,
+        with_xlabel=True,
+        with_ylabel=True,
+        fontsize=8,
+        **kwargs,
+    ) -> Figure:
         """
         Helper function to plot data corresponds to ``mdf_type``, ``cplx_mode``, ``qpoint``.
 
@@ -815,8 +883,10 @@ class MultipleMdfPlotter:
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         ax.grid(True)
 
-        if with_xlabel: ax.set_xlabel("Frequency (eV)")
-        if with_ylabel: ax.set_ylabel(self.MDF_TYPECPLX2TEX[mdf_type][cplx_mode.lower()])
+        if with_xlabel:
+            ax.set_xlabel("Frequency (eV)")
+        if with_ylabel:
+            ax.set_ylabel(self.MDF_TYPECPLX2TEX[mdf_type][cplx_mode.lower()])
 
         can_use_basename = self._can_use_basenames_as_labels()
         qtag = "avg" if qpoint is None else repr(qpoint)
@@ -830,7 +900,8 @@ class MultipleMdfPlotter:
             if can_use_basename:
                 label = os.path.basename(label)
             # Use relative paths if label is a file.
-            elif os.path.isfile(label): label = os.path.relpath(label)
+            elif os.path.isfile(label):
+                label = os.path.relpath(label)
 
             legends.append(r"%s: %s, %s $\varepsilon$" % (cplx_mode, qtag, label))
 
@@ -862,32 +933,38 @@ class MultipleMdfPlotter:
 
         if errors:
             msg = "\n".join(errors)
-            raise ValueError(msg + "\n" +
-                             "Your MDF files have been computed with a different set of q-points\n" +
-                             "Cannot compare dielectric functions as as function of q, use average value")
+            raise ValueError(
+                msg
+                + "\n"
+                + "Your MDF files have been computed with a different set of q-points\n"
+                + "Cannot compare dielectric functions as as function of q, use average value"
+            )
 
         return qpoints
 
-    def ipw_select_plot(self): # pragma: no cover
+    def ipw_select_plot(self):  # pragma: no cover
         """
         Return an ipython widget with controllers to select the plot.
         """
+
         def plot_callback(mdf_type, qview):
             return self.plot(mdf_type=mdf_type, qview=qview)
 
         import ipywidgets as ipw
+
         return ipw.interact_manual(
-                plot_callback,
-                mdf_type=["exc", "rpa", "gwrpa"],
-                qview=["avg", "all"],
-            )
+            plot_callback,
+            mdf_type=["exc", "rpa", "gwrpa"],
+            qview=["avg", "all"],
+        )
 
     def _can_use_basenames_as_labels(self):
         """
         Return True if all labels represent valid files and the basenames are unique
         In this case one can use the file basename instead of the full path in the plots.
         """
-        if not all(os.path.exists(l) for l in self._mdfs): return False
+        if not all(os.path.exists(l) for l in self._mdfs):
+            return False
         labels = [os.path.basename(l) for l in self._mdfs]
         return len(set(labels)) == len(labels)
 
@@ -899,6 +976,7 @@ class MdfRobot(Robot, RobotWithEbands):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: MdfRobot
     """
+
     EXT = "MDF"
 
     def plot(self, **kwargs) -> Figure:
@@ -943,8 +1021,8 @@ class MdfRobot(Robot, RobotWithEbands):
                 "rpa_mdf": mdf.rpanlf_mdf,
                 "gwrpa_mdf": mdf.gwnlf_mdf,
             }
-            #d = {aname: getattr(mdf, aname) for aname in attrs}
-            #d.update({"qpgap": mdf.get_qpgap(spin, kpoint)})
+            # d = {aname: getattr(mdf, aname) for aname in attrs}
+            # d.update({"qpgap": mdf.get_qpgap(spin, kpoint)})
 
             # Add convergence parameters
             d.update(mdf.params)
@@ -954,14 +1032,15 @@ class MdfRobot(Robot, RobotWithEbands):
                 d.update(mdf.structure.get_dict4pandas(with_spglib=True))
 
             # Execute functions.
-            if funcs is not None: d.update(self._exec_funcs(funcs, mdf))
+            if funcs is not None:
+                d.update(self._exec_funcs(funcs, mdf))
             rows.append(d)
 
         row_names = row_names if not abspath else self._to_relpaths(row_names)
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
-    #@add_fig_kwargs
-    #def plot_conv_mdf(self, hue, mdf_type="exc_mdf", **kwargs):
+    # @add_fig_kwargs
+    # def plot_conv_mdf(self, hue, mdf_type="exc_mdf", **kwargs):
     #    import matplotlib.pyplot as plt
     #    frame = self.get_dataframe()
     #    grouped = frame.groupby(hue)
@@ -986,14 +1065,16 @@ class MdfRobot(Robot, RobotWithEbands):
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
         args = [(l, f.filepath) for l, f in self.items()]
-        nb.cells.extend([
-            #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("robot = abilab.MdfRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-            nbv.new_code_cell("#df = robot.get_dataframe(with_geo=False"),
-            nbv.new_code_cell("plotter = robot.get_multimdf_plotter()"),
-            nbv.new_code_cell('plotter.plot(mdf_type="exc", qview="avg", xlim=None, ylim=None);'),
-            #nbv.new_code_cell(plotter.combiboxplot();"),
-        ])
+        nb.cells.extend(
+            [
+                # nbv.new_markdown_cell("# This is a markdown cell"),
+                nbv.new_code_cell("robot = abilab.MdfRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+                nbv.new_code_cell("#df = robot.get_dataframe(with_geo=False"),
+                nbv.new_code_cell("plotter = robot.get_multimdf_plotter()"),
+                nbv.new_code_cell('plotter.plot(mdf_type="exc", qview="avg", xlim=None, ylim=None);'),
+                # nbv.new_code_cell(plotter.combiboxplot();"),
+            ]
+        )
 
         # Mixins
         nb.cells.extend(self.get_baserobot_code_cells())
@@ -1002,7 +1083,7 @@ class MdfRobot(Robot, RobotWithEbands):
         return self._write_nb_nbpath(nb, nbpath)
 
 
-def _from_cart_to_red(cartesian_tensor,lattice):
+def _from_cart_to_red(cartesian_tensor, lattice):
     mat = lattice.inv_matrix
     red_tensor = np.dot(np.dot(np.transpose(mat), cartesian_tensor), mat)
     return red_tensor
@@ -1033,10 +1114,13 @@ class _Tensor:
             raise ValueError(f"space should be either 'g' or 'r' but got {space=}")
 
     def __eq__(self, other):
-        if other is None: return False
-        return (np.allclose(self.reduced_tensor, other.reduced_tensor) and
-                self.lattice == other.lattice and
-                self.space == other.space)
+        if other is None:
+            return False
+        return (
+            np.allclose(self.reduced_tensor, other.reduced_tensor)
+            and self.lattice == other.lattice
+            and self.space == other.space
+        )
 
     def __ne__(self, other):
         return not (self == other)
@@ -1084,7 +1168,7 @@ class _Tensor:
     @classmethod
     def from_cartesian_tensor(cls, cartesian_tensor, lattice, space="r"):
         red_tensor = _from_cart_to_red(cartesian_tensor, lattice)
-        return cls(red_tensor, lattice,space)
+        return cls(red_tensor, lattice, space)
 
     def symmetrize(self, structure):
         tensor = self._reduced_tensor
@@ -1096,24 +1180,25 @@ class _Tensor:
 
         # I guess this is the reason why tensor.symmetrize (omega) is so slow!
         from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+
         real_finder = SpacegroupAnalyzer(structure)
 
         real_symmops = real_finder.get_point_group_operations(cartesian=True)
 
         cartesian_tensor = self.cartesian_tensor
 
-        sym_tensor = np.zeros((3,3))
+        sym_tensor = np.zeros((3, 3))
 
         my_tensor = cartesian_tensor
 
         for real_sym in real_symmops:
             mat = real_sym.rotation_matrix
-            prod_sym = np.dot(np.transpose(mat),np.dot(cartesian_tensor,mat))
+            prod_sym = np.dot(np.transpose(mat), np.dot(cartesian_tensor, mat))
             sym_tensor = sym_tensor + prod_sym
 
-        sym_tensor = sym_tensor/len(real_symmops)
+        sym_tensor = sym_tensor / len(real_symmops)
 
-        self._reduced_tensor = _from_cart_to_red(sym_tensor,self._lattice)
+        self._reduced_tensor = _from_cart_to_red(sym_tensor, self._lattice)
 
 
 class _SymmetricTensor(_Tensor):
@@ -1134,24 +1219,32 @@ class _SymmetricTensor(_Tensor):
         assert len(qpoints) == 6 and len(values) == len(qpoints)
 
         mat = lattice.matrix
-        metric = np.dot(np.transpose(mat),mat)
+        metric = np.dot(np.transpose(mat), mat)
 
-        coeffs_red = np.zeros((6,6))
+        coeffs_red = np.zeros((6, 6))
 
-        for (iqpt,qpt) in enumerate(qpoints):
-            metqpt = np.dot(metric,qpt)
+        for iqpt, qpt in enumerate(qpoints):
+            metqpt = np.dot(metric, qpt)
 
-            coeffs_red[iqpt,:] = [metqpt[0]**2,metqpt[1]**2,metqpt[2]**2,
-                                  2*metqpt[0]*metqpt[1],2*metqpt[0]*metqpt[2],2*metqpt[1]*metqpt[2]]
+            coeffs_red[iqpt, :] = [
+                metqpt[0] ** 2,
+                metqpt[1] ** 2,
+                metqpt[2] ** 2,
+                2 * metqpt[0] * metqpt[1],
+                2 * metqpt[0] * metqpt[2],
+                2 * metqpt[1] * metqpt[2],
+            ]
 
-            normqpt_red = np.dot(np.transpose(qpt),np.dot(metric,qpt))
+            normqpt_red = np.dot(np.transpose(qpt), np.dot(metric, qpt))
 
-            coeffs_red[iqpt,:] = coeffs_red[iqpt,:] / normqpt_red
+            coeffs_red[iqpt, :] = coeffs_red[iqpt, :] / normqpt_red
 
-        red_symm = np.linalg.solve(coeffs_red,values)
+        red_symm = np.linalg.solve(coeffs_red, values)
 
-        red_tensor = [[red_symm[0],red_symm[3],red_symm[4]],
-                      [red_symm[3],red_symm[1],red_symm[5]],
-                      [red_symm[4],red_symm[5],red_symm[2]]]
+        red_tensor = [
+            [red_symm[0], red_symm[3], red_symm[4]],
+            [red_symm[3], red_symm[1], red_symm[5]],
+            [red_symm[4], red_symm[5], red_symm[2]],
+        ]
 
         return cls(red_tensor, lattice, space)

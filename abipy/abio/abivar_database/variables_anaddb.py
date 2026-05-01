@@ -1,4 +1,3 @@
-
 try:
     from abimkdocs.variables import MultipleValue, Range, ValueWithUnit
 except ImportError:
@@ -28,7 +27,6 @@ which is sampled on a finite q and k grid. The Dirac delta functions in energy
 are replaced by Gaussians of width **a2fsmear** (by default in Hartree).
 """,
     ),
-
     Variable(
         abivarname="alphon@anaddb",
         varset="anaddb",
@@ -47,7 +45,6 @@ and to compute the Raman susceptibilities of individual phonon modes. In case
 of uniaxial crystals, the z-axis should be chosen along the optical axis.
 """,
     ),
-
     Variable(
         abivarname="asr@anaddb",
         varset="anaddb",
@@ -116,7 +113,6 @@ should use a diagonalisation routine for non-hermitian matrices.
 ).
 """,
     ),
-
     Variable(
         abivarname="atifc@anaddb",
         varset="anaddb",
@@ -131,7 +127,6 @@ The actual numbers of the atoms for which the interatomic force constant have
 to be written and eventually analysed.
 """,
     ),
-
     # FIXME NOTE XG20170811: apparently no effective test for this input variable. Also,
     # the description is strange ...!
     Variable(
@@ -148,7 +143,6 @@ to be written and eventually analysed.
 Allow setting the target band gap, in eV. ([[anaddb:elphflag]]=1).
 """,
     ),
-
     Variable(
         abivarname="brav@anaddb",
         varset="anaddb",
@@ -186,7 +180,6 @@ than the default **brav** = 1 algorithm
 based on Wigner-Seitz cells (new as v8.7). The default algorithm has a correct treatment of symmetries.
 """,
     ),
-
     Variable(
         abivarname="chneut@anaddb",
         varset="anaddb",
@@ -215,7 +208,6 @@ frequencies at Gamma non-zero. There is no "best" way of imposing the cherge neu
 See also [[asr@anaddb]] and [[asr]].
 """,
     ),
-
     Variable(
         abivarname="dieflag@anaddb",
         varset="anaddb",
@@ -261,7 +253,6 @@ Frequency-dependent dielectric tensor flag.
   So please set: [[anaddb:elaflag]]=2,3,4 or 5 and [[anaddb:instrflag]]=1
 """,
     ),
-
     Variable(
         abivarname="dipdip@anaddb",
         varset="anaddb",
@@ -295,7 +286,6 @@ Frequency-dependent dielectric tensor flag.
     lead to identical results. Otherwise increase the resolution of the q-point grid and repeat this test.
 """,
     ),
-
     Variable(
         abivarname="dipquad@anaddb",
         varset="anaddb",
@@ -321,7 +311,6 @@ Frequency-dependent dielectric tensor flag.
     If the DDB file does not contain the dynamical quadrupoles, this variable is automatically set to zero at runtime.
 """,
     ),
-
     Variable(
         abivarname="quadquad@anaddb",
         varset="anaddb",
@@ -347,7 +336,6 @@ Frequency-dependent dielectric tensor flag.
     If the DDB file does not contain the dynamical quadrupoles, this variable is automatically set to zero at runtime.
 """,
     ),
-
     Variable(
         abivarname="dosdeltae@anaddb",
         varset="anaddb",
@@ -364,7 +352,6 @@ grid used to calculate the phonon density of states when [[anaddb:prtdos]] = 1.
 Prior to v9.10, the default was 1 cm$^{-1}$.
 """,
     ),
-
     Variable(
         abivarname="dossmear@anaddb",
         varset="anaddb",
@@ -382,7 +369,6 @@ density of states when [[anaddb:prtdos]] = 1.
 Prior to v9.10, the default was 5 cm$^{-1}$.
 """,
     ),
-
     Variable(
         abivarname="dossum@anaddb",
         varset="anaddb",
@@ -398,7 +384,6 @@ Difference for the Gamma point. The DOS is converged and based on that, the
 sum and difference are reported in the output file.
 """,
     ),
-
     Variable(
         abivarname="dostol@anaddb",
         varset="anaddb",
@@ -415,7 +400,6 @@ stopped, i.e. the mean of the relative change going from one grid to the next
 bigger is smaller than **dostol**.
 """,
     ),
-
     Variable(
         abivarname="eivec@anaddb",
         varset="anaddb",
@@ -431,7 +415,6 @@ bigger is smaller than **dostol**.
 * 4 --> generate output files for band2eps (drawing tool for the phonon band structure);
 """,
     ),
-
     Variable(
         abivarname="elaflag@anaddb",
         varset="anaddb",
@@ -470,7 +453,6 @@ Flag for calculation of elastic and compliance tensors
     into a new DDB file, which can contain both information. And the program will also check for the users.
 """,
     ),
-
     Variable(
         abivarname="elph_fermie@anaddb",
         varset="anaddb",
@@ -487,7 +469,6 @@ in the electron-phonon case. Note that [[anaddb:elph_fermie]] and [[anaddb:ep_ex
 ([[anaddb:elphflag]]=1).
 """,
     ),
-
     Variable(
         abivarname="elphflag@anaddb",
         varset="anaddb",
@@ -501,7 +482,6 @@ in the electron-phonon case. Note that [[anaddb:elph_fermie]] and [[anaddb:ep_ex
 If **elphflag** is 1, anaddb performs an analysis of the electron-phonon coupling.
 """,
     ),
-
     Variable(
         abivarname="elphsmear@anaddb",
         varset="anaddb",
@@ -516,7 +496,6 @@ If **elphflag** is 1, anaddb performs an analysis of the electron-phonon couplin
 Smearing width for the Fermi surface integration (in Hartree by default).
 """,
     ),
-
     Variable(
         abivarname="enunit@anaddb",
         varset="anaddb",
@@ -535,7 +514,6 @@ the console log file, for which Hartree units are used).
   * 2 --> Hartree, cm$^{-1}$, meV, Thz, and Kelvin.
 """,
     ),
-
     Variable(
         abivarname="ep_b_max@anaddb",
         varset="anaddb",
@@ -553,7 +531,6 @@ equal weight is given to all k-points, for all bands between
 [[anaddb:ep_b_min]] and **ep_b_max**.
 """,
     ),
-
     Variable(
         abivarname="ep_b_min@anaddb",
         varset="anaddb",
@@ -568,7 +545,6 @@ As for [[anaddb:ep_b_max]], but **ep_b_min** is the lower bound on the band
 integration, instead of the upper bound. See also [[anaddb:telphint]].
 """,
     ),
-
     Variable(
         abivarname="ep_extrael@anaddb",
         varset="anaddb",
@@ -587,7 +563,6 @@ doping). Note that **ep_extrael** and [[anaddb:elph_fermie]] should not be
 used at the same time. ([[anaddb:elphflag]]=1).
 """,
     ),
-
     Variable(
         abivarname="ep_int_gkk@anaddb",
         varset="anaddb",
@@ -604,7 +579,6 @@ with appropriate Fermi Surface weights. In this way, the two integration
 weights are treated symmetrically.
 """,
     ),
-
     Variable(
         abivarname="ep_keepbands@anaddb",
         varset="anaddb",
@@ -621,7 +595,6 @@ it is summed over immediately with appropriate Fermi Surface weights. For
 transport calculations **ep_keepbands** must be set to 1.
 """,
     ),
-
     Variable(
         abivarname="ep_nqpt@anaddb",
         varset="anaddb",
@@ -637,7 +610,6 @@ of the electron-phonon quantities without interpolation, this specifies the
 number of q-points to be found in the GKK file, independently of the normal anaddb input (ngqpt)
 """,
     ),
-
     Variable(
         abivarname="ep_nspline@anaddb",
         varset="anaddb",
@@ -652,7 +624,6 @@ The scale factor for cubic spline interpolation, only used in the relaxation
 time approximation ([[anaddb:ifltransport]]=3).
 """,
     ),
-
     Variable(
         abivarname="ep_prt_yambo@anaddb",
         varset="anaddb",
@@ -666,7 +637,6 @@ time approximation ([[anaddb:ifltransport]]=3).
 For electron-phonon calculations, print out matrix elements for use by the yambo code.
 """,
     ),
-
     Variable(
         abivarname="ep_qptlist@anaddb",
         varset="anaddb",
@@ -683,7 +653,6 @@ q-points to be found in the GKK file, independently of the normal anaddb input
 (ngqpt), in reduced coordinates of the reciprocal space lattice.
 """,
     ),
-
     Variable(
         abivarname="ep_scalprod@anaddb",
         varset="anaddb",
@@ -704,7 +673,6 @@ but sometimes gives small spikes in the phonon linewidths near band crossings
 or high symmetry points. I do not know why...
 """,
     ),
-
     Variable(
         abivarname="flexoflag@anaddb",
         varset="anaddb",
@@ -731,7 +699,6 @@ Flag for calculation of bulk flexoelectrics tensors
           Requires a preceding generation of 2nd and 3rd order DDB with a [[lw_flexo]] = 1 or 4 run.
 """,
     ),
-
     Variable(
         abivarname="freeze_displ@anaddb",
         varset="anaddb",
@@ -763,7 +730,6 @@ If all you want is to break the symmetry in the right direction, any reasonable 
 be used with a small number [[anaddb:nph1l]] of q-points for interpolation.
 """,
     ),
-
     Variable(
         abivarname="frmax@anaddb",
         varset="anaddb",
@@ -777,7 +743,6 @@ be used with a small number [[anaddb:nph1l]] of q-points for interpolation.
 Value of the largest frequency for the frequency-dependent dielectric tensor, in Hartree.
 """,
     ),
-
     Variable(
         abivarname="frmin@anaddb",
         varset="anaddb",
@@ -791,7 +756,6 @@ Value of the largest frequency for the frequency-dependent dielectric tensor, in
 Value of the lowest frequency for the frequency-dependent dielectric tensor, in Hartree.
 """,
     ),
-
     Variable(
         abivarname="gkqwrite@anaddb",
         varset="anaddb",
@@ -806,7 +770,6 @@ Flag to write out the reciprocal space matrix elements to a disk file named
 gkqfile. This reduces strongly the memory needed for an electron-phonon run.
 """,
     ),
-
     Variable(
         abivarname="gruns_ddbs@anaddb",
         varset="anaddb",
@@ -828,7 +791,6 @@ better than 1 part in $10^4$. The code
 computes the derivative of the dynamical matrix wrt the volume using central finite difference.
 """,
     ),
-
     Variable(
         abivarname="gruns_nddbs@anaddb",
         varset="anaddb",
@@ -846,7 +808,6 @@ ANADDB, and so should be computed in a separate run from calculation of other
 possible responses.
 """,
     ),
-
     Variable(
         abivarname="iatfix@anaddb",
         varset="anaddb",
@@ -861,7 +822,6 @@ Indices of the atoms that are fixed during a structural relaxation at
 constrained polarization. See [[anaddb:polflag]].
 """,
     ),
-
     Variable(
         abivarname="iatprj_bs@anaddb",
         varset="anaddb",
@@ -876,7 +836,6 @@ Indices of the atoms that are chosen for projection of the phonon
 eigenvectors, giving a weighted phonon band structure file.
 """,
     ),
-
     Variable(
         abivarname="ifcana@anaddb",
         varset="anaddb",
@@ -903,7 +862,6 @@ ratios with respect to the longitudinal force constant ( the (1,1) element of
 the matrix in local coordinates).
 """,
     ),
-
     Variable(
         abivarname="ifcflag@anaddb",
         varset="anaddb",
@@ -935,7 +893,6 @@ suggested to always use **ifcflag** =1. The **ifcflag** =0 option is available
 for checking purpose, and if there is not enough information in the DDB.
 """,
     ),
-
     Variable(
         abivarname="ifcout@anaddb",
         varset="anaddb",
@@ -952,7 +909,6 @@ and eventually analysed. The neighbouring atoms are selected by decreasing
 distance with respect to the generic atom.
 """,
     ),
-
     Variable(
         abivarname="ifltransport@anaddb",
         varset="anaddb",
@@ -969,7 +925,6 @@ phonon interactions in the variational approach. If **ifltransport** =3, anaddb
 calculates the k-dependent relaxation time. (needs [[anaddb:elphflag]] = 1)
 """,
     ),
-
     Variable(
         abivarname="instrflag@anaddb",
         varset="anaddb",
@@ -988,7 +943,6 @@ Internal strain tensor flag.
     Set [[rfstrs]] = 1, 2, or 3 (preferably 3). Set [[rfatpol]] and [[rfdir]] to do a full calculation of phonons at Q=0.
 """,
     ),
-
     Variable(
         abivarname="istrfix@anaddb",
         varset="anaddb",
@@ -1028,7 +982,6 @@ structural relaxation at constrained polarisation:
 See [[anaddb:polflag]].
 """,
     ),
-
     Variable(
         abivarname="kptrlatt@anaddb",
         varset="anaddb",
@@ -1044,7 +997,6 @@ Unnormalized lattice vectors for the k-point grid in reciprocal space (see
 calculations using nesting functions or tetrahedron integration.
 """,
     ),
-
     Variable(
         abivarname="kptrlatt_fine@anaddb",
         varset="anaddb",
@@ -1059,7 +1011,6 @@ As kptrlatt above, but for a finer grid of k-points. Under development.
 Does not work yet, as of |today|.
 """,
     ),
-
     Variable(
         abivarname="lwf_anchor_ibands@anaddb",
         varset="anaddb",
@@ -1073,9 +1024,6 @@ Does not work yet, as of |today|.
 The indices of bands of the anchor points. Together with the [[anaddb:lwf_anchor_qpt]], it gives the phonon modes used as anchor points. For example, lwf_anchor_qpt = 0.0 0.0 0.0 and lwf_anchor_ibands= 0 1 2  means the lowest three modes are used as anchor points. The number of anchor ibands should be equal to the number of Wannier functions.
 """,
     ),
-
-
-
     Variable(
         abivarname="lwf_anchor_proj@anaddb",
         varset="anaddb",
@@ -1094,9 +1042,6 @@ Whether to multiply the projection to the anchor points when calculating the wei
 
 """,
     ),
-
-
-
     Variable(
         abivarname="lwf_anchor_qpt@anaddb",
         varset="anaddb",
@@ -1110,8 +1055,6 @@ Whether to multiply the projection to the anchor points when calculating the wei
 The q-point of the anchor points. Together with the [[anaddb:lwf_anchor_ibands]], it gives the phonon modes used as anchor points. For example, lwf_anchor_qpt = 0.0 0.0 0.0 and lwf_anchor_ibands= 0 1 2  means the lowest three modes are used as anchor points.
 """,
     ),
-
-
     Variable(
         abivarname="lwf_disentangle@anaddb",
         varset="anaddb",
@@ -1135,7 +1078,6 @@ The value of $\mu$ and $\sigma$ are defined with [[anaddb:lwf_mu]] and [[anaddb:
 
 """,
     ),
-
     Variable(
         abivarname="lwf_mu@anaddb",
         varset="anaddb",
@@ -1150,7 +1092,6 @@ The mu ($\mu$) parameter in the Lattice Wannier function disentanglement functio
 See [[anaddb:lwf_disentangle]] for more details.
 """,
     ),
-
     Variable(
         abivarname="lwf_sigma@anaddb",
         varset="anaddb",
@@ -1165,9 +1106,6 @@ The sigma ($\sigma$) parameter in the Lattice Wannier function disentanglement f
 See [[anaddb:lwf_disentangle]] for more details.
 """,
     ),
-
-
-
     Variable(
         abivarname="lwf_ngqpt@anaddb",
         varset="anaddb",
@@ -1181,10 +1119,6 @@ See [[anaddb:lwf_disentangle]] for more details.
 The Monkhorst-Pack grid used for construction Lattice Wannier functions.
 """,
     ),
-
-
-
-
     Variable(
         abivarname="lwf_nwann@anaddb",
         varset="anaddb",
@@ -1198,8 +1132,6 @@ The Monkhorst-Pack grid used for construction Lattice Wannier functions.
 The number of Lattice Wannier functions to be constructed.
 """,
     ),
-
-
     Variable(
         abivarname="lwf_projector@anaddb",
         varset="anaddb",
@@ -1214,11 +1146,6 @@ The indices of atomic displacements used as projectors in the construction of La
 For each atom, there are three displacements along x, y, and z in the cartesian coordinate. The list of the displacements are thus (atom 1, x), (atoms 1, y), (atom 1, z), (atom 2, x), etc. The lwf_projector option specifies the indices of the se displacement to be used as projectors. The number of the projectors should equal the number of wannier functions.
 """,
     ),
-
-
-
-
-
     Variable(
         abivarname="lwfflag@anaddb",
         varset="anaddb",
@@ -1237,11 +1164,6 @@ Lattice Wannier function flag.
 
 """,
     ),
-
-
-
-
-
     Variable(
         abivarname="mustar@anaddb",
         varset="anaddb",
@@ -1256,7 +1178,6 @@ Average electron-electron interaction strength, for the computation of the
 superconducting Tc using Mc-Millan's formula.
 """,
     ),
-
     Variable(
         abivarname="natfix@anaddb",
         varset="anaddb",
@@ -1271,7 +1192,6 @@ Number of atoms that are fixed during a structural optimisation at constrained
 polarization. See [[anaddb:polflag]].
 """,
     ),
-
     Variable(
         abivarname="natifc@anaddb",
         varset="anaddb",
@@ -1286,7 +1206,6 @@ Give the number of atoms for which IFCs are written and eventually analysed.
 The list of these atoms is provided by [[anaddb:atifc]].
 """,
     ),
-
     Variable(
         abivarname="natprj_bs@anaddb",
         varset="anaddb",
@@ -1301,7 +1220,6 @@ Give the number of atoms for which atomic-projected phonon band structures
 will be output. The list of these atoms is provided by [[anaddb:iatprj_bs]].
 """,
     ),
-
     Variable(
         abivarname="nchan@anaddb",
         varset="anaddb",
@@ -1317,7 +1235,6 @@ of states through the histogram method, or, equivalently, the largest
 frequency sampled. The first channel begins at 0.
 """,
     ),
-
     Variable(
         abivarname="ndivsm@anaddb",
         varset="anaddb",
@@ -1334,7 +1251,6 @@ specified in the input file, the code will automatically generate the points
 along the path using the coordinates given in the array [[anaddb:qpath]].
 """,
     ),
-
     Variable(
         abivarname="nfreq@anaddb",
         varset="anaddb",
@@ -1350,7 +1266,6 @@ Should be positive. See [[anaddb:dieflag]]. The code will take **nfreq**
 equidistant values from [[anaddb:frmin]] to [[anaddb:frmax]].
 """,
     ),
-
     Variable(
         abivarname="ng2qpt@anaddb",
         varset="anaddb",
@@ -1365,7 +1280,6 @@ The Monkhorst-Pack grid linear dimensions, for the finer of the series of fine g
 Used for the integration of thermodynamical functions (Bose-Einstein distribution) or for the DOS.
 """,
     ),
-
     Variable(
         abivarname="ngqpt@anaddb",
         varset="anaddb",
@@ -1380,7 +1294,6 @@ The Monkhorst-Pack grid linear dimensions (coarse grid).
 Should correspond to the grid of points available in the DDB or to a sub-grid.
 """,
     ),
-
     Variable(
         abivarname="ngrids@anaddb",
         varset="anaddb",
@@ -1398,7 +1311,6 @@ igrid=1... [[anaddb:ngrids]], by the numbers
 ngqpt_igrid(ii)=(igrid ng2qpt(ii))/[[anaddb:ngrids]]s
 """,
     ),
-
     Variable(
         abivarname="nlflag@anaddb",
         varset="anaddb",
@@ -1418,7 +1330,6 @@ Non-linear properties flag.
   * 3 --> only the non-linear optical susceptibility is calculated.
 """,
     ),
-
     Variable(
         abivarname="nph1l@anaddb",
         varset="anaddb",
@@ -1437,7 +1348,6 @@ forces interpolation - if [[anaddb:ifcflag]]=1 -), will be diagonalized, and
 the corresponding eigenfrequencies will be printed.
 """,
     ),
-
     Variable(
         abivarname="nph2l@anaddb",
         varset="anaddb",
@@ -1464,7 +1374,6 @@ The wavevectors in list 2 will be used to:
   three first numbers are zero, then the code will do a calculation at Gamma without non-analyticities.
 """,
     ),
-
     Variable(
         abivarname="nqpath@anaddb",
         varset="anaddb",
@@ -1479,7 +1388,6 @@ Number of q-points in the array [[anaddb:qpath]] defining the path along which
 the phonon band structure and phonon linewidths are interpolated.
 """,
     ),
-
     Variable(
         abivarname="nqshft@anaddb",
         varset="anaddb",
@@ -1497,7 +1405,6 @@ sampling (Warning: not BCC lattice, BCC *sampling*), and 4 for FCC sampling
 (Warning: not FCC lattice, FCC *sampling*).
 """,
     ),
-
     Variable(
         abivarname="nsphere@anaddb",
         varset="anaddb",
@@ -1525,7 +1432,6 @@ the range of the interatomic force constants), because the acoustic sum rule
 will be violated if some atoms are no more included in the inverse Fourier Transform.
 """,
     ),
-
     Variable(
         abivarname="nstrfix@anaddb",
         varset="anaddb",
@@ -1540,7 +1446,6 @@ Number of strain component that are fixed during a structural optimisation at
 constrained polarization. See [[anaddb:polflag]].
 """,
     ),
-
     Variable(
         abivarname="ntemper@anaddb",
         varset="anaddb",
@@ -1561,7 +1466,6 @@ anaddb will be important. For weakly bounded systems (e.g. Van der Waals
 solids), such anharmonic effects might be important already at room temperature.
 """,
     ),
-
     Variable(
         abivarname="nwchan@anaddb",
         varset="anaddb",
@@ -1579,7 +1483,6 @@ converged when the convergence criterion based on [[anaddb:dostol]] and
 [[anaddb:thmtol]] have been fulfilled.
 """,
     ),
-
     Variable(
         abivarname="outboltztrap@anaddb",
         varset="anaddb",
@@ -1595,7 +1498,6 @@ legible by the BoltzTrap code, which does band interpolation and gets group
 velocities. The output file will be appended _BTRAP
 """,
     ),
-
     Variable(
         abivarname="outscphon@anaddb",
         varset="anaddb",
@@ -1612,7 +1514,6 @@ files appended _PHFRQ and _PHVEC. The third file needed is appended _PCINFO
 for Primitive Cell INFOrmation.
 """,
     ),
-
     Variable(
         abivarname="piezoflag@anaddb",
         varset="anaddb",
@@ -1661,7 +1562,6 @@ Flag for calculation of piezoelectric tensors
     The flags should be set to satisfy the above rules from 1 to 6.
 """,
     ),
-
     Variable(
         abivarname="polflag@anaddb",
         varset="anaddb",
@@ -1699,7 +1599,6 @@ difference expression of the ddk ([[berryopt]]=2 or -2) in the linear response
 calculation of the effective charges and the piezoelectric tensor.
 """,
     ),
-
     Variable(
         abivarname="prt_ifc@anaddb",
         varset="anaddb",
@@ -1717,7 +1616,6 @@ The available options are:
   * 1 --> write out the IFC in file ifcinfo.out (the name is fixed) to be used by AI2PS from John Rehr's group
 """,
     ),
-
     Variable(
         abivarname="prtbltztrp@anaddb",
         varset="anaddb",
@@ -1732,7 +1630,6 @@ The available options are:
 * 1 --> write out the input files for BoLTZTRaP code.
 """,
     ),
-
     Variable(
         abivarname="prtddb@anaddb",
         varset="anaddb",
@@ -1751,7 +1648,6 @@ The available options are:
   * 1 --> Interpolate the DDB and write out the DDB and DDB.nc files.
 """,
     ),
-
     Variable(
         abivarname="prtdos@anaddb",
         varset="anaddb",
@@ -1777,7 +1673,6 @@ The step of the frequency grid employed to calculate the DOS can be defined
 through the input variable [[anaddb:dosdeltae]].
 """,
     ),
-
     Variable(
         abivarname="prtfsurf@anaddb",
         varset="anaddb",
@@ -1806,7 +1701,6 @@ set to (0,0,0) during the GS calculation with [[nshiftk]]=1. Furthermore if
 this array must be zero.
 """,
     ),
-
     Variable(
         abivarname="prtmbm@anaddb",
         varset="anaddb",
@@ -1821,7 +1715,6 @@ this array must be zero.
   * 1 --> write out the contribution of the individual zone-center phonon modes to the electrooptic tensor.
 """,
     ),
-
     Variable(
         abivarname="prtnest@anaddb",
         varset="anaddb",
@@ -1857,7 +1750,6 @@ reciprocal space, moreover off-diagonal elements are not allowed, i.e. [[kptrlat
   * 2 --> write out the nesting function both in the X-Y and in the XSF format.
 """,
     ),
-
     Variable(
         abivarname="prtphbands@anaddb",
         varset="anaddb",
@@ -1877,7 +1769,6 @@ phonon band structure. Possible values:
     and a `PHBANDS.gnuplot` script. Use `gnuplot file_PHBANDS.gnuplot` to visualize the phonon band structure.
 """,
     ),
-
     Variable(
         abivarname="prtsrlr@anaddb",
         varset="anaddb",
@@ -1897,13 +1788,17 @@ For details see [[cite:Ghosez1996]].
 See also [[anaddb:ifcflag]] and [[anaddb:dipdip]].
 """,
     ),
-
     Variable(
         abivarname="prtvol@anaddb",
         varset="anaddb",
         vartype="integer",
-        topics=["Phonons_useful", "PhononBands_useful", "Temperature_useful",
-                "PhononWidth_useful", "ElPhonTransport_useful"],
+        topics=[
+            "Phonons_useful",
+            "PhononBands_useful",
+            "Temperature_useful",
+            "PhononWidth_useful",
+            "ElPhonTransport_useful",
+        ],
         dimensions="scalar",
         defaultval=0,
         mnemonics="PRinT VOLume",
@@ -1912,7 +1807,6 @@ See also [[anaddb:ifcflag]] and [[anaddb:dipdip]].
 Control the volume of printed output.
 """,
     ),
-
     Variable(
         abivarname="q1shft@anaddb",
         varset="anaddb",
@@ -1967,7 +1861,6 @@ For a FCC lattice, it is possible to sample only the Gamma point by using a
 1x1x1 BCC sampling ([[anaddb:nqshft]]=2).
 """,
     ),
-
     Variable(
         abivarname="q2shft@anaddb",
         varset="anaddb",
@@ -1983,7 +1876,6 @@ Similar to [[anaddb:q1shft]], but for the series of fine grids.
 Note that [[anaddb:nqshft]] for this series of grids corresponds to 1.
 """,
     ),
-
     Variable(
         abivarname="qgrid_type@anaddb",
         varset="anaddb",
@@ -2000,7 +1892,6 @@ q-points to calculate the electron-phonon coupling for. This is an alternative
 to a regular grid as in the rest of anaddb (using [[anaddb:ngqpt]]).
 """,
     ),
-
     Variable(
         abivarname="qpath@anaddb",
         varset="anaddb",
@@ -2019,7 +1910,6 @@ code to respect the proportion between the segments. The same circuit is used
 for the output of the nesting function if [[anaddb:prtnest]]=1.
 """,
     ),
-
     Variable(
         abivarname="qph1l@anaddb",
         varset="anaddb",
@@ -2042,7 +1932,6 @@ the three first numbers are stored in the array qph1l(3,nph1l), while the
 fourth is stored in the array qnrml1(nph1l).
 """,
     ),
-
     Variable(
         abivarname="qph2l@anaddb",
         varset="anaddb",
@@ -2073,7 +1962,6 @@ the three first numbers are stored in the array qph2l(3,nph2l), while the
 fourth is stored in the array qnrml2(nph2l).
 """,
     ),
-
     Variable(
         abivarname="qrefine@anaddb",
         varset="anaddb",
@@ -2093,7 +1981,6 @@ imposed, before proceeding to normal band structure and other interpolations.
 Should implement Gaal-Nagy's algorithm in [[cite:GaalNagy2006]].
 """,
     ),
-
     Variable(
         abivarname="ramansr@anaddb",
         varset="anaddb",
@@ -2119,7 +2006,6 @@ imposed by giving each atom a part of the discrepancy.
 For the time being, **ramansr** =1 is the preferred choice.
 """,
     ),
-
     Variable(
         abivarname="relaxat@anaddb",
         varset="anaddb",
@@ -2134,7 +2020,6 @@ If **relaxat** =1, relax atomic positions during a structural relaxation at
 constrained polarization. See [[anaddb:polflag]].
 """,
     ),
-
     Variable(
         abivarname="relaxstr@anaddb",
         varset="anaddb",
@@ -2149,7 +2034,6 @@ If **relaxstr** =1, relax lattice constants (lengths/angles) during a
 structural relaxation at constrained polarization. See [[anaddb:polflag]].
 """,
     ),
-
     Variable(
         abivarname="rfmeth@anaddb",
         varset="anaddb",
@@ -2169,7 +2053,6 @@ For more detailed explanations, see [[help:abinit]]. If the information in the
 DDB is available, always use the option 2. If not, you can try option 1, which is less accurate.
 """,
     ),
-
     Variable(
         abivarname="rifcsph@anaddb",
         varset="anaddb",
@@ -2188,7 +2071,6 @@ interatomic force constants, after imposition of the acoustic sum rule, will
 not be put to zero.
 """,
     ),
-
     Variable(
         abivarname="selectz@anaddb",
         varset="anaddb",
@@ -2213,7 +2095,6 @@ Note: this is for analysis the effect of anisotropy in the effective charge.
 The result with non-zero **selectz** are unphysical.
 """,
     ),
-
     Variable(
         abivarname="symdynmat@anaddb",
         varset="anaddb",
@@ -2234,7 +2115,6 @@ interpolation procedure based on interatomic force constant is used: there are
 some slight symmetry breaking effects. The latter can be bypassed by this additional symmetrization.
 """,
     ),
-
     Variable(
         abivarname="symgkq@anaddb",
         varset="anaddb",
@@ -2250,7 +2130,6 @@ symmetrized over the small group of the q-point they correspond to. This
 should always be used, except for debugging or test purposes.
 """,
     ),
-
     Variable(
         abivarname="targetpol@anaddb",
         varset="anaddb",
@@ -2264,7 +2143,6 @@ should always be used, except for debugging or test purposes.
 Target value of the polarization in cartesian coordinates and in C/m$^2$. See [[anaddb:polflag]].
 """,
     ),
-
     Variable(
         abivarname="telphint@anaddb",
         varset="anaddb",
@@ -2282,7 +2160,6 @@ Flag controlling the Fermi surface integration technique used for electron-phono
   * 2 = uniformly weighted band window between [[anaddb:ep_b_min]] and [[anaddb:ep_b_max]], for all k-points
 """,
     ),
-
     Variable(
         abivarname="temperinc@anaddb",
         varset="anaddb",
@@ -2302,7 +2179,6 @@ anaddb will be important. For weakly bounded systems (e.g. Van der Waals
 solids), such anharmonic effects might be important already at room temperature.
 """,
     ),
-
     Variable(
         abivarname="tempermin@anaddb",
         varset="anaddb",
@@ -2324,7 +2200,6 @@ be important. For weakly bounded systems (e.g. Van der Waals solids), such
 anharmonic effects might be important already at room temperature.
 """,
     ),
-
     Variable(
         abivarname="thermal_supercell@anaddb",
         varset="anaddb",
@@ -2355,7 +2230,6 @@ For the moment this feature is under development and it looks like the
 relative phases of the displacements are not fixed properly yet... (Aug 2017)
 """,
     ),
-
     Variable(
         abivarname="thmflag@anaddb",
         varset="anaddb",
@@ -2389,7 +2263,6 @@ Input variables that may be needed if this flag is activated:
 [[anaddb:ng2qpt]], [[anaddb:ngrids]], [[anaddb:q2shft]].
 """,
     ),
-
     Variable(
         abivarname="thmtol@anaddb",
         varset="anaddb",
@@ -2406,7 +2279,6 @@ can be stopped, i.e. the mean of the relative change going from one grid to
 the next bigger is smaller than **thmtol**.
 """,
     ),
-
     Variable(
         abivarname="use_k_fine@anaddb",
         varset="anaddb",
@@ -2423,7 +2295,6 @@ GS WFK file) and electronic velocities(GKK files from DDK calculation) are
 needed. Note that the coarse k-grid must be a subset of the fine k-grid.
 """,
     ),
-
     Variable(
         abivarname="vs_qrad_tolkms@anaddb",
         varset="anaddb",
@@ -2446,7 +2317,6 @@ specified by the user (typical values for tolkms: 0.05 km/s).
 The default values will not work.
 """,
     ),
-
     # ABINIT 9
     Variable(
         abivarname="ddb_filepath@anaddb",
@@ -2471,7 +2341,6 @@ instead of the legacy mode based on the files file. Example:
     Shell variables e.g. $HOME or tilde syntax `~` for user home are not supported.
 """,
     ),
-
     Variable(
         abivarname="output_file@anaddb",
         varset="anaddb",
@@ -2491,7 +2360,6 @@ instead of the legacy mode based on the files file. Example:
     output = "t01.out"
 """,
     ),
-
     # Variable(
     #    abivarname="md_output@anaddb",
     #    varset="anaddb",
@@ -2509,7 +2377,6 @@ instead of the legacy mode based on the files file. Example:
     # Note This variable is optional and used ...
     # """,
     # ),
-
     Variable(
         abivarname="gkk_filepath@anaddb",
         varset="anaddb",
@@ -2528,7 +2395,6 @@ instead of the legacy mode based on the files file.
 This variable is optional and used for performing EPH calculation with [[elphflag@anaddb]].
 """,
     ),
-
     Variable(
         abivarname="eph_prefix@anaddb",
         varset="anaddb",
@@ -2547,7 +2413,6 @@ instead of the legacy mode based on the files file.
 This variable is optional and used for performing EPH calculation with [[elphflag@anaddb]].
 """,
     ),
-
     Variable(
         abivarname="ddk_filepath@anaddb",
         varset="anaddb",
@@ -2579,7 +2444,6 @@ where t94.ddk contains the list of file names.
     t90o_DS10_GKK6
 """,
     ),
-
     Variable(
         abivarname="outdata_prefix@anaddb",
         varset="anaddb",
@@ -2601,7 +2465,6 @@ instead of the legacy mode based on the files file. Example:
 See also [[outdata_prefix@abinit]]
 """,
     ),
-
     Variable(
         abivarname="dos_maxmode@anaddb",
         varset="anaddb",
@@ -2618,5 +2481,4 @@ included in the computation of the phonon DOS
 If set to 0, which is the default value, all modes are included in the DOS.
 """,
     ),
-
 ]

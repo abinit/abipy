@@ -21,7 +21,6 @@ __all__ = [
 
 
 class TransportFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
-
     @classmethod
     def from_file(cls, filepath):
         """Initialize the object from a netcdf file."""
@@ -31,11 +30,11 @@ class TransportFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrit
         super().__init__(filepath)
         self.reader = TransportReader(filepath)
 
-        #self.fermi = self.ebands.fermie * abu.eV_Ha
+        # self.fermi = self.ebands.fermie * abu.eV_Ha
         self.tmesh = self.reader.tmesh
-        #self.transport_ngkpt = self.reader.read_value("transport_ngkpt")
-        #self.transport_extrael = self.reader.read_value("transport_extrael")
-        #self.transport_fermie = self.reader.read_value("transport_fermie")
+        # self.transport_ngkpt = self.reader.read_value("transport_ngkpt")
+        # self.transport_extrael = self.reader.read_value("transport_extrael")
+        # self.transport_fermie = self.reader.read_value("transport_fermie")
 
     @property
     def ntemp(self):
@@ -64,7 +63,8 @@ class TransportFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrit
 
     def to_string(self, verbose=0):
         """String representation"""
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
 
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
@@ -151,7 +151,7 @@ class TransportFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrit
         cmap = plt.get_cmap(colormap)
         for itemp in range(self.ntemp):
             temp = self.tmesh[itemp]
-            wmesh, mu = self.reader.read_mobility(0, itemp, component,0)
+            wmesh, mu = self.reader.read_mobility(0, itemp, component, 0)
             ax.plot(wmesh, mu, c=cmap(itemp / self.ntemp), label="T = %dK" % temp)
 
         ax.grid(True)
@@ -174,14 +174,16 @@ class TransportFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrit
             spin: Spin index.
         """
         from scipy import interpolate
-        if ef is None: ef = self.reader.read_value("transport_mu_e")[itemp]
+
+        if ef is None:
+            ef = self.reader.read_value("transport_mu_e")[itemp]
         wmesh, mobility = self.reader.read_mobility(eh, itemp, component, spin)
         f = interpolate.interp1d(wmesh, mobility)
 
         return f(ef)
 
-    #@add_fig_kwargs
-    #def plot_onsanger(self, nn=0, ax=None, **kwargs):
+    # @add_fig_kwargs
+    # def plot_onsanger(self, nn=0, ax=None, **kwargs):
     #    """
     #    Plot Onsanger
 
@@ -212,13 +214,15 @@ class TransportFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrit
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        nb.cells.extend([
-            nbv.new_code_cell("ncfile = abilab.abiopen('%s')" % self.filepath),
-            nbv.new_code_cell("print(ncfile)"),
-            nbv.new_code_cell("ncfile.plot_edos();"),
-            nbv.new_code_cell("ncfile.plot_vvtau_dos();"),
-            nbv.new_code_cell("ncfile.plot_mobility();"),
-        ])
+        nb.cells.extend(
+            [
+                nbv.new_code_cell("ncfile = abilab.abiopen('%s')" % self.filepath),
+                nbv.new_code_cell("print(ncfile)"),
+                nbv.new_code_cell("ncfile.plot_edos();"),
+                nbv.new_code_cell("ncfile.plot_vvtau_dos();"),
+                nbv.new_code_cell("ncfile.plot_mobility();"),
+            ]
+        )
 
         return self._write_nb_nbpath(nb, nbpath)
 
@@ -228,6 +232,7 @@ class TransportReader(ElectronsReader):
     This class reads the results stored in the TRANSPORT.nc file
     It provides helper function to access the most important quantities.
     """
+
     def __init__(self, filepath):
         self.filepath = filepath
         super().__init__(filepath)
@@ -249,7 +254,7 @@ class TransportReader(ElectronsReader):
         i, j = abu.s2itup(component)
         wmesh = self.read_variable("vvdos_mesh")[:] * abu.Ha_eV
         vals = self.read_variable("vvdos_vals")
-        vvdos = vals[i,j,spin,:]
+        vvdos = vals[i, j, spin, :]
 
         return wmesh, vvdos
 
@@ -266,7 +271,7 @@ class TransportReader(ElectronsReader):
         i, j = abu.s2itup(component)
         wmesh = self.read_variable("vvdos_mesh")[:] * abu.Ha_eV
         vals = self.read_variable("vvdos_tau")
-        vvdos_tau = vals[itemp,i,j,spin,:] / (2 * abu.Ha_s)
+        vvdos_tau = vals[itemp, i, j, spin, :] / (2 * abu.Ha_s)
 
         return wmesh, vvdos_tau
 
@@ -286,18 +291,18 @@ class TransportReader(ElectronsReader):
         Read the Onsager coefficients computed in the transport driver in Abinit
         """
         # nctkarr_t('L0', "dp", "edos_nw, nsppol, three, three, ntemp"), &
-        L0 = np.moveaxis(self.read_variable("L0")[itemp,:], [0,1,2,3], [3,2,0,1])
-        L1 = np.moveaxis(self.read_variable("L1")[itemp,:], [0,1,2,3], [3,2,0,1])
-        L2 = np.moveaxis(self.read_variable("L2")[itemp,:], [0,1,2,3], [3,2,0,1])
+        L0 = np.moveaxis(self.read_variable("L0")[itemp, :], [0, 1, 2, 3], [3, 2, 0, 1])
+        L1 = np.moveaxis(self.read_variable("L1")[itemp, :], [0, 1, 2, 3], [3, 2, 0, 1])
+        L2 = np.moveaxis(self.read_variable("L2")[itemp, :], [0, 1, 2, 3], [3, 2, 0, 1])
 
         return L0, L1, L2
 
     def read_transport(self, itemp):
         # nctkarr_t('sigma',   "dp", "edos_nw, nsppol, three, three, ntemp"), &
-        sigma = np.moveaxis(self.read_variable("sigma")[itemp,:],     [0,1,2,3], [3,2,0,1])
-        kappa = np.moveaxis(self.read_variable("kappa")[itemp,:],     [0,1,2,3], [3,2,0,1])
-        seebeck = np.moveaxis(self.read_variable("seebeck")[itemp,:], [0,1,2,3], [3,2,0,1])
-        pi = np.moveaxis(self.read_variable("pi")[itemp,:],           [0,1,2,3], [3,2,0,1])
+        sigma = np.moveaxis(self.read_variable("sigma")[itemp, :], [0, 1, 2, 3], [3, 2, 0, 1])
+        kappa = np.moveaxis(self.read_variable("kappa")[itemp, :], [0, 1, 2, 3], [3, 2, 0, 1])
+        seebeck = np.moveaxis(self.read_variable("seebeck")[itemp, :], [0, 1, 2, 3], [3, 2, 0, 1])
+        pi = np.moveaxis(self.read_variable("pi")[itemp, :], [0, 1, 2, 3], [3, 2, 0, 1])
 
         return sigma, kappa, seebeck, pi
 
@@ -308,13 +313,13 @@ class TransportReader(ElectronsReader):
         """
         # nctkarr_t('mobility',"dp", "edos_nw, nsppol, three, three, ntemp, two"), &
         i, j = abu.s2itup(component)
-        #wvals = self.read_variable("vvdos_mesh")
+        # wvals = self.read_variable("vvdos_mesh")
         wvals = self.read_value("vvdos_mesh")
-        mobility = self.read_variable("mobility")[eh,itemp,i,j,spin,:]
+        mobility = self.read_variable("mobility")[eh, itemp, i, j, spin, :]
 
         return wvals, mobility
 
-    #def read_evk_diagonal(self):
+    # def read_evk_diagonal(self):
     #    """
     #    Read the group velocities i.e the diagonal matrix elements.
     #    Return (nsppol, nkpt) |numpy-array| of real numbers.
@@ -360,8 +365,8 @@ class TransportRobot(Robot, RobotWithEbands):
             kptrlattx = kptrlatt[0, 0]
             kptrlatty = kptrlatt[1, 1]
             kptrlattz = kptrlatt[2, 2]
-            #nkpt = ncfile.nkpt
-            mobility = ncfile.reader.read_value("mobility_mu")[itemp][i,j][spin][eh]
+            # nkpt = ncfile.nkpt
+            mobility = ncfile.reader.read_value("mobility_mu")[itemp][i, j][spin][eh]
             res.append([kptrlattx, mobility])
 
         res.sort(key=lambda t: t[0])
@@ -376,17 +381,22 @@ class TransportRobot(Robot, RobotWithEbands):
             raise ValueError("Invalid value for eh argument: %s" % eh)
 
         from fractions import Fraction
+
         ratio1 = Fraction(kptrlatty, kptrlattx)
         ratio2 = Fraction(kptrlattz, kptrlattx)
-        text1 = "" if ratio1.numerator == ratio1.denominator else \
-                rf"$\frac{{{ratio1.numerator}}}{{{ratio1.denominator}}}$"
-        text2 = "" if ratio2.numerator == ratio2.denominator else \
-                rf"$\frac{{{ratio2.numerator}}}{{{ratio2.denominator}}}$"
+        text1 = (
+            "" if ratio1.numerator == ratio1.denominator else rf"$\frac{{{ratio1.numerator}}}{{{ratio1.denominator}}}$"
+        )
+        text2 = (
+            "" if ratio2.numerator == ratio2.denominator else rf"$\frac{{{ratio2.numerator}}}{{{ratio2.denominator}}}$"
+        )
 
-        ax.set_xlabel(r"Homogeneous $N_k \times$ " + text1 + r"$N_k \times$ " + text2 + r"$N_k$ $\mathbf{k}$-point grid",
-                      size=size)
+        ax.set_xlabel(
+            r"Homogeneous $N_k \times$ " + text1 + r"$N_k \times$ " + text2 + r"$N_k$ $\mathbf{k}$-point grid",
+            size=size,
+        )
 
-        ax.plot(res[:,0], res[:,1], **kwargs)
+        ax.plot(res[:, 0], res[:, 1], **kwargs)
 
         ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
@@ -397,12 +407,12 @@ class TransportRobot(Robot, RobotWithEbands):
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         Used in abiview.py to get a quick look at the results.
         """
-        #yield self.plot_lattice_convergence(show=False)
-        #yield self.plot_gsr_convergence(show=False)
-        #for fig in self.get_ebands_plotter().yield_figs(): yield fig
-        #self.plot_mobility_conv(eh=0, component='xx', itemp=0, spin=0, fontsize=14, ax=None, **kwargs):
+        # yield self.plot_lattice_convergence(show=False)
+        # yield self.plot_gsr_convergence(show=False)
+        # for fig in self.get_ebands_plotter().yield_figs(): yield fig
+        # self.plot_mobility_conv(eh=0, component='xx', itemp=0, spin=0, fontsize=14, ax=None, **kwargs):
 
-    #def get_panel(self):
+    # def get_panel(self):
     #    """
     #    Build panel with widgets to interact with the |GsrRobot| either in a notebook or in panel app.
     #    """
@@ -417,46 +427,49 @@ class TransportRobot(Robot, RobotWithEbands):
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
         args = [(l, f.filepath) for l, f in self.items()]
-        nb.cells.extend([
-            #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("robot = abilab.GsrRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-            #nbv.new_code_cell("ebands_plotter = robot.get_ebands_plotter()"),
-        ])
+        nb.cells.extend(
+            [
+                # nbv.new_markdown_cell("# This is a markdown cell"),
+                nbv.new_code_cell("robot = abilab.GsrRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+                # nbv.new_code_cell("ebands_plotter = robot.get_ebands_plotter()"),
+            ]
+        )
 
         # Mixins
-        #nb.cells.extend(self.get_baserobot_code_cells())
-        #nb.cells.extend(self.get_ebands_code_cells())
+        # nb.cells.extend(self.get_baserobot_code_cells())
+        # nb.cells.extend(self.get_ebands_code_cells())
 
         return self._write_nb_nbpath(nb, nbpath)
 
 
 if __name__ == "__main__":
     import sys
+
     robot = TransportRobot.from_files(sys.argv[1:])
     print(robot)
 
-    #import matplotlib.pyplot as plt
-    #plt.figure(0, figsize=(14,9))
-    #plt.tick_params(labelsize=14)
-    #ax = plt.gca()
+    # import matplotlib.pyplot as plt
+    # plt.figure(0, figsize=(14,9))
+    # plt.tick_params(labelsize=14)
+    # ax = plt.gca()
 
     robot.plot_mobility_conv(ax=None, color="k", marker="o", label=r"$N_{{q_{{x,y,z}}}}$ = $N_{{k_{{x,y,z}}}}$")
 
-    #fileslist = ['conv_fine/k27x27x27/q27x27x27/Sio_DS1_TRANSPORT.nc',
+    # fileslist = ['conv_fine/k27x27x27/q27x27x27/Sio_DS1_TRANSPORT.nc',
     #             'conv_fine/k30x30x30/q30x30x30/Sio_DS1_TRANSPORT.nc',
     #             'conv_fine/k108x108x108/q108x108x108/Sio_DS1_TRANSPORT.nc',
     #             'conv_fine/k120x120x120/q120x120x120/Sio_DS1_TRANSPORT.nc',
     #             'conv_fine/k132x132x132/q132x132x132/Sio_DS1_TRANSPORT.nc',
     #             'conv_fine/k144x144x144/q144x144x144/Sio_DS1_TRANSPORT.nc',]
 
-    #plot_mobility_conv(ax, fileslist, color='k', marker='o', label=r'$N_{{q_{{x,y,z}}}}$ = $N_{{k_{{x,y,z}}}}$')
+    # plot_mobility_conv(ax, fileslist, color='k', marker='o', label=r'$N_{{q_{{x,y,z}}}}$ = $N_{{k_{{x,y,z}}}}$')
 
-    #fileslist = ['conv_fine/k27x27x27/q54x54x54/Sio_DS1_TRANSPORT.nc',
+    # fileslist = ['conv_fine/k27x27x27/q54x54x54/Sio_DS1_TRANSPORT.nc',
     #             'conv_fine/k30x30x30/q60x60x60/Sio_DS1_TRANSPORT.nc',
     #             'conv_fine/k66x66x66/q132x132x132/Sio_DS1_TRANSPORT.nc',
     #             'conv_fine/k72x72x72/q144x144x144/Sio_DS1_TRANSPORT.nc']
 
-    #plot_mobility_conv(ax, fileslist, color='r', marker='x', label=r'$N_{{q_{{x,y,z}}}}$ = $2 N_{{k_{{x,y,z}}}}$')
+    # plot_mobility_conv(ax, fileslist, color='r', marker='x', label=r'$N_{{q_{{x,y,z}}}}$ = $2 N_{{k_{{x,y,z}}}}$')
 
-    #plt.legend(loc='best',fontsize=14)
-    #plt.show()
+    # plt.legend(loc='best',fontsize=14)
+    # plt.show()

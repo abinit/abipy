@@ -7,8 +7,8 @@ from abipy.flowtk.qutils import SlurmJobArray
 
 def get_slurm_header(conda_env):
     # IMPORTANT: You need customize the slurm options below according to your machine.
-    #conda_env = os.environ['CONDA_DEFAULT_ENV']
-    #print(f"Slurm script will be executed in {conda_env=}")
+    # conda_env = os.environ['CONDA_DEFAULT_ENV']
+    # print(f"Slurm script will be executed in {conda_env=}")
 
     slurm_header = f"""\
 #!/bin/bash
@@ -61,5 +61,5 @@ Performing MD calculations with the following parameters:
         job_array.sbatch("job_array.sh")
 
 
-if __name__ ==  "__main__":
+if __name__ == "__main__":
     main()

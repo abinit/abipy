@@ -1,6 +1,7 @@
 """
 This script runs all the python scripts located in this directory
 """
+
 import os
 import unittest
 
@@ -8,14 +9,14 @@ from abipy.core.testing import AbipyTest
 
 root = os.path.dirname(__file__)
 
-class TestPlots(AbipyTest):
 
+class TestPlots(AbipyTest):
     def test_plots_with_exec(self):
         """
         Running plot scripts in example/plots directory with exec.
         """
         # Travis issue
-        #if os.environ.get("TRAVIS"):
+        # if os.environ.get("TRAVIS"):
         #    raise unittest.SkipTest("Skipping plot examples on TRAVIS")
 
         if not self.has_matplotlib():
@@ -24,6 +25,7 @@ class TestPlots(AbipyTest):
         import matplotlib.pyplot as plt
 
         from abipy.tools.plotting import set_plotly_default_show
+
         ply_show = False
         ply_show = True
         print("Setting plotly_default_show to: ", ply_show)
@@ -32,7 +34,8 @@ class TestPlots(AbipyTest):
         plot_dir = os.path.join(root, "..", "plot")
         count, errors = 0, []
         for fname in os.listdir(plot_dir):
-            if not (fname.endswith(".py") and fname.startswith("plot_")): continue
+            if not (fname.endswith(".py") and fname.startswith("plot_")):
+                continue
             count += 1
             path = os.path.join(plot_dir, fname)
             print("About to execute:", path)

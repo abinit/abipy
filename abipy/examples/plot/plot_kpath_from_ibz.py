@@ -6,6 +6,7 @@ K-path from IBZ
 This example shows how to extract energies along a k-path
 from a calculation done with a (dense) IBZ sampling.
 """
+
 import abipy.data as abidata
 from abipy.abilab import abiopen
 

@@ -1,4 +1,5 @@
 """Objects to analyze the results stored in the GRUNS.nc file produced by anaddb."""
+
 from __future__ import annotations
 
 import os
@@ -27,13 +28,15 @@ from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig
 from abipy.tools.typing import Figure
 
 # DOS name --> meta-data
-_ALL_DOS_NAMES = OrderedDict([
-    ("gruns_wdos", dict(latex=r"$DOS$")),
-    ("gruns_grdos", dict(latex=r"$DOS_{\gamma}$")),
-    ("gruns_gr2dos", dict(latex=r"$DOS_{\gamma^2}$")),
-    ("gruns_vdos", dict(latex=r"$DOS_v$")),
-    ("gruns_v2dos", dict(latex=r"$DOS_{v^2}$")),
-])
+_ALL_DOS_NAMES = OrderedDict(
+    [
+        ("gruns_wdos", dict(latex=r"$DOS$")),
+        ("gruns_grdos", dict(latex=r"$DOS_{\gamma}$")),
+        ("gruns_gr2dos", dict(latex=r"$DOS_{\gamma^2}$")),
+        ("gruns_vdos", dict(latex=r"$DOS_v$")),
+        ("gruns_v2dos", dict(latex=r"$DOS_{v^2}$")),
+    ]
+)
 
 
 class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
@@ -51,6 +54,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GrunsNcFile
     """
+
     @classmethod
     def from_file(cls, filepath: str) -> GrunsNcFile:
         """Initialize the object from a netcdf_ file"""
@@ -74,7 +78,8 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosite level `verbose`."""
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
 
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
@@ -93,8 +98,8 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """|Structure| corresponding to the central point V0."""
         return self.reader.structure
 
-    #@property
-    #def volumes(self):
+    # @property
+    # def volumes(self):
     #    """Volumes of the unit cell in Angstrom**3"""
     #    return self.reader.volumes
 
@@ -124,8 +129,10 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     def gvals_qibz(self):
         """Gruneisen parameters in the irreducible brillouin zone"""
         if "gruns_gvals_qibz" not in self.reader.rootgrp.variables:
-            raise RuntimeError("GRUNS.nc file does not contain `gruns_gvals_qibz`."
-                               "Use prtdos in anaddb input file to compute these values in the IBZ")
+            raise RuntimeError(
+                "GRUNS.nc file does not contain `gruns_gvals_qibz`."
+                "Use prtdos in anaddb input file to compute these values in the IBZ"
+            )
 
         return self.reader.read_value("gruns_gvals_qibz")
 
@@ -160,6 +167,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         amu_list = self.reader.read_value("atomic_mass_units")
         atomic_numbers = self.reader.read_value("atomic_numbers")
         from pymatgen.core.periodic_table import Element
+
         amu = {Element.from_Z(at).symbol: a for at, a in zip(atomic_numbers, amu_list, strict=False)}
         return amu
 
@@ -191,14 +199,18 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         rows = []
         for iq in range(nqibz):
             for nu in range(natom3):
-                rows.append(OrderedDict([
-                           ("qidx", iq),
-                           ("mode", nu),
-                           ("grun", grun_vals[iq, nu]),
-                           ("groupv", groupv[iq, nu]),
-                           ("freq", phfreqs[iq, nu]),
-                           #("qpoint", self.qpoints[iq]),
-                        ]))
+                rows.append(
+                    OrderedDict(
+                        [
+                            ("qidx", iq),
+                            ("mode", nu),
+                            ("grun", grun_vals[iq, nu]),
+                            ("groupv", groupv[iq, nu]),
+                            ("freq", phfreqs[iq, nu]),
+                            # ("qpoint", self.qpoints[iq]),
+                        ]
+                    )
+                )
 
         return pd.DataFrame(rows, columns=list(rows[0].keys()))
 
@@ -215,14 +227,16 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         Return: |matplotlib-Figure|
         """
-        if not self.phdoses: return None
+        if not self.phdoses:
+            return None
 
         dos_names = _ALL_DOS_NAMES.keys() if dos_names == "all" else list_strings(dos_names)
         wmesh = self.phdoses["wmesh"]
 
         nrows, ncols = len(dos_names), 1
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=False, squeeze=False)
+        ax_list, fig, plt = get_axarray_fig_plt(
+            None, nrows=nrows, ncols=ncols, sharex=True, sharey=False, squeeze=False
+        )
         ax_list = ax_list.ravel()
 
         for i, (name, ax) in enumerate(zip(dos_names, ax_list, strict=False)):
@@ -231,7 +245,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             ax.grid(True)
             set_axlims(ax, xlims, "x")
             ax.set_ylabel(_ALL_DOS_NAMES[name]["latex"])
-            #ax.yaxis.set_ticks_position("right")
+            # ax.yaxis.set_ticks_position("right")
 
             if with_idos:
                 other_ax = ax.twinx()
@@ -240,7 +254,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
             if i == len(dos_names) - 1:
                 ax.set_xlabel(r"$\omega$ (eV)")
-            #ax.legend(loc="best", fontsize=fontsize, shadow=True)
+            # ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
@@ -257,8 +271,19 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return plotter
 
     @add_fig_kwargs
-    def plot_phbands_with_gruns(self, fill_with="gruns", gamma_fact=1, alpha=0.6, with_phdoses="all", units="eV",
-                                ylims=None, match_bands=False, qlabels=None, branch_range=None, **kwargs) -> Figure:
+    def plot_phbands_with_gruns(
+        self,
+        fill_with="gruns",
+        gamma_fact=1,
+        alpha=0.6,
+        with_phdoses="all",
+        units="eV",
+        ylims=None,
+        match_bands=False,
+        qlabels=None,
+        branch_range=None,
+        **kwargs,
+    ) -> Figure:
         r"""
         Plot the phonon bands corresponding to ``V0`` (the central point) with markers
         showing the value and the sign of the Grunesein parameters.
@@ -281,7 +306,8 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         Returns: |matplotlib-Figure|.
         """
-        if not self.phbands_qpath_vol: return None
+        if not self.phbands_qpath_vol:
+            return None
         phbands = self.phbands_qpath_vol[self.iv0]
         factor = phbands.phfactor_ev2units(units)
         gamma_fact *= factor
@@ -292,6 +318,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         else:
             import matplotlib.pyplot as plt
             from matplotlib.gridspec import GridSpec
+
             dos_names = list(_ALL_DOS_NAMES.keys()) if with_phdoses == "all" else list_strings(with_phdoses)
             ncols = 1 + len(dos_names)
             fig = plt.figure()
@@ -303,8 +330,9 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 ax_phdoses.append(plt.subplot(gspec[i + 1], sharey=ax_bands))
 
         # Plot phonon bands.
-        phbands.plot(ax=ax_bands, units=units, match_bands=match_bands, show=False, qlabels=qlabels,
-                     branch_range=branch_range)
+        phbands.plot(
+            ax=ax_bands, units=units, match_bands=match_bands, show=False, qlabels=qlabels, branch_range=branch_range
+        )
 
         if fill_with == "gruns":
             max_gamma = np.abs(phbands.grun_vals).max()
@@ -431,7 +459,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         indices = self.phbands_qpath_vol[self.iv0]._split_indices
         g = self.phbands_qpath_vol[self.iv0].grun_vals
-        return [np.array(g[indices[i]:indices[i + 1] + 1]) for i in range(len(indices) - 1)]
+        return [np.array(g[indices[i] : indices[i + 1] + 1]) for i in range(len(indices) - 1)]
 
     @cached_property
     def split_dwdq(self):
@@ -443,10 +471,12 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         indices = self.phbands_qpath_vol[self.iv0]._split_indices
         v = self.reader.read_value("gruns_dwdq_qpath")
-        return [np.array(v[indices[i]:indices[i + 1] + 1]) for i in range(len(indices) - 1)]
+        return [np.array(v[indices[i] : indices[i + 1] + 1]) for i in range(len(indices) - 1)]
 
     @add_fig_kwargs
-    def plot_gruns_bs(self, values="gruns", ax=None, branch_range=None, qlabels=None, match_bands=False, **kwargs) -> Figure:
+    def plot_gruns_bs(
+        self, values="gruns", ax=None, branch_range=None, qlabels=None, match_bands=False, **kwargs
+    ) -> Figure:
         r"""
         A plot of the values of the Gruneisen parameters or group velocities along the
         high symmetry path.
@@ -535,22 +565,23 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        nb.cells.extend([
-            nbv.new_code_cell("ncfile = abilab.abiopen('%s')" % self.filepath),
-            nbv.new_code_cell("print(ncfile)"),
-            nbv.new_code_cell("ncfile.structure"),
-            nbv.new_code_cell("ncfile.plot_phdoses();"),
-            nbv.new_code_cell("ncfile.plot_phbands_with_gruns();"),
-            #nbv.new_code_cell("phbands_qpath_v0.plot_fatbands(phdos_file=phdosfile);"),
-            nbv.new_code_cell("plotter = ncfile.get_plotter()\nprint(plotter)"),
-            nbv.new_code_cell("df_phbands = plotter.get_phbands_frame()\ndisplay(df_phbands)"),
-            nbv.new_code_cell("plotter.ipw_select_plot()"),
-
-            nbv.new_code_cell("gdata = ncfile.to_dataframe()\ngdata.describe()"),
-            nbv.new_code_cell("""\
+        nb.cells.extend(
+            [
+                nbv.new_code_cell("ncfile = abilab.abiopen('%s')" % self.filepath),
+                nbv.new_code_cell("print(ncfile)"),
+                nbv.new_code_cell("ncfile.structure"),
+                nbv.new_code_cell("ncfile.plot_phdoses();"),
+                nbv.new_code_cell("ncfile.plot_phbands_with_gruns();"),
+                # nbv.new_code_cell("phbands_qpath_v0.plot_fatbands(phdos_file=phdosfile);"),
+                nbv.new_code_cell("plotter = ncfile.get_plotter()\nprint(plotter)"),
+                nbv.new_code_cell("df_phbands = plotter.get_phbands_frame()\ndisplay(df_phbands)"),
+                nbv.new_code_cell("plotter.ipw_select_plot()"),
+                nbv.new_code_cell("gdata = ncfile.to_dataframe()\ngdata.describe()"),
+                nbv.new_code_cell("""\
 #import df_widgets.seabornw as snsw
 #snsw.api_selector(gdata)"""),
-        ])
+            ]
+        )
 
         return self._write_nb_nbpath(nb, nbpath)
 
@@ -586,16 +617,16 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         if t is None:
             t = self.acoustic_debye_temp
 
-        w = self.wvols_qibz[:,self.iv0,:]
+        w = self.wvols_qibz[:, self.iv0, :]
         wdkt = w / (abu.kb_eVK * t)
 
         # if w=0 set cv=0
-        cv = np.choose(w > 0, (0, abu.kb_eVK * wdkt ** 2 * np.exp(wdkt) / (np.exp(wdkt) - 1) ** 2))
+        cv = np.choose(w > 0, (0, abu.kb_eVK * wdkt**2 * np.exp(wdkt) / (np.exp(wdkt) - 1) ** 2))
 
         gamma = self.gvals_qibz
 
         if squared:
-            gamma = gamma ** 2
+            gamma = gamma**2
 
         if limit_frequencies == "debye":
             adt = self.acoustic_debye_temp
@@ -640,8 +671,9 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         if theta_d is None:
             theta_d = self.acoustic_debye_temp
         mean_g = self.average_gruneisen(t=theta_d, squared=squared, limit_frequencies=limit_frequencies)
-        k = thermal_conductivity_slack(average_mass=average_mass, volume=self.structure.volume,
-                                       mean_g=mean_g, theta_d=theta_d, t=t)
+        k = thermal_conductivity_slack(
+            average_mass=average_mass, volume=self.structure.volume, mean_g=mean_g, theta_d=theta_d, t=t
+        )
 
         return k
 
@@ -667,11 +699,26 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return self.phdos.get_acoustic_debye_temp(len(self.structure))
 
     @classmethod
-    def from_ddb_list(cls, ddb_list, nqsmall=10, qppa=None, ndivsm=20, line_density=None,
-                      asr=2, chneut=1, dipdip=1,
-                      dos_method="tetra", lo_to_splitting="automatic",
-                      ngqpt=None, qptbounds=None, anaddb_kwargs=None,
-                      verbose=0, mpi_procs=1, workdir=None, manager=None):
+    def from_ddb_list(
+        cls,
+        ddb_list,
+        nqsmall=10,
+        qppa=None,
+        ndivsm=20,
+        line_density=None,
+        asr=2,
+        chneut=1,
+        dipdip=1,
+        dos_method="tetra",
+        lo_to_splitting="automatic",
+        ngqpt=None,
+        qptbounds=None,
+        anaddb_kwargs=None,
+        verbose=0,
+        mpi_procs=1,
+        workdir=None,
+        manager=None,
+    ):
         """
         Execute anaddb to compute generate the object from a list of ddbs.
 
@@ -715,7 +762,8 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         # update list of paths with absolute paths in the correct order
         ddb_list = [d.filepath for d in ddbs]
 
-        if ngqpt is None: ngqpt = ddb0.guessed_ngqpt
+        if ngqpt is None:
+            ngqpt = ddb0.guessed_ngqpt
 
         if lo_to_splitting == "automatic":
             lo_to_splitting = ddb0.has_lo_to_data() and dipdip != 0
@@ -724,14 +772,28 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             cprint("lo_to_splitting is True but Emacro and Becs are not available in DDB: %s" % ddb0.filepath, "yellow")
 
         inp = AnaddbInput.phbands_and_dos(
-            ddb0.structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall, qppa=qppa, line_density=line_density,
-            q1shft=(0, 0, 0), qptbounds=qptbounds, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method,
-            lo_to_splitting=lo_to_splitting, anaddb_kwargs=anaddb_kwargs)
+            ddb0.structure,
+            ngqpt=ngqpt,
+            ndivsm=ndivsm,
+            nqsmall=nqsmall,
+            qppa=qppa,
+            line_density=line_density,
+            q1shft=(0, 0, 0),
+            qptbounds=qptbounds,
+            asr=asr,
+            chneut=chneut,
+            dipdip=dipdip,
+            dos_method=dos_method,
+            lo_to_splitting=lo_to_splitting,
+            anaddb_kwargs=anaddb_kwargs,
+        )
 
         inp["gruns_ddbs"] = ddb_list
         inp["gruns_nddbs"] = len(ddb_list)
 
-        task = AnaddbTask.temp_shell_task(inp, ddb_node=ddb0.filepath, workdir=workdir, manager=manager, mpi_procs=mpi_procs)
+        task = AnaddbTask.temp_shell_task(
+            inp, ddb_node=ddb0.filepath, workdir=workdir, manager=manager, mpi_procs=mpi_procs
+        )
 
         if verbose:
             print("ANADDB INPUT:\n", inp)
@@ -777,7 +839,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
             indices = self.phbands_qpath_vol[self.iv0]._split_indices
             g = self.grun_vals_finite_differences(match_eigv=match_eigv)
-            self._split_gruns_fd = [np.array(g[indices[i]:indices[i + 1] + 1]) for i in range(len(indices) - 1)]
+            self._split_gruns_fd = [np.array(g[indices[i] : indices[i + 1] + 1]) for i in range(len(indices) - 1)]
             return self._split_gruns_fd
 
     @lru_cache
@@ -791,8 +853,9 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         if match_eigv:
             eig = np.zeros_like(self.phdispl_cart_qibz)
             for i in range(self.nvols):
-                eig[:, i] = get_dyn_mat_eigenvec(self.phdispl_cart_qibz[:, i], self.structures[i],
-                                                 amu_symbol=self.amu_symbol)
+                eig[:, i] = get_dyn_mat_eigenvec(
+                    self.phdispl_cart_qibz[:, i], self.structures[i], amu_symbol=self.amu_symbol
+                )
 
             eig = eig.transpose((1, 0, 2, 3))
         else:
@@ -800,8 +863,9 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         dv = np.abs(self.volumes[0] - self.volumes[1])
 
-        return calculate_gruns_finite_differences(self.wvols_qibz.transpose(1, 0, 2), eig, self.iv0,
-                                                  self.structure.volume, dv)
+        return calculate_gruns_finite_differences(
+            self.wvols_qibz.transpose(1, 0, 2), eig, self.iv0, self.structure.volume, dv
+        )
 
 
 class GrunsReader(ETSF_Reader):
@@ -812,27 +876,28 @@ class GrunsReader(ETSF_Reader):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GrunsReader
     """
+
     # Fortran arrays (remember to transpose dimensions!)
     # Remember: Atomic units are used everywhere in this file.
-    #nctkarr_t("gruns_qptrlatt", "int", "three, three"), &
-    #nctkarr_t("gruns_shiftq", "dp", "three, gruns_nshiftq"), &
-    #nctkarr_t("gruns_qibz", "dp", "three, gruns_nqibz"), &
-    #nctkarr_t("gruns_wtq", "dp", "gruns_nqibz"), &
-    #nctkarr_t("gruns_gvals_qibz", "dp", "number_of_phonon_modes, gruns_nqibz"), &
-    #nctkarr_t("gruns_wvols_qibz", "dp", "number_of_phonon_modes, gruns_nvols, gruns_nqibz"), &
-    #nctkarr_t("gruns_dwdq_qibz", "dp", "three, number_of_phonon_modes, gruns_nqibz"), &
-    #nctkarr_t("gruns_omega_mesh", "dp", "gruns_nomega"), &
-    #nctkarr_t("gruns_wdos", "dp", "gruns_nomega, two"), &
-    #nctkarr_t("gruns_grdos", "dp", "gruns_nomega, two"), &
-    #nctkarr_t("gruns_gr2dos", "dp", "gruns_nomega, two"), &
-    #nctkarr_t("gruns_v2dos", "dp", "gruns_nomega, two"), &
-    #nctkarr_t("gruns_vdos", "dp", "gruns_nomega, two") &
-    #nctkarr_t("gruns_qpath", "dp", "three, gruns_nqpath")
-    #nctkarr_t("gruns_gvals_qpath", "dp", "number_of_phonon_modes, gruns_nqpath")
-    #nctkarr_t("gruns_wvols_qpath", "dp", "number_of_phonon_modes, gruns_nvols, gruns_nqpath")
-    #nctkarr_t("gruns_dwdq_qpath", "dp", "three, number_of_phonon_modes, gruns_nqpath")
-    #nctkarr_t("gruns_rprimd", "dp", "three, three, gruns_nvols"), &
-    #nctkarr_t("gruns_xred", "dp", "three, number_of_atoms, gruns_nvols") &
+    # nctkarr_t("gruns_qptrlatt", "int", "three, three"), &
+    # nctkarr_t("gruns_shiftq", "dp", "three, gruns_nshiftq"), &
+    # nctkarr_t("gruns_qibz", "dp", "three, gruns_nqibz"), &
+    # nctkarr_t("gruns_wtq", "dp", "gruns_nqibz"), &
+    # nctkarr_t("gruns_gvals_qibz", "dp", "number_of_phonon_modes, gruns_nqibz"), &
+    # nctkarr_t("gruns_wvols_qibz", "dp", "number_of_phonon_modes, gruns_nvols, gruns_nqibz"), &
+    # nctkarr_t("gruns_dwdq_qibz", "dp", "three, number_of_phonon_modes, gruns_nqibz"), &
+    # nctkarr_t("gruns_omega_mesh", "dp", "gruns_nomega"), &
+    # nctkarr_t("gruns_wdos", "dp", "gruns_nomega, two"), &
+    # nctkarr_t("gruns_grdos", "dp", "gruns_nomega, two"), &
+    # nctkarr_t("gruns_gr2dos", "dp", "gruns_nomega, two"), &
+    # nctkarr_t("gruns_v2dos", "dp", "gruns_nomega, two"), &
+    # nctkarr_t("gruns_vdos", "dp", "gruns_nomega, two") &
+    # nctkarr_t("gruns_qpath", "dp", "three, gruns_nqpath")
+    # nctkarr_t("gruns_gvals_qpath", "dp", "number_of_phonon_modes, gruns_nqpath")
+    # nctkarr_t("gruns_wvols_qpath", "dp", "number_of_phonon_modes, gruns_nvols, gruns_nqpath")
+    # nctkarr_t("gruns_dwdq_qpath", "dp", "three, number_of_phonon_modes, gruns_nqpath")
+    # nctkarr_t("gruns_rprimd", "dp", "three, three, gruns_nvols"), &
+    # nctkarr_t("gruns_xred", "dp", "three, number_of_atoms, gruns_nvols") &
 
     def __init__(self, filepath: str):
         super().__init__(filepath)
@@ -860,8 +925,9 @@ class GrunsReader(ETSF_Reader):
 
         frac_coords_ibz = self.read_value("gruns_qibz")
         weights = self.read_value("gruns_wtq")
-        qpoints = IrredZone(self.structure.reciprocal_lattice, frac_coords_ibz,
-                            weights=weights, names=None, ksampling=qsampling)
+        qpoints = IrredZone(
+            self.structure.reciprocal_lattice, frac_coords_ibz, weights=weights, names=None, ksampling=qsampling
+        )
 
         # PHDOSes are in 1/Hartree.
         d = AttrDict(wmesh=self.read_value("gruns_omega_mesh") * abu.Ha_eV, qpoints=qpoints)
@@ -890,7 +956,7 @@ class GrunsReader(ETSF_Reader):
         dwdq_qpath = self.read_value("gruns_dwdq_qpath")
 
         amuz = self.read_amuz_dict()
-        #print("amuz", amuz)
+        # print("amuz", amuz)
 
         # nctkarr_t("gruns_phdispl_cart_qpath", "dp", &
         # "two, number_of_phonon_modes, number_of_phonon_modes, gruns_nvols, gruns_nqpath") &
@@ -898,8 +964,8 @@ class GrunsReader(ETSF_Reader):
         # consistent with the PhononBands API.
         phdispl_cart_qptsvol = self.read_value("gruns_phdispl_cart_qpath", cmode="c") * abu.Bohr_Ang
 
-        lattices = self.read_value("gruns_rprimd") * abu.Bohr_Ang #, "dp", "three, three, gruns_nvols")
-        gruns_xred = self.read_value("gruns_xred")                #, "dp", "three, number_of_atoms, gruns_nvols")
+        lattices = self.read_value("gruns_rprimd") * abu.Bohr_Ang  # , "dp", "three, three, gruns_nvols")
+        gruns_xred = self.read_value("gruns_xred")  # , "dp", "three, number_of_atoms, gruns_nvols")
 
         structures = self.read_structures()
 
@@ -911,7 +977,8 @@ class GrunsReader(ETSF_Reader):
             phdispl_cart = phdispl_cart_qptsvol[:, ivol].copy()
             phb = PhononBands(structure, qpoints, freqs_vol[:, ivol], phdispl_cart, non_anal_ph=None, amu=amuz)
             # Add Grunesein parameters.
-            if ivol == self.iv0: phb.grun_vals = grun_vals
+            if ivol == self.iv0:
+                phb.grun_vals = grun_vals
             phbands_qpath_vol.append(phb)
 
         return phbands_qpath_vol
@@ -983,7 +1050,7 @@ def calculate_gruns_finite_differences(phfreqs, eig, iv0, volume, dv) -> np.ndar
             if w == 0:
                 g[iq, im] = 0
             else:
-                g[iq, im] = - finite_diff(phfreqs[:, iq, im], dv, order=1, acc=acc)[iv0] * volume / w
+                g[iq, im] = -finite_diff(phfreqs[:, iq, im], dv, order=1, acc=acc)[iv0] * volume / w
 
     return g
 
@@ -1006,9 +1073,9 @@ def thermal_conductivity_slack(average_mass, volume, mean_g, theta_d, t=None) ->
     Returns:
         The value of the thermal conductivity in W/(m*K)
     """
-    factor1 = 0.849 * 3 * (4 ** (1. / 3.)) / (20 * np.pi ** 3 * (1 - 0.514 * mean_g ** -1 + 0.228 * mean_g ** -2))
+    factor1 = 0.849 * 3 * (4 ** (1.0 / 3.0)) / (20 * np.pi**3 * (1 - 0.514 * mean_g**-1 + 0.228 * mean_g**-2))
     factor2 = (const.k * theta_d / const.hbar) ** 2
-    factor3 = const.k * average_mass * volume ** (1. / 3.) * 1e-10 / (const.hbar * mean_g ** 2)
+    factor3 = const.k * average_mass * volume ** (1.0 / 3.0) * 1e-10 / (const.hbar * mean_g**2)
     k = factor1 * factor2 * factor3
     if t is not None:
         k *= theta_d / t

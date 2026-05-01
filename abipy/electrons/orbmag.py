@@ -1,7 +1,8 @@
 """Post-processing tools to analyze orbital magnetism."""
+
 from __future__ import annotations
 
-#from monty.termcolor import cprint
+# from monty.termcolor import cprint
 from functools import cached_property
 
 import matplotlib.patches as mpatches
@@ -16,35 +17,34 @@ from abipy.electrons.ebands import ElectronBands, ElectronsReader
 from abipy.tools.numtools import BzRegularGridInterpolator
 from abipy.tools.plotting import Marker, add_fig_kwargs, get_axarray_fig_plt, set_axlims
 
-#from abipy.tools.numtools import gaussian
+# from abipy.tools.numtools import gaussian
 from abipy.tools.typing import Figure
 
 
 def filter_sigma(sigma, atol):
     """From raw sigma_ij output, convert to ppm shielding and remove small parts"""
-    filtered_sigma = -1.0E6 * sigma
+    filtered_sigma = -1.0e6 * sigma
     for row in range(3):
         for col in range(3):
-            if abs(filtered_sigma[row,col]) < atol:
-                filtered_sigma[row,col] = 0.0
+            if abs(filtered_sigma[row, col]) < atol:
+                filtered_sigma[row, col] = 0.0
     return filtered_sigma
 
 
 def make_U_from_sigma(gprimd, sigma, atol=0.01):
-    """
-    """
+    """ """
     fsigma = filter_sigma(sigma, atol)
     sigma_eigs, sigma_evecs = eig(fsigma)
     Dmat = np.array([[norm(gprimd[0]), 0, 0], [0, norm(gprimd[1]), 0], [0, 0, norm(gprimd[2])]])
-    intmat=np.matmul(np.transpose(sigma_evecs), gprimd)
+    intmat = np.matmul(np.transpose(sigma_evecs), gprimd)
 
-    Cmat = np.zeros((3,3))
+    Cmat = np.zeros((3, 3))
     for col in range(3):
         for row in range(3):
-            Cmat[row,col] = intmat[row,col] / Dmat[col,col]
+            Cmat[row, col] = intmat[row, col] / Dmat[col, col]
 
-    Umat= np.matmul(np.transpose(Cmat), np.matmul(fsigma,Cmat))
-    Umat = Umat/np.max(Umat)
+    Umat = np.matmul(np.transpose(Cmat), np.matmul(fsigma, Cmat))
+    Umat = Umat / np.max(Umat)
     return Umat
 
 
@@ -105,9 +105,10 @@ class OrbmagAnalyzer:
         def _read_value(varname):
             """Read variable varname from files and check if they are almost equal."""
             import numpy.testing as nptu
+
             vals_list = np.array([o.r.read_value(varname) for o in self.orb_files])
             for vals in vals_list[1:]:
-                nptu.assert_almost_equal(vals, vals_list[0]) # , decimal, err_msg, verbose)
+                nptu.assert_almost_equal(vals, vals_list[0])  # , decimal, err_msg, verbose)
             return vals_list[0].copy()
 
         self.mband = mband = _read_dim("mband")
@@ -136,11 +137,11 @@ class OrbmagAnalyzer:
                             # convert terms to Cart coords; formulae differ depending on term. First
                             # four were in k space, remaining two already in real space
                             if iterm < 4:
-                                omtmp = ucvol * np.matmul(gprimd, orbmag_mesh[iterm,0:ndir,isppol,ikpt,iband])
+                                omtmp = ucvol * np.matmul(gprimd, orbmag_mesh[iterm, 0:ndir, isppol, ikpt, iband])
                             else:
-                                omtmp = np.matmul(np.transpose(rprimd), orbmag_mesh[iterm,0:ndir,isppol,ikpt,iband])
+                                omtmp = np.matmul(np.transpose(rprimd), orbmag_mesh[iterm, 0:ndir, isppol, ikpt, iband])
 
-                            self.orbmag_merge_mesh[iterm,idir,0:ndir,isppol,ikpt,iband] = omtmp
+                            self.orbmag_merge_mesh[iterm, idir, 0:ndir, isppol, ikpt, iband] = omtmp
 
         # This piece of code has been taken from orbmag_sigij_mesh
         wtk = _read_value("kpoint_weights")
@@ -152,20 +153,22 @@ class OrbmagAnalyzer:
             for ikpt in range(nkpt):
                 for iband in range(mband):
                     # weight factor for each band and k point
-                    trnrm = occ[isppol,ikpt,iband] * wtk[ikpt] / ucvol
+                    trnrm = occ[isppol, ikpt, iband] * wtk[ikpt] / ucvol
                     for iterm in range(orbmag_nterms):
                         # sigij = \sigma_ij the 3x3 shielding tensor term for each sppol, kpt, and band
                         # additional ucvol factor converts to induced dipole moment (was dipole moment density,
                         # that is, magnetization)
-                        self.orbmag_merge_sigij_mesh[iterm,isppol,ikpt,iband,0:ndir,0:ndir] = \
-                            ucvol * trnrm * self.orbmag_merge_mesh[iterm,0:ndir,0:ndir,isppol,ikpt,iband]
+                        self.orbmag_merge_sigij_mesh[iterm, isppol, ikpt, iband, 0:ndir, 0:ndir] = (
+                            ucvol * trnrm * self.orbmag_merge_mesh[iterm, 0:ndir, 0:ndir, isppol, ikpt, iband]
+                        )
 
     def __str__(self) -> str:
         return self.to_string()
 
     def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level verbose"""
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
         for orb in self.orb_files:
             app(orb.to_string(verbose=verbose))
         return "\n".join(lines)
@@ -183,7 +186,7 @@ class OrbmagAnalyzer:
             orb.close()
 
     @cached_property
-    def natom(self)  -> int:
+    def natom(self) -> int:
         """Number of atoms in the unit cell."""
         return len(self.structure)
 
@@ -198,8 +201,7 @@ class OrbmagAnalyzer:
 
     @cached_property
     def has_nucdipmom(self) -> np.ndarray:
-        """
-        """
+        """ """
         has_nucdipmom = np.zeros(self.natom, dtype=int)
         for orb in self.orb_files:
             # nctkarr_t("nucdipmom", "dp", "ndir, natom")
@@ -213,8 +215,8 @@ class OrbmagAnalyzer:
 
         return has_nucdipmom.astype(bool)
 
-    #@cached_property
-    #def has_timrev(self) -> bool:
+    # @cached_property
+    # def has_timrev(self) -> bool:
     #    """True if time-reversal symmetry is used in the BZ sampling."""
     #    has_timrev = self.orb_files[0].ebands.has_timrev
     #    if any(orb_file.ebands.has_timrev != has_timrev for orb_file in self.orb_files[1:]):
@@ -229,39 +231,38 @@ class OrbmagAnalyzer:
             precision:
         """
         with np.printoptions(precision=precision):
-
-            terms = ["CC   ","VV1  ","VV2  ","NL   ","LR   ","A0An "]
+            terms = ["CC   ", "VV1  ", "VV2  ", "NL   ", "LR   ", "A0An "]
             # Shape: (orbmag_nterms, nsppol, nkpt, mband, ndir, ndir)
 
             total_sigij = self.orbmag_merge_sigij_mesh.sum(axis=(0, 1, 2, 3))
             omlamb = self.get_omlamb()
             total_sigij = total_sigij + omlamb
             # note use of -1.0E6 here, we convert from dipole moment (from abinit) to shielding in ppm
-            eigenvalues = -1.0E6 * np.real(eigvals(total_sigij))
+            eigenvalues = -1.0e6 * np.real(eigvals(total_sigij))
             isotropic = eigenvalues.sum() / 3.0
             span = eigenvalues.max() - eigenvalues.min()
             skew = 3.0 * (eigenvalues.sum() - eigenvalues.max() - eigenvalues.min() - isotropic) / span
 
-            if report_type=="S":
+            if report_type == "S":
                 print("\nShielding tensor eigenvalues, ppm : ", eigenvalues)
                 print("Shielding tensor iso, span, skew, ppm : %6.2f %6.2f %6.2f \n" % (isotropic, span, skew))
 
             if report_type == "T":
-                print("\nShielding tensor eigenvalues, ppm : ",eigenvalues)
-                print("Shielding tensor iso, span, skew, ppm : %6.2f %6.2f %6.2f \n"%(isotropic, span, skew))
+                print("\nShielding tensor eigenvalues, ppm : ", eigenvalues)
+                print("Shielding tensor iso, span, skew, ppm : %6.2f %6.2f %6.2f \n" % (isotropic, span, skew))
                 print("Term totals")
                 term_sigij = self.orbmag_merge_sigij_mesh.sum(axis=(1, 2, 3))
                 for iterm in range(np.size(self.orbmag_merge_sigij_mesh, axis=0)):
-                    eigenvalues = -1.0E6 * np.real(eigvals(term_sigij[iterm]))
+                    eigenvalues = -1.0e6 * np.real(eigvals(term_sigij[iterm]))
                     print(terms[iterm] + ": ", eigenvalues)
-                print("Lamb  : ", -1.0E6 * np.real(eigvals(omlamb)))
+                print("Lamb  : ", -1.0e6 * np.real(eigvals(omlamb)))
                 print("\n")
 
             elif report_type == "B":
                 print("Band totals")
                 band_sigij = self.orbmag_merge_sigij_mesh.sum(axis=(0, 1, 2))
                 for iband in range(np.size(self.orbmag_merge_sigij_mesh, axis=3)):
-                    eigenvalues = -1.0E6 * np.real(eigvals(band_sigij[iband]))
+                    eigenvalues = -1.0e6 * np.real(eigvals(band_sigij[iband]))
                     print("band " + str(iband) + " : ", eigenvalues)
                 print("\n")
 
@@ -271,7 +272,7 @@ class OrbmagAnalyzer:
                 for iband in range(np.size(self.orbmag_merge_sigij_mesh, axis=3)):
                     print("band " + str(iband) + " : ")
                     for iterm in range(np.size(self.orbmag_merge_sigij_mesh, axis=0)):
-                        eigenvalues = -1.0E6 * np.real(eigvals(tband_sigij[iterm, iband]))
+                        eigenvalues = -1.0e6 * np.real(eigvals(tband_sigij[iterm, iband]))
                         print("   " + terms[iterm] + ": ", eigenvalues)
                     print("\n")
                 print("\n")
@@ -295,7 +296,9 @@ class OrbmagAnalyzer:
                 _ngkpt, _shifts = ngkpt, shifts
             # check that all files have the same value.
             elif np.any(ngkpt != _ngkpt) or np.any(shifts != _shifts):
-                raise ValueError(f"ORBMAG files have different values of ngkpt: {ngkpt=} {_ngkpt=} or shifts {shifts=}, {_shifts=}")
+                raise ValueError(
+                    f"ORBMAG files have different values of ngkpt: {ngkpt=} {_ngkpt=} or shifts {shifts=}, {_shifts=}"
+                )
 
         return ngkpt, shifts
 
@@ -311,7 +314,7 @@ class OrbmagAnalyzer:
             nucdipmom = orb.r.read_value("nucdipmom")
             for iat in range(self.natom):
                 itypat = typat[iat]
-                omlamb[idir] += lambsig[itypat-1] * nucdipmom[iat]
+                omlamb[idir] += lambsig[itypat - 1] * nucdipmom[iat]
 
         # negative sign to convert to dipole moment, like other quantities
         return -omlamb
@@ -323,12 +326,12 @@ class OrbmagAnalyzer:
         """
         if what == "isotropic":
             vals = self.orbmag_merge_sigij_mesh[:, spin, ikpt, band].sum(axis=0)
-            eigenvalues = -1.0E6 * vals
+            eigenvalues = -1.0e6 * vals
             return eigenvalues.sum() / 3.0
-            #span = eigenvalues.max() - eigenvalues.min()
-            #skew = 3.0 * (eigenvalues.sum() - eigenvalues.max() - eigenvalues.min() - isotropic) / span
+            # span = eigenvalues.max() - eigenvalues.min()
+            # skew = 3.0 * (eigenvalues.sum() - eigenvalues.max() - eigenvalues.min() - isotropic) / span
 
-        #elif what == "foobar":
+        # elif what == "foobar":
 
         raise ValueError(f"Invalid {what=}")
 
@@ -348,7 +351,7 @@ class OrbmagAnalyzer:
 
         # I'd start by weighting each band and kpt by trace(sigij)/3.0, the isotropic part of sigij,
         # both as a term-by-term plot and as a single weighting produced by summing over all 6 terms.
-        #self.orbmag_merge_sigij_mesh = np.zeros((orbmag_nterms, nsppol, nkpt, mband, ndir, ndir))
+        # self.orbmag_merge_sigij_mesh = np.zeros((orbmag_nterms, nsppol, nkpt, mband, ndir, ndir))
 
         shape = (self.mband, nx, ny, nz)
         data = np.empty(shape, dtype=float)
@@ -383,6 +386,7 @@ class OrbmagAnalyzer:
         # Don't use symprec because it changes the order of the sites
         # and we must be consistent with site_labels when writing aniso_U terms!
         from pymatgen.io.cif import CifWriter
+
         cif = CifWriter(self.structure, symprec=symprec)
 
         # @JOE: Note different order of U_ij terms wrt omnc.py
@@ -397,7 +401,7 @@ _atom_site_aniso_U_12""".splitlines()
 
         # TODO: Compute ucif in reduced coords
         # NB: In JOE's script, ucif is called Uaniso
-        #raise NotImplementedError("Ucif should be computed.")
+        # raise NotImplementedError("Ucif should be computed.")
 
         omlamb = self.get_omlamb()
         total_sigij = self.orbmag_merge_sigij_mesh.sum(axis=(0, 1, 2, 3))
@@ -409,14 +413,16 @@ _atom_site_aniso_U_12""".splitlines()
             site_label = "%s%d" % (site.specie.symbol, iat)
             if self.has_nucdipmom[iat]:
                 m = Uaniso
-                aniso_u.append("%s %10.5f %10.5f %10.5f %10.5f %10.5f %10.5f" %
-                        (site_label, m[0, 0], m[1, 1], m[2, 2], m[1, 2], m[0, 2], m[0, 1]))
+                aniso_u.append(
+                    "%s %10.5f %10.5f %10.5f %10.5f %10.5f %10.5f"
+                    % (site_label, m[0, 0], m[1, 1], m[2, 2], m[1, 2], m[0, 2], m[0, 1])
+                )
             else:
                 aniso_u.append("%s %s" % (site_label, " . . . . . . "))
 
         return str(cif) + "\n".join(aniso_u)
 
-    #def vesta_open(self, temp=300): # pragma: no cover
+    # def vesta_open(self, temp=300): # pragma: no cover
     #    """
     #    Visualize termal displacement ellipsoids at temperature `temp` (Kelvin) with Vesta_ application.
     #    """
@@ -429,16 +435,15 @@ _atom_site_aniso_U_12""".splitlines()
     #    return visu(filepath)()
 
     def write_magres(self, gsr_file=None, filepath="tmp.magres") -> None:
-        """
-        """
-        #def output_magres(ncfiles,gsrroot=None,omroots=None,orbmag_merge_sigij_mesh=None,omlamb=None):
+        """ """
+        # def output_magres(ncfiles,gsrroot=None,omroots=None,orbmag_merge_sigij_mesh=None,omlamb=None):
 
         def get_sig_array(total_sigij, omroots):
-            natoms=len(omroots[0].dimensions["number_of_atoms"])
-            sigij_array=np.zeros((natoms,3,3))
+            natoms = len(omroots[0].dimensions["number_of_atoms"])
+            sigij_array = np.zeros((natoms, 3, 3))
             for iat in range(natoms):
-                 if len(np.nonzero(omroots[0].variables["nucdipmom"][iat])[0]) > 0:
-                     sigij_array[iat]=total_sigij
+                if len(np.nonzero(omroots[0].variables["nucdipmom"][iat])[0]) > 0:
+                    sigij_array[iat] = total_sigij
             return sigij_array
 
         def get_indices_and_labels(ncroot):
@@ -448,11 +453,12 @@ _atom_site_aniso_U_12""".splitlines()
             indices = np.zeros(natoms, dtype=int)
             labels = np.empty(natoms, dtype=np.dtype("U2"))
             from netCDF4 import chartostring
+
             for iat in range(natoms):
                 itypat = ncroot.variables["atom_species"][iat]
-                type_count[itypat-1] = type_count[itypat-1] + 1
-                indices[iat] = type_count[itypat-1]
-                labels[iat] = chartostring(ncroot.variables["atom_species_names"][itypat-1])
+                type_count[itypat - 1] = type_count[itypat - 1] + 1
+                indices[iat] = type_count[itypat - 1]
+                labels[iat] = chartostring(ncroot.variables["atom_species_names"][itypat - 1])
 
             return indices, labels
 
@@ -481,23 +487,23 @@ _atom_site_aniso_U_12""".splitlines()
         ase_atoms.new_array("indices", indices)
         ase_atoms.new_array("labels", labels)
 
-        #if 'magres_units' not in ase_atoms.info.keys():
-        ase_atoms.info.update({"magres_units":{"ms":"ppm"}})
-        #else:
+        # if 'magres_units' not in ase_atoms.info.keys():
+        ase_atoms.info.update({"magres_units": {"ms": "ppm"}})
+        # else:
         #    ase_atoms.info['magres_units'].update({'ms':'ppm'})
 
         omlamb = self.get_omlamb()
         total_sigij = self.orbmag_merge_sigij_mesh.sum(axis=(0, 1, 2, 3))
-        total_sigij = -1.0E6 * (total_sigij + omlamb)
+        total_sigij = -1.0e6 * (total_sigij + omlamb)
         sig_array = get_sig_array(total_sigij, omroots)
-        ase_atoms.new_array("ms",sig_array)
+        ase_atoms.new_array("ms", sig_array)
 
         if gsrroot:
             if "efg" in gsrroot[0].variables:
                 if "magres_units" not in ase_atoms.info.keys():
-                    ase_atoms.info.update({"magres_units": {"efg":"au"}})
+                    ase_atoms.info.update({"magres_units": {"efg": "au"}})
                 else:
-                    ase_atoms.info["magres_units"].update({"efg":"au"})
+                    ase_atoms.info["magres_units"].update({"efg": "au"})
                 efg = gsrroot[0].variables["efg"][:]
                 ase_atoms.new_array("efg", efg)
 
@@ -537,11 +543,20 @@ _atom_site_aniso_U_12""".splitlines()
         return interp_spin
 
     @add_fig_kwargs
-    def plot_fatbands(self, ebands_kpath,
-                      what_list="isotropic",
-                      ylims=None, scale=50, marker_color="gold", marker_edgecolor="gray",
-                      marker_alpha=0.5, fontsize=12, interp_method="linear",
-                      ax_mat=None, **kwargs) -> Figure:
+    def plot_fatbands(
+        self,
+        ebands_kpath,
+        what_list="isotropic",
+        ylims=None,
+        scale=50,
+        marker_color="gold",
+        marker_edgecolor="gray",
+        marker_alpha=0.5,
+        fontsize=12,
+        interp_method="linear",
+        ax_mat=None,
+        **kwargs,
+    ) -> Figure:
         """
         Plot fatbands FIXME ...
 
@@ -567,11 +582,13 @@ _atom_site_aniso_U_12""".splitlines()
             ncols = 2
             nrows = (num_plots // ncols) + (num_plots % ncols)
 
-        ax_list, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=True, squeeze=False)
+        ax_list, fig, plt = get_axarray_fig_plt(
+            ax_mat, nrows=nrows, ncols=ncols, sharex=True, sharey=True, squeeze=False
+        )
         ax_list = ax_list.ravel()
         # don't show the last ax if num_plots is odd.
-        if num_plots % ncols != 0: ax_list[-1].axis("off")
+        if num_plots % ncols != 0:
+            ax_list[-1].axis("off")
 
         ebands_kpath = ElectronBands.as_ebands(ebands_kpath)
 
@@ -580,7 +597,7 @@ _atom_site_aniso_U_12""".splitlines()
             interp_spin = self.get_bz_interpolator_spin(what, interp_method)
 
             abs_max = max(interp.get_max_abs_data() for interp in interp_spin)
-            scale *= 1. / abs_max
+            scale *= 1.0 / abs_max
 
             ymin, ymax = +np.inf, -np.inf
             x, y, s = [], [], []
@@ -592,24 +609,32 @@ _atom_site_aniso_U_12""".splitlines()
                         # note use of -value: the abinit calculation returns the induced magnetic moment,
                         # but the plot should show shielding, which is -moment by convention
                         # this mimics use of -1.0E6 in all the eigval reports below
-                        x.append(ik); y.append(e); s.append(scale * (-value))
+                        x.append(ik)
+                        y.append(e)
+                        s.append(scale * (-value))
                         ymin, ymax = min(ymin, e), max(ymax, e)
 
             # Compute colors based on sign (e.g., red for positive, blue for negative)
-            c=["red" if value >= 0 else "blue" for value in s]
+            c = ["red" if value >= 0 else "blue" for value in s]
 
-            points = Marker(x, y, s,
-                            c=c,marker="s",
-                            #color=marker_color,edgecolors=marker_edgecolor,
-                            alpha=marker_alpha, label=what)
+            points = Marker(
+                x,
+                y,
+                s,
+                c=c,
+                marker="s",
+                # color=marker_color,edgecolors=marker_edgecolor,
+                alpha=marker_alpha,
+                label=what,
+            )
 
             # Plot electron bands with markers.
             ebands_kpath.plot(ax=ax, points=points, show=False, linewidth=1.0)
             ax.legend(loc="best", shadow=True, fontsize=fontsize)
 
-            shielding_color=mpatches.Patch(color="red",label="Shielding")
-            deshielding_color=mpatches.Patch(color="blue",label="Deshielding")
-            ax.legend(handles=[shielding_color,deshielding_color])
+            shielding_color = mpatches.Patch(color="red", label="Shielding")
+            deshielding_color = mpatches.Patch(color="blue", label="Deshielding")
+            ax.legend(handles=[shielding_color, deshielding_color])
 
         e0 = self.orb_files[0].ebands.fermie
         if ylims is None:
@@ -697,7 +722,8 @@ class OrbmagFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
 
     def to_string(self, verbose: int = 0) -> str:
         """String representation."""
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
 
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
@@ -706,8 +732,8 @@ class OrbmagFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         app("")
         app(self.ebands.to_string(with_structure=True, title="Electronic Bands"))
         app("")
-        #app(marquee("Fatbands Info", mark="="))
-        #app("prtdos: %d, prtdosm: %d, mbesslang: %d, pawprtdos: %d, usepaw: %d" % (
+        # app(marquee("Fatbands Info", mark="="))
+        # app("prtdos: %d, prtdosm: %d, mbesslang: %d, pawprtdos: %d, usepaw: %d" % (
         #    self.prtdos, self.prtdosm, self.mbesslang, self.pawprtdos, self.usepaw))
         app("nsppol: %d, nkpt: %d, mband: %d" % (self.nsppol, self.nkpt, self.mband))
         app("")

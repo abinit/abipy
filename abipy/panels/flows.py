@@ -1,11 +1,12 @@
-""""Panels to interact with AbiPy flows."""
+""" "Panels to interact with AbiPy flows."""
+
 from __future__ import annotations
 
 import panel as pn
 import panel.widgets as pnw
 import param
 
-#import bokeh.models.widgets as bkw
+# import bokeh.models.widgets as bkw
 from panel.viewable import Viewer
 
 from abipy.flowtk.flows import Flow
@@ -15,17 +16,16 @@ from abipy.panels.nodes import NodeParameterized
 
 
 class WorkTaskSelector(Viewer):
-
     task = param.ClassSelector(class_=AbinitTask, doc="Task object")
 
     def __init__(self, flow: Flow, **params):
-        self._wstr2work = {f"w{i} ({work.__class__.__name__}, len: {len(work)})": work
-                           for (i, work) in enumerate(flow.works)}
+        self._wstr2work = {
+            f"w{i} ({work.__class__.__name__}, len: {len(work)})": work for (i, work) in enumerate(flow.works)
+        }
         options = list(self._wstr2work.keys())
         self.work_select = pnw.Select(name="Select a Work", value=options[0], options=options)
 
-        options = [f"t{i} ({task.__class__.__name__}, {task.status!s})"
-                   for (i, task) in enumerate(flow[0])]
+        options = [f"t{i} ({task.__class__.__name__}, {task.status!s})" for (i, task) in enumerate(flow[0])]
         self.task_select = pnw.Select(name="Select a Task in the Work", value=options[0], options=options)
 
         super().__init__(**params)
@@ -39,8 +39,9 @@ class WorkTaskSelector(Viewer):
     @pn.depends("work_select.value", watch=True)
     def update_work(self) -> None:
         self.work = self._wstr2work[self.work_select.value]
-        self.task_select.options = [f"t{i} ({task.__class__.__name__}, {task.status!s})"
-                                    for (i, task) in enumerate(self.work)]
+        self.task_select.options = [
+            f"t{i} ({task.__class__.__name__}, {task.status!s})" for (i, task) in enumerate(self.work)
+        ]
         self.task = self.work[0]
 
     @pn.depends("task_select.value", watch=True)
@@ -60,7 +61,8 @@ class FlowPanel(NodeParameterized):
 
         self.structures_btn = pnw.Button(name="Show Structures", button_type="primary")
         self.structures_io_checkbox = pnw.CheckBoxGroup(
-            name="Input/Output Structure", value=["output"], options=["input", "output"], inline=True)
+            name="Input/Output Structure", value=["output"], options=["input", "output"], inline=True
+        )
 
         self.wt_selector = WorkTaskSelector(flow)
         self.task_btn = pnw.Button(name="Analyze Task", button_type="primary")
@@ -69,9 +71,10 @@ class FlowPanel(NodeParameterized):
         wbox = pn.WidgetBox
 
         return pn.Column(
-            wbox("## Select Work and Task",
-                 self.wt_selector,
-                 self.task_btn,
+            wbox(
+                "## Select Work and Task",
+                self.wt_selector,
+                self.task_btn,
             ),
             pn.layout.Divider(),
             self.on_task_btn,
@@ -93,12 +96,18 @@ class FlowPanel(NodeParameterized):
     @depends_on_btn_click("structures_btn")
     def on_structures_btn(self) -> pn.Row:
         what = ""
-        if "input" in self.structures_io_checkbox.value: what += "i"
-        if "output" in self.structures_io_checkbox.value: what += "o"
-        dfs = self.flow.compare_structures(nids=None, # select_nids(flow, options),
-                                           what=what,
-                                           verbose=self.verbose, with_spglib=False, printout=False,
-                                           with_colors=False)
+        if "input" in self.structures_io_checkbox.value:
+            what += "i"
+        if "output" in self.structures_io_checkbox.value:
+            what += "o"
+        dfs = self.flow.compare_structures(
+            nids=None,  # select_nids(flow, options),
+            what=what,
+            verbose=self.verbose,
+            with_spglib=False,
+            printout=False,
+            with_colors=False,
+        )
 
         return pn.Row(dfc(dfs.lattice), sizing_mode="scale_width")
 
@@ -106,15 +115,16 @@ class FlowPanel(NodeParameterized):
         """Return tabs with widgets to interact with the flow."""
         d = super().get_panel(as_dict=True)
 
-        #row = pn.Row(bkw.PreText(text=self.ddb.to_string(verbose=self.verbose), sizing_mode="scale_both"))
+        # row = pn.Row(bkw.PreText(text=self.ddb.to_string(verbose=self.verbose), sizing_mode="scale_both"))
         d["Task"] = self.get_task_view()
-        #d["Work"] = self.get_work_view()
-        #d["Structures"] = pn.Row(pn.Column(self.structures_io_checkbox, self.structures_btn), self.on_structures_btn)
+        # d["Work"] = self.get_work_view()
+        # d["Structures"] = pn.Row(pn.Column(self.structures_io_checkbox, self.structures_btn), self.on_structures_btn)
         ###ws = pn.Column(self.ebands_plotter_mode, self.ebands_ksamp_checkbox, self.ebands_df_checkbox, self.ebands_plotter_btn)
         ###d["Ebands"] = pn.Row(ws, self.on_ebands_btn)
-        #d["Browse"] = self.get_workdir_view()
+        # d["Browse"] = self.get_workdir_view()
 
-        if as_dict: return d
+        if as_dict:
+            return d
 
         return self.get_template_from_tabs(d, template=kwargs.get("template"), closable=False)
 
@@ -123,6 +133,7 @@ class JsPane(pn.pane.HTML):
     """
     Based on: https://discourse.holoviz.org/t/how-to-make-a-dynamic-link-in-panel/2137
     """
+
     def __init__(self):
         super().__init__(width=0, height=0, margin=0, sizing_mode="fixed")
 
@@ -133,7 +144,6 @@ class JsPane(pn.pane.HTML):
 
 
 class FlowMultiPageApp:
-
     def __init__(self, flow: Flow, template, spectator_mode=True, **kwargs):
 
         if spectator_mode:
@@ -164,7 +174,7 @@ class FlowMultiPageApp:
             app = FlowPanel(self.flow).get_panel(template=template)
             if hasattr(app, "sidebar"):
                 app.sidebar.append(self.sidebar)
-                #app.header.append(self.sidebar)
+                # app.header.append(self.sidebar)
 
             return app
 
@@ -189,16 +199,16 @@ class FlowMultiPageApp:
 
     def handle_wt(self):
         # URL example: /w1/t5/w\d+/t\d+
-        #print("in handle_wt with pn.state.app_url:", pn.state.app_url)
+        # print("in handle_wt with pn.state.app_url:", pn.state.app_url)
         tokens = pn.state.app_url.split("/")
         work_idx = int(tokens[1][1:])
         task_idx = None
         if tokens[2].startswith("t"):
             task_idx = int(tokens[2][1:])
 
-        #print("got request with work_idx:", work_idx, "task_idx:", task_idx)
-        #from abipy.panels.core import abipanel
-        #abipanel()
+        # print("got request with work_idx:", work_idx, "task_idx:", task_idx)
+        # from abipy.panels.core import abipanel
+        # abipanel()
 
         if task_idx is None:
             work = self.flow[work_idx]
@@ -209,9 +219,9 @@ class FlowMultiPageApp:
 
         if hasattr(app, "sidebar"):
             app.sidebar.append(self.sidebar)
-            #app.header.append(self.sidebar)
+            # app.header.append(self.sidebar)
 
-        #app.title = title
+        # app.title = title
 
         return app
 

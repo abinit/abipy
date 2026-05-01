@@ -1,4 +1,3 @@
-
 from abipy.core.testing import AbipyTest
 from abipy.flowtk.launcher import MultiFlowScheduler, PyFlowScheduler, ScriptEditor
 
@@ -19,7 +18,6 @@ def test_script_editor():
 
 
 class PyFlowSchedulerTest(AbipyTest):
-
     def test_pyflowscheduler_api(self):
         """Testing PyFlowScheduler API."""
         assert "weeks:" in PyFlowScheduler.autodoc()
@@ -37,8 +35,8 @@ class PyFlowSchedulerTest(AbipyTest):
         assert sched.num_excs == 0
         assert not sched.rmflow
 
-        #sched.start()
-        #assert sched.get_delta_etime()
+        # sched.start()
+        # assert sched.get_delta_etime()
 
     def test_multiflowscheduler_api(self):
 
@@ -47,12 +45,11 @@ class PyFlowSchedulerTest(AbipyTest):
         assert sched.sched_options.seconds == 2
         assert not sched.get_incoming_flows()
         assert not sched.get_incoming_flows()
-        #assert sched.get_flow_status_by_id(1) == (None, None)
+        # assert sched.get_flow_status_by_id(1) == (None, None)
         assert not sched.groupby_status()
 
-        #import threading
-        #thread threading.Thread(target=sched.start, demon=False)
-        #thread.start()
-        #assert sched.get_delta_etime()
-        #assert thread.is_alive()
-
+        # import threading
+        # thread threading.Thread(target=sched.start, demon=False)
+        # thread.start()
+        # assert sched.get_delta_etime()
+        # assert thread.is_alive()

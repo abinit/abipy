@@ -1,4 +1,5 @@
 """Tests for gsphere"""
+
 import numpy as np
 
 from abipy.core import Mesh3D
@@ -12,7 +13,7 @@ class TestGSphere(AbipyTest):
     def test_base(self):
         """Basic G-sphere methods"""
         ecut = 2
-        lattice = np.array([1.,0,0, 0,1,0, 0,0,1])
+        lattice = np.array([1.0, 0, 0, 0, 1, 0, 0, 0, 1])
         lattice.shape = (3, 3)
         kpoint = [0, 0, 0]
         gvecs = np.array([[0, 0, 0], [1, 0, 0]])
@@ -43,12 +44,12 @@ class TestGSphere(AbipyTest):
 
     def test_fft(self):
         """FFT transforms"""
-        rprimd = np.array([1.,0,0, 0,1,0, 0,0,1])
-        rprimd.shape = (3,3)
+        rprimd = np.array([1.0, 0, 0, 0, 1, 0, 0, 0, 1])
+        rprimd.shape = (3, 3)
 
-        mesh = Mesh3D( (12,3,5), rprimd)
+        mesh = Mesh3D((12, 3, 5), rprimd)
 
-        extra_dims = [(), 1, (2,), (3,4)]
+        extra_dims = [(), 1, (2,), (3, 4)]
         types = [float, complex]
 
         for exdim in extra_dims:
@@ -60,5 +61,5 @@ class TestGSphere(AbipyTest):
                 self.assert_almost_equal(fg, same_fg)
 
                 int_r = mesh.integrate(fr)
-                int_g = fg[...,0,0,0]
+                int_g = fg[..., 0, 0, 0]
                 self.assert_almost_equal(int_r, int_g)

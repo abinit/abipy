@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Tests for core.field module"""
+
 import numpy as np
 
 from abipy.core.pauli import Pauli
@@ -14,8 +15,7 @@ class TestPauli(AbipyTest):
         pauli = Pauli()
 
         # Operate on a single matrix.
-        matrix = np.array([[1,  3+2j],
-                           [3-2j, 4]])
+        matrix = np.array([[1, 3 + 2j], [3 - 2j, 4]])
 
         cs = pauli.project_mats(matrix)
         assert len(cs) == 4 and cs.ndim == 1 and cs.shape == (4,)
@@ -26,10 +26,12 @@ class TestPauli(AbipyTest):
         self.assert_equal(matrix, same_matrix)
 
         # Array of matrices
-        matrices = np.array([
-            [[1, 2], [2, 4]],
-            [[3, 4-2j], [1j, 4+2j]],
-        ])
+        matrices = np.array(
+            [
+                [[1, 2], [2, 4]],
+                [[3, 4 - 2j], [1j, 4 + 2j]],
+            ]
+        )
 
         ## Array of matrices projection
         cs_mat = pauli.project_mats(matrices)

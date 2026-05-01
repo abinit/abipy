@@ -1,16 +1,15 @@
-
 import os.path
 
 from pymatgen.io.abinit import *
 
-_test_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..", "..",
-                        "test_files", "abinit")
+_test_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "test_files", "abinit")
+
 
 def ref_file(filename):
     return os.path.join(_test_dir, filename)
 
 
-#class WorkTestCase(AbipyTest):
+# class WorkTestCase(AbipyTest):
 #
 #    def test_pseudoconvergence(self):
 #        workdir = mkdtemp(prefix="test_pseudoconvergence")

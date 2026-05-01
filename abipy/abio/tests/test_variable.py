@@ -5,7 +5,6 @@ from abipy.core.testing import AbipyTest
 
 
 class TestInputVariable(AbipyTest):
-
     def test_inputvariable(self):
         """Testing InputVariable."""
         v = InputVariable(name="ecut", value=5)

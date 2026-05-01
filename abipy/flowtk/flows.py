@@ -3,6 +3,7 @@ A Flow is a container for Works, and works consist of tasks.
 Flows are the final objects that can be dumped directly to a pickle file on disk
 Flows are executed using abirun (abipy).
 """
+
 from __future__ import annotations
 
 import collections
@@ -79,11 +80,10 @@ def as_set(obj: Any) -> set:
 
 
 class FlowResults(NodeResults):
-
     JSON_SCHEMA = NodeResults.JSON_SCHEMA.copy()
-    #JSON_SCHEMA["properties"] = {
+    # JSON_SCHEMA["properties"] = {
     #    "queries": {"type": "string", "required": True},
-    #}
+    # }
 
     @classmethod
     def from_node(cls, flow) -> FlowResults:
@@ -122,6 +122,7 @@ class Flow(Node, NodeContainer, MSONable):
         build:
         build_and_pickle_dump:
     """
+
     VERSION = "0.1"
 
     PICKLE_FNAME = "__AbinitFlow__.pickle"
@@ -131,8 +132,9 @@ class Flow(Node, NodeContainer, MSONable):
     Results = FlowResults
 
     @classmethod
-    def from_inputs(cls, workdir, inputs, manager=None, pickle_protocol=-1, task_class=ScfTask,
-                    work_class=Work, remove=False) -> Flow:
+    def from_inputs(
+        cls, workdir, inputs, manager=None, pickle_protocol=-1, task_class=ScfTask, work_class=Work, remove=False
+    ) -> Flow:
         """
         Construct a simple flow from a list of inputs. The flow contains a single Work with
         tasks whose class is given by task_class.
@@ -153,7 +155,8 @@ class Flow(Node, NodeContainer, MSONable):
             work_class: The class of the |Work|.
             remove: attempt to remove working directory `workdir` if directory already exists.
         """
-        if not isinstance(inputs, (list, tuple)): inputs = [inputs]
+        if not isinstance(inputs, (list, tuple)):
+            inputs = [inputs]
 
         flow = cls(workdir, manager=manager, pickle_protocol=pickle_protocol, remove=remove)
         work = work_class()
@@ -166,7 +169,8 @@ class Flow(Node, NodeContainer, MSONable):
     @classmethod
     def as_flow(cls, obj: Any) -> Flow:
         """Convert obj into a Flow. Accepts filepath, dict, or Flow object."""
-        if isinstance(obj, cls): return obj
+        if isinstance(obj, cls):
+            return obj
         if is_string(obj):
             return cls.pickle_load(obj)
         if isinstance(obj, collections.abc.Mapping):
@@ -189,12 +193,14 @@ class Flow(Node, NodeContainer, MSONable):
         super().__init__()
 
         if workdir is not None:
-            if remove and os.path.exists(workdir): shutil.rmtree(workdir)
+            if remove and os.path.exists(workdir):
+                shutil.rmtree(workdir)
             self.set_workdir(workdir)
 
         self.creation_date = time.asctime()
 
-        if manager is None: manager = TaskManager.from_user_config()
+        if manager is None:
+            manager = TaskManager.from_user_config()
         self.manager = manager.deepcopy()
 
         # List of works.
@@ -225,7 +231,8 @@ class Flow(Node, NodeContainer, MSONable):
         # Save the location of the script used to generate the flow.
         # This trick won't work if we are running with nosetests, py.test etc
         pyfile = find_top_pyfile()
-        if "python" in pyfile or "ipython" in pyfile: pyfile = "<" + pyfile + ">"
+        if "python" in pyfile or "ipython" in pyfile:
+            pyfile = "<" + pyfile + ">"
         self.set_pyfile(pyfile)
 
         # TODO
@@ -234,11 +241,11 @@ class Flow(Node, NodeContainer, MSONable):
         # When the node changes its status, it broadcast a signal.
         # The flow is listening to all the nodes of the calculation
         # [node_id][SIGNAL] = list_of_signal_handlers
-        #self._sig_slots =  slots = {}
-        #for work in self:
+        # self._sig_slots =  slots = {}
+        # for work in self:
         #    slots[work] = {s: [] for s in work.S_ALL}
 
-        #for task in self.iflat_tasks():
+        # for task in self.iflat_tasks():
         #    slots[task] = {s: [] for s in work.S_ALL}
 
         self.on_all_ok_num_calls = 0
@@ -287,7 +294,7 @@ class Flow(Node, NodeContainer, MSONable):
         Set the working directory. Cannot be set more than once unless chroot is True
         """
         if not chroot and hasattr(self, "workdir") and self.workdir != workdir:
-            raise ValueError("self.workdir != workdir: %s, %s" % (self.workdir,  workdir))
+            raise ValueError("self.workdir != workdir: %s, %s" % (self.workdir, workdir))
 
         # Directories with (input|output|temporary) data.
         self.workdir = os.path.abspath(workdir)
@@ -347,8 +354,10 @@ class Flow(Node, NodeContainer, MSONable):
 
         # Check if versions match.
         if flow.VERSION != cls.VERSION:
-            msg = ("File flow version %s != latest version %s\n."
-                   "Regenerate the flow to solve the problem " % (flow.VERSION, cls.VERSION))
+            msg = "File flow version %s != latest version %s\n.Regenerate the flow to solve the problem " % (
+                flow.VERSION,
+                cls.VERSION,
+            )
             warnings.warn(msg)
 
         flow.set_spectator_mode(spectator_mode)
@@ -379,6 +388,7 @@ class Flow(Node, NodeContainer, MSONable):
     def get_panel(self, **kwargs):
         """Build panel with widgets to interact with the |Flow| either in a notebook or in panel app."""
         from abipy.panels.flows import FlowPanel
+
         return FlowPanel(self).get_panel(**kwargs)
 
     def __len__(self) -> int:
@@ -430,7 +440,8 @@ class Flow(Node, NodeContainer, MSONable):
             return 0
 
         self.show_status()
-        raise self.Error("""\n\
+        raise self.Error(
+            """\n\
             pid_file
             %s
             already exists. There are two possibilities:
@@ -445,7 +456,9 @@ class Flow(Node, NodeContainer, MSONable):
             To solve case 2:
                Remove the pid_file and restart the scheduler.
 
-            Exiting""" % self.pid_file)
+            Exiting"""
+            % self.pid_file
+        )
 
     @property
     def pickle_file(self) -> str:
@@ -624,7 +637,8 @@ class Flow(Node, NodeContainer, MSONable):
         class2works = {}
         for work in self:
             cls = work.__class__
-            if cls not in class2works: class2works[cls] = []
+            if cls not in class2works:
+                class2works[cls] = []
             class2works[cls].append(work)
 
         return class2works
@@ -637,7 +651,8 @@ class Flow(Node, NodeContainer, MSONable):
         class2tasks = {}
         for task in self.iflat_tasks():
             cls = task.__class__
-            if cls not in class2tasks: class2tasks[cls] = []
+            if cls not in class2tasks:
+                class2tasks[cls] = []
             class2tasks[cls].append(task)
 
         return class2tasks
@@ -655,10 +670,12 @@ class Flow(Node, NodeContainer, MSONable):
                 yield self
 
             for work in self:
-                if nids and work.node_id not in nids: continue
+                if nids and work.node_id not in nids:
+                    continue
                 yield work
                 for task in work:
-                    if nids and task.node_id not in nids: continue
+                    if nids and task.node_id not in nids:
+                        continue
                     yield task
         else:
             # Get the operator from the string.
@@ -668,24 +685,29 @@ class Flow(Node, NodeContainer, MSONable):
             status = Status.as_status(status)
 
             if not (nids and self.node_id not in nids):
-                if op(self.status, status): yield self
+                if op(self.status, status):
+                    yield self
 
             for wi, work in enumerate(self):
-                if nids and work.node_id not in nids: continue
-                if op(work.status, status): yield work
+                if nids and work.node_id not in nids:
+                    continue
+                if op(work.status, status):
+                    yield work
 
                 for ti, task in enumerate(work):
-                    if nids and task.node_id not in nids: continue
-                    if op(task.status, status): yield task
+                    if nids and task.node_id not in nids:
+                        continue
+                    if op(task.status, status):
+                        yield task
 
     def node_from_nid(self, nid: int) -> Node:
         """Return the node in the `Flow` with the given `nid` identifier"""
         for node in self.iflat_nodes():
-            if node.node_id == nid: return node
+            if node.node_id == nid:
+                return node
         raise ValueError("Cannot find node with node id: %s" % nid)
 
-    def iflat_tasks_wti(self, status=None, op="==",
-                        nids=None) -> Generator[tuple[Task,int,int]]:
+    def iflat_tasks_wti(self, status=None, op="==", nids=None) -> Generator[tuple[Task, int, int]]:
         """
         Generator to iterate over all the tasks of the `Flow`.
 
@@ -726,7 +748,8 @@ class Flow(Node, NodeContainer, MSONable):
         if status is None:
             for wi, work in enumerate(self):
                 for ti, task in enumerate(work):
-                    if nids and task.node_id not in nids: continue
+                    if nids and task.node_id not in nids:
+                        continue
                     if with_wti:
                         yield task, wi, ti
                     else:
@@ -741,7 +764,8 @@ class Flow(Node, NodeContainer, MSONable):
 
             for wi, work in enumerate(self):
                 for ti, task in enumerate(work):
-                    if nids and task.node_id not in nids: continue
+                    if nids and task.node_id not in nids:
+                        continue
                     if op(task.status, status):
                         if with_wti:
                             yield task, wi, ti
@@ -895,14 +919,12 @@ class Flow(Node, NodeContainer, MSONable):
         app("Number of tasks with a given class:\n")
 
         # Build Table
-        data = [[cls.__name__, len(tasks)]
-                for cls, tasks in self.groupby_task_class().items()]
+        data = [[cls.__name__, len(tasks)] for cls, tasks in self.groupby_task_class().items()]
         app(str(tabulate(data, headers=["Task Class", "Number"])))
 
         stream.write("\n".join(lines))
 
-    def compare_abivars(self, varnames, nids=None, wslice=None,
-                        printout=False, with_colors=False) -> pd.DataFrame:
+    def compare_abivars(self, varnames, nids=None, wslice=None, printout=False, with_colors=False) -> pd.DataFrame:
         """
         Print the input of the tasks to the given stream.
 
@@ -924,7 +946,7 @@ class Flow(Node, NodeContainer, MSONable):
             od = {}
             for vname in varnames:
                 value = task.input.get(vname, None)
-                if value is None: # maybe in structure?
+                if value is None:  # maybe in structure?
                     value = dstruct.get(vname, None)
                 od[vname] = value
 
@@ -950,8 +972,10 @@ class Flow(Node, NodeContainer, MSONable):
         abo_paths, index, status, abo_relpaths, task_classes, task_nids = [], [], [], [], [], []
 
         for task in self.iflat_tasks(nids=nids):
-            if task.status not in (self.S_OK, self.S_RUN): continue
-            if not task.is_abinit_task: continue
+            if task.status not in (self.S_OK, self.S_RUN):
+                continue
+            if not task.is_abinit_task:
+                continue
 
             abo_paths.append(task.output_file.path)
             index.append(task.pos_str)
@@ -960,10 +984,12 @@ class Flow(Node, NodeContainer, MSONable):
             task_classes.append(task.__class__.__name__)
             task_nids.append(task.node_id)
 
-        if not abo_paths: return None
+        if not abo_paths:
+            return None
 
         # Get dimensions from output files as well as walltime/cputime
         from abipy.abio.outputs import AboRobot
+
         robot = AboRobot.from_files(abo_paths)
         df = robot.get_dims_dataframe(with_time=True, index=index)
 
@@ -988,11 +1014,13 @@ class Flow(Node, NodeContainer, MSONable):
         with open(path_py, "w") as fh:
             fh.write(_FIX_FLOW_SCRIPT)
             import stat
+
             st = os.stat(path_py)
             os.chmod(path_py, st.st_mode | stat.S_IEXEC)
 
-    def compare_structures(self, nids=None, with_spglib=False, what="io", verbose=0,
-                           precision=3, printout=False, with_colors=False):
+    def compare_structures(
+        self, nids=None, with_spglib=False, what="io", verbose=0, precision=3, printout=False, with_colors=False
+    ):
         """
         Analyze structures of the tasks (input and output structures if it's a relaxation task.
         Print pandas DataFrame
@@ -1007,6 +1035,7 @@ class Flow(Node, NodeContainer, MSONable):
             with_colors: True if task status should be colored.
         """
         from abipy.core.structure import dataframes_from_structures
+
         structures, index, status, max_forces, pressures, task_classes = [], [], [], [], [], []
 
         def push_data(post, task, structure, cart_forces, pressure):
@@ -1069,8 +1098,17 @@ class Flow(Node, NodeContainer, MSONable):
 
         return dfs
 
-    def compare_ebands(self, nids=None, with_path=True, with_ibz=True, with_spglib=False, verbose=0,
-                       precision=3, printout=False, with_colors=False) -> tuple:
+    def compare_ebands(
+        self,
+        nids=None,
+        with_path=True,
+        with_ibz=True,
+        with_spglib=False,
+        verbose=0,
+        precision=3,
+        printout=False,
+        with_colors=False,
+    ) -> tuple:
         """
         Analyze electron bands produced by the tasks.
         Return pandas DataFrame and |ElectronBandsPlotter|.
@@ -1094,14 +1132,17 @@ class Flow(Node, NodeContainer, MSONable):
             # Read ebands from GSR or SIGRES files.
             for ext in ("gsr", "sigres"):
                 task_open_ncfile = getattr(task, "open_%s" % ext, None)
-                if task_open_ncfile is not None: break
+                if task_open_ncfile is not None:
+                    break
             else:
                 continue
 
             try:
                 with task_open_ncfile() as ncfile:
-                    if not with_path and ncfile.ebands.kpoints.is_path: continue
-                    if not with_ibz and ncfile.ebands.kpoints.is_ibz: continue
+                    if not with_path and ncfile.ebands.kpoints.is_path:
+                        continue
+                    if not with_ibz and ncfile.ebands.kpoints.is_ibz:
+                        continue
                     ebands_list.append(ncfile.ebands)
                     index.append(task.pos_str)
                     status.append(task.status.colored if with_colors else str(task.status))
@@ -1111,9 +1152,11 @@ class Flow(Node, NodeContainer, MSONable):
             except Exception as exc:
                 cprint("Exception while opening nc file of task: %s\n%s" % (task, str(exc)), "red")
 
-        if not ebands_list: return (None, None)
+        if not ebands_list:
+            return (None, None)
 
         from abipy.electrons.ebands import dataframe_from_ebands
+
         df = dataframe_from_ebands(ebands_list, index=index, with_spglib=with_spglib)
         ncfiles = [os.path.relpath(p, self.workdir) for p in ncfiles]
 
@@ -1126,15 +1169,18 @@ class Flow(Node, NodeContainer, MSONable):
 
         if printout:
             from abipy.tools.printing import print_dataframe
+
             print_dataframe(df, title="KS electronic bands:", precision=precision)
 
         from abipy.electrons.ebands import ElectronBandsPlotter
+
         ebands_plotter = ElectronBandsPlotter(key_ebands=zip(ncfiles, ebands_list, strict=False))
 
         return df, ebands_plotter
 
-    def compare_hist(self, nids=None, with_spglib=False, verbose=0,
-                     precision=3, printout=False, with_colors=False) -> tuple:
+    def compare_hist(
+        self, nids=None, with_spglib=False, verbose=0, precision=3, printout=False, with_colors=False
+    ) -> tuple:
         """
         Analyze HIST nc files produced by the tasks. Print pandas DataFrame with final results.
         Return: (df, hist_plotter)
@@ -1150,9 +1196,11 @@ class Flow(Node, NodeContainer, MSONable):
         hist_paths, index, status, ncfiles, task_classes, task_nids = [], [], [], [], [], []
 
         for task in self.iflat_tasks(nids=nids):
-            if task.status not in (self.S_OK, self.S_RUN): continue
+            if task.status not in (self.S_OK, self.S_RUN):
+                continue
             hist_path = task.outdir.has_abiext("HIST")
-            if not hist_path: continue
+            if not hist_path:
+                continue
 
             hist_paths.append(hist_path)
             index.append(task.pos_str)
@@ -1161,8 +1209,10 @@ class Flow(Node, NodeContainer, MSONable):
             task_classes.append(task.__class__.__name__)
             task_nids.append(task.node_id)
 
-        if not hist_paths: return (None, None)
+        if not hist_paths:
+            return (None, None)
         from abipy.dynamics.hist import HistRobot
+
         robot = HistRobot.from_files(hist_paths, labels=hist_paths)
         df = robot.get_dataframe(index=index, with_spglib=with_spglib)
         ncfiles = [os.path.relpath(p, self.workdir) for p in ncfiles]
@@ -1177,6 +1227,7 @@ class Flow(Node, NodeContainer, MSONable):
         if printout:
             title = "Table with final structures, pressures in GPa and force stats in eV/Ang:\n"
             from abipy.tools.printing import print_dataframe
+
             print_dataframe(df, title=title, precision=precision)
 
         return df, robot
@@ -1214,7 +1265,8 @@ class Flow(Node, NodeContainer, MSONable):
             dict_list = work.get_dataframe(as_dict=True)
             rows.extend(dict_list)
 
-        if as_dict: return rows
+        if as_dict:
+            return rows
         return pd.DataFrame(rows)
 
     def show_status(self, return_df=False, **kwargs):
@@ -1235,36 +1287,40 @@ class Flow(Node, NodeContainer, MSONable):
         wslice = kwargs.pop("wslice", None)
         verbose = kwargs.pop("verbose", 0)
 
-        #start_time = time.now()
+        # start_time = time.now()
 
         wlist = None
         if wslice is not None:
             # Convert range to list of work indices.
             wlist = list(range(wslice.start, wslice.step, wslice.stop))
 
-        #has_colours = stream_has_colours(stream)
+        # has_colours = stream_has_colours(stream)
         has_colours = True
         red = "red" if has_colours else None
         data_task = {}
 
         for i, work in enumerate(self):
-            if nids and work.node_id not in nids: continue
+            if nids and work.node_id not in nids:
+                continue
             print(file=stream)
             name = ""
-            if hasattr(work, "_name"): name = ", work_name=%s" % work._name
-            cprint_map("Work #%d: %s, Finalized=%s %s" % (i, work, work.finalized, name), cmap={"True": "green"}, file=stream)
-            if wlist is not None and i in wlist: continue
+            if hasattr(work, "_name"):
+                name = ", work_name=%s" % work._name
+            cprint_map(
+                "Work #%d: %s, Finalized=%s %s" % (i, work, work.finalized, name), cmap={"True": "green"}, file=stream
+            )
+            if wlist is not None and i in wlist:
+                continue
             if verbose == 0 and work.finalized:
                 print("  Finalized works are not shown. Use verbose > 0 to force output.", file=stream)
                 continue
 
-            headers = ["Task", "Status", "Queue", "MPI|Omp|Gb",
-                       "Warn|Com", "Class", "Sub|Rest|Corr", "Time",
-                       "Node_ID"]
+            headers = ["Task", "Status", "Queue", "MPI|Omp|Gb", "Warn|Com", "Class", "Sub|Rest|Corr", "Time", "Node_ID"]
             table = []
             tot_num_errors = 0
             for task in work:
-                if nids and task.node_id not in nids: continue
+                if nids and task.node_id not in nids:
+                    continue
                 task_name = os.path.basename(task.name)
 
                 # FIXME: This should not be done here.
@@ -1286,25 +1342,36 @@ class Flow(Node, NodeContainer, MSONable):
                     # Add new entry to data_task
                     data_task[task] = dict(report=report, stime=stime, timedelta=timedelta)
 
-                events = "|".join(2*["NA"])
+                events = "|".join(2 * ["NA"])
                 if report is not None:
                     events = "{:>4}|{:>3}".format(*map(str, (report.num_warnings, report.num_comments)))
 
                 try:
-                    para_info = "{:>4}|{:>3}|{:>3}".format(*map(str, (
-                        task.mpi_procs, task.omp_threads, "%.1f" % task.mem_per_proc.to("GB"))))
+                    para_info = "{:>4}|{:>3}|{:>3}".format(
+                        *map(str, (task.mpi_procs, task.omp_threads, "%.1f" % task.mem_per_proc.to("GB")))
+                    )
                 except (KeyError, UnitError):
-                    para_info = "{:>4}|{:>3}|{:>3}".format(*map(str, (
-                       task.mpi_procs, task.omp_threads, "%.1f" % task.mem_per_proc.to("Gb"))))
+                    para_info = "{:>4}|{:>3}|{:>3}".format(
+                        *map(str, (task.mpi_procs, task.omp_threads, "%.1f" % task.mem_per_proc.to("Gb")))
+                    )
 
-                task_info = list(map(str, [task.__class__.__name__,
-                                 (task.num_launches, task.num_restarts, task.num_corrections), stime, task.node_id]))
+                task_info = list(
+                    map(
+                        str,
+                        [
+                            task.__class__.__name__,
+                            (task.num_launches, task.num_restarts, task.num_corrections),
+                            stime,
+                            task.node_id,
+                        ],
+                    )
+                )
 
                 qinfo = "None"
                 if task.queue_id is not None:
                     qname = str(task.qname)
                     if not verbose:
-                        qname = qname[:min(5, len(qname))]
+                        qname = qname[: min(5, len(qname))]
                     qinfo = str(task.queue_id) + "@" + qname
 
                 if task.status.is_critical:
@@ -1375,17 +1442,18 @@ class Flow(Node, NodeContainer, MSONable):
         nrows, ncols = get_terminal_size()
         count = 0
         for task in self.iflat_tasks(status=status, nids=nids):
-            if task.num_corrections == 0: continue
+            if task.num_corrections == 0:
+                continue
             count += 1
             print(make_banner(str(task), width=ncols, mark="="), file=stream)
             for corr in task.corrections:
                 pprint(corr, stream=stream)
 
-        if not count: print("No correction found.", file=stream)
+        if not count:
+            print("No correction found.", file=stream)
         return count
 
-    def show_history(self, status=None, nids=None, full_history=False,
-                     metadata=False, stream=sys.stdout) -> None:
+    def show_history(self, status=None, nids=None, full_history=False, metadata=False, stream=sys.stdout) -> None:
         """
         Print the history of the flow to stream
 
@@ -1438,7 +1506,7 @@ class Flow(Node, NodeContainer, MSONable):
 
                 for vname in varnames:
                     value = task.input.get(vname, None)
-                    if value is None: # maybe in structure?
+                    if value is None:  # maybe in structure?
                         value = dstruct.get(vname, None)
                     if value is not None:
                         dlist[vname].append((task, value))
@@ -1464,7 +1532,7 @@ class Flow(Node, NodeContainer, MSONable):
                 else:
                     s += "\n\nDependencies: None"
 
-                lines.append(2*"\n" + 80 * "=" + "\n" + s + 2*"\n")
+                lines.append(2 * "\n" + 80 * "=" + "\n" + s + 2 * "\n")
 
             stream.writelines(lines)
 
@@ -1482,9 +1550,10 @@ class Flow(Node, NodeContainer, MSONable):
         if nodes_files:
             print("Found %s files with extension `%s` produced by the flow" % (len(nodes_files), ext), file=stream)
 
-            table = [[f.relpath, "%.2f" % (f.get_stat().st_size / 1024**2),
-                      node.node_id, node.__class__.__name__]
-                     for node, f in nodes_files]
+            table = [
+                [f.relpath, "%.2f" % (f.get_stat().st_size / 1024**2), node.node_id, node.__class__.__name__]
+                for node, f in nodes_files
+            ]
             print(tabulate(table, headers=["File", "Size [Mb]", "Node_ID", "Node Class"]), file=stream)
 
         else:
@@ -1522,8 +1591,7 @@ class Flow(Node, NodeContainer, MSONable):
 
         return tasks
 
-    def get_task_scfcycles(self, nids=None, wslice=None, task_class=None,
-                           exclude_ok_tasks=False) -> list[Task]:
+    def get_task_scfcycles(self, nids=None, wslice=None, task_class=None, exclude_ok_tasks=False) -> list[Task]:
         """
         Return list of (task, scfcycle) tuples for all the tasks in the flow with a SCF algorithm
         e.g. electronic GS-SCF iteration, DFPT-SCF iterations etc.
@@ -1582,7 +1650,7 @@ class Flow(Node, NodeContainer, MSONable):
             for nid, task in zip(nids, tasks, strict=False):
                 cprint(repr(task), **task.status.color_opts, stream=stream)
                 self.show_history(nids=[nid], full_history=False, metadata=False, stream=stream)
-                #if task.num_restarts:
+                # if task.num_restarts:
                 #    self.show_restarts(nids=[nid])
                 if task.num_corrections:
                     self.show_corrections(nids=[nid], stream=stream)
@@ -1646,7 +1714,8 @@ class Flow(Node, NodeContainer, MSONable):
 
             Invalid ids are ignored
         """
-        if not isinstance(nids, collections.abc.Iterable): nids = [nids]
+        if not isinstance(nids, collections.abc.Iterable):
+            nids = [nids]
 
         n2task = {task.node_id: task for task in self.iflat_tasks()}
         return [n2task[n] for n in nids if n in n2task]
@@ -1702,6 +1771,7 @@ class Flow(Node, NodeContainer, MSONable):
 
         # Parse data.
         from abipy.flowtk.abitimer import AbinitTimerParser
+
         parser = AbinitTimerParser()
         read_ok = parser.parse(paths)
         if read_ok:
@@ -1726,8 +1796,10 @@ class Flow(Node, NodeContainer, MSONable):
             report = task.get_event_report()
 
             if report is not None:
-                app("num_errors: %s, num_warnings: %s, num_comments: %s" % (
-                    report.num_errors, report.num_warnings, report.num_comments))
+                app(
+                    "num_errors: %s, num_warnings: %s, num_comments: %s"
+                    % (report.num_errors, report.num_warnings, report.num_comments)
+                )
                 app("*** ERRORS ***")
                 app("\n".join(str(e) for e in report.errors))
                 app("*** BUGS ***")
@@ -1736,7 +1808,7 @@ class Flow(Node, NodeContainer, MSONable):
             else:
                 app("get_envent_report returned None!")
 
-            app("=" * len(header) + 2*"\n")
+            app("=" * len(header) + 2 * "\n")
 
         return stream.writelines(lines)
 
@@ -1759,7 +1831,7 @@ class Flow(Node, NodeContainer, MSONable):
             else:
                 lines.append("File does not exist!")
 
-            lines.append("=" * len(header) + 2*"\n")
+            lines.append("=" * len(header) + 2 * "\n")
 
         return stream.writelines(lines)
 
@@ -1805,14 +1877,18 @@ class Flow(Node, NodeContainer, MSONable):
             ntasks += 1
 
             # Start with error files.
-            for efname in ["qerr_file", "stderr_file",]:
+            for efname in [
+                "qerr_file",
+                "stderr_file",
+            ]:
                 err_file = getattr(task, efname)
                 if err_file.exists:
                     s = err_file.read()
-                    if not s: continue
+                    if not s:
+                        continue
                     print(make_banner(str(err_file), width=ncols, mark="="), file=stream)
                     cprint(s, color="red", file=stream)
-                    #count += 1
+                    # count += 1
 
             # Check main log file.
             try:
@@ -1834,8 +1910,11 @@ class Flow(Node, NodeContainer, MSONable):
                 # Inspect all log files produced by the other nodes.
                 log_files = task.tmpdir.list_filepaths(wildcard="*LOG_*")
                 if not log_files:
-                    cprint("No *LOG_* file in tmpdir. This usually happens if you are using too many CPUs",
-                           color="magenta", file=stream)
+                    cprint(
+                        "No *LOG_* file in tmpdir. This usually happens if you are using too many CPUs",
+                        color="magenta",
+                        file=stream,
+                    )
 
                 for log_file in log_files:
                     try:
@@ -1850,11 +1929,14 @@ class Flow(Node, NodeContainer, MSONable):
                         break
 
             if not count:
-                cprint("""
+                cprint(
+                    """
 Houston, we could not find any error message explainig the problem.
 Use the `abirun.py FLOWDIR history` command to print the log files of the different nodes.
 """,
-                        color="magenta", file=stream)
+                    color="magenta",
+                    file=stream,
+                )
 
         print("Number of tasks analyzed: %d" % ntasks, file=stream)
 
@@ -1903,7 +1985,8 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
     def rmtree(self, ignore_errors=False, onerror=None) -> None:
         """Remove workdir (same API as shutil.rmtree)."""
-        if not os.path.exists(self.workdir): return
+        if not os.path.exists(self.workdir):
+            return
         shutil.rmtree(self.workdir, ignore_errors=ignore_errors, onerror=onerror)
 
     def rm_and_build(self) -> None:
@@ -1914,7 +1997,8 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
     def build(self, *args, **kwargs) -> None:
         """Make directories and files of the `Flow`."""
         # Allocate here if not done yet!
-        if not self.allocated: self.allocate()
+        if not self.allocated:
+            self.allocate()
 
         self.indir.makedirs()
         self.outdir.makedirs()
@@ -1928,13 +2012,15 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                 node_id = int(fh.read())
 
             if self.node_id != node_id:
-                msg = ("\nFound node_id %s in file:\n\n  %s\n\nwhile the node_id of the present flow is %d.\n"
-                       "This means that you are trying to build a new flow in a directory already used by another flow.\n"
-                       "Possible solutions:\n"
-                       "   1) Change the workdir of the new flow.\n"
-                       "   2) remove the old directory either with `rm -r` or by calling the method flow.rmtree()\n"
-                       % (node_id, nodeid_path, self.node_id))
-                #print(msg)
+                msg = (
+                    "\nFound node_id %s in file:\n\n  %s\n\nwhile the node_id of the present flow is %d.\n"
+                    "This means that you are trying to build a new flow in a directory already used by another flow.\n"
+                    "Possible solutions:\n"
+                    "   1) Change the workdir of the new flow.\n"
+                    "   2) remove the old directory either with `rm -r` or by calling the method flow.rmtree()\n"
+                    % (node_id, nodeid_path, self.node_id)
+                )
+                # print(msg)
                 raise RuntimeError(msg)
 
         else:
@@ -1969,11 +2055,13 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                 the abinit parser. If the validation fails, ValueError is raise.
         """
         self.build()
-        if not abivalidate: return self.pickle_dump()
+        if not abivalidate:
+            return self.pickle_dump()
 
         # Validation with Abinit.
         isok, errors = self.abivalidate_inputs()
-        if isok: return self.pickle_dump()
+        if isok:
+            return self.pickle_dump()
         errlines = []
         for i, e in enumerate(errors):
             errlines.append("[%d] %s" % (i, e))
@@ -1989,7 +2077,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
             warnings.warn("Cannot pickle_dump since we have chrooted from %s" % self.has_chrooted)
             return -1
 
-        #if self.in_spectator_mode:
+        # if self.in_spectator_mode:
         #    warnings.warn("Cannot pickle_dump since flow is in_spectator_mode")
         #    return -2
 
@@ -2008,12 +2096,12 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         `protocol` selects the pickle protocol. self.pickle_protocol is used if `protocol` is None
         """
         strio = StringIO()
-        pmg_pickle_dump(self, strio,
-                        protocol=self.pickle_protocol if protocol is None else protocol)
+        pmg_pickle_dump(self, strio, protocol=self.pickle_protocol if protocol is None else protocol)
         return strio.getvalue()
 
-    def register_task(self, abinit_input: AbinitInput | Task,
-                      deps=None, manager=None, task_class=None, append=False) -> Work:
+    def register_task(
+        self, abinit_input: AbinitInput | Task, deps=None, manager=None, task_class=None, append=False
+    ) -> Work:
         """
         Utility function that generates a `Work` made of a single task
 
@@ -2040,7 +2128,8 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
             work = self.works[-1]
 
         task = work.register(abinit_input, deps=deps, task_class=task_class)
-        if not append: self.register_work(work)
+        if not append:
+            self.register_work(work)
 
         return work
 
@@ -2145,7 +2234,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         except AttributeError:
             return 0
 
-    def allocate(self, workdir=None, use_smartio: bool=False, build: bool=False) -> Flow:
+    def allocate(self, workdir=None, use_smartio: bool = False, build: bool = False) -> Flow:
         """
         Allocate the `Flow` i.e. assign the `workdir` and (optionally)
         the |TaskManager| to the different tasks in the Flow.
@@ -2174,7 +2263,8 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
         self.check_dependencies()
 
-        if not hasattr(self, "_allocated"): self._allocated = 0
+        if not hasattr(self, "_allocated"):
+            self._allocated = 0
         self._allocated += 1
 
         if use_smartio:
@@ -2197,7 +2287,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         Return: self
         """
         if not self.allocated:
-            #raise RuntimeError("You must call flow.allocate() before invoking flow.use_smartio()")
+            # raise RuntimeError("You must call flow.allocate() before invoking flow.use_smartio()")
             self.allocate()
 
         for task in self.iflat_tasks():
@@ -2206,7 +2296,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                 # Change the input so that output files are produced
                 # only if the calculation is not converged.
                 task.history.info("Will disable IO for task")
-                task.set_vars(prtwf=-1, prtden=0) # TODO: prt1wf=-1,
+                task.set_vars(prtwf=-1, prtden=0)  # TODO: prt1wf=-1,
             else:
                 must_produce_abiexts = []
                 for child in children:
@@ -2215,7 +2305,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                         must_produce_abiexts.extend(d.exts)
 
                 must_produce_abiexts = set(must_produce_abiexts)
-                #print("must_produce_abiexts", must_produce_abiexts)
+                # print("must_produce_abiexts", must_produce_abiexts)
 
                 # Variables supporting smart-io.
                 smart_prtvars = {
@@ -2234,6 +2324,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         """
         Writes to the given stream the ASCII representation of the dependency tree.
         """
+
         def child_iter(node):
             return [d.node for d in node.deps]
 
@@ -2340,7 +2431,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
         self.set_gc(gc)
         for work in self:
-            #work.set_gc(gc) # TODO Add support for Works and flow policy
+            # work.set_gc(gc) # TODO Add support for Works and flow policy
             for task in work:
                 task.set_gc(gc)
 
@@ -2355,7 +2446,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
         # Observe the nodes that must reach S_OK in order to call the callbacks.
         for cbk in self._callbacks:
-            #cbk.enable()
+            # cbk.enable()
             for dep in cbk.deps:
                 self.history.info("Connecting %s \nwith sender %s, signal %s" % (str(cbk), dep.node, dep.node.S_OK))
                 dispatcher.connect(self.on_dep_ok, signal=dep.node.S_OK, sender=dep.node, weak=False)
@@ -2415,8 +2506,10 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         """
         self.check_pid_file()
         self.set_spectator_mode(False)
-        if check_status: self.check_status()
+        if check_status:
+            self.check_status()
         from .launcher import PyLauncher
+
         return PyLauncher(self, **kwargs).rapidfire(max_nlaunch=max_nlaunch, max_loops=max_loops, sleep_time=sleep_time)
 
     def single_shot(self, check_status=True, **kwargs):
@@ -2428,8 +2521,10 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         """
         self.check_pid_file()
         self.set_spectator_mode(False)
-        if check_status: self.check_status()
+        if check_status:
+            self.check_status()
         from .launcher import PyLauncher
+
         return PyLauncher(self, **kwargs).single_shot()
 
     def make_scheduler(self, **kwargs):
@@ -2442,6 +2537,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                     else pass kwargs to :class:`PyFlowScheduler` __init__ method.
         """
         from .launcher import PyFlowScheduler
+
         if not kwargs:
             # User config if kwargs is empty
             sched = PyFlowScheduler.from_user_config()
@@ -2478,6 +2574,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
         Returns: The name of the tarfile.
         """
+
         def any2bytes(s):
             """Convert string or number to memory in bytes."""
             if is_string(s):
@@ -2514,22 +2611,26 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
             """
             # Skip links.
             if tarinfo.issym() or tarinfo.islnk():
-                if verbose: print("Excluding link: %s" % tarinfo.name)
+                if verbose:
+                    print("Excluding link: %s" % tarinfo.name)
                 return None
 
             # Check size in bytes
             if max_filesize is not None and tarinfo.size > max_filesize:
-                if verbose: print("Excluding %s due to max_filesize" % tarinfo.name)
+                if verbose:
+                    print("Excluding %s due to max_filesize" % tarinfo.name)
                 return None
 
             # Filter filenames.
             if exclude_exts and any(tarinfo.name.endswith(ext) for ext in exclude_exts):
-                if verbose: print("Excluding %s due to extension" % tarinfo.name)
+                if verbose:
+                    print("Excluding %s due to extension" % tarinfo.name)
                 return None
 
             # Exclude directories (use dir basenames).
             if exclude_dirs and any(dir_name in exclude_dirs for dir_name in tarinfo.name.split(os.path.sep)):
-                if verbose: print("Excluding %s due to exclude_dirs" % tarinfo.name)
+                if verbose:
+                    print("Excluding %s due to exclude_dirs" % tarinfo.name)
                 return None
 
             return tarinfo
@@ -2538,6 +2639,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         os.chdir(os.path.join(self.workdir, ".."))
 
         import tarfile
+
         name = os.path.basename(self.workdir) + ".tar.gz" if name is None else name
         with tarfile.open(name=name, mode="w:gz", **kwargs) as tar:
             tar.add(os.path.basename(self.workdir), arcname=None, recursive=True, filter=filter)
@@ -2575,13 +2677,15 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         explain_tasks = what in {"all", "tasks"}
         nids = as_set(nids)
 
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
 
         if explain_works:
             app("")
             cls2works = self.groupby_work_class()
             for work_cls, works in cls2works.items():
-                if nids and not any(work.node_id in nids for work in works): continue
+                if nids and not any(work.node_id in nids for work in works):
+                    continue
                 s = f"work name: {work_cls.__name__}, declared in module: {work_cls.__module__}"
                 app(make_banner(s, mark="="))
                 app(polish_doc(work_cls.__doc__, "work"))
@@ -2593,7 +2697,8 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
             app("")
             cls2tasks = self.groupby_task_class()
             for task_cls, tasks in cls2tasks.items():
-                if nids and not any(task.node_id in nids for task in tasks): continue
+                if nids and not any(task.node_id in nids for task in tasks):
+                    continue
                 s = f"Task name: {task_cls.__name__}, declared in module: {task_cls.__module__}"
                 app(make_banner(s, mark="="))
                 app(polish_doc(task_cls.__doc__, "task"))
@@ -2613,10 +2718,12 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         """
         print()
         for task in self.iflat_tasks():
-            if nids and task.node_id not in nids: continue
+            if nids and task.node_id not in nids:
+                continue
             json_path = os.path.join(task.workdir, "autoparal.json")
             if not os.path.exists(json_path):
-                if verbose: print("Cannot find:", json_path)
+                if verbose:
+                    print("Cannot find:", json_path)
                 continue
 
             with open(json_path) as fh:
@@ -2645,8 +2752,11 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         self.allocate()
 
         from graphviz import Digraph
-        fg = Digraph("flow", #filename="flow_%s.gv" % os.path.basename(self.relworkdir),
-                      engine="fdp" if engine == "automatic" else engine)
+
+        fg = Digraph(
+            "flow",  # filename="flow_%s.gv" % os.path.basename(self.relworkdir),
+            engine="fdp" if engine == "automatic" else engine,
+        )
 
         # Set graph attributes. https://www.graphviz.org/doc/info/
         fg.attr(label=repr(self))
@@ -2654,17 +2764,19 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         fg.node_attr.update(color="lightblue2", style="filled")
 
         # Add input attributes.
-        if graph_attr is not None: fg.graph_attr.update(**graph_attr)
-        if node_attr is not None: fg.node_attr.update(**node_attr)
-        if edge_attr is not None: fg.edge_attr.update(**edge_attr)
+        if graph_attr is not None:
+            fg.graph_attr.update(**graph_attr)
+        if node_attr is not None:
+            fg.node_attr.update(**node_attr)
+        if edge_attr is not None:
+            fg.edge_attr.update(**edge_attr)
 
         def node_kwargs(node):
             return dict(
-                #shape="circle",
+                # shape="circle",
                 color=node.color_hex,
                 fontsize="8.0",
-                label=(str(node) if not hasattr(node, "pos_str") else
-                       node.pos_str + "\n" + node.__class__.__name__),
+                label=(str(node) if not hasattr(node, "pos_str") else node.pos_str + "\n" + node.__class__.__name__),
             )
 
         edge_kwargs = dict(arrowType="vee", style="solid")
@@ -2683,8 +2795,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
                         # Find file extensions required by this task
                         i = [dep.node for dep in child.deps].index(task)
                         edge_label = "+".join(child.deps[i].exts)
-                        fg.edge(task.name, child.name, label=edge_label, color=task.color_hex,
-                                **edge_kwargs)
+                        fg.edge(task.name, child.name, label=edge_label, color=task.color_hex, **edge_kwargs)
 
         # Treat the case in which we have a work producing output for other tasks.
         for work in self:
@@ -2695,7 +2806,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
             seen = set()
             for child in children:
                 # This is not needed, too much confusing
-                #fg.edge(cluster_name, child.name, color=work.color_hex, **edge_kwargs)
+                # fg.edge(cluster_name, child.name, color=work.color_hex, **edge_kwargs)
                 # Find file extensions required by work
                 i = [dep.node for dep in child.deps].index(work)
                 for ext in child.deps[i].exts:
@@ -2710,10 +2821,10 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         # Treat the case in which we have a task that depends on external files.
         seen = set()
         for task in self.iflat_tasks():
-            #print(task.get_parents())
+            # print(task.get_parents())
             for node in (p for p in task.get_parents() if p.is_file):
-                #print("parent file node", node)
-                #infile = "%s (%s)" % (ext, work.name)
+                # print("parent file node", node)
+                # infile = "%s (%s)" % (ext, work.name)
                 infile = node.filepath
                 if infile not in seen:
                     seen.add(infile)
@@ -2743,14 +2854,24 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         path = graph.render(tmpname, view=False, cleanup=True)
         ax, fig, _ = get_ax_fig_plt(ax=ax, figsize=figsize, dpi=dpi)
         import matplotlib.image as mpimg
-        ax.imshow(mpimg.imread(path, format="png")) #, interpolation="none")
+
+        ax.imshow(mpimg.imread(path, format="png"))  # , interpolation="none")
         ax.axis("off")
 
         return fig
 
     @add_fig_kwargs
-    def plot_networkx(self, mode="network", with_edge_labels=False, ax=None, arrows=False,
-                      node_size="num_cores", node_label="name_class", layout_type="spring", **kwargs) -> Figure:
+    def plot_networkx(
+        self,
+        mode="network",
+        with_edge_labels=False,
+        ax=None,
+        arrows=False,
+        node_size="num_cores",
+        node_label="name_class",
+        layout_type="spring",
+        **kwargs,
+    ) -> Figure:
         """
         Use networkx to draw the flow with the connections among the nodes and the status of the tasks.
 
@@ -2771,6 +2892,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
         # Build the graph
         import networkx as nx
+
         g = nx.Graph() if not arrows else nx.DiGraph()
         edge_labels = {}
         for task in self.iflat_tasks():
@@ -2783,7 +2905,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
             filedeps = [d for d in task.deps if d.node.is_file]
             for d in filedeps:
-                #print(d.node, d.exts)
+                # print(d.node, d.exts)
                 g.add_node(d.node, name="%s (%s)" % (d.node.basename, d.node.node_id))
                 g.add_edge(d.node, task)
                 edge_labels[(d.node, task)] = "+".join(d.exts)
@@ -2816,7 +2938,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
             if node_label == "name_class":
                 if node.is_file:
                     return "%s\n(%s)" % (node.basename, node.node_id)
-                return (node.pos_str + "\n" + node.__class__.__name__ if hasattr(node, "pos_str") else str(node))
+                return node.pos_str + "\n" + node.__class__.__name__ if hasattr(node, "pos_str") else str(node)
             raise NotImplementedError("node_label: %s" % str(node_label))
 
         labels = {node: make_node_label(node) for node in g.nodes()}
@@ -2824,10 +2946,18 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
         # Select plot type.
         if mode == "network":
-            nx.draw_networkx(g, pos, labels=labels,
-                             node_color=[node.color_rgb for node in g.nodes()],
-                             node_size=[make_node_size(node) for node in g.nodes()],
-                             width=1, style="dotted", with_labels=True, arrows=arrows, ax=ax)
+            nx.draw_networkx(
+                g,
+                pos,
+                labels=labels,
+                node_color=[node.color_rgb for node in g.nodes()],
+                node_size=[make_node_size(node) for node in g.nodes()],
+                width=1,
+                style="dotted",
+                with_labels=True,
+                arrows=arrows,
+                ax=ax,
+            )
 
             # Draw edge labels
             if with_edge_labels:
@@ -2840,18 +2970,22 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
 
                 # Draw nodes (color is given by status)
                 node_color = status.color_opts["color"]
-                if node_color is None: node_color = "black"
-                #print("num nodes %s with node_color %s" % (len(tasks), node_color))
+                if node_color is None:
+                    node_color = "black"
+                # print("num nodes %s with node_color %s" % (len(tasks), node_color))
 
-                nx.draw_networkx_nodes(g, pos,
-                                       nodelist=tasks,
-                                       node_color=node_color,
-                                       node_size=[make_node_size(task) for task in tasks],
-                                       alpha=0.5, ax=ax
-                                       #label=str(status),
-                                       )
+                nx.draw_networkx_nodes(
+                    g,
+                    pos,
+                    nodelist=tasks,
+                    node_color=node_color,
+                    node_size=[make_node_size(task) for task in tasks],
+                    alpha=0.5,
+                    ax=ax,
+                    # label=str(status),
+                )
             # Draw edges.
-            nx.draw_networkx_edges(g, pos, width=2.0, alpha=0.5, arrows=arrows, ax=ax) # edge_color='r')
+            nx.draw_networkx_edges(g, pos, width=2.0, alpha=0.5, arrows=arrows, ax=ax)  # edge_color='r')
 
             # Draw labels
             nx.draw_networkx_labels(g, pos, labels, font_size=12, ax=ax)
@@ -2859,7 +2993,7 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
             # Draw edge labels
             if with_edge_labels:
                 nx.draw_networkx_edge_labels(g, pos, edge_labels=edge_labels, ax=ax)
-                #label_pos=0.5, font_size=10, font_color='k', font_family='sans-serif', font_weight='normal',
+                # label_pos=0.5, font_size=10, font_color='k', font_family='sans-serif', font_weight='normal',
                 # alpha=1.0, bbox=None, ax=None, rotate=True, **kwds)
 
         else:
@@ -2874,12 +3008,14 @@ Use the `abirun.py FLOWDIR history` command to print the log files of the differ
         Return system exit code.
         """
         import nbformat
+
         nbf = nbformat.v4
         nb = nbf.new_notebook()
 
-        nb.cells.extend([
-            #nbf.new_markdown_cell("This is an auto-generated notebook for %s" % os.path.basename(pseudopath)),
-            nbf.new_code_cell("""\
+        nb.cells.extend(
+            [
+                # nbf.new_markdown_cell("This is an auto-generated notebook for %s" % os.path.basename(pseudopath)),
+                nbf.new_code_cell("""\
 import sys, os
 import numpy as np
 
@@ -2896,29 +3032,31 @@ from abipy import abilab
 # See https://seaborn.pydata.org/generated/seaborn.set.html#seaborn.set
 abilab.enable_notebook(with_seaborn=True)
 """),
-
-            nbf.new_code_cell("flow = abilab.Flow.pickle_load('%s')" % self.workdir),
-            nbf.new_code_cell("if flow.num_errored_tasks: flow.debug()"),
-            nbf.new_code_cell("flow.check_status(show=True, verbose=0)"),
-            nbf.new_code_cell("flow.show_dependencies()"),
-            nbf.new_code_cell("flow.plot_networkx();"),
-            nbf.new_code_cell("#flow.get_graphviz();"),
-            nbf.new_code_cell("flow.show_inputs(nids=None, wslice=None)"),
-            nbf.new_code_cell("flow.show_history()"),
-            nbf.new_code_cell("flow.show_corrections()"),
-            nbf.new_code_cell("flow.show_event_handlers()"),
-            nbf.new_code_cell("flow.inspect(nids=None, wslice=None)"),
-            nbf.new_code_cell("flow.show_abierrors()"),
-            nbf.new_code_cell("flow.show_qouts()"),
-        ])
+                nbf.new_code_cell("flow = abilab.Flow.pickle_load('%s')" % self.workdir),
+                nbf.new_code_cell("if flow.num_errored_tasks: flow.debug()"),
+                nbf.new_code_cell("flow.check_status(show=True, verbose=0)"),
+                nbf.new_code_cell("flow.show_dependencies()"),
+                nbf.new_code_cell("flow.plot_networkx();"),
+                nbf.new_code_cell("#flow.get_graphviz();"),
+                nbf.new_code_cell("flow.show_inputs(nids=None, wslice=None)"),
+                nbf.new_code_cell("flow.show_history()"),
+                nbf.new_code_cell("flow.show_corrections()"),
+                nbf.new_code_cell("flow.show_event_handlers()"),
+                nbf.new_code_cell("flow.inspect(nids=None, wslice=None)"),
+                nbf.new_code_cell("flow.show_abierrors()"),
+                nbf.new_code_cell("flow.show_qouts()"),
+            ]
+        )
 
         import tempfile
+
         _, nbpath = tempfile.mkstemp(suffix=".ipynb", text=True)
 
         with open(nbpath, "w", encoding="utf8") as fh:
             nbformat.write(nb, fh)
 
         from shutil import which
+
         has_jupyterlab = which("jupyter-lab") is not None
         appname = "jupyter-lab" if has_jupyterlab else "jupyter notebook"
         if not has_jupyterlab:
@@ -2934,13 +3072,13 @@ abilab.enable_notebook(with_seaborn=True)
         cmd = "%s %s" % (appname, nbpath)
         print("Executing:", cmd, "\nstdout and stderr redirected to %s" % tmpname)
         import subprocess
+
         process = subprocess.Popen(cmd.split(), shell=False, stdout=fd, stderr=fd)
         cprint("pid: %s" % str(process.pid), "yellow")
         return process.returncode
 
 
 class G0W0WithQptdmFlow(Flow):
-
     def __init__(self, workdir, scf_input, nscf_input, scr_input, sigma_inputs, manager=None):
         """
         Build a :class:`Flow` for one-shot G0W0 calculations.
@@ -2965,8 +3103,12 @@ class G0W0WithQptdmFlow(Flow):
         bands_work = self.register_work(BandStructureWork(scf_input, nscf_input))
 
         # Register the callback that will be executed the work for the SCR with qptdm.
-        scr_work = self.register_work_from_cbk(cbk_name="cbk_qptdm_workflow", cbk_data={"input": scr_input},
-                                               deps={bands_work.nscf_task: "WFK"}, work_class=QptdmWork)
+        scr_work = self.register_work_from_cbk(
+            cbk_name="cbk_qptdm_workflow",
+            cbk_data={"input": scr_input},
+            deps={bands_work.nscf_task: "WFK"},
+            work_class=QptdmWork,
+        )
 
         # The last work contains a list of SIGMA tasks
         # that will use the data produced in the previous two works.
@@ -3003,7 +3145,8 @@ class G0W0WithQptdmFlow(Flow):
         for task in work:
             task.set_work(work)
             # Add the garbage collector.
-            if self.gc is not None: task.set_gc(self.gc)
+            if self.gc is not None:
+                task.set_gc(self.gc)
 
         work.connect_signals()
         work.build()
@@ -3031,6 +3174,7 @@ class FlowCallback:
             2) There's some extra logic and extra data needed for the proper functioning
                of a callback at the flow level and this object provides an easy-to-use interface.
     """
+
     Error = FlowCallbackError
 
     def __init__(self, func_name, flow, deps, cbk_data):
@@ -3097,9 +3241,16 @@ class FlowCallback:
 # Factory functions
 ####################
 
-def bandstructure_flow(workdir: str, scf_input: AbinitInput, nscf_input: AbinitInput,
-                       dos_inputs=None, manager=None,
-                       flow_class=Flow, allocate=True):
+
+def bandstructure_flow(
+    workdir: str,
+    scf_input: AbinitInput,
+    nscf_input: AbinitInput,
+    dos_inputs=None,
+    manager=None,
+    flow_class=Flow,
+    allocate=True,
+):
     """
     Build a |Flow| for band structure calculations.
 
@@ -3121,14 +3272,21 @@ def bandstructure_flow(workdir: str, scf_input: AbinitInput, nscf_input: AbinitI
     # Handy aliases
     flow.scf_task, flow.nscf_task, flow.dos_tasks = work.scf_task, work.nscf_task, work.dos_tasks
 
-    if allocate: flow.allocate()
+    if allocate:
+        flow.allocate()
     return flow
 
 
-def g0w0_flow(workdir: str,
-              scf_input: AbinitInput, nscf_input: AbinitInput,
-              scr_input: AbinitInput, sigma_inputs,
-              manager=None, flow_class=Flow, allocate=True):
+def g0w0_flow(
+    workdir: str,
+    scf_input: AbinitInput,
+    nscf_input: AbinitInput,
+    scr_input: AbinitInput,
+    sigma_inputs,
+    manager=None,
+    flow_class=Flow,
+    allocate=True,
+):
     """
     Build a |Flow| for one-shot $G_0W_0$ calculations.
 
@@ -3147,11 +3305,13 @@ def g0w0_flow(workdir: str,
     flow = flow_class(workdir, manager=manager)
     work = G0W0Work(scf_input, nscf_input, scr_input, sigma_inputs)
     flow.register_work(work)
-    if allocate: flow.allocate()
+    if allocate:
+        flow.allocate()
     return flow
 
 
 # TODO: Move it to dfpt_works
+
 
 class PhononFlow(Flow):
     """
@@ -3163,10 +3323,21 @@ class PhononFlow(Flow):
     2) A second workflow to compute phonons on the ph_ngqpt q-mesh. Each work contains
        Only the irreducible phonon perturbations are espliclty computed.
     """
+
     @classmethod
-    def from_scf_input(cls, workdir: str, scf_input: AbinitInput, ph_ngqpt,
-                       qptopt=1, with_becs=True, with_quad=False, with_flexoe=False,
-                       manager=None, allocate=True, **kwargs) -> PhononFlow:
+    def from_scf_input(
+        cls,
+        workdir: str,
+        scf_input: AbinitInput,
+        ph_ngqpt,
+        qptopt=1,
+        with_becs=True,
+        with_quad=False,
+        with_flexoe=False,
+        manager=None,
+        allocate=True,
+        **kwargs,
+    ) -> PhononFlow:
         """
         Create a `PhononFlow` for phonon calculations from an `AbinitInput` defining a ground-state run.
 
@@ -3202,11 +3373,20 @@ class PhononFlow(Flow):
         if any(scf_ngkpt % ph_ngqpt != 0):
             raise ValueError("ph_ngqpt %s should be a sub-mesh of scf_ngkpt %s" % (ph_ngqpt, scf_ngkpt))
 
-        ph_work = PhononWork.from_scf_task(scf_task, ph_ngqpt, is_ngqpt=True, qptopt=qptopt, with_becs=with_becs,
-                                           with_quad=with_quad, with_flexoe=with_flexoe, **kwargs)
+        ph_work = PhononWork.from_scf_task(
+            scf_task,
+            ph_ngqpt,
+            is_ngqpt=True,
+            qptopt=qptopt,
+            with_becs=with_becs,
+            with_quad=with_quad,
+            with_flexoe=with_flexoe,
+            **kwargs,
+        )
         flow.register_work(ph_work)
 
-        if allocate: flow.allocate()
+        if allocate:
+            flow.allocate()
 
         return flow
 
@@ -3225,6 +3405,7 @@ class PhononFlow(Flow):
             return None
 
         from abipy.dfpt.ddb import DdbFile
+
         try:
             return DdbFile(ddb_path)
         except Exception as exc:
@@ -3242,8 +3423,7 @@ class NonLinearCoeffFlow(Flow):
     """
 
     @classmethod
-    def from_scf_input(cls, workdir: str, scf_input: AbinitInput,
-                       manager=None, allocate=True) -> NonLinearCoeffFlow:
+    def from_scf_input(cls, workdir: str, scf_input: AbinitInput, manager=None, allocate=True) -> NonLinearCoeffFlow:
         """
         Create a `NonlinearFlow` for second order susceptibility calculations from
         an `AbinitInput` defining a ground-state run.
@@ -3262,7 +3442,8 @@ class NonLinearCoeffFlow(Flow):
         nl_work = DteWork.from_scf_task(scf_task)
         flow.register_work(nl_work)
 
-        if allocate: flow.allocate()
+        if allocate:
+            flow.allocate()
 
         return flow
 
@@ -3280,6 +3461,7 @@ class NonLinearCoeffFlow(Flow):
             return None
 
         from abipy.dfpt.ddb import DdbFile
+
         try:
             return DdbFile(ddb_path)
         except Exception as exc:
@@ -3304,8 +3486,7 @@ class NonLinearCoeffFlow(Flow):
         return super().finalize()
 
 
-def phonon_conv_flow(workdir: str, scf_input: AbinitInput, qpoints, params,
-                     manager=None, allocate=True):
+def phonon_conv_flow(workdir: str, scf_input: AbinitInput, qpoints, params, manager=None, allocate=True):
     """
     Create a |Flow| to perform convergence studies for phonon calculations.
 
@@ -3334,7 +3515,8 @@ def phonon_conv_flow(workdir: str, scf_input: AbinitInput, qpoints, params,
             # Add the PhononWork connected to this scf_task.
             flow.register_work(PhononWork.from_scf_task(work[0], qpoints=qpt))
 
-    if allocate: flow.allocate()
+    if allocate:
+        flow.allocate()
     return flow
 
 

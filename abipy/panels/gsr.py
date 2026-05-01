@@ -1,7 +1,8 @@
 """Panels to interact with GSR files."""
+
 from __future__ import annotations
 
-#import param
+# import param
 import panel as pn
 import panel.widgets as pnw
 
@@ -14,6 +15,7 @@ class GsrFilePanel(PanelWithElectronBands):
     """
     Panel with widgets to interact with a |GsrFile|.
     """
+
     def __init__(self, ncfile: GsrFile, **params):
         PanelWithElectronBands.__init__(self, ebands=ncfile.ebands, **params)
         self.ncfile = ncfile
@@ -33,7 +35,7 @@ class GsrFilePanel(PanelWithElectronBands):
 
             if not self.ncfile.ebands.isnot_ibz_sampling():
                 d["Ifermi"] = self.get_ifermi_view()
-                #d["fsviewer"] = self.get_fsviewer_view()
+                # d["fsviewer"] = self.get_fsviewer_view()
 
         if kpoints.is_path:
             d["EffMass"] = self.get_effmass_view()
@@ -42,14 +44,15 @@ class GsrFilePanel(PanelWithElectronBands):
         d["NcFile"] = self.ncfile.get_ncfile_view()
 
         # TODO
-        #d["Global"] = pn.Row(
+        # d["Global"] = pn.Row(
         #    pn.Column("# Global options",
         #              *self.pws("units", "mpi_procs", "verbose"),
         #              ),
         #    self.get_software_stack())
-        #))
+        # ))
 
-        if as_dict: return d
+        if as_dict:
+            return d
         return self.get_template_from_tabs(d, template=kwargs.get("template"))
 
 
@@ -83,9 +86,10 @@ class GsrRobotPanel(PanelWithEbandsRobot):
             d["Plot-eDOS"] = pn.Row(self.get_edos_plotter_widgets(), self.on_edos_plotter_btn)
 
         d["Dataframe"] = pn.Row(
-            pn.Column(self.transpose_gsr_dataframe, self.gsr_dataframe_btn),
-            self.on_gsr_dataframe_btn)
+            pn.Column(self.transpose_gsr_dataframe, self.gsr_dataframe_btn), self.on_gsr_dataframe_btn
+        )
 
-        if as_dict: return d
+        if as_dict:
+            return d
 
         return self.get_template_from_tabs(d, template=kwargs.get("template"))

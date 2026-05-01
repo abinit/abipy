@@ -1,4 +1,5 @@
 """Tests for orbmag module."""
+
 import os
 
 import numpy as np
@@ -9,16 +10,17 @@ from abipy.electrons.orbmag import OrbmagAnalyzer
 
 root = "/Users/giantomassi/git_repos/ABIPY_WORKS/JOE_ORBMAG"
 
-class OrbmagTest(AbipyTest):
 
+class OrbmagTest(AbipyTest):
     @pytest.mark.xfail(condition=not os.path.isdir(root), reason=f"{root=} does not exist")
     def test_orbmag_analyzer(self):
         """Testing OrbmagAnalyzer"""
         filepaths = [os.path.join(root, s) for s in ["gso_DS12_ORBMAG.nc", "gso_DS22_ORBMAG.nc", "gso_DS32_ORBMAG.nc"]]
 
         with OrbmagAnalyzer(filepaths) as orban:
-            repr(orban); str(orban)
-            #orban.to_string(verbose=1)
+            repr(orban)
+            str(orban)
+            # orban.to_string(verbose=1)
             assert orban.structure.formula == "Al1 P1"
             assert orban.mband == 4
             assert orban.nkpt == 64
@@ -43,21 +45,21 @@ class OrbmagTest(AbipyTest):
             orb = orban.orb_files[0]
             assert orb.to_string(verbose=2)
             params = orb.params
-            #assert params["orban_ntau"] == 6
+            # assert params["orban_ntau"] == 6
             target_atom, nucdipmom = orb.target_atom_nucdipmom
             assert target_atom == 0
             self.assert_almost_equal(nucdipmom, [1, 0, 0])
             self.assert_equal(orban.has_nucdipmom, [True, False])
 
             cif_string = orban.get_cif_string()
-            #print("cif_string:\n", cif_string)
+            # print("cif_string:\n", cif_string)
 
             ref_string = """\
 # generated using pymatgen
 data_SiO2
 """
             # FIXME: This is not portable
-            #self.assertMultiLineEqual(cif_string, ref_string)
+            # self.assertMultiLineEqual(cif_string, ref_string)
 
             if self.has_matplotlib():
                 orban.plot_fatbands(os.path.join(root, "bandso_DS1_GSR.nc"), show=False)

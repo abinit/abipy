@@ -1,4 +1,5 @@
 """Tests for context_managers module."""
+
 import time
 
 from abipy.core.testing import AbipyTest

@@ -12,7 +12,6 @@ class MyGenerator(AnaddbFilesGenerator):
 
         self.files_to_keep.add("ddb_notes")
 
-
     # Mapping old_name --> new_name for the output files that must be preserved.
     files_to_save = {
         "out_PHBST.nc": "ZnSe_hex_886.out_PHBST.nc",

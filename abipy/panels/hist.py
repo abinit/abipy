@@ -1,7 +1,8 @@
-""""Panels for HIST files."""
+""" "Panels for HIST files."""
+
 from __future__ import annotations
 
-#import param
+# import param
 import panel as pn
 import panel.widgets as pnw
 
@@ -33,9 +34,10 @@ class HistFilePanel(AbipyParameterized):
         Plot the evolution of structural parameters (lattice lengths, angles and volume)
         as well as pressure, info on forces and total energy.
         """
-        col = pn.Column(sizing_mode="stretch_width"); ca = col.append
+        col = pn.Column(sizing_mode="stretch_width")
+        ca = col.append
         for what in self.what_list.value:
-            #ca(f"## {what}")
+            # ca(f"## {what}")
             ca(ply(self.hist.plotly(what, title=what, show=False)))
 
         return col
@@ -52,19 +54,16 @@ class HistFilePanel(AbipyParameterized):
         d = {}
 
         d["Summary"] = self.get_summary_view_for_abiobj(self.hist)
-        d["Plot"] = pn.Row(
-                self.pws_col(["## Plot Options", "what_list", "plot_relax_btn"]),
-                self.on_plot_relax_btn
-        )
+        d["Plot"] = pn.Row(self.pws_col(["## Plot Options", "what_list", "plot_relax_btn"]), self.on_plot_relax_btn)
 
         if not self.has_remote_server:
             # As we don't have visualizers that can work in remote server mode,
             # this tab should not be created.
             d["Visualize"] = pn.Row(
-                    pn.Column(self.appname, self.to_unit_cell, self.view_relax_btn),
-                    self.on_view_relax_btn
+                pn.Column(self.appname, self.to_unit_cell, self.view_relax_btn), self.on_view_relax_btn
             )
 
-        if as_dict: return d
+        if as_dict:
+            return d
 
         return self.get_template_from_tabs(d, template=kwargs.get("template"))

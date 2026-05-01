@@ -6,6 +6,7 @@ Dielectric function with LFE
 This examples shows how to plot the macroscopic dielectric function
 computed in the GW code (optdriver 3)
 """
+
 import abipy.data as abidata
 from abipy.abilab import abiopen
 

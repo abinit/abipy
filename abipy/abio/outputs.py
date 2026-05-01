@@ -1,6 +1,7 @@
 """
 Objects used to extract and plot results from output files in text format.
 """
+
 from __future__ import annotations
 
 import dataclasses
@@ -31,12 +32,13 @@ class BerryPhasePolarization:
     """
     All terms are in atomic units, including the stresses.
     """
+
     electronic: float
     ionic: float
     total: float
 
-    #stress: np.ndarray
-    #maxwell_stress: np.ndarray
+    # stress: np.ndarray
+    # maxwell_stress: np.ndarray
 
     @classmethod
     def from_abo_file(cls, filepath: str) -> BerryPhasePolarization:
@@ -51,12 +53,12 @@ class BerryPhasePolarization:
 
         magic_start = " Polarization in cartesian coordinates (a.u.):"
 
-        electronic, ionic, total = [np.empty((3, )) for _ in range(3)]
+        electronic, ionic, total = [np.empty((3,)) for _ in range(3)]
         key_arr = [
-          (None, None),
-          ("Electronic berry phase", electronic),
-          ("Ionic", ionic),
-          ("Total", total),
+            (None, None),
+            ("Electronic berry phase", electronic),
+            ("Ionic", ionic),
+            ("Total", total),
         ]
 
         with open(filepath) as fh:
@@ -67,17 +69,19 @@ class BerryPhasePolarization:
                 raise ValueError(f"Cannot find {magic_start=} in {self.filepath}")
 
             for ik, line in enumerate(fh):
-                if key_arr[ik][0] is None: continue
+                if key_arr[ik][0] is None:
+                    continue
                 key, vals = line.split(":")
                 key = key.lstrip()
                 ref_key, arr = key_arr[ik]
                 if key != ref_key:
                     raise ValueError(f"Expecting `{ref_key=}` but found `{key}`")
                 arr[:] = np.array([float(v) for v in vals.split()])
-                if key == "Total": break
+                if key == "Total":
+                    break
 
         # TODO: Parse stress
-        #stress, maxwell_stress = [np.empty((3, 3)) for _ in range(2)]
+        # stress, maxwell_stress = [np.empty((3, 3)) for _ in range(2)]
 
         return cls(electronic=electronic, ionic=ionic, total=total)
 
@@ -86,6 +90,7 @@ class AbinitTextFile(TextFile):
     """
     Base class for the ABINIT main output files and log files.
     """
+
     @property
     def events(self) -> list:
         """
@@ -114,7 +119,7 @@ class AbinitLogFile(AbinitTextFile, NotebookWriter):
     .. inheritance-diagram:: AbinitLogFile
     """
 
-    def to_string(self, verbose : int = 0) -> str:
+    def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level verbose."""
         return str(self.events)
 
@@ -122,12 +127,12 @@ class AbinitLogFile(AbinitTextFile, NotebookWriter):
         """Empty placeholder."""
         return
 
-    #@add_fig_kwargs
-    #def plot_mem(self, **kwargs) -> Figure:
+    # @add_fig_kwargs
+    # def plot_mem(self, **kwargs) -> Figure:
     #   return fig
 
-    #@add_fig_kwargs
-    #def plot_time(self, **kwargs) -> Figure:
+    # @add_fig_kwargs
+    # def plot_time(self, **kwargs) -> Figure:
     #   return fig
 
     def yield_figs(self, **kwargs):  # pragma: no cover
@@ -143,10 +148,12 @@ class AbinitLogFile(AbinitTextFile, NotebookWriter):
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        nb.cells.extend([
-            nbv.new_code_cell("abilog = abilab.abiopen('%s')" % self.filepath),
-            nbv.new_code_cell("print(abilog.events)"),
-        ])
+        nb.cells.extend(
+            [
+                nbv.new_code_cell("abilog = abilab.abiopen('%s')" % self.filepath),
+                nbv.new_code_cell("print(abilog.events)"),
+            ]
+        )
 
         return self._write_nb_nbpath(nb, nbpath)
 
@@ -158,6 +165,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: AbinitOutputFile
     """
+
     # TODO: Extract number of errors and warnings.
 
     def __init__(self, filepath: str):
@@ -182,13 +190,13 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                     self.version = line.split()[1]
 
                 if line.startswith("- Proc."):
-                    #- Proc.   0 individual time (sec): cpu=         25.5  wall=         26.1
+                    # - Proc.   0 individual time (sec): cpu=         25.5  wall=         26.1
                     tokens = line.split()
                     self.proc0_walltime = float(tokens[-1])
                     self.proc0_cputime = float(tokens[-3])
 
                 if line.startswith("+Overall time"):
-                    #+Overall time at end (sec) : cpu=         25.5  wall=         26.1
+                    # +Overall time at end (sec) : cpu=         25.5  wall=         26.1
                     tokens = line.split()
                     self.overall_cputime = float(tokens[-3])
                     self.overall_walltime = float(tokens[-1])
@@ -220,28 +228,32 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                     self.datasets[where].append(line)
 
         self.header = "".join(self.header)
-        if self.debug_level: print("header:\n", self.header)
+        if self.debug_level:
+            print("header:\n", self.header)
         # Output files produced in dryrun_mode contain the following line:
         # abinit : before driver, prtvol=0, debugging mode => will skip driver
         self.dryrun_mode = "debugging mode => will skip driver" in self.header
-        #print("dryrun_mode:", self.dryrun_mode)
+        # print("dryrun_mode:", self.dryrun_mode)
 
-        #if " jdtset " in self.header: raise NotImplementedError("jdtset is not supported")
-        #if " udtset " in self.header: raise NotImplementedError("udtset is not supported")
+        # if " jdtset " in self.header: raise NotImplementedError("jdtset is not supported")
+        # if " udtset " in self.header: raise NotImplementedError("udtset is not supported")
 
         self.ndtset = len(self.datasets)
         if not self.datasets:
-            #raise NotImplementedError("Empty dataset sections.")
+            # raise NotImplementedError("Empty dataset sections.")
             self.ndtset = 1
             self.datasets[1] = "Empty dataset"
 
         for key, data in self.datasets.items():
-            if self.debug_level: print("data")
+            if self.debug_level:
+                print("data")
             self.datasets[key] = "".join(data)
-            if self.debug_level: print(self.datasets[key])
+            if self.debug_level:
+                print(self.datasets[key])
 
         self.footer = "".join(self.footer)
-        if self.debug_level: print("footer:\n", self.footer)
+        if self.debug_level:
+            print("footer:\n", self.footer)
 
         self.initial_vars_global, self.initial_vars_dataset = self._parse_variables("header")
         self.final_vars_global, self.final_vars_dataset = None, None
@@ -255,7 +267,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
     def _parse_variables(self, what: str):
         vars_global = {}
         vars_dataset = OrderedDict([(k, OrderedDict()) for k in self.datasets.keys()])
-        #print("keys", vars_dataset.keys())
+        # print("keys", vars_dataset.keys())
 
         lines = getattr(self, what).splitlines()
         if what == "header":
@@ -272,14 +284,18 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             if magic_start in line:
                 break
         else:
-            raise ValueError("Cannot find magic_start line: `%s`\nPerhaps this is not an Abinit output file!" % magic_start)
-        lines = lines[i+1:]
+            raise ValueError(
+                "Cannot find magic_start line: `%s`\nPerhaps this is not an Abinit output file!" % magic_start
+            )
+        lines = lines[i + 1 :]
 
         for i, line in enumerate(lines):
             if magic_stop in line:
                 break
         else:
-            raise ValueError("Cannot find magic_stop line: `%s`\nPerhaps this is not an Abinit output file!" % magic_stop)
+            raise ValueError(
+                "Cannot find magic_stop line: `%s`\nPerhaps this is not an Abinit output file!" % magic_stop
+            )
         lines = lines[:i]
 
         # Parse data. Assume format:
@@ -292,13 +308,13 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             l = []
             for i, c in enumerate(s[::-1]):
                 if c.isalpha():
-                    key = s[:len(s)-i]
+                    key = s[: len(s) - i]
                     break
                 l.append(c)
             else:
                 raise ValueError("Cannot find dataset index in token: %s\n" % s)
 
-            #print(line, "\n", l)
+            # print(line, "\n", l)
             dtindex = None
             if l:
                 l.reverse()
@@ -318,17 +334,19 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                     try:
                         vars_dataset[dtidx][key] = value
                     except KeyError:
-                        if dtidx==0:
+                        if dtidx == 0:
                             vars_global[key] = value
                         else:
                             raise Exception("dataset index != 0 but still not found in vars_dataset")
 
         for line in lines:
-            if not line: continue
+            if not line:
+                continue
             # Ignore first char
             line = line[1:].lstrip().rstrip()
-            if not line: continue
-            #print("line", line)
+            if not line:
+                continue
+            # print("line", line)
             if line[0].isalpha():
                 pop_stack()
                 stack_lines = []
@@ -350,8 +368,9 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         else:
             raise ValueError("Invalid value for what: `%s`" % str(what))
 
-        #print("global", vars_global["acell"])
+        # print("global", vars_global["acell"])
         from abipy.abio.abivars import is_abiunit
+
         inigeo = {k: vars_global[k] for k in GEOVARS if k in vars_global}
 
         spgvars = ("spgroup", "symrel", "tnons", "symafm")
@@ -380,19 +399,21 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                 s = " ".join(tokens)
                 dtype = float if key not in ("ntypat", "typat", "natom") else int
                 try:
-                    #print(key, s)
+                    # print(key, s)
                     value = np.fromstring(s, sep=" ", dtype=dtype)
-                    #print(key, value)
-                    if fact != 1.0: value *= fact # Do not change integer arrays e.g typat!
+                    # print(key, value)
+                    if fact != 1.0:
+                        value *= fact  # Do not change integer arrays e.g typat!
                     d[key] = value
                 except ValueError as exc:
                     print(key, s)
                     raise exc
 
-            if "rprim" not in d and "angdeg" not in d: d["rprim"] = np.eye(3)
+            if "rprim" not in d and "angdeg" not in d:
+                d["rprim"] = np.eye(3)
             if "natom" in d and d["natom"] == 1 and all(k not in d for k in ("xred", "xcart", "xangst")):
                 d["xred"] = np.zeros(3)
-            #print(d)
+            # print(d)
             abistr = Structure.from_abivars(d)
 
             # Extract Abinit spacegroup.
@@ -406,7 +427,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             else:
                 symrel = np.reshape(np.array([int(n) for n in spgd["symrel"].split()], dtype=int), (-1, 3, 3))
             nsym = len(symrel)
-            assert nsym == spgd.get("nsym", nsym) #; print(symrel.shape)
+            assert nsym == spgd.get("nsym", nsym)  # ; print(symrel.shape)
 
             if "tnons" in spgd:
                 tnons = np.reshape(np.array([float(t) for t in spgd["tnons"].split()], dtype=float), (nsym, 3))
@@ -495,23 +516,29 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         """
         Compare datasets
         """
-        if not isinstance(dt_list1, (list, tuple)): dt_list1 = [dt_list1]
-        if not isinstance(dt_list2, (list, tuple)): dt_list2 = [dt_list2]
+        if not isinstance(dt_list1, (list, tuple)):
+            dt_list1 = [dt_list1]
+        if not isinstance(dt_list2, (list, tuple)):
+            dt_list2 = [dt_list2]
 
         dt_lists = [dt_list1, dt_list2]
         import tempfile
+
         tmp_names = []
         for i in range(2):
             _, tmpname = tempfile.mkstemp(text=True)
             tmp_names.append(tmpname)
             with open(tmpname, "w") as fh:
-                if with_params: fh.write(self.header)
+                if with_params:
+                    fh.write(self.header)
                 for idt in dt_lists[i]:
                     fh.write(self.datasets[idt])
-                if with_params: fh.write(self.footer)
+                if with_params:
+                    fh.write(self.footer)
 
         if differ == "html":
             from abipy.tools.devtools import HtmlDiff
+
             diff = HtmlDiff(tmp_names)
             if dryrun:
                 return diff
@@ -535,8 +562,9 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             if self.has_same_final_structures:
                 if self.initial_structure != self.final_structure:
                     # Structural relaxation.
-                    df = dataframes_from_structures([self.initial_structure, self.final_structure],
-                                                    index=["initial", "final"])
+                    df = dataframes_from_structures(
+                        [self.initial_structure, self.final_structure], index=["initial", "final"]
+                    )
                     app("Lattice parameters:")
                     app(str(df.lattice))
                     app("Atomic coordinates:")
@@ -548,8 +576,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         elif self.has_same_initial_structures:
             app(self.initial_structure.to_string(verbose=verbose))
         else:
-            df = dataframes_from_structures(self.initial_structures,
-                                            index=[i+1 for i in range(self.ndtset)])
+            df = dataframes_from_structures(self.initial_structures, index=[i + 1 for i in range(self.ndtset)])
             app("Lattice parameters:")
             app(str(df.lattice))
             app("Atomic coordinates:")
@@ -558,6 +585,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         # Print dataframe with dimensions.
         df = self.get_dims_spginfo_dataframe(verbose=verbose)
         from abipy.tools.printing import print_dataframe
+
         strio = StringIO()
         print_dataframe(df, file=strio)
         strio.seek(0)
@@ -636,7 +664,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         memory_pre = "P This job should need less than"
         magic_exit = "------------- Echo of variables that govern the present computation"
         filesizes_pre = "_ WF disk file :"
-        #verbose = 1
+        # verbose = 1
 
         def parse_spgline(line):
             """Parse the line with space group info, return dict."""
@@ -656,18 +684,26 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
             }
 
         from abipy.tools.numtools import grouper
+
         dims_dataset, spginfo_dataset = {}, {}
         inblock = 0
         with open(self.filepath) as fh:
             for line in fh:
                 line = line.strip()
-                if verbose > 1: print("inblock:", inblock, " at line:", line)
+                if verbose > 1:
+                    print("inblock:", inblock, " at line:", line)
 
-                if line.startswith(magic_exit): break
+                if line.startswith(magic_exit):
+                    break
 
-                if (not line or line.startswith("===") or line.startswith("---")
-                    #or line.startswith("P")
-                    or line.startswith("Rough estimation") or line.startswith("PAW method is used")):
+                if (
+                    not line
+                    or line.startswith("===")
+                    or line.startswith("---")
+                    # or line.startswith("P")
+                    or line.startswith("Rough estimation")
+                    or line.startswith("PAW method is used")
+                ):
                     continue
 
                 if line.startswith("DATASET") or line.startswith("Symmetries :"):
@@ -690,7 +726,8 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
                 if inblock == 2:
                     # Lines with data.
-                    if line.startswith("For the susceptibility"): continue
+                    if line.startswith("For the susceptibility"):
+                        continue
 
                     if line.startswith(memory_pre):
                         dims["mem_per_proc_mb"] = float(line.replace(memory_pre, "").split()[0])
@@ -702,11 +739,13 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
                         dims["denpot_size_mb"] = float(tokens[mbpos[1]])
                     elif line.startswith("Pmy_natom="):
                         dims.update(my_natom=int(line.replace("Pmy_natom=", "").strip()))
-                        #print("my_natom", dims["my_natom"])
+                        # print("my_natom", dims["my_natom"])
                     else:
-                        if line and line[0] == "-": line = line[1:]
+                        if line and line[0] == "-":
+                            line = line[1:]
                         tokens = grouper(2, line.replace("=", "").split())
-                        if verbose > 1: print("tokens:", tokens)
+                        if verbose > 1:
+                            print("tokens:", tokens)
                         dims.update([(t[0], int(t[1])) for t in tokens])
 
             return dims_dataset, spginfo_dataset
@@ -725,7 +764,8 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         self.seek(0)
         while True:
             cycle = self.next_gs_scf_cycle()
-            if cycle is None: break
+            if cycle is None:
+                break
             cycles.append(cycle)
 
         self.seek(0)
@@ -743,7 +783,8 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         self.seek(0)
         while True:
             cycle = self.next_d2de_scf_cycle()
-            if cycle is None: break
+            if cycle is None:
+                break
             cycles.append(cycle)
         return cycles
 
@@ -757,7 +798,8 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         Args:
             with_timer: True if timer section should be plotted
         """
-        from abipy.tools.plotting import MplExposer  #, PanelExposer
+        from abipy.tools.plotting import MplExposer  # , PanelExposer
+
         with MplExposer(slide_mode=False, slide_timeout=5.0) as e:
             e(self.yield_figs(tight_layout=tight_layout, with_timer=with_timer))
 
@@ -794,7 +836,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         for icycle, cycle in enumerate(self.get_all_d2de_scf_cycles()):
             yield cycle.plotly(title=f"DFPT cycle {icycle}", show=False)
 
-        #if with_timer:
+        # if with_timer:
         #    self.seek(0)
         #    try:
         #        yield self.get_timer().plot_all(tight_layout=tight_layout, show=False)
@@ -820,23 +862,27 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         fig, figures = None, []
         while True:
             cycle = self.next_gs_scf_cycle()
-            if cycle is None: break
+            if cycle is None:
+                break
 
             fig = cycle.plot(show=False)
             for i, other in enumerate(others):
                 other_cycle = other.next_gs_scf_cycle()
-                if other_cycle is None: break
-                last = (i == len(others) - 1)
+                if other_cycle is None:
+                    break
+                last = i == len(others) - 1
                 fig = other_cycle.plot(ax_list=fig.axes, show=show and last)
                 if last:
                     fig.tight_layout()
                     figures.append(fig)
 
         self.seek(0)
-        for other in others: other.seek(0)
+        for other in others:
+            other.seek(0)
 
         if close_files:
-            for i in close_files: others[i].close()
+            for i in close_files:
+                others[i].close()
 
         return figures
 
@@ -859,23 +905,27 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         fig, figures = None, []
         while True:
             cycle = self.next_d2de_scf_cycle()
-            if cycle is None: break
+            if cycle is None:
+                break
 
             fig = cycle.plot(show=False)
             for i, other in enumerate(others):
                 other_cycle = other.next_d2de_scf_cycle()
-                if other_cycle is None: break
-                last = (i == len(others) - 1)
+                if other_cycle is None:
+                    break
+                last = i == len(others) - 1
                 fig = other_cycle.plot(ax_list=fig.axes, show=show and last)
                 if last:
                     fig.tight_layout()
                     figures.append(fig)
 
         self.seek(0)
-        for other in others: other.seek(0)
+        for other in others:
+            other.seek(0)
 
         if close_files:
-            for i in close_files: others[i].close()
+            for i in close_files:
+                others[i].close()
 
         return figures
 
@@ -884,6 +934,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         Build panel with widgets to interact with the Abinit output file either in a notebook or in panel app.
         """
         from abipy.panels.outputs import AbinitOutputFilePanel
+
         return AbinitOutputFilePanel(self).get_panel(**kwargs)
 
     def write_notebook(self, nbpath=None) -> str:
@@ -893,11 +944,13 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        nb.cells.extend([
-            nbv.new_code_cell("abo = abilab.abiopen('%s')" % self.filepath),
-            nbv.new_code_cell("print(abo.events)"),
-            nbv.new_code_cell("abo.plot()"),
-        ])
+        nb.cells.extend(
+            [
+                nbv.new_code_cell("abo = abilab.abiopen('%s')" % self.filepath),
+                nbv.new_code_cell("print(abo.events)"),
+                nbv.new_code_cell("abo.plot()"),
+            ]
+        )
 
         return self._write_nb_nbpath(nb, nbpath)
 
@@ -912,12 +965,15 @@ def validate_output_parser(abitests_dir=None, output_files=None) -> int:  # prag
 
     Return: Exit code.
     """
+
     def is_abinit_output(path):
         """
         True if path is one of the output files used in the Abinit Test suite.
         """
-        if not path.endswith(".abo"): return False
-        if not path.endswith(".out"): return False
+        if not path.endswith(".abo"):
+            return False
+        if not path.endswith(".out"):
+            return False
 
         with open(path) as fh:
             for i, line in enumerate(fh):
@@ -934,12 +990,14 @@ def validate_output_parser(abitests_dir=None, output_files=None) -> int:  # prag
         for dirpath, dirnames, filenames in os.walk(abitests_dir):
             for fname in filenames:
                 path = os.path.join(dirpath, fname)
-                if is_abinit_output(path): paths.append(path)
+                if is_abinit_output(path):
+                    paths.append(path)
 
     if output_files is not None:
         print("Analyzing files:", str(output_files))
         for arg in output_files:
-            if is_abinit_output(arg): paths.append(arg)
+            if is_abinit_output(arg):
+                paths.append(arg)
 
     nfiles = len(paths)
     if nfiles == 0:
@@ -960,9 +1018,10 @@ def validate_output_parser(abitests_dir=None, output_files=None) -> int:  # prag
                 cprint("FAILED", "red")
                 errpaths.append(path)
                 import traceback
+
                 print(traceback.format_exc())
-                #print("[%s]: Exception:\n%s" % (path, str(exc)))
-                #with open(path, "rt") as fh:
+                # print("[%s]: Exception:\n%s" % (path, str(exc)))
+                # with open(path, "rt") as fh:
                 #    print(10*"=" + "Input File" + 10*"=")
                 #    print(fh.read())
                 #    print()
@@ -970,7 +1029,7 @@ def validate_output_parser(abitests_dir=None, output_files=None) -> int:  # prag
                 cprint("NOTIMPLEMENTED", "magenta")
 
     if errpaths:
-        cprint("failed: %d/%d [%.1f%%]" % (len(errpaths), nfiles, 100 * len(errpaths)/nfiles), "red")
+        cprint("failed: %d/%d [%.1f%%]" % (len(errpaths), nfiles, 100 * len(errpaths) / nfiles), "red")
         for i, epath in enumerate(errpaths):
             cprint("[%d] %s" % (i, epath), "red")
     else:
@@ -987,6 +1046,7 @@ class AboRobot(Robot):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: AboRobot
     """
+
     EXT = "abo"
 
     def get_dims_dataframe(self, with_time=True, index=None) -> pd.DataFrame:
@@ -1010,8 +1070,14 @@ class AboRobot(Robot):
                 dims.update({"dtset": dtindex})
                 # Add walltime and cputime in seconds
                 if with_time:
-                    dims.update(OrderedDict([(k, getattr(abo, k)) for k in
-                        ("overall_cputime", "proc0_cputime", "overall_walltime", "proc0_walltime")]))
+                    dims.update(
+                        OrderedDict(
+                            [
+                                (k, getattr(abo, k))
+                                for k in ("overall_cputime", "proc0_cputime", "overall_walltime", "proc0_walltime")
+                            ]
+                        )
+                    )
                 rows.append(dims)
                 my_index.append(abo.relpath if index is None else index[i])
 
@@ -1045,7 +1111,8 @@ class AboRobot(Robot):
                 d.update(abo.final_structure.get_dict4pandas(with_spglib=True))
 
             # Execute functions
-            if funcs is not None: d.update(self._exec_funcs(funcs, abo))
+            if funcs is not None:
+                d.update(self._exec_funcs(funcs, abo))
             rows.append(d)
 
         row_names = row_names if not abspath else self._to_relpaths(row_names)
@@ -1059,14 +1126,18 @@ class AboRobot(Robot):
 
         for label, abo in self.items():
             row_names.append(label)
-            d = OrderedDict([(k, getattr(abo, k)) for k in
-                ("overall_cputime", "proc0_cputime", "overall_walltime", "proc0_walltime")])
+            d = OrderedDict(
+                [
+                    (k, getattr(abo, k))
+                    for k in ("overall_cputime", "proc0_cputime", "overall_walltime", "proc0_walltime")
+                ]
+            )
             rows.append(d)
 
         return pd.DataFrame(rows, index=row_names, columns=list(rows[0].keys()))
 
     # TODO
-    #def gridplot_timer(self)
+    # def gridplot_timer(self)
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
@@ -1082,12 +1153,14 @@ class AboRobot(Robot):
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
         args = [(l, f.filepath) for l, f in self.items()]
-        nb.cells.extend([
-            #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("robot = abilab.AboRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-            nbv.new_code_cell("# robot.get_dims_dataframe()"),
-            nbv.new_code_cell("robot.get_dataframe()"),
-        ])
+        nb.cells.extend(
+            [
+                # nbv.new_markdown_cell("# This is a markdown cell"),
+                nbv.new_code_cell("robot = abilab.AboRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+                nbv.new_code_cell("# robot.get_dims_dataframe()"),
+                nbv.new_code_cell("robot.get_dataframe()"),
+            ]
+        )
 
         # Mixins
         nb.cells.extend(self.get_baserobot_code_cells())
@@ -1101,6 +1174,7 @@ class OutNcFile(AbinitNcFile):
     produced at the end of the run. The netcdf variables can be accessed
     via instance attribute e.g. ``outfile.ecut``. Provides integration with ipython_.
     """
+
     # TODO: This object is deprecated
 
     def __init__(self, filepath: str):
@@ -1140,7 +1214,7 @@ class OutNcFile(AbinitNcFile):
         Return dictionary varname --> value
         """
         for k, v in self._varscache.items():
-            if v is not None: continue
+            if v is not None:
+                continue
             self._varscache[k] = self.reader.read_value(k)
         return self._varscache
-

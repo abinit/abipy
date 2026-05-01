@@ -2,6 +2,7 @@
 """
 This script runs all the python scripts located in this directory
 """
+
 import os
 
 from abipy import flowtk
@@ -12,8 +13,7 @@ root = os.path.abspath(os.path.join(os.path.dirname(__file__)))
 
 
 class TestScripts(AbipyTest):
-
-    #def test_all_scripts(self):
+    # def test_all_scripts(self):
     #    """Testing all scripts in abipy/benckmarks"""
     #    from subprocess import call
     #    retcode = call(os.path.join(root, "_runemall.py"))
@@ -26,6 +26,7 @@ class TestScripts(AbipyTest):
 
         import importlib
         import tempfile
+
         count, errors = 0, []
         for fname in os.listdir(root):
             if not fname.endswith(".py") or fname.startswith("_") or fname.startswith("test_"):

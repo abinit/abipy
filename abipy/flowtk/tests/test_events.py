@@ -6,6 +6,7 @@ from abipy.flowtk import events
 
 _test_dir = os.path.join(os.path.dirname(__file__), "..", "..", "test_files")
 
+
 def ref_file(filename):
     return os.path.join(_test_dir, filename)
 
@@ -15,7 +16,6 @@ def ref_files(*filenames):
 
 
 class EventsParserTest(AbipyTest):
-
     def test_mgb2_outputs(self):
         """Testing MgB2 output files."""
         # Analyze scf log
@@ -27,8 +27,8 @@ class EventsParserTest(AbipyTest):
         assert (report.num_errors, report.num_warnings, report.num_comments) == (0, 0, 0)
         assert report.run_completed
         fmt = "%a %b %d %H:%M:%S %Y"
-        assert report.start_datetime ==  datetime.datetime.strptime("Fri Mar 13 20:08:51 2015", fmt)
-        assert report.end_datetime ==  datetime.datetime.strptime("Fri Mar 13 20:08:57 2015", fmt)
+        assert report.start_datetime == datetime.datetime.strptime("Fri Mar 13 20:08:51 2015", fmt)
+        assert report.end_datetime == datetime.datetime.strptime("Fri Mar 13 20:08:57 2015", fmt)
 
         # Analyze nscf log
         report = events.EventsParser().parse(ref_file("mgb2_nscf.log"), verbose=0)
@@ -36,15 +36,15 @@ class EventsParserTest(AbipyTest):
         print(report)
         self.assert_msonable(report)
 
-        #d = report.as_dict()
-        #print(d)
-        #assert 0
+        # d = report.as_dict()
+        # print(d)
+        # assert 0
 
         for i, warning in enumerate(report.warnings):
             print(warning)
             assert warning == report[i]
             # Msonable is conflict with YAMLObject
-            #self.assert_msonable(warning, check_inst=False)
+            # self.assert_msonable(warning, check_inst=False)
 
         report = parser.report_exception(ref_file("mgb2_scf.log"), "exception")
         assert len(report.errors) == 1

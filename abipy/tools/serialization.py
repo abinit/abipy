@@ -4,6 +4,7 @@
 Most features of this module has been moved to monty.
 Please refer to monty.json and monty.serialization documentation.
 """
+
 from __future__ import annotations
 
 import functools
@@ -84,6 +85,7 @@ class PmgPickler(pickle.Pickler):
     def persistent_id(self, obj: Any):
         """Instead of pickling as a regular class instance, we emit a persistent ID."""
         from pymatgen.core.periodic_table import Element
+
         if isinstance(obj, Element):
             # Here, our persistent ID is simply a tuple, containing a tag and a key
             return type(obj).__name__, obj.symbol
@@ -103,6 +105,7 @@ class PmgUnpickler(pickle.Unpickler):
         Here, pid is the tuple returned by PmgPickler.
         """
         from pymatgen.core.periodic_table import Element
+
         try:
             type_tag, key_id = pid
         except Exception:
@@ -110,6 +113,7 @@ class PmgUnpickler(pickle.Unpickler):
             # of a real tuple. Use ast to evaluate the expression (much safer
             # than eval).
             import ast
+
             type_tag, key_id = ast.literal_eval(pid)
 
         if type_tag == "Element":
@@ -180,12 +184,18 @@ class HasPickleIO:
         Reconstruct the object from a pickle file located in workdir.
         """
         filepath = Path(workdir) / f"{cls.__name__}.pickle" if basename is None else Path(workdir) / basename
-        with open(filepath, "rb") as fh, Timer(header=f"Reconstructing {cls.__name__} instance from file: {filepath!s}", footer="") as timer:
+        with (
+            open(filepath, "rb") as fh,
+            Timer(header=f"Reconstructing {cls.__name__} instance from file: {filepath!s}", footer="") as timer,
+        ):
             return pickle.load(fh)
 
     def pickle_dump(self, workdir: PathLike, basename: str | None = None) -> Path:
         """Write pickle file. Return path to file"""
         filepath = Path(workdir) / f"{self.__class__.__name__}.pickle" if basename is None else Path(workdir) / basename
-        with open(filepath, "wb") as fh, Timer(header=f"Saving {self.__class__.__name__} instance to file: {filepath!s}", footer="") as timer:
+        with (
+            open(filepath, "wb") as fh,
+            Timer(header=f"Saving {self.__class__.__name__} instance to file: {filepath!s}", footer="") as timer,
+        ):
             pickle.dump(self, fh)
         return filepath

@@ -2,6 +2,7 @@
 This module defines constants and conversion factors matching those present in abinit that can be used when
 it is important to preserve consistency with the results produced by abinit.
 """
+
 from __future__ import annotations
 
 import numpy as np
@@ -11,7 +12,7 @@ import numpy as np
 Bohr_Ang = 0.52917720859
 
 # 1 Angstrom in Bohr
-Ang_Bohr = 1.0/Bohr_Ang
+Ang_Bohr = 1.0 / Bohr_Ang
 
 # 1 Hartree, in cm^-1
 Ha_cmm1 = 219474.6313705
@@ -22,7 +23,7 @@ Ha_to_eV = Ha_eV
 Ha_to_meV = Ha_eV * 1000
 
 # 1 eV in Hartree
-eV_Ha = 1. / Ha_eV
+eV_Ha = 1.0 / Ha_eV
 
 # 1 eV in Rydberg
 eV_Ry = 2 * eV_Ha
@@ -66,10 +67,10 @@ kb_HaK = kb_eVK / Ha_eV
 amu_emass = 1.660538782e-27 / 9.10938215e-31
 
 # 1 Ha/Bohr^3, in GPa
-HaBohr3_GPa = Ha_eV / Bohr_Ang**3 * e_Cb * 1.0e+21
+HaBohr3_GPa = Ha_eV / Bohr_Ang**3 * e_Cb * 1.0e21
 
 # GPa to Ha/Bohr^3,
-GPa_to_au = 1.0/HaBohr3_GPa
+GPa_to_au = 1.0 / HaBohr3_GPa
 
 # 1 eV/A^3 to GPa
 eVA3_GPa = 160.21766208
@@ -78,7 +79,7 @@ eVA3_GPa = 160.21766208
 eVA3_HaBohr3 = eVA3_GPa / HaBohr3_GPa
 
 # 1 eV in seconds
-eV_s = eV_to_THz*1e12 * 2*np.pi
+eV_s = eV_to_THz * 1e12 * 2 * np.pi
 # conversion factor for velocity between atomic units and SI
 velocity_at_to_si = 2.1876912633e6
 
@@ -88,7 +89,7 @@ Avogadro = 6.02214179e23
 # 1 Ohm.cm in atomic units
 Ohmcm = 2 * np.pi * Ha_THz * 10 / 9
 
-eps0 = 1 / (4*np.pi*0.0000001*299792458.0**2)
+eps0 = 1 / (4 * np.pi * 0.0000001 * 299792458.0**2)
 
 AmuBohr2_Cm2 = e_Cb * 1.0e20 / (Bohr_Ang * Bohr_Ang)
 
@@ -115,10 +116,14 @@ def phfactor_ev2units(units: str) -> float:
     """
     Return conversion factor eV --> units for phonons (case-insensitive)
     """
-    d = {"ev": 1, "mev": 1000, "ha": eV_Ha,
-         "cm-1": eV_to_cm1, "cm^-1": eV_to_cm1,
-         "thz": eV_to_THz,
-         }
+    d = {
+        "ev": 1,
+        "mev": 1000,
+        "ha": eV_Ha,
+        "cm-1": eV_to_cm1,
+        "cm^-1": eV_to_cm1,
+        "thz": eV_to_THz,
+    }
     try:
         return d[units.lower().strip()]
     except KeyError:
@@ -131,9 +136,14 @@ def phunit_tag(units: str, unicode=False) -> str:
     Return latex string from ``units``.
     If unicode is True, replace Latex superscript with unitcode.
     """
-    d = {"ev": "(eV)", "mev": "(meV)", "ha": "(Ha)",
-         "cm-1": "(cm$^{-1}$)", "cm^-1": "(cm$^{-1}$)", "thz": "(Thz)",
-         }
+    d = {
+        "ev": "(eV)",
+        "mev": "(meV)",
+        "ha": "(Ha)",
+        "cm-1": "(cm$^{-1}$)",
+        "cm^-1": "(cm$^{-1}$)",
+        "thz": "(Thz)",
+    }
     try:
         s = d[units.lower().strip()]
     except KeyError:
@@ -149,11 +159,14 @@ def wlabel_from_units(units: str, unicode=False) -> str:
     """
     Return latex string for phonon frequencies in ``units``.
     """
-    d = {"ev": "Energy (eV)", "mev": "Energy (meV)", "ha": "Energy (Ha)",
-         "cm-1": r"Frequency (cm$^{-1}$)",
-         "cm^-1": r"Frequency (cm$^{-1}$)",
-         "thz": r"Frequency (Thz)",
-         "hbar": r"Angular momentum ($\hbar$)",
+    d = {
+        "ev": "Energy (eV)",
+        "mev": "Energy (meV)",
+        "ha": "Energy (Ha)",
+        "cm-1": r"Frequency (cm$^{-1}$)",
+        "cm^-1": r"Frequency (cm$^{-1}$)",
+        "thz": r"Frequency (Thz)",
+        "hbar": r"Angular momentum ($\hbar$)",
     }
     try:
         s = d[units.lower().strip()]
@@ -170,10 +183,14 @@ def phdos_label_from_units(units: str, unicode=False) -> str:
     """
     Return latex string for phonon DOS values in ``units``.
     """
-    d = {"ev": "(states/eV)", "mev": "(states/meV)", "ha": "(states/Ha)",
-         "cm-1": "(states/cm$^{-1}$)", "cm^-1": "(states/cm$^{-1}$)",
-         "thz": "(states/Thz)",
-        }
+    d = {
+        "ev": "(states/eV)",
+        "mev": "(states/meV)",
+        "ha": "(states/Ha)",
+        "cm-1": "(states/cm$^{-1}$)",
+        "cm^-1": "(states/cm$^{-1}$)",
+        "thz": "(states/Thz)",
+    }
     try:
         s = d[units.lower().strip()]
     except KeyError:
@@ -239,7 +256,7 @@ def occ_fd(ee, kT, mu):
         arg = ee_mu / kT
         if arg > _maxFDarg:
             occ_fd = 0.0
-        elif arg < - _maxFDarg:
+        elif arg < -_maxFDarg:
             occ_fd = 1.0
         else:
             occ_fd = 1.0 / (np.exp(arg) + 1.0)

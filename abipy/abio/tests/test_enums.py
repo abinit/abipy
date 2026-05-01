@@ -7,7 +7,6 @@ from abipy.core.testing import AbipyTest
 
 
 class TestEnums(AbipyTest):
-
     def test_api(self):
         assert RUNL.GSTATE == 0
         assert str(RUNL.GSTATE) == "0"

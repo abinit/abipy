@@ -69,6 +69,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

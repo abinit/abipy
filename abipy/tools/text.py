@@ -1,4 +1,5 @@
 """Utilities for working with strings and text."""
+
 from __future__ import annotations
 
 
@@ -10,7 +11,7 @@ def tonumber(s: str) -> float:
     try:
         stnum = s.upper().replace("D", "E")  # D-01 is not recognized by python: Replace it with E.
         # stnum = strip_punct(stnum)         # Remove punctuation chars.
-        return float(stnum)                  # Try to convert.
+        return float(stnum)  # Try to convert.
 
     except ValueError:
         raise
@@ -56,4 +57,5 @@ def rreplace(s, old, new, occurrence):
 def rm_multiple_spaces(string: str) -> str:
     """Remove multiple spaces in a string."""
     import re
+
     return re.sub(" +", " ", string)

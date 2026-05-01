@@ -1,6 +1,7 @@
 """
 Objects to perform ASE calculations with machine-learning potentials.
 """
+
 from __future__ import annotations
 
 import dataclasses
@@ -30,7 +31,7 @@ from abipy.ml.aseml import (
     relax_atoms,
 )
 from abipy.tools.iotools import PythonScript, workdir_with_prefix
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt  #, get_axarray_fig_plt,
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt  # , get_axarray_fig_plt,
 from abipy.tools.printing import print_dataframe
 from abipy.tools.serialization import HasPickleIO
 
@@ -41,6 +42,7 @@ def nprocs_for_ntasks(nprocs, ntasks, title=None) -> int:
     If negative or None, use all procs in the system.
     """
     import os
+
     if nprocs is None or nprocs <= 0:
         nprocs = max(1, os.cpu_count())
     else:
@@ -53,16 +55,16 @@ def nprocs_for_ntasks(nprocs, ntasks, title=None) -> int:
     return nprocs
 
 
-
 @dataclasses.dataclass
 class Entry:
     """
     Stores the relaxed structure with the associated energy and the Cartesian forces.
     """
-    isite: int             # Index of the site being relaxed.
-    structure: Structure   # pymatgen Structure
-    energy: float          # Energy in eV
-    forces: np.ndarray     # Forces in eV/Ang
+
+    isite: int  # Index of the site being relaxed.
+    structure: Structure  # pymatgen Structure
+    energy: float  # Energy in eV
+    forces: np.ndarray  # Forces in eV/Ang
 
     @classmethod
     def from_atoms_and_calculator(cls, isite, atoms, calculator) -> Entry:
@@ -73,11 +75,12 @@ class Entry:
         structure = Structure.as_structure(atoms)
         # NB: Keep sites within the unit cell so that we can compare entries in __eq__
         structure.translate_sites(range(len(structure)), np.zeros(3), to_unit_cell=True)
-        return cls(isite=isite,
-                   structure=structure,
-                   energy=float(calculator.get_potential_energy(atoms=atoms)),
-                   forces=calculator.get_forces(atoms=atoms),
-                   )
+        return cls(
+            isite=isite,
+            structure=structure,
+            energy=float(calculator.get_potential_energy(atoms=atoms)),
+            forces=calculator.get_forces(atoms=atoms),
+        )
 
     @classmethod
     def from_traj(cls, isite, traj) -> Entry:
@@ -88,20 +91,25 @@ class Entry:
         structure = Structure.as_structure(atoms)
         # NB: Keep sites within the unit cell so that we can compare entries in __eq__
         structure.translate_sites(range(len(structure)), np.zeros(3), to_unit_cell=True)
-        return cls(isite=isite,
-                   structure=structure,
-                   energy=float(atoms.get_potential_energy()),
-                   forces=atoms.get_forces(),
-                   )
+        return cls(
+            isite=isite,
+            structure=structure,
+            energy=float(atoms.get_potential_energy()),
+            forces=atoms.get_forces(),
+        )
 
     def __eq__(self, other: Entry) -> bool:
         """
         Invoked by python to evaluate `self == other`.
         """
-        return abs(self.energy - other.energy) / len(self.structure) < 1e-4 and \
-               np.abs(self.structure.lattice.matrix - other.structure.lattice.matrix).max() < 1e-3 and \
-               all(np.abs(site1.frac_coords - site2.frac_coords).max() < 1e-3
-                   for site1, site2 in zip(self.structure, other.structure, strict=False))
+        return (
+            abs(self.energy - other.energy) / len(self.structure) < 1e-4
+            and np.abs(self.structure.lattice.matrix - other.structure.lattice.matrix).max() < 1e-3
+            and all(
+                np.abs(site1.frac_coords - site2.frac_coords).max() < 1e-3
+                for site1, site2 in zip(self.structure, other.structure, strict=False)
+            )
+        )
 
 
 @dataclasses.dataclass
@@ -109,11 +117,12 @@ class Pair:
     """
     Stores info on a possible transition between two relaxed configurations.
     """
-    index1: int                # Index of first configuration in entries
+
+    index1: int  # Index of first configuration in entries
     index2: int
-    ediff: float               # Energy difference in eV
-    dist:  float               # Distance between sites in Ang.
-    frac_coords1: np.ndarray   # Fractional coords of sites.
+    ediff: float  # Energy difference in eV
+    dist: float  # Distance between sites in Ang.
+    frac_coords1: np.ndarray  # Fractional coords of sites.
     frac_coords2: np.ndarray
 
     def get_dict4pandas(self) -> dict:
@@ -130,10 +139,21 @@ class RelaxScanner(HasPickleIO):
     the unique solutions (Entry objects) are kept and stored to disk in pickle format.
     """
 
-    def __init__(self, structure, isite, mesh, nn_name,
-                 relax_mode: str = "ions", fmax: float = 1e-3, steps=500,
-                 verbose: int = 0, optimizer_name="BFGS", pressure=0.0,
-                 workdir=None, prefix=None):
+    def __init__(
+        self,
+        structure,
+        isite,
+        mesh,
+        nn_name,
+        relax_mode: str = "ions",
+        fmax: float = 1e-3,
+        steps=500,
+        verbose: int = 0,
+        optimizer_name="BFGS",
+        pressure=0.0,
+        workdir=None,
+        prefix=None,
+    ):
         """
         Args:
             structure: Structure object or any file supported by pymatgen providing a structure.
@@ -214,8 +234,9 @@ class RelaxScanner(HasPickleIO):
         """
         # Make sure we are not already running similar ranges.
         top = str(self.workdir)
-        dirpaths = [name for name in os.listdir(top) if os.path.isdir(os.path.join(top, name))
-                    and name.startswith("start_")]
+        dirpaths = [
+            name for name in os.listdir(top) if os.path.isdir(os.path.join(top, name)) and name.startswith("start_")
+        ]
         for dpath in dirpaths:
             # Directory name has pattern: f"start:{start}-stop:{stop}"
             tokens = dpath.split("-")
@@ -274,9 +295,10 @@ class RelaxScanner(HasPickleIO):
 
         entries, errors = [], []
         for cnt, (ix, iy, iz) in enumerate(itertools.product(range(self.nx), range(self.ny), range(self.nz))):
-            if not (stop > cnt >= start): continue
+            if not (stop > cnt >= start):
+                continue
 
-            atoms = self.get_atoms_with_frac_coords((ix/self.nx, iy/self.ny, iz/self.nz))
+            atoms = self.get_atoms_with_frac_coords((ix / self.nx, iy / self.ny, iz / self.nz))
 
             if self.relax_mode == RX_MODE.no:
                 # Just GS energy, no relaxation.
@@ -285,15 +307,16 @@ class RelaxScanner(HasPickleIO):
             else:
                 try:
                     # Relax atoms with constraints.
-                    relax = relax_atoms(atoms,
-                                        relax_mode=self.relax_mode,
-                                        optimizer=self.optimizer_name,
-                                        fmax=self.fmax,
-                                        pressure=self.pressure,
-                                        verbose=self.verbose,
-                                        steps=self.steps,
-                                        traj_path=directory / "relax.traj",
-                                        calculator=calculator,
+                    relax = relax_atoms(
+                        atoms,
+                        relax_mode=self.relax_mode,
+                        optimizer=self.optimizer_name,
+                        fmax=self.fmax,
+                        pressure=self.pressure,
+                        verbose=self.verbose,
+                        steps=self.steps,
+                        traj_path=directory / "relax.traj",
+                        calculator=calculator,
                     )
 
                     entry = Entry.from_traj(self.isite, relax.traj)
@@ -385,7 +408,6 @@ def _map_run_pair(kwargs):
     return self.run_pair(**kwargs)
 
 
-
 class RelaxScannerAnalyzer:
     """
     Analyze the results produced by RelaxScanner.
@@ -407,17 +429,20 @@ class RelaxScannerAnalyzer:
         """
         topdir = Path(topdir)
         top = str(topdir)
-        dirpaths = [name for name in os.listdir(top) if os.path.isdir(os.path.join(top, name))
-                    and name.startswith("start_")]
+        dirpaths = [
+            name for name in os.listdir(top) if os.path.isdir(os.path.join(top, name)) and name.startswith("start_")
+        ]
 
         entries = []
         for dpath in dirpaths:
             pickle_path = topdir / Path(dpath) / "entries.pickle"
             completed_path = topdir / Path(dpath) / "COMPLETED"
-            if not (pickle_path.exists() and completed_path.exists()): continue
+            if not (pickle_path.exists() and completed_path.exists()):
+                continue
             with open(pickle_path, "rb") as fh:
                 for e in pickle.load(fh):
-                    if e in entries: continue
+                    if e in entries:
+                        continue
                     entries.append(e)
 
         if not entries:
@@ -442,15 +467,19 @@ class RelaxScannerAnalyzer:
     def has_vasp_inputs(self) -> bool:
         """Return True if all the input files required to run VASP exist."""
         return True
-        return self.jobsh_path.exists() and self.incar_path.exists() and \
-               self.potcar_path.exists() and self.kpoints_path.exists()
+        return (
+            self.jobsh_path.exists()
+            and self.incar_path.exists()
+            and self.potcar_path.exists()
+            and self.kpoints_path.exists()
+        )
 
     @property
     def workdir(self):
         return self.scanner.workdir
 
-    #@property
-    #def initial_structure(self):
+    # @property
+    # def initial_structure(self):
     #    return self.scanner.initial_structure
 
     @cached_property
@@ -465,12 +494,20 @@ class RelaxScannerAnalyzer:
             site = entry.structure[entry.isite]
             x, y, z, fx, fy, fz = (*site.coords, *site.frac_coords)
             fmods = np.array([np.linalg.norm(force) for force in entry.forces])
-            dict_list.append(dict(
-                energy=entry.energy,
-                xcart0=x, xcart1=y, xcart2=z,
-                xred0=fx, xred1=fy, xred2=fz,
-                fmin=fmods.min(), fmax=fmods.max(), fmean=fmods.mean(),
-            ))
+            dict_list.append(
+                dict(
+                    energy=entry.energy,
+                    xcart0=x,
+                    xcart1=y,
+                    xcart2=z,
+                    xred0=fx,
+                    xred1=fy,
+                    xred2=fz,
+                    fmin=fmods.min(),
+                    fmax=fmods.max(),
+                    fmean=fmods.mean(),
+                )
+            )
 
         df = pd.DataFrame(dict_list).sort_values(by="energy", ignore_index=True)
 
@@ -505,6 +542,7 @@ class RelaxScannerAnalyzer:
 
         Return: list of Pair objects.
         """
+
         def adiff_matrix(vec):
             """Return matrix A_ij with all the differences |vec_i - vec_j|."""
             x = np.reshape(vec, (len(vec), 1))
@@ -529,12 +567,15 @@ class RelaxScannerAnalyzer:
         pairs = []
         inds = np.triu_indices_from(aediff_mat)
         for i, j in zip(inds[0], inds[1], strict=False):
-            if i == j or not (ediff_max >= aediff_mat[i,j] >= ediff_min): continue
+            if i == j or not (ediff_max >= aediff_mat[i, j] >= ediff_min):
+                continue
             _, d2 = pbc_shortest_vectors(self.lattice, xreds[i], xreds[j], return_d2=True)
             dist = np.sqrt(float(d2))
-            if not (dist_max >= dist >= dist_min): continue
-            pair = Pair(index1=i, index2=j, ediff=energy[j] - energy[i], dist=dist,
-                        frac_coords1=xreds[i], frac_coords2=xreds[j])
+            if not (dist_max >= dist >= dist_min):
+                continue
+            pair = Pair(
+                index1=i, index2=j, ediff=energy[j] - energy[i], dist=dist, frac_coords1=xreds[i], frac_coords2=xreds[j]
+            )
             pairs.append(pair)
 
         print(f"Found {len(pairs)} pair(s) with {ediff_min=}, {ediff_max=} eV and {dist_min=}, {dist_max=} Ang.")
@@ -548,8 +589,9 @@ class RelaxScannerAnalyzer:
         else:
             # Compute the transition energy for each pair either by
             # performing NEB or single point calculations along a linear path connecting the two sites.
-            nprocs = nprocs_for_ntasks(nprocs, len(pairs),
-                                       title=f"Computing transition energies for each pair with {neb_method=}")
+            nprocs = nprocs_for_ntasks(
+                nprocs, len(pairs), title=f"Computing transition energies for each pair with {neb_method=}"
+            )
 
             # Run'em all
             if nprocs == 1:
@@ -599,32 +641,41 @@ class RelaxScannerAnalyzer:
         if neb_method == "static":
             # Just total energy calculations with a fixed path.
             calculators = [calc_builder.get_calculator() for i in range(nimages)]
-            neb = make_ase_neb(initial_atoms, final_atoms, nimages,
-                               calculators, "aseneb", climb,
-                               method="linear", mic=False)
+            neb = make_ase_neb(
+                initial_atoms, final_atoms, nimages, calculators, "aseneb", climb, method="linear", mic=False
+            )
 
-            #from abipy.ase.neb import interpolate
-            #interpolate(images, mic=False, apply_constraint=False)
+            # from abipy.ase.neb import interpolate
+            # interpolate(images, mic=False, apply_constraint=False)
 
             # NB: It's not a NEB ML object but it provides a similar API.
             my_workdir = self.workdir / f"GSLIST/pair_{pair_str}"
-            ml_neb = MlGsList(neb.images, scanner.nn_name, self.verbose,
-                              workdir=my_workdir)
+            ml_neb = MlGsList(neb.images, scanner.nn_name, self.verbose, workdir=my_workdir)
 
             # Write POSCAR file with the two sites so that we can visualize it with e.g. Vesta.
             structure_with_two_sites = scanner.get_structure_with_two_frac_coords(pair.frac_coords1, pair.frac_coords2)
-            structure_with_two_sites.to(filename=str(my_workdir/ "TWO_SITES_POSCAR.vasp"))
+            structure_with_two_sites.to(filename=str(my_workdir / "TWO_SITES_POSCAR.vasp"))
 
         else:
             # Real NEB stuff
             my_workdir = self.workdir / f"NEB/pair_{pair_str}"
-            ml_neb = MlNeb(initial_atoms, final_atoms,
-                           nimages, neb_method, climb, scanner.optimizer_name,
-                           relax_mode, scanner.fmax, scanner.pressure,
-                           scanner.nn_name, self.verbose,
-                           workdir=my_workdir)
+            ml_neb = MlNeb(
+                initial_atoms,
+                final_atoms,
+                nimages,
+                neb_method,
+                climb,
+                scanner.optimizer_name,
+                relax_mode,
+                scanner.fmax,
+                scanner.pressure,
+                scanner.nn_name,
+                self.verbose,
+                workdir=my_workdir,
+            )
 
-        if self.verbose: print(ml_neb.to_string(verbose=self.verbose))
+        if self.verbose:
+            print(ml_neb.to_string(verbose=self.verbose))
 
         ml_neb.run()
         neb_data = ml_neb.read_neb_data()
@@ -636,7 +687,7 @@ class RelaxScannerAnalyzer:
                 directory.mkdir()
                 atoms = initial_atoms if ip == 0 else final_atoms
                 write_vasp(directory / "POSCAR", atoms, label=None)
-                #shutil.copyfile(self.jobsh_path, directory / "job.sh")
+                # shutil.copyfile(self.jobsh_path, directory / "job.sh")
                 (directory / "INCAR").symlink_to(self.incar_path)
                 (directory / "KPOINTS").symlink_to(self.kpoints_path)
                 (directory / "POTCAR").symlink_to(self.potcar_path)
@@ -646,9 +697,7 @@ class RelaxScannerAnalyzer:
         out_data = pair.get_dict4pandas()
 
         # Add keys from neb_data.
-        keys = ["barrier_with_fit", "energy_change_with_fit",
-                "barrier_without_fit", "energy_change_without_fit"
-               ]
+        keys = ["barrier_with_fit", "energy_change_with_fit", "barrier_without_fit", "energy_change_without_fit"]
         out_data.update({k: neb_data[k] for k in keys})
         out_data.update(dict(neb_method=neb_method, nimages=nimages, climb=climb))
 
@@ -661,5 +710,6 @@ class RelaxScannerAnalyzer:
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         import seaborn as sns
+
         sns.histplot(self.df, x="energy", ax=ax)
         return fig

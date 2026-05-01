@@ -3,6 +3,7 @@ Functions to perform analytic continuation with Pade'
 Some of these routines have been directly translated from the Fortran version
 implemented in ABINIT.
 """
+
 from __future__ import annotations
 
 import numpy as np
@@ -12,6 +13,7 @@ class SigmaPade:
     """
     High-level interface to perform the analytic continuation of the self-energy with the Pade' method.
     """
+
     def __init__(self, zs, f_zs):
         """
         Args:
@@ -171,9 +173,9 @@ def calculate_pade_a(zs: np.ndarray, f_zs: np.ndarray) -> np.ndarray:
     # Compute the divided differences
     for i in range(1, n):
         for j in range(i, n):
-            #if np.real(g[i-1, j]) == 0.0 and np.imag(g[i-1, j]) == 0.0:
+            # if np.real(g[i-1, j]) == 0.0 and np.imag(g[i-1, j]) == 0.0:
             #    print(f"g_i(z_j): i={i+1}, j={j+1}, g={g[i, j]}")
-            g[i, j] = (g[i-1, i-1] - g[i-1, j]) / ((zs[j] - zs[i-1]) * g[i-1, j])
+            g[i, j] = (g[i - 1, i - 1] - g[i - 1, j]) / ((zs[j] - zs[i - 1]) * g[i - 1, j])
 
     # Extract the coefficients a(i)
     a = np.diag(g[:n, :n])

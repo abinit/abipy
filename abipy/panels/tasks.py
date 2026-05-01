@@ -1,14 +1,15 @@
 """Panels to interact with the AbiPy tasks."""
+
 from __future__ import annotations
 
 import panel as pn
 
 from abipy.flowtk.tasks import AbinitTask
 
-#from abipy.panels.core import mpl, ply, dfc, depends_on_btn_click, Loading
+# from abipy.panels.core import mpl, ply, dfc, depends_on_btn_click, Loading
 from abipy.panels.nodes import NodeParameterized
 
-#import panel.widgets as pnw
+# import panel.widgets as pnw
 from abipy.panels.viewers import AceViewer
 
 
@@ -21,8 +22,8 @@ class TaskPanel(NodeParameterized):
         NodeParameterized.__init__(self, node=task, **params)
         self.task = task
 
-        #self.structures_btn = pnw.Button(name="Show Structures", button_type='primary')
-        #self.structures_io_checkbox = pnw.CheckBoxGroup(
+        # self.structures_btn = pnw.Button(name="Show Structures", button_type='primary')
+        # self.structures_io_checkbox = pnw.CheckBoxGroup(
         #    name='Input/Output Structure', value=['output'], options=['input', 'output'], inline=Tru
 
     def get_inputs_view(self):
@@ -34,16 +35,18 @@ class TaskPanel(NodeParameterized):
         job_file = pn.pane.Markdown(f"```shell\n{text}\n```")
 
         from .viewers import JSONViewer
+
         json_view = JSONViewer(self.task.manager.as_dict())
 
         def card(title, *items, collapsed=True):
-            return pn.Card(*items,
-                           title=title,
-                           collapsed=collapsed,
-                           sizing_mode="stretch_width",
-                           header_color="blue",
-                           #header_background="blue",
-                           )
+            return pn.Card(
+                *items,
+                title=title,
+                collapsed=collapsed,
+                sizing_mode="stretch_width",
+                header_color="blue",
+                # header_background="blue",
+            )
 
         return pn.Column(
             f"## Input files of `{self.task!r}`",
@@ -61,7 +64,8 @@ class TaskPanel(NodeParameterized):
         Show the error files of the task
         Return None if no error is found so that we don't show this view in the GUI.
         """
-        col = pn.Column(sizing_mode="stretch_width"); cext = col.extend
+        col = pn.Column(sizing_mode="stretch_width")
+        cext = col.extend
 
         count = 0
         for fname in ("stderr_file", "mpiabort_file", "qerr_file", "qout_file"):
@@ -69,10 +73,7 @@ class TaskPanel(NodeParameterized):
             if file.exists:
                 text = file.read().strip()
                 if text:
-                    cext([f"## {fname}",
-                         pn.pane.Markdown(f"```shell\n{text}\n```"),
-                         pn.layout.Divider()
-                         ])
+                    cext([f"## {fname}", pn.pane.Markdown(f"```shell\n{text}\n```"), pn.layout.Divider()])
                     count += 1
 
         return col if count > 0 else None
@@ -81,8 +82,7 @@ class TaskPanel(NodeParameterized):
         """
         Show the main text output files of the task.
         """
-        col = pn.Column(f"## Main output and log file of `{self.task!r}`",
-                        sizing_mode="stretch_width")
+        col = pn.Column(f"## Main output and log file of `{self.task!r}`", sizing_mode="stretch_width")
 
         for fname in ("output_file", "log_file"):
             file = getattr(self.task, fname)
@@ -90,8 +90,8 @@ class TaskPanel(NodeParameterized):
 
         return col
 
-    #@depends_on_btn_click("structures_btn")
-    #def on_structures_btn(self):
+    # @depends_on_btn_click("structures_btn")
+    # def on_structures_btn(self):
     #    what = ""
     #    if "input" in self.structures_io_checkbox.value: what += "i"
     #    if "output" in self.structures_io_checkbox.value: what += "o"
@@ -110,12 +110,14 @@ class TaskPanel(NodeParameterized):
         d["Inputs"] = self.get_inputs_view()
         d["Output"] = self.get_main_text_outs_view()
         view = self.get_errs_view()
-        if view is not None: d["ErrFiles"] = view
+        if view is not None:
+            d["ErrFiles"] = view
 
-        super_d =  super().get_panel(as_dict=True)
+        super_d = super().get_panel(as_dict=True)
         d.update(super_d)
         ##d["Structures"] = pn.Row(pn.Column(self.structures_io_checkbox, self.structures_btn), self
 
-        if as_dict: return d
+        if as_dict:
+            return d
 
         return self.get_template_from_tabs(d, template=kwargs.get("template"))

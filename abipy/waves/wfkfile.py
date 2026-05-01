@@ -1,4 +1,5 @@
 """Wavefunction file."""
+
 from __future__ import annotations
 
 from functools import cached_property
@@ -45,6 +46,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: WfkFile
     """
+
     def __init__(self, filepath: str):
         """
         Initialize the object from a Netcdf file.
@@ -110,7 +112,8 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         Args:
             verbose: verbosity level.
         """
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
 
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
@@ -142,8 +145,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """
         ik = self.kindex(kpoint)
 
-        if (spin not in range(self.nsppol) or ik not in range(self.nkpt) or
-            band not in range(self.nband_sk[spin, ik])):
+        if spin not in range(self.nsppol) or ik not in range(self.nkpt) or band not in range(self.nband_sk[spin, ik]):
             raise ValueError("Wrong (spin, band, kpt) indices")
 
         ug_skb = self.r.read_ug(spin, kpoint, band)
@@ -188,19 +190,19 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     def get_h1mat(self):
         pertcase = self.r.read_value("pertcase")
-        #idir = mod(pertcase-1, 3) + 1
-        #ipert = (pertcase - idir) / 3 + 1
+        # idir = mod(pertcase-1, 3) + 1
+        # ipert = (pertcase - idir) / 3 + 1
 
         # Read h1 matrix elements
         # Have to transpose the (nb_kq, nb_k) submatrix written by Fortran.
-        #nctkarr_t("h1_matrix_elements", "dp", "two, max_number_of_states, max_number_of_states, number_of_kpoints, number_of_spins")
+        # nctkarr_t("h1_matrix_elements", "dp", "two, max_number_of_states, max_number_of_states, number_of_kpoints, number_of_spins")
         h1mat = self.r.read_value("h1_matrix_elements", cmode="c").transpose(0, 1, 3, 2).copy()
         qpt = self.r.read_value("qptn")
-        #pertcase = idir + (ipert-1)*3 where ipert=iatom in the interesting cases
+        # pertcase = idir + (ipert-1)*3 where ipert=iatom in the interesting cases
 
         return h1mat, qpt
 
-    #def classify_states(self, spin, kpoint, band_range=None, energy_range=None, atol=1e-3):
+    # def classify_states(self, spin, kpoint, band_range=None, energy_range=None, atol=1e-3):
     #    """
     #    Classify electronic eigenstates
 
@@ -264,7 +266,7 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     #    #return wclass
 
-    def ipw_visualize_widget(self): # pragma: no cover
+    def ipw_visualize_widget(self):  # pragma: no cover
         """
         Return an ipython widget with controllers to visualize the wavefunctions.
 
@@ -273,18 +275,20 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             It seems there's a bug with Vesta on MacOs if the user tries to open multiple wavefunctions
             as the tab in vesta is not updated!
         """
+
         def wfk_visualize(spin, kpoint, band, appname):
             kpoint = int(kpoint.split()[0])
             self.visualize_ur2(spin, kpoint, band, appname=appname)
 
         import ipywidgets as ipw
+
         return ipw.interact_manual(
-                wfk_visualize,
-                spin=list(range(self.nsppol)),
-                kpoint=["%d %s" % (i, repr(kpt)) for i, kpt in enumerate(self.kpoints)],
-                band=list(range(self.nband)),
-                appname=[v.name for v in Visualizer.get_available()],
-            )
+            wfk_visualize,
+            spin=list(range(self.nsppol)),
+            kpoint=["%d %s" % (i, repr(kpt)) for i, kpt in enumerate(self.kpoints)],
+            band=list(range(self.nband)),
+            appname=[v.name for v in Visualizer.get_available()],
+        )
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
@@ -300,16 +304,18 @@ class WfkFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        nb.cells.extend([
-            nbv.new_code_cell("wfk = abilab.abiopen('%s')" % self.filepath),
-            nbv.new_code_cell("print(wfk)"),
-            nbv.new_code_cell("wfk.ebands.kpoints.plot();"),
-            nbv.new_code_cell("wfk.ebands.plot();"),
-            nbv.new_code_cell("""\
+        nb.cells.extend(
+            [
+                nbv.new_code_cell("wfk = abilab.abiopen('%s')" % self.filepath),
+                nbv.new_code_cell("print(wfk)"),
+                nbv.new_code_cell("wfk.ebands.kpoints.plot();"),
+                nbv.new_code_cell("wfk.ebands.plot();"),
+                nbv.new_code_cell("""\
 if wfk.ebands.kpoints.is_ibz:
     wfk.ebands.get_edos().plot();"""),
-            nbv.new_code_cell("wfk.ipw_visualize_widget()"),
-        ])
+                nbv.new_code_cell("wfk.ipw_visualize_widget()"),
+            ]
+        )
 
         return self._write_nb_nbpath(nb, nbpath)
 
@@ -391,27 +397,25 @@ class WFK_Reader(ElectronsReader):
         # Read data from file (we don't store the full block full block in memory!).
         var = self.rootgrp.variables["coefficients_of_wavefunctions"]
         value = var[spin, ik, band, :, :npw_k, :]
-        return value[..., 0] + 1j*value[..., 1]  # Build complex array
-
+        return value[..., 0] + 1j * value[..., 1]  # Build complex array
 
 
 def get_h1mat_same_qpt(prefix: str):
-    """
-    """
+    """ """
     pertcase = 1
     with WfkFile(f"{prefix}{pertcase}.nc") as wfk:
         structure = wfk.structure
         natom = len(wfk.structure)
         natom3 = 3 * natom
         nband = wfk.r.read_dimvalue("max_number_of_states")
-        nkpt =  wfk.r.read_dimvalue("number_of_kpoints")
+        nkpt = wfk.r.read_dimvalue("number_of_kpoints")
         nsppol = wfk.r.read_dimvalue("number_of_spins")
         ref_qpt = wfk.r.read_value("qptn")
 
     g_mnks = np.empty((nsppol, nkpt, natom3, nband, nband), dtype=complex)
 
     print("pertcase, g2")
-    for ipc, pertcase in enumerate(range(1, 3*natom + 1)):
+    for ipc, pertcase in enumerate(range(1, 3 * natom + 1)):
         with WfkFile(f"{prefix}{pertcase}.nc") as wfk:
             assert structure == wfk.structure
             assert nband == wfk.r.read_dimvalue("max_number_of_states")
@@ -420,10 +424,10 @@ def get_h1mat_same_qpt(prefix: str):
 
             h1mat, qpt = wfk.get_h1mat()
             assert np.allclose(qpt, ref_qpt)
-            #g_mnks[:,:,ipc,:,:] = h1mat
+            # g_mnks[:,:,ipc,:,:] = h1mat
             band = 4
             g = h1mat[0, 0, band, band]
-            g2 = np.abs(g)**2
+            g2 = np.abs(g) ** 2
             print(pertcase, f"{g2:.6e}")
 
     return g_mnks, qpt

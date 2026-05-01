@@ -1,4 +1,5 @@
 """Numeric tools."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -60,7 +61,7 @@ def build_mesh(x0: float, num: int, step: float, direction: str) -> tuple[list, 
     directions == "centered" or a mesh that starts/ends at x0 if direction is `>`/`<`.
     Return mesh and index of x0.
     """
-    if direction in  ("centered", "="):
+    if direction in ("centered", "="):
         start = x0 - num * step
         return [start + i * step for i in range(2 * num + 1)], num
 
@@ -102,10 +103,10 @@ def add_periodic_replicas(arr: np.ndarray) -> np.ndarray:
 
     elif ndim == 2:
         oarr = np.empty(oshape + 1, dtype=arr.dtype)
-        oarr[:-1,:-1] = arr
-        oarr[-1,:-1] = arr[0,:]
-        oarr[:-1,-1] = arr[:,0]
-        oarr[-1,-1] = arr[0,0]
+        oarr[:-1, :-1] = arr
+        oarr[-1, :-1] = arr[0, :]
+        oarr[:-1, -1] = arr[:, 0]
+        oarr[-1, -1] = arr[0, 0]
 
     else:
         # Add periodic replica along the last three directions.
@@ -226,6 +227,7 @@ def sort_and_groupby(items, key=None, reverse=False, ret_lists=False):
     ([1, 2], [[1, 1], [2]])
     """
     from itertools import groupby
+
     if not ret_lists:
         return groupby(sorted(items, key=key, reverse=reverse), key=key)
     keys, groups = [], []
@@ -238,6 +240,7 @@ def sort_and_groupby(items, key=None, reverse=False, ret_lists=False):
 #########################################################################################
 # Sorting and ordering
 #########################################################################################
+
 
 def prune_ord(alist: list) -> list:
     """
@@ -252,6 +255,7 @@ def prune_ord(alist: list) -> list:
     """
     mset = {}
     return [mset.setdefault(e, e) for e in alist if e not in mset]
+
 
 #########################################################################################
 # Special functions
@@ -269,9 +273,10 @@ def gaussian(x, width, center=0.0, height=None):
         height: height of the gaussian. If height is None, a normalized gaussian is returned.
     """
     x = np.asarray(x)
-    if height is None: height = 1.0 / (width * np.sqrt(2 * np.pi))
+    if height is None:
+        height = 1.0 / (width * np.sqrt(2 * np.pi))
 
-    return height * np.exp(-((x - center) / width) ** 2 / 2.)
+    return height * np.exp(-(((x - center) / width) ** 2) / 2.0)
 
 
 def lorentzian(x, width, center=0.0, height=None):
@@ -285,13 +290,15 @@ def lorentzian(x, width, center=0.0, height=None):
         height: height of the Lorentzian. If height is None, a normalized Lorentzian is returned.
     """
     x = np.asarray(x)
-    if height is None: height = 1.0 / (width * np.pi)
+    if height is None:
+        height = 1.0 / (width * np.pi)
 
-    return height * width**2 / ((x - center) ** 2 + width ** 2)
+    return height * width**2 / ((x - center) ** 2 + width**2)
 
-#=====================================
+
+# =====================================
 # === Data Interpolation/Smoothing ===
-#=====================================
+# =====================================
 
 
 def smooth(x, window_len=11, window="hanning"):
@@ -340,9 +347,9 @@ def smooth(x, window_len=11, window="hanning"):
     if window not in windows:
         raise ValueError("window must be in: " + str(windows))
 
-    s = np.r_[x[window_len - 1:0:-1], x, x[-1:-window_len:-1]]
+    s = np.r_[x[window_len - 1 : 0 : -1], x, x[-1:-window_len:-1]]
 
-    if window == "flat": # moving average
+    if window == "flat":  # moving average
         w = np.ones(window_len, "d")
     else:
         w = eval("np." + window + "(window_len)")
@@ -384,10 +391,11 @@ def find_convindex(values, tol, min_numpts=1, mode="abs", vinf=None):
 
     numpts, i = len(vdiff), -2
     if numpts > min_numpts and vdiff[-2] < tol:
-        for i in range(numpts-1, -1, -1):
+        for i in range(numpts - 1, -1, -1):
             if vdiff[i] > tol:
                 break
-        if (numpts - i - 1) < min_numpts: i = -2
+        if (numpts - i - 1) < min_numpts:
+            i = -2
 
     return i + 1
 
@@ -458,6 +466,7 @@ class BlochRegularGridInterpolator:
         # ndat components and this complicates the declaration of callbacks
         # operating on a single component.
         from scipy.interpolate import RegularGridInterpolator
+
         self._interpolators = [None] * self.ndat
         for i in range(self.ndat):
             self._interpolators[i] = RegularGridInterpolator((x, y, z), datar[i], **kwargs)
@@ -490,7 +499,8 @@ class BlochRegularGridInterpolator:
             values = self._interpolators[idat](uc_coords, **kwargs)
 
         if kpoint is not None:
-            if hasattr(kpoint, "frac_coords"): kpoint = kpoint.frac_coords
+            if hasattr(kpoint, "frac_coords"):
+                kpoint = kpoint.frac_coords
             kpoint = np.reshape(kpoint, (3,))
             values *= np.exp(2j * np.pi * np.dot(frac_coords, kpoint))
 
@@ -543,14 +553,20 @@ class BlochRegularGridInterpolator:
         dist = self.structure.lattice.norm(line_points)
         line_points += point1
 
-        return dict2namedtuple(site1=site1, site2=site2, points=line_points, dist=dist,
-                               values=self.eval_points(line_points, kpoint=kpoint, **kwargs))
+        return dict2namedtuple(
+            site1=site1,
+            site2=site2,
+            points=line_points,
+            dist=dist,
+            values=self.eval_points(line_points, kpoint=kpoint, **kwargs),
+        )
 
 
 class BzRegularGridInterpolator:
     """
     This object interpolates quantities defined in the BZ.
     """
+
     def __init__(self, structure, shifts, datak, add_replicas=True, **kwargs):
         """
         Args:
@@ -588,6 +604,7 @@ class BzRegularGridInterpolator:
         # [nx, ny, nz, ...] arrays but then each call operates on the full set of
         # ndat components and this complicates the declaration of callbacks operating on a single component.
         from scipy.interpolate import RegularGridInterpolator
+
         self._interpolators = [None] * self.ndat
 
         self.abs_data_min_idat = np.empty(self.ndat)
@@ -601,8 +618,7 @@ class BzRegularGridInterpolator:
             self.abs_data_max_idat[idat] = np.max(np.abs(datak[idat]))
 
     def get_max_abs_data(self, idat=None) -> tuple:
-        """
-        """
+        """ """
         if idat is None:
             return self.abs_data_max_idat.max()
         return self.abs_data_max_idat[idat]
@@ -658,10 +674,11 @@ class BzRegularGridInterpolator:
 
         # Plot values (import here to avoid cyclic dependencies)
         from abipy.tools.plotting import get_ax_fig_plt
+
         ax, fig, plt = get_ax_fig_plt(ax=ax, grid=True)
         for idat in range(self.ndat):
-            #if idat != 5: continue
-            ax.plot(values[:,idat])
+            # if idat != 5: continue
+            ax.plot(values[:, idat])
 
         ax.set_xlabel("Wave Vector")
         ax.set_xticks(ticks, minor=False)
@@ -670,7 +687,7 @@ class BzRegularGridInterpolator:
         return fig
 
 
-#class PolyExtrapolator:
+# class PolyExtrapolator:
 #
 #    def __init__(xs, ys):
 #        self.xs = np.array(xs)

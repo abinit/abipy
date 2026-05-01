@@ -1,6 +1,7 @@
 """
 Classes and functions for parsing ONCVPSP output files and plotting results.
 """
+
 from __future__ import annotations
 
 import json
@@ -25,6 +26,7 @@ class OncvPlotter(NotebookWriter):
     """
     Plots the results produced by a pseudopotential generator.
     """
+
     # TODO: Improve support for fully-relativistic case.
 
     # matplotlib options.
@@ -34,13 +36,14 @@ class OncvPlotter(NotebookWriter):
 
     markers_aeps = dict(ae=".", ps="o")
 
-    color_l = {0: "black",
-               1: "red",
-               -1: "magenta",
-               2: "blue",
-               -2: "cyan",
-               3: "orange",
-               -3: "yellow",
+    color_l = {
+        0: "black",
+        1: "red",
+        -1: "magenta",
+        2: "blue",
+        -2: "cyan",
+        3: "orange",
+        -3: "yellow",
     }
 
     @classmethod
@@ -61,9 +64,12 @@ class OncvPlotter(NotebookWriter):
         """
         Decorate a `matplotlib` Axis adding xlabel, ylabel, title, grid and legend
         """
-        if title: ax.set_title(title, fontsize=fontsize)
-        if xlabel: ax.set_xlabel(xlabel)
-        if ylabel: ax.set_ylabel(ylabel)
+        if title:
+            ax.set_title(title, fontsize=fontsize)
+        if xlabel:
+            ax.set_xlabel(xlabel)
+        if ylabel:
+            ax.set_ylabel(ylabel)
         ax.grid(True)
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
@@ -75,8 +81,8 @@ class OncvPlotter(NotebookWriter):
             color=self.color_l[l],
             linestyle=self.linestyle_aeps[aeps],
             linewidth=self.linewidth,
-            #marker=self.markers_aeps[aeps],
-            markersize=self.markersize
+            # marker=self.markers_aeps[aeps],
+            markersize=self.markersize,
         )
 
     def _add_rc_vlines_ax(self, ax, with_lloc=False) -> None:
@@ -99,8 +105,7 @@ class OncvPlotter(NotebookWriter):
             ax._custom_rc_lines.append((self.parser.rc5, color))
 
     @add_fig_kwargs
-    def plot_atan_logders(self, ax=None, with_xlabel=True,
-                          fontsize: int = 8, **kwargs) -> Figure:
+    def plot_atan_logders(self, ax=None, with_xlabel=True, fontsize: int = 8, **kwargs) -> Figure:
         """
         Plot arctan of logder on axis ax.
 
@@ -118,26 +123,31 @@ class OncvPlotter(NotebookWriter):
             if not self.parser.relativistic:
                 lch = f"${l2char[abs(l)]}$"
             else:
-                #lch = l2char[abs(l)]
+                # lch = l2char[abs(l)]
                 lch = f"${l2char[abs(l)]}^+$" if l >= 0 else f"${l2char[abs(l)]}^-$"
 
             # Add pad to avoid overlapping curves. We only need to compare AE vs PS atan(logder)
             pad = (abs(l) + 1) * 1.0
 
-            ae_line, = ax.plot(ae_alog.energies, ae_alog.values + pad,
-                            label=f"AE {lch}",
-                            **self._mpl_opts_laeps(l, "ae"))
+            (ae_line,) = ax.plot(
+                ae_alog.energies, ae_alog.values + pad, label=f"AE {lch}", **self._mpl_opts_laeps(l, "ae")
+            )
 
-            ps_line, = ax.plot(ps_alog.energies, ps_alog.values + pad,
-                            label=f"PS {lch}", **self._mpl_opts_laeps(l, "ps"))
+            (ps_line,) = ax.plot(
+                ps_alog.energies, ps_alog.values + pad, label=f"PS {lch}", **self._mpl_opts_laeps(l, "ps")
+            )
 
         xlabel = "Energy (Ha)" if with_xlabel else ""
-        #ylabel = "ATAN(LogDer)"
+        # ylabel = "ATAN(LogDer)"
         ylabel = r"$\phi(E) = \arctan(R * d \psi_E(r)/dr |_R)$"
 
-        self.decorate_ax(ax, xlabel=xlabel, ylabel=ylabel, title="",
-                        fontsize=fontsize,
-                        )
+        self.decorate_ax(
+            ax,
+            xlabel=xlabel,
+            ylabel=ylabel,
+            title="",
+            fontsize=fontsize,
+        )
         return fig
 
     def _get_ae_ps_wfs(self, what) -> tuple:
@@ -150,8 +160,7 @@ class OncvPlotter(NotebookWriter):
         return ae_wfs, ps_wfs
 
     @add_fig_kwargs
-    def plot_radial_wfs(self, ax=None, what="bound_states",
-                        fontsize: int = 8, **kwargs) -> Figure:
+    def plot_radial_wfs(self, ax=None, what="bound_states", fontsize: int = 8, **kwargs) -> Figure:
         """
         Plot AE and PS radial wavefunctions on axis ax.
 
@@ -169,23 +178,26 @@ class OncvPlotter(NotebookWriter):
             if what == "bound_states":
                 # Show position of the last peak.
                 s, marker = 10, "^"
-                #style = dict(color=self.color_l[l], s=s, marker=marker)
+                # style = dict(color=self.color_l[l], s=s, marker=marker)
                 ae_peaks = ae_wf.get_peaks()
                 if len(ae_peaks.xs):
                     ax.scatter(ae_peaks.xs[-1], ae_peaks.ys[-1], color=self.color_l[l])
 
                 ps_peaks = ps_wf.get_peaks()
-                #style = dict(color=self.color_l[l], s=s, marker=marker)
+                # style = dict(color=self.color_l[l], s=s, marker=marker)
                 if len(ps_peaks.xs):
                     ax.scatter(ps_peaks.xs[-1], ps_peaks.ys[-1], color=self.color_l[l])
 
-            ax.plot(ae_wf.rmesh, ae_wf.values, label=fr"AE {nlk.latex}", **self._mpl_opts_laeps(l, "ae"))
-            ax.plot(ps_wf.rmesh, ps_wf.values, label=fr"PS {nlk.latex}", **self._mpl_opts_laeps(l, "ps"))
+            ax.plot(ae_wf.rmesh, ae_wf.values, label=rf"AE {nlk.latex}", **self._mpl_opts_laeps(l, "ae"))
+            ax.plot(ps_wf.rmesh, ps_wf.values, label=rf"PS {nlk.latex}", **self._mpl_opts_laeps(l, "ps"))
 
-        self.decorate_ax(ax, xlabel="r (Bohr)", ylabel=r"$\phi(r)$",
-                        title="Wave Functions" if what == "bound_states" else "Scattering States",
-                        fontsize=fontsize,
-                        )
+        self.decorate_ax(
+            ax,
+            xlabel="r (Bohr)",
+            ylabel=r"$\phi(r)$",
+            title="Wave Functions" if what == "bound_states" else "Scattering States",
+            fontsize=fontsize,
+        )
 
         self._add_rc_vlines_ax(ax)
 
@@ -204,17 +216,23 @@ class OncvPlotter(NotebookWriter):
         linestyle_n = {1: "solid", 2: "dashed", 3: "dotted", 4: "dashdot"}
 
         for nlk, proj in self.parser.projectors.items():
-            ax.plot(proj.rmesh, proj.values,
-                    color=self.color_l.get(nlk.l, "black"),
-                    linestyle=linestyle_n[nlk.n],
-                    linewidth=self.linewidth,
-                    markersize=self.markersize,
-                    label=f"Proj {nlk.n}, l={nlk.latex_l}",
-                    )
+            ax.plot(
+                proj.rmesh,
+                proj.values,
+                color=self.color_l.get(nlk.l, "black"),
+                linestyle=linestyle_n[nlk.n],
+                linewidth=self.linewidth,
+                markersize=self.markersize,
+                label=f"Proj {nlk.n}, l={nlk.latex_l}",
+            )
 
-        self.decorate_ax(ax, xlabel="r (Bohr)", ylabel="$p(r)$", title="Projectors",
-                        fontsize=fontsize,
-                        )
+        self.decorate_ax(
+            ax,
+            xlabel="r (Bohr)",
+            ylabel="$p(r)$",
+            title="Projectors",
+            fontsize=fontsize,
+        )
 
         self._add_rc_vlines_ax(ax)
 
@@ -231,15 +249,17 @@ class OncvPlotter(NotebookWriter):
         ax, fig, plt = get_ax_fig_plt(ax)
 
         for name, rho in self.parser.densities.items():
-            d = rho.values if not timesr2 else rho.values * rho.rmesh ** 2
-            line, = ax.plot(rho.rmesh, d, label=name,
-                            linewidth=self.linewidth, markersize=self.markersize)
+            d = rho.values if not timesr2 else rho.values * rho.rmesh**2
+            (line,) = ax.plot(rho.rmesh, d, label=name, linewidth=self.linewidth, markersize=self.markersize)
 
         ylabel = "$n(r)$" if not timesr2 else "$r^2 n(r)$"
-        self.decorate_ax(ax, xlabel="r (Bohr)", ylabel=ylabel,
-                         title="Charge densities",
-                         fontsize=fontsize,
-                         )
+        self.decorate_ax(
+            ax,
+            xlabel="r (Bohr)",
+            ylabel=ylabel,
+            title="Charge densities",
+            fontsize=fontsize,
+        )
         return fig
 
     @add_fig_kwargs
@@ -255,7 +275,8 @@ class OncvPlotter(NotebookWriter):
 
         for name, rho in self.parser.densities.items():
             # Only model core charge is shown.
-            if name != "rhoM": continue
+            if name != "rhoM":
+                continue
 
             # Need linear mesh for finite_difference --> Spline input densities on lin_rmesh
             lin_rmesh, h = np.linspace(rho.rmesh[0], rho.rmesh[-1], num=len(rho.rmesh) * 4, retstep=True)
@@ -264,10 +285,13 @@ class OncvPlotter(NotebookWriter):
             vder = finite_diff(lin_values, h, order=order, acc=acc)
             ax.plot(lin_rmesh, vder, label="%s-order derivative of %s" % (order, name))
 
-        self.decorate_ax(ax, xlabel="r (Bohr)", ylabel="$D^%s \n(r)$" % order,
-                         title="Derivative of the charge densities",
-                         fontsize=fontsize,
-                         )
+        self.decorate_ax(
+            ax,
+            xlabel="r (Bohr)",
+            ylabel="$D^%s \n(r)$" % order,
+            title="Derivative of the charge densities",
+            fontsize=fontsize,
+        )
         return fig
 
     @add_fig_kwargs
@@ -281,13 +305,20 @@ class OncvPlotter(NotebookWriter):
         ax, fig, plt = get_ax_fig_plt(ax)
 
         for l, pot in self.parser.potentials.items():
-            ax.plot(pot.rmesh, pot.values,
-                    label="$V_{loc}$" if l == -1 else "PS $V_{%s}$" % l2char[l],
-                    **self._mpl_opts_laeps(l, "ae"))
+            ax.plot(
+                pot.rmesh,
+                pot.values,
+                label="$V_{loc}$" if l == -1 else "PS $V_{%s}$" % l2char[l],
+                **self._mpl_opts_laeps(l, "ae"),
+            )
 
-        self.decorate_ax(ax, xlabel="r (Bohr)", ylabel="$v_l(r)$",
-                         title="Ion Pseudopotentials", fontsize=fontsize,
-                         )
+        self.decorate_ax(
+            ax,
+            xlabel="r (Bohr)",
+            ylabel="$v_l(r)$",
+            title="Ion Pseudopotentials",
+            fontsize=fontsize,
+        )
         self._add_rc_vlines_ax(ax, with_lloc=True)
 
         return fig
@@ -304,14 +335,15 @@ class OncvPlotter(NotebookWriter):
 
         for key, pot in self.parser.vtaus.items():
             mode = "ae" if key == "vtau_ae" else "ps"
-            ax.plot(pot.rmesh, pot.values,
-                    label=pot.name,
-                    **self._mpl_opts_laeps(0, mode))
+            ax.plot(pot.rmesh, pot.values, label=pot.name, **self._mpl_opts_laeps(0, mode))
 
-        self.decorate_ax(ax, xlabel="r (Bohr)", ylabel="Vtaus (Ha / a_B)",
-                         #title="Ion Pseudopotentials",
-                         fontsize=fontsize,
-                         )
+        self.decorate_ax(
+            ax,
+            xlabel="r (Bohr)",
+            ylabel="Vtaus (Ha / a_B)",
+            # title="Ion Pseudopotentials",
+            fontsize=fontsize,
+        )
         self._add_rc_vlines_ax(ax, with_lloc=True)
         ax.set_xscale(xscale)
 
@@ -328,14 +360,16 @@ class OncvPlotter(NotebookWriter):
         ax, fig, plt = get_ax_fig_plt(ax)
 
         for key, den in self.parser.kin_densities.items():
-            ax.plot(den.rmesh, den.values,
-                    label=den.name)
-                    #**self._mpl_opts_laeps(0, mode))
+            ax.plot(den.rmesh, den.values, label=den.name)
+            # **self._mpl_opts_laeps(0, mode))
 
-        self.decorate_ax(ax, xlabel="r (Bohr)", ylabel="Kinetic energy densities",
-                         #title="Ion Pseudopotentials",
-                         fontsize=fontsize,
-                         )
+        self.decorate_ax(
+            ax,
+            xlabel="r (Bohr)",
+            ylabel="Kinetic energy densities",
+            # title="Ion Pseudopotentials",
+            fontsize=fontsize,
+        )
         self._add_rc_vlines_ax(ax, with_lloc=True)
         ax.set_yscale(yscale)
 
@@ -359,15 +393,17 @@ class OncvPlotter(NotebookWriter):
             lin_values = spline(lin_rmesh)
             vder = finite_diff(lin_values, h, order=order, acc=acc)
 
-            label = f"{order}-order derivative of Vloc" if l == -1 else \
-                    f"{order}-order derivative of PS l={l}"
+            label = f"{order}-order derivative of Vloc" if l == -1 else f"{order}-order derivative of PS l={l}"
 
             ax.plot(lin_rmesh, vder, label=label, **self._mpl_opts_laeps(l, "ae"))
 
-        self.decorate_ax(ax, xlabel="r (Bohr)", ylabel=r"$D^%s \phi(r)$" % order,
-                         title="Derivative of the ion Pseudopotentials",
-                         fontsize=fontsize,
-                         )
+        self.decorate_ax(
+            ax,
+            xlabel="r (Bohr)",
+            ylabel=r"$D^%s \phi(r)$" % order,
+            title="Derivative of the ion Pseudopotentials",
+            fontsize=fontsize,
+        )
         self._add_rc_vlines_ax(ax, with_lloc=True)
 
         return fig
@@ -383,17 +419,18 @@ class OncvPlotter(NotebookWriter):
         ax, fig, plt = get_ax_fig_plt(ax)
 
         for l, data in self.parser.kene_vs_ecut.items():
-            ax.plot(data.energies, data.values, label="Conv l=%s" % l2char[l],
-                    **self._mpl_opts_laeps(l, "ae"))
+            ax.plot(data.energies, data.values, label="Conv l=%s" % l2char[l], **self._mpl_opts_laeps(l, "ae"))
 
         for nlk, data in self.parser.kinerr_nlk.items():
-            ax.plot(data.ecuts, data.values_ha,
-                    **self._mpl_opts_laeps(nlk.l, "ps"))
+            ax.plot(data.ecuts, data.values_ha, **self._mpl_opts_laeps(nlk.l, "ps"))
 
-        self.decorate_ax(ax,
-                         xlabel="Ecut (Ha)", ylabel=r"$\Delta E_{kin}$ (Ha)",
-                         title="", fontsize=fontsize,
-                         )
+        self.decorate_ax(
+            ax,
+            xlabel="Ecut (Ha)",
+            ylabel=r"$\Delta E_{kin}$ (Ha)",
+            title="",
+            fontsize=fontsize,
+        )
 
         ax.set_yscale("log")
 
@@ -407,8 +444,7 @@ class OncvPlotter(NotebookWriter):
         Return: matplotlib Figure
         """
         # Build grid of plots.
-        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=2, ncols=1,
-                                                sharex=False, sharey=False, squeeze=False)
+        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=2, ncols=1, sharex=False, sharey=False, squeeze=False)
         ax_list = ax_list.ravel()
 
         self.plot_atan_logders(ax=ax_list[0], fontsize=fontsize, show=False)
@@ -431,27 +467,30 @@ class OncvPlotter(NotebookWriter):
         ax, fig, plt = get_ax_fig_plt(ax)
 
         for name, rho in self.parser.densities.items():
-            if name == "rhoC": continue
+            if name == "rhoC":
+                continue
             form = rho.get_intr2j0(ecut=ecut) / (4 * np.pi)
-            ax.plot(form.mesh, form.values, label=name,
-                    linewidth=self.linewidth, markersize=self.markersize)
+            ax.plot(form.mesh, form.values, label=name, linewidth=self.linewidth, markersize=self.markersize)
 
             intg = rho.r2f_integral()[-1]
-            #print("r2 f integral: ", intg)
-            #print("form_factor(0): ", name, form.values[0])
+            # print("r2 f integral: ", intg)
+            # print("form_factor(0): ", name, form.values[0])
 
         # Plot vloc(q)
-        #for l, pot in self.potentials.items():
+        # for l, pot in self.potentials.items():
         #    if l != -1: continue
         #    form = pot.get_intr2j0(ecut=ecut)
         #    mask = np.where(np.abs(form.values) > 20); form.values[mask] = 20
         #    line, = ax.plot(form.mesh, form.values, linewidth=self.linewidth, markersize=self.markersize)
         #    lines.append(line); legends.append("Vloc(q)")
 
-        self.decorate_ax(ax,
-                         xlabel="Ecut (Ha)", ylabel="$n(q)$",
-                         fontsize=fontsize, title="Form factor, l=0 ",
-                         )
+        self.decorate_ax(
+            ax,
+            xlabel="Ecut (Ha)",
+            ylabel="$n(q)$",
+            fontsize=fontsize,
+            title="Form factor, l=0 ",
+        )
         return fig
 
     @add_fig_kwargs
@@ -480,8 +519,8 @@ class OncvPlotter(NotebookWriter):
 
         for xi, yi, level in zip(xs, enes, atm_levels, strict=False):
             text = f"{level.nlk.latex}" + f", occ={level.occ}"
-            #xy = .65*xi, yi
-            #xy = xi, yi
+            # xy = .65*xi, yi
+            # xy = xi, yi
             xy = xi, 0.95 * yi
             ax.annotate(text, xy=xy, xytext=(8, 4), size=8, ha="center", va="top", textcoords="offset points")
 
@@ -490,17 +529,17 @@ class OncvPlotter(NotebookWriter):
         span_style.setdefault("color", "grey")
         rectangle = ax.axhspan(min_eval, max_eval, **span_style)
 
-        #import matplotlib.patches as patches
-        #p1 = patches.FancyArrowPatch((0, 0), (1, 1), arrowstyle='<->', mutation_scale=20)
-        #p2 = patches.FancyArrowPatch((1, 0), (0, 1), arrowstyle='<|-|>', mutation_scale=20)
+        # import matplotlib.patches as patches
+        # p1 = patches.FancyArrowPatch((0, 0), (1, 1), arrowstyle='<->', mutation_scale=20)
+        # p2 = patches.FancyArrowPatch((1, 0), (0, 1), arrowstyle='<|-|>', mutation_scale=20)
 
-        #ax.margins(0.1)
+        # ax.margins(0.1)
         ax.set_ylabel("Eigenvalue (Ha)")
         ax.set_title("Atomic energy levels")
         ax.set_xticks([])
-        #ax.yaxis.set_minor_locator(mpl.ticker.MaxNLocator(50))
+        # ax.yaxis.set_minor_locator(mpl.ticker.MaxNLocator(50))
         ax.grid(axis="y")
-        #ax.legend(loc="best", fontsize=fontsize, shadow=True)
+        # ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
@@ -518,11 +557,11 @@ class OncvPlotter(NotebookWriter):
             yield self.plot_radial_wfs(what="scattering_states", show=False)
         yield self.plot_projectors(show=False)
         yield self.plot_densities(show=False)
-        #yield self.plot_densities(timesr2=True, show=False)
+        # yield self.plot_densities(timesr2=True, show=False)
         yield self.plot_den_formfact(show=False)
         yield self.plot_atomic_levels(show=False)
         if verbose:
-            #yield self.plot_der_potentials(show=False)
+            # yield self.plot_der_potentials(show=False)
             for order in [1, 2, 3, 4]:
                 yield self.plot_der_densities(order=order, show=False)
 
@@ -534,10 +573,9 @@ class OncvPlotter(NotebookWriter):
         return oncv_make_open_notebook(self.parser.filepath)
 
 
-def oncv_make_open_notebook(outpath: str,
-                            foreground: bool = False,
-                            classic_notebook: bool = False,
-                            no_browser: bool = False) -> int:  # pragma: no cover
+def oncv_make_open_notebook(
+    outpath: str, foreground: bool = False, classic_notebook: bool = False, no_browser: bool = False
+) -> int:  # pragma: no cover
     """
     Generate an ipython notebook and open it in the browser.
 
@@ -595,6 +633,7 @@ See also https://jupyter.readthedocs.io/en/latest/install.html
         cmd = "%s %s" % (app_path, nbpath)
         print("Executing:", cmd, "\nstdout and stderr redirected to %s" % tmpname)
         import subprocess
+
         process = subprocess.Popen(cmd.split(), shell=False, stdout=fd, stderr=fd)
         cprint("pid: %s" % str(process.pid), "yellow")
         return 0
@@ -602,11 +641,12 @@ See also https://jupyter.readthedocs.io/en/latest/install.html
     # Based on https://github.com/arose/nglview/blob/master/nglview/scripts/nglview.py
     notebook_name = os.path.basename(nbpath)
     dirname = os.path.dirname(nbpath)
-    #print("nbpath:", nbpath)
+    # print("nbpath:", nbpath)
 
     import socket
 
     from abipy.tools.notebooks import find_free_port
+
     username = os.getlogin()
     hostname = socket.gethostname()
     port = find_free_port()
@@ -645,12 +685,14 @@ def oncv_write_notebook(outpath: str, nbpath: str | None = None) -> str:
     outpath = os.path.abspath(outpath)
 
     import nbformat
+
     nbf = nbformat.v4
     nb = nbf.new_notebook()
 
-    nb.cells.extend([
-        nbf.new_markdown_cell("## This is an auto-generated notebook for %s" % os.path.basename(outpath)),
-        nbf.new_code_cell("""\
+    nb.cells.extend(
+        [
+            nbf.new_markdown_cell("## This is an auto-generated notebook for %s" % os.path.basename(outpath)),
+            nbf.new_code_cell("""\
 %matplotlib notebook
 
 # Use this magic for jupyterlab.
@@ -658,49 +700,49 @@ def oncv_write_notebook(outpath: str, nbpath: str | None = None) -> str:
 #%matplotlib widget
 
 """),
-
-        nbf.new_code_cell("""\
+            nbf.new_code_cell(
+                """\
 # Parse output file
 from abipy.ppcodes.oncv_parser import OncvParser
-onc_parser = OncvParser('%s')""" % outpath),
-
-        nbf.new_code_cell("""\
+onc_parser = OncvParser('%s')"""
+                % outpath
+            ),
+            nbf.new_code_cell("""\
 # Parse the file and build the plotter
 onc_parser.scan()
 if not onc_parser.run_completed:
     raise RuntimeError("Cannot parse output file")
 
 plotter = onc_parser.get_plotter()"""),
-
-        nbf.new_markdown_cell(r"# AE and PS radial wavefunctions $\phi(r)$:"),
-        nbf.new_code_cell("fig = plotter.plot_radial_wfs(show=False)"),
-        nbf.new_markdown_cell("# Arctan of the logarithmic derivatives:"),
-        nbf.new_code_cell("fig = plotter.plot_atan_logders(show=False)"),
-        nbf.new_markdown_cell("# Convergence in $G$-space estimated by ONCVPSP:"),
-        nbf.new_code_cell("fig = plotter.plot_kene_vs_ecut(show=False)"),
-        nbf.new_markdown_cell("# Projectors:"),
-        nbf.new_code_cell("fig = plotter.plot_projectors(show=False)"),
-        nbf.new_markdown_cell("# Core-Valence-Model charge densities:"),
-        nbf.new_code_cell("fig = plotter.plot_densities(show=False)"),
-        nbf.new_markdown_cell("# Local potential and $l$-dependent potentials:"),
-        nbf.new_code_cell("fig = plotter.plot_potentials(show=False)"),
-
-        #nbf.new_markdown_cell("# 1-st order derivative of $v_l$ and $v_{loc}$ computed via finite differences:"),
-        #nbf.new_code_cell("""fig = plotter.plot_der_potentials(order=1, show=False)"""),
-        #nbf.new_markdown_cell("# 2-nd order derivative of $v_l$ and $v_{loc}$ computed via finite differences:"),
-        #nbf.new_code_cell("""fig = plotter.plot_der_potentials(order=2, show=False)"""),
-        #nbf.new_markdown_cell("Model core charge and form factors computed by ABINIT"),
-        #nbf.new_code_cell("""\
-#with pseudo.open_pspsfile() as psps:
-#psps.plot()"""),
-    ])
+            nbf.new_markdown_cell(r"# AE and PS radial wavefunctions $\phi(r)$:"),
+            nbf.new_code_cell("fig = plotter.plot_radial_wfs(show=False)"),
+            nbf.new_markdown_cell("# Arctan of the logarithmic derivatives:"),
+            nbf.new_code_cell("fig = plotter.plot_atan_logders(show=False)"),
+            nbf.new_markdown_cell("# Convergence in $G$-space estimated by ONCVPSP:"),
+            nbf.new_code_cell("fig = plotter.plot_kene_vs_ecut(show=False)"),
+            nbf.new_markdown_cell("# Projectors:"),
+            nbf.new_code_cell("fig = plotter.plot_projectors(show=False)"),
+            nbf.new_markdown_cell("# Core-Valence-Model charge densities:"),
+            nbf.new_code_cell("fig = plotter.plot_densities(show=False)"),
+            nbf.new_markdown_cell("# Local potential and $l$-dependent potentials:"),
+            nbf.new_code_cell("fig = plotter.plot_potentials(show=False)"),
+            # nbf.new_markdown_cell("# 1-st order derivative of $v_l$ and $v_{loc}$ computed via finite differences:"),
+            # nbf.new_code_cell("""fig = plotter.plot_der_potentials(order=1, show=False)"""),
+            # nbf.new_markdown_cell("# 2-nd order derivative of $v_l$ and $v_{loc}$ computed via finite differences:"),
+            # nbf.new_code_cell("""fig = plotter.plot_der_potentials(order=2, show=False)"""),
+            # nbf.new_markdown_cell("Model core charge and form factors computed by ABINIT"),
+            # nbf.new_code_cell("""\
+            # with pseudo.open_pspsfile() as psps:
+            # psps.plot()"""),
+        ]
+    )
 
     # Plot data
-    #plotter.plot_der_potentials()
-    #for order in [1,2,3,4]:
+    # plotter.plot_der_potentials()
+    # for order in [1,2,3,4]:
     #    plotter.plot_der_densities(order=order)
-    #plotter.plot_densities(timesr2=True)
-    #plotter.plot_den_formfact()
+    # plotter.plot_densities(timesr2=True)
+    # plotter.plot_den_formfact()
 
     if nbpath is None:
         _, nbpath = tempfile.mkstemp(suffix=".ipynb", text=True)
@@ -755,7 +797,7 @@ class MultiOncvPlotter(NotebookWriter):
 
     @property
     def plotters(self) -> list[OncvPlotter]:
-        """"List of registered `Plotters`."""
+        """ "List of registered `Plotters`."""
         return list(self._plotters_dict.values())
 
     @property
@@ -777,16 +819,23 @@ class MultiOncvPlotter(NotebookWriter):
             raise ValueError(f"Invalid {layout=}")
 
         # Build grid of plots.
-        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols, # figsize=(8, 8),
-                                                sharex=sharex, sharey=sharey, squeeze=False)
+        ax_list, fig, plt = get_axarray_fig_plt(
+            ax_list,
+            nrows=nrows,
+            ncols=ncols,  # figsize=(8, 8),
+            sharex=sharex,
+            sharey=sharey,
+            squeeze=False,
+        )
         if ravel:
             ax_list = ax_list.ravel()
 
         return ax_list, fig, plt
 
     @add_fig_kwargs
-    def plot_atan_logders(self, ax_list=None, with_xlabel=True, xlims=None, ylims=None,
-                          fontsize: int = 8, **kwargs) -> Figure:
+    def plot_atan_logders(
+        self, ax_list=None, with_xlabel=True, xlims=None, ylims=None, fontsize: int = 8, **kwargs
+    ) -> Figure:
         """
         Plot arctan of logder on ax_list for all pseudos.
 
@@ -806,8 +855,7 @@ class MultiOncvPlotter(NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_radial_wfs(self, ax_list=None, what="bound_states",
-                        fontsize: int = 8, **kwargs) -> Figure:
+    def plot_radial_wfs(self, ax_list=None, what="bound_states", fontsize: int = 8, **kwargs) -> Figure:
         """
         Plot AE and PS radial wavefunctions of ax_list for all pseudos.
 
@@ -946,8 +994,9 @@ class MultiOncvPlotter(NotebookWriter):
         num_plots, ncols, nrows = 2 * len(self), 2, len(self)
 
         # Build grid of plots.
-        ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=False, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(
+            ax_mat, nrows=nrows, ncols=ncols, sharex=True, sharey=False, squeeze=False
+        )
 
         for i, (label, plotter) in enumerate(self.items()):
             ax_list = ax_mat[i]
@@ -995,7 +1044,7 @@ class MultiOncvPlotter(NotebookWriter):
         for i, (ax, (label, plotter)) in enumerate(zip(ax_list, self.items(), strict=False)):
             plotter.plot_atomic_levels(ax=ax, fontsize=fontsize, show=False)
             ax.set_title(label, fontsize=fontsize)
-            #if i != len(ax_list) - 1:
+            # if i != len(ax_list) - 1:
             #    set_visible(ax, False, "legend", "xlabel", "ylabel")
 
     def yield_figs(self, **kwargs):  # pragma: no cover
@@ -1010,20 +1059,20 @@ class MultiOncvPlotter(NotebookWriter):
         if any(plotter.parser.has_scattering_wfs for plotter in self.plotters):
             yield self.plot_radial_wfs(what="scattering_states", show=False)
         yield self.plot_potentials(show=False)
-        #if verbose:
+        # if verbose:
         yield self.plot_der_potentials(show=False)
         yield self.plot_projectors(show=False)
         yield self.plot_densities(show=False)
         ##yield self.plot_densities(timesr2=True, show=False)
         yield self.plot_den_formfact(show=False)
         yield self.plot_atomic_levels(show=False)
-        #if verbose:
+        # if verbose:
         #    for order in [1, 2, 3, 4]:
         #        yield self.plot_der_densities(order=order, show=False)
 
     def write_notebook(self, nbpath=None):
         raise NotImplementedError("write_notebooks should be tested")
-        #return oncv_make_open_notebook(self.parser.filepath)
+        # return oncv_make_open_notebook(self.parser.filepath)
 
 
 def psp8_get_densities(path, fc_file=None, ae_file=None, plot=False):
@@ -1079,9 +1128,11 @@ def psp8_get_densities(path, fc_file=None, ae_file=None, plot=False):
     #
     # Model core charge for nonlinear core xc correction, and 4 derivatives
     from abipy.flowtk.pseudos import Pseudo
+
     pseudo = Pseudo.from_file(path)
 
     from pymatgen.io.abinit.pseudos import _dict_from_lines
+
     with open(path) as fh:
         lines = [fh.readline() for _ in range(6)]
 
@@ -1114,7 +1165,7 @@ def psp8_get_densities(path, fc_file=None, ae_file=None, plot=False):
             # Start at l=1
             nproj_soc = [int(t) for t in line.split()[:4]]
             nproj_soc.insert(0, 0)
-            #print("nproj_soc", nproj_soc)
+            # print("nproj_soc", nproj_soc)
             raise NotImplementedError("SOC not tested")
 
         lmax = int(header["lmax"])
@@ -1126,15 +1177,16 @@ def psp8_get_densities(path, fc_file=None, ae_file=None, plot=False):
         # vpspll(:,1),...,vpspll(:,lnmax)=nonlocal projectors
         # vloc(:)=local potential
 
-        #for nn in range(nso):
+        # for nn in range(nso):
         # Skip projectors (scalar relativistic, always present).
         for l, npl in enumerate(nproj):
-            #if npl == 0 and l != lloc: continue
-            if npl == 0: continue
-            line = fh.readline() # l, ekb[:npl]
+            # if npl == 0 and l != lloc: continue
+            if npl == 0:
+                continue
+            line = fh.readline()  # l, ekb[:npl]
             l_file = int(line.split()[0])
             if l != l_file:
-                #print("For l=%s, npl=%s" % (l, npl), "wrong line", line)
+                # print("For l=%s, npl=%s" % (l, npl), "wrong line", line)
                 raise RuntimeError("l != l_file (%s != %s)" % (l, l_file))
 
             for ir in range(mmax):
@@ -1158,7 +1210,7 @@ def psp8_get_densities(path, fc_file=None, ae_file=None, plot=False):
         rmesh, psval, aeval, aecore = [np.empty(mmax) for _ in range(4)]
         for ir in range(mmax):
             l = fh.readline()
-            #print("denline", l)
+            # print("denline", l)
             findx, rad, v1, v2, v3 = l.split()
             assert ir + 1 == int(findx)
             rmesh[ir] = float(rad.replace("D", "E"))
@@ -1166,15 +1218,15 @@ def psp8_get_densities(path, fc_file=None, ae_file=None, plot=False):
             aeval[ir] = float(v2.replace("D", "E"))
             aecore[ir] = float(v3.replace("D", "E"))
 
-        #fact = 1 / (4 * np.pi)
-        #aeval *= fact
-        #psval *= fact
-        #aecore *= fact
+        # fact = 1 / (4 * np.pi)
+        # aeval *= fact
+        # psval *= fact
+        # aecore *= fact
         try:
             from scipy.integrate import simpson as simps
         except ImportError:
             from scipy.integrate import simps
-        r2 = rmesh ** 2
+        r2 = rmesh**2
 
         meta = dict(
             aeval_integral=simps(aeval * r2, x=rmesh),
@@ -1195,13 +1247,12 @@ def psp8_get_densities(path, fc_file=None, ae_file=None, plot=False):
             #    4 columns with the radial r coordinate, the core density at r,
             #    and the first and second derivatives of the core density.
             # See http://www.abinit.org/downloads/core_electron
-            #aeval_spline = UnivariateSpline(rmesh, aeval)
-            #psval_spline = UnivariateSpline(rmesh, psval)
+            # aeval_spline = UnivariateSpline(rmesh, aeval)
+            # psval_spline = UnivariateSpline(rmesh, psval)
             aecore_spline = UnivariateSpline(rmesh, aecore)
             f1 = aecore_spline.derivative(1)
             f2 = aecore_spline.derivative(2)
-            header = "%d 0.0 %s %s %s # nr, dummy, symbol, Z, Z_val" % (
-                mmax, pseudo.symbol, pseudo.Z, pseudo.Z_val)
+            header = "%d 0.0 %s %s %s # nr, dummy, symbol, Z, Z_val" % (mmax, pseudo.symbol, pseudo.Z, pseudo.Z_val)
             print(header, file=fc_file)
             for ir in range(mmax):
                 r = rmesh[ir]
@@ -1217,8 +1268,7 @@ def psp8_get_densities(path, fc_file=None, ae_file=None, plot=False):
             #   header with number of points and unknown parameter (not used)
             #   then 2 columns with the radial r coordinate and the AE density at r
             #   See http://www.abinit.org/downloads/all_core_electron
-            header = "%d 0.0 %s %s %s # nr, dummy, symbol, Z, Z_val" % (
-                mmax, pseudo.symbol, pseudo.Z, pseudo.Z_val)
+            header = "%d 0.0 %s %s %s # nr, dummy, symbol, Z, Z_val" % (mmax, pseudo.symbol, pseudo.Z, pseudo.Z_val)
             print(header, file=ae_file)
             for ir in range(mmax):
                 print(2 * "%.14E  " % (rmesh[ir], aecore[ir] + aeval[ir]), file=ae_file)
@@ -1229,6 +1279,7 @@ def psp8_get_densities(path, fc_file=None, ae_file=None, plot=False):
 
         if plot:
             import matplotlib.pyplot as plt
+
             fig = plt.figure()
             ax = fig.add_subplot(1, 1, 1)
             ax.plot(rmesh, r2 * aecore, label="AE core * r**2")

@@ -2,6 +2,7 @@
 This module provides interfaces with the Materials Project REST API v2 to enable
 the creation of data structures and pymatgen objects using Materials Project data.
 """
+
 from __future__ import annotations
 
 import sys
@@ -17,10 +18,17 @@ from abipy.core.mixins import NotebookWriter
 from abipy.tools.printing import print_dataframe
 
 MP_KEYS_FOR_DATAFRAME = (
-    "pretty_formula", "e_above_hull", "energy_per_atom",
-    "formation_energy_per_atom", "nsites", "volume",
-    "spacegroup.symbol", "spacegroup.number",
-    "band_gap", "total_magnetization", "material_id" # "unit_cell_formula", "icsd_id", "icsd_ids", "cif", , "tags", "elasticity")
+    "pretty_formula",
+    "e_above_hull",
+    "energy_per_atom",
+    "formation_energy_per_atom",
+    "nsites",
+    "volume",
+    "spacegroup.symbol",
+    "spacegroup.number",
+    "band_gap",
+    "total_magnetization",
+    "material_id",  # "unit_cell_formula", "icsd_id", "icsd_ids", "cif", , "tags", "elasticity")
 )
 
 
@@ -29,11 +37,11 @@ def get_mprester():
     Args:
     """
     rester = MPRester()
-    #print(f"{type(rester)=}")
+    # print(f"{type(rester)=}")
     return rester
 
 
-#class MyMPRester(MPRester):
+# class MyMPRester(MPRester):
 #    """
 #    Subclass Materials project Rester.
 #    See :cite:`Jain2013,Ong2015`.
@@ -54,7 +62,7 @@ def get_mprester():
 #        return PhaseDiagramResults(entries)
 
 
-#class PhaseDiagramResults:
+# class PhaseDiagramResults:
 #    """
 #    Simplified interface to phase-diagram pymatgen API.
 #
@@ -147,6 +155,7 @@ class DatabaseStructures(NotebookWriter):
             data: List of dictionaries with data associated to the structures (optional).
         """
         from abipy.core.structure import Structure
+
         self.structures = list(map(Structure.as_structure, structures))
         self.ids, self.data = ids, data
         assert len(self.structures) == len(ids)
@@ -196,6 +205,7 @@ class DatabaseStructures(NotebookWriter):
     def structure_dataframes(self):
         """Pandas dataframes constructed from self.structures."""
         from abipy.core.structure import dataframes_from_structures
+
         return dataframes_from_structures(self.structures, index=self.ids, with_spglib=True)
 
     def print_results(self, fmt="abivars", verbose=0, file=sys.stdout) -> None:
@@ -204,11 +214,16 @@ class DatabaseStructures(NotebookWriter):
         `fmt` is automaticall set to `cif` if structure is disordered.
         Set fmt to None or empty string to disable structure output.
         """
-        print("\n# Found %s structures in %s database (use `verbose` to get further info)\n"
-              % (len(self.structures), self.dbname), file=file)
+        print(
+            "\n# Found %s structures in %s database (use `verbose` to get further info)\n"
+            % (len(self.structures), self.dbname),
+            file=file,
+        )
 
-        if self.dataframe is not None: print_dataframe(self.dataframe, file=file)
-        if verbose and self.data is not None: pprint(self.data, stream=file)
+        if self.dataframe is not None:
+            print_dataframe(self.dataframe, file=file)
+        if verbose and self.data is not None:
+            pprint(self.data, stream=file)
 
         # Print structures
         print_structures = not (fmt is None or str(fmt) == "None")
@@ -225,8 +240,11 @@ class DatabaseStructures(NotebookWriter):
 
         if len(self.structures) > 10:
             # Print info again
-            print("\n# Found %s structures in %s database (use `verbose` to get further info)\n"
-                  % (len(self.structures), self.dbname), file=file)
+            print(
+                "\n# Found %s structures in %s database (use `verbose` to get further info)\n"
+                % (len(self.structures), self.dbname),
+                file=file,
+            )
 
     def yield_figs(self, **kwargs):  # pragma: no cover
         """NOP required by NotebookWriter protocol."""
@@ -242,15 +260,17 @@ class DatabaseStructures(NotebookWriter):
         # Use pickle files for data persistence.
         tmpfile = self.pickle_dump()
 
-        nb.cells.extend([
-            #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("dbs = abilab.restapi.DatabaseStructures.pickle_load('%s')" % tmpfile),
-            nbv.new_code_cell("import qgrid"),
-            nbv.new_code_cell("# dbs.print_results(fmt='cif', verbose=0)"),
-            nbv.new_code_cell("# qgrid.show_grid(dbs.lattice_dataframe)"),
-            nbv.new_code_cell("# qgrid.show_grid(dbs.coords_dataframe)"),
-            nbv.new_code_cell("qgrid.show_grid(dbs.dataframe)"),
-        ])
+        nb.cells.extend(
+            [
+                # nbv.new_markdown_cell("# This is a markdown cell"),
+                nbv.new_code_cell("dbs = abilab.restapi.DatabaseStructures.pickle_load('%s')" % tmpfile),
+                nbv.new_code_cell("import qgrid"),
+                nbv.new_code_cell("# dbs.print_results(fmt='cif', verbose=0)"),
+                nbv.new_code_cell("# qgrid.show_grid(dbs.lattice_dataframe)"),
+                nbv.new_code_cell("# qgrid.show_grid(dbs.coords_dataframe)"),
+                nbv.new_code_cell("qgrid.show_grid(dbs.dataframe)"),
+            ]
+        )
 
         return self._write_nb_nbpath(nb, nbpath)
 
@@ -261,6 +281,7 @@ class MpStructures(DatabaseStructures):
 
     .. inheritance-diagram:: MpStructures
     """
+
     dbname = "Materials Project"
 
     @cached_property
@@ -268,8 +289,10 @@ class MpStructures(DatabaseStructures):
         """
         Pandas dataframe constructed from self.data. None if data is not available.
         """
-        if not self.data: return None
+        if not self.data:
+            return None
         import pandas as pd
+
         rows = []
         for d, structure in zip(self.data, self.structures, strict=False):
             d = Dotdict(d)
@@ -289,6 +312,7 @@ class MpStructures(DatabaseStructures):
         """
         import cgi
         import webbrowser
+
         for i, mpid in enumerate(self.ids):
             if limit is not None and i >= limit:
                 print("Found %d structures found. Won't open more than %d tabs" % (len(self.ids), limit))
@@ -304,6 +328,7 @@ class CodStructures(DatabaseStructures):
 
     .. inheritance-diagram:: CodStructures
     """
+
     dbname = "COD"
 
     @cached_property
@@ -319,7 +344,6 @@ class CodStructures(DatabaseStructures):
 
 
 class Dotdict(dict):
-
     def dotget(self, key, default=None):
         """
         d.dotget["foo.bar"] --> d["foo"]["bar"] if "foo.bar" not in self
@@ -332,13 +356,15 @@ class Dotdict(dict):
         i = -1
         try:
             i = key.find(".")
-            if i == -1: return default
+            if i == -1:
+                return default
         except AttributeError:
             return default
 
         try:
-            root, key = key[:i], key[i+1:]
-            if key == ".": return None
+            root, key = key[:i], key[i + 1 :]
+            if key == ".":
+                return None
             return Dotdict(**self[root])[key]
         except Exception:
             return None

@@ -1,10 +1,10 @@
 """Tests for cube module"""
 
 
-#filepath = data.ref_file("si_DEN-etsf.nc")
-#density = Density.from_file(filepath=filepath)
+# filepath = data.ref_file("si_DEN-etsf.nc")
+# density = Density.from_file(filepath=filepath)
 
-#mesh = density.mesh
+# mesh = density.mesh
 
 # density.structure.get_sites_in_sphere([0.0, 0.0, 0.0], 10.0)
 # print(mesh.i_closest_gridpoints(points=[density.structure[1].coords]))
@@ -50,7 +50,7 @@
 #                                                  rhoc_files={'Si': 'Si.in.rhoc'}, maxr=maxr, method='get_sites_in_sphere')
 #     print(ae_density.nelect_updown)
 
-#print(ae_density.datar/ae_density_new.datar)
+# print(ae_density.datar/ae_density_new.datar)
 # print(np.allclose(ae_density.datar/ae_density_new.datar,
 #                   ae_density.datar[0]/ae_density_new.datar[0]*np.ones_like(ae_density.datar)))
 #

@@ -18,12 +18,10 @@ class Embedded_phonons(Phonopy):
         https://iopscience.iop.org/article/10.1088/1367-2630/16/7/073026/meta
         https://journals.aps.org/prmaterials/abstract/10.1103/PhysRevMaterials.5.084603
     """
-    def __init__(self,
-                 stru_pristine: Structure,
-                 stru_defect: Structure,
-                 stru_emb: Structure,
-                 ifc_emb,
-                 nac_params: dict):
+
+    def __init__(
+        self, stru_pristine: Structure, stru_defect: Structure, stru_emb: Structure, ifc_emb, nac_params: dict
+    ):
         """
         Args:
             stru_pristine: Supercell pristine structure.
@@ -32,9 +30,11 @@ class Embedded_phonons(Phonopy):
             ifc_emb: Interatomic force constant associated to the supercell embedded structure
             nac_params: Non-analytical parameters associated to the supercell embedded structure, in phonopy format.
         """
-        super().__init__(unitcell=get_phonopy_structure(stru_emb),
-                         supercell_matrix=[1,1,1],
-                         primitive_matrix=np.eye(3),)
+        super().__init__(
+            unitcell=get_phonopy_structure(stru_emb),
+            supercell_matrix=[1, 1, 1],
+            primitive_matrix=np.eye(3),
+        )
 
         self.force_constants = ifc_emb
         self.nac_params = nac_params
@@ -43,22 +43,24 @@ class Embedded_phonons(Phonopy):
         self.stru_emb = stru_emb
 
     @classmethod
-    def from_phonopy_instances(cls,
-                               phonopy_pristine: Phonopy,
-                               phonopy_defect: Phonopy,
-                               structure_defect_wo_relax: Structure,
-                               main_defect_coords_in_pristine: Structure,
-                               main_defect_coords_in_defect,
-                               substitutions_list: list = None,  # index in pristine,specie ex: [0,"Eu"]
-                               vacancies_list: list = None,      # index in pristine ex: [13,14]
-                               interstitial_list: list = None,   # species, cart_coord ex: [['Eu',[0,0,0]],['Ce','[0,0,3]']]
-                               tol_mapping: float = 0.01,
-                               cut_off_mode: str = "auto",
-                               rc_1: float | None = None,
-                               rc_2: float | None = None,
-                               factor_ifc: float = 1.0,
-                               verbose: int = 0,
-                               asr: bool = True) -> Phonopy:
+    def from_phonopy_instances(
+        cls,
+        phonopy_pristine: Phonopy,
+        phonopy_defect: Phonopy,
+        structure_defect_wo_relax: Structure,
+        main_defect_coords_in_pristine: Structure,
+        main_defect_coords_in_defect,
+        substitutions_list: list = None,  # index in pristine,specie ex: [0,"Eu"]
+        vacancies_list: list = None,  # index in pristine ex: [13,14]
+        interstitial_list: list = None,  # species, cart_coord ex: [['Eu',[0,0,0]],['Ce','[0,0,3]']]
+        tol_mapping: float = 0.01,
+        cut_off_mode: str = "auto",
+        rc_1: float | None = None,
+        rc_2: float | None = None,
+        factor_ifc: float = 1.0,
+        verbose: int = 0,
+        asr: bool = True,
+    ) -> Phonopy:
         """
         Args:
             phonopy_pristine: Phonopy object of the pristine structure.
@@ -101,16 +103,18 @@ class Embedded_phonons(Phonopy):
 
         if substitutions_list is not None:
             for sub in substitutions_list:
-                stru_emb.replace(sub[0],sub[1])
+                stru_emb.replace(sub[0], sub[1])
 
         if interstitial_list is not None:
             for inter in interstitial_list:
-                stru_emb.append(species=inter[0],coords=inter[1],coords_are_cartesian=True)
+                stru_emb.append(species=inter[0], coords=inter[1], coords_are_cartesian=True)
 
-        stru_emb = clean_structure(stru_emb,defect_coord=main_defect_coords_in_pristine)
-        structure_defect_wo_relax = clean_structure(structure_defect_wo_relax,defect_coord=main_defect_coords_in_defect)
+        stru_emb = clean_structure(stru_emb, defect_coord=main_defect_coords_in_pristine)
+        structure_defect_wo_relax = clean_structure(
+            structure_defect_wo_relax, defect_coord=main_defect_coords_in_defect
+        )
 
-        mapping = map_two_structures_coords(structure_defect_wo_relax,stru_emb,tol=tol_mapping)
+        mapping = map_two_structures_coords(structure_defect_wo_relax, stru_emb, tol=tol_mapping)
 
         ###################
         # Init of the IFCs
@@ -121,16 +125,16 @@ class Embedded_phonons(Phonopy):
 
         # in case of IFC with vacancy, remove ifcs of the vac site
         if vacancies_list is not None:
-            ifc_pristine = np.delete(ifc_pristine,vacancies_list,0)
+            ifc_pristine = np.delete(ifc_pristine, vacancies_list, 0)
 
-            ifc_pristine = np.delete(ifc_pristine,vacancies_list,1)
+            ifc_pristine = np.delete(ifc_pristine, vacancies_list, 1)
 
         # interstitial
         if interstitial_list is not None:
             for inter in interstitial_list:
-                ifc_pristine = np.append(ifc_pristine,np.zeros(shape=[1, len(ifc_pristine), 3, 3]), axis=0)
+                ifc_pristine = np.append(ifc_pristine, np.zeros(shape=[1, len(ifc_pristine), 3, 3]), axis=0)
 
-                ifc_pristine = np.append(ifc_pristine,np.zeros(shape=[len(ifc_pristine), 1, 3, 3]),axis=1)
+                ifc_pristine = np.append(ifc_pristine, np.zeros(shape=[len(ifc_pristine), 1, 3, 3]), axis=1)
 
         ########################
         # Print infos
@@ -143,7 +147,9 @@ class Embedded_phonons(Phonopy):
         if substitutions_list is not None:
             print("    Substitutions:")
             for sub in substitutions_list:
-                print(f"       {sub[0]}, {stru_pristine[sub[0]].coords}, {stru_pristine[sub[0]].species} replaced by {sub[1]}")
+                print(
+                    f"       {sub[0]}, {stru_pristine[sub[0]].coords}, {stru_pristine[sub[0]].species} replaced by {sub[1]}"
+                )
 
         if vacancies_list is not None:
             print("    Vacancies:")
@@ -164,9 +170,11 @@ class Embedded_phonons(Phonopy):
         ifc_emb = np.zeros(shape=np.shape(ifc_pristine))
 
         if cut_off_mode == "auto":
-            rc_1 = 100000 # very large value to include all the ifcs, no sparse matrix.
-            rc_2 = 0.99*min(np.array(structure_defect_wo_relax.lattice.abc)/2) # largest sphere inscribed in defect supercell,
-                                                                             # 0.99 to avoid problem with atoms at the border
+            rc_1 = 100000  # very large value to include all the ifcs, no sparse matrix.
+            rc_2 = 0.99 * min(
+                np.array(structure_defect_wo_relax.lattice.abc) / 2
+            )  # largest sphere inscribed in defect supercell,
+            # 0.99 to avoid problem with atoms at the border
         if cut_off_mode == "manual":
             rc_1 = rc_1
             rc_2 = rc_2
@@ -174,7 +182,7 @@ class Embedded_phonons(Phonopy):
         # Set to zero if 2 atoms distance is bigger than rc_1
         for i, atom1 in enumerate(stru_emb):
             for j, atom2 in enumerate(stru_emb):
-                dist_ij = np.sqrt(sum((atom1.coords-atom2.coords)**2))
+                dist_ij = np.sqrt(sum((atom1.coords - atom2.coords) ** 2))
 
                 if dist_ij > rc_1:
                     ifc_emb[i][j] = np.zeros(shape=(3, 3))
@@ -182,18 +190,19 @@ class Embedded_phonons(Phonopy):
                     ifc_emb[i][j] = ifc_pristine[i][j]
 
         # Set to doped phonons if 2 atoms are separated from defect by distance < R_c2
-        print(f"\n Set IFC to explicit defect phonons calculations if both atoms are separated from defect by a distance < R_c2 = {round(rc_2,3)}")
+        print(
+            f"\n Set IFC to explicit defect phonons calculations if both atoms are separated from defect by a distance < R_c2 = {round(rc_2, 3)}"
+        )
 
         for i, atom1 in enumerate(stru_emb):
             for j, atom2 in enumerate(stru_emb):
                 # structure centered around defect!!!, main defect is at [0,0,0]
-                dist_1_from_defect = np.sqrt(sum((atom1.coords)**2))
-                dist_2_from_defect = np.sqrt(sum((atom2.coords)**2))
+                dist_1_from_defect = np.sqrt(sum((atom1.coords) ** 2))
+                dist_2_from_defect = np.sqrt(sum((atom2.coords) ** 2))
 
                 if dist_1_from_defect < rc_2 and dist_2_from_defect < rc_2:
-
                     if verbose > 0:
-                        print(f"\n \n Atomic pair: {i,atom1} - {j,atom2} \n")
+                        print(f"\n \n Atomic pair: {i, atom1} - {j, atom2} \n")
                         print(f"atom1: Dist. from. defect = {dist_1_from_defect}")
                         print(f"atom2: Dist. from. defect = {dist_2_from_defect}")
 
@@ -207,10 +216,10 @@ class Embedded_phonons(Phonopy):
         # and https://doi.org/10.1103/PhysRevB.104.045303
         if asr:
             print("\n Enforcing ASR")
-            sum_ac = np.sum(ifc_emb,axis=1)
+            sum_ac = np.sum(ifc_emb, axis=1)
             for i, atom1 in enumerate(stru_emb):
                 for alpha in [0, 1, 2]:
-                    ifc_emb[i][i][alpha][alpha] = - (sum_ac[i][alpha][alpha]-ifc_emb[i][i][alpha][alpha])
+                    ifc_emb[i][i][alpha][alpha] = -(sum_ac[i][alpha][alpha] - ifc_emb[i][i][alpha][alpha])
 
         ########################
         # change the nac params
@@ -221,13 +230,15 @@ class Embedded_phonons(Phonopy):
             nac_params_emb = phonopy_pristine.nac_params.copy()
 
             if vacancies_list is not None:
-                nac_params_emb["born"] = np.delete(nac_params_emb["born"],vacancies_list,0)
+                nac_params_emb["born"] = np.delete(nac_params_emb["born"], vacancies_list, 0)
 
             if interstitial_list is not None:
                 for interstial in interstitial_list:
-                    nac = np.append(nac_params_emb["born"],(stru_emb[-1].specie.common_oxidation_states[0])*np.eye(3))
+                    nac = np.append(
+                        nac_params_emb["born"], (stru_emb[-1].specie.common_oxidation_states[0]) * np.eye(3)
+                    )
 
-                    nac_params_emb["born"] = nac.reshape(len(stru_emb),3,3)
+                    nac_params_emb["born"] = nac.reshape(len(stru_emb), 3, 3)
         else:
             nac_params_emb = None
 
@@ -244,10 +255,10 @@ class Embedded_phonons(Phonopy):
         Returns:
             phonons frequencies, phonon eigenvectors
         """
-        ph_freq_phonopy, ph_vec_phonopy = self.get_frequencies_with_eigenvectors(q=[0,0,0])
+        ph_freq_phonopy, ph_vec_phonopy = self.get_frequencies_with_eigenvectors(q=[0, 0, 0])
 
         ph_freq = ph_freq_phonopy / (eV_to_THz)  # put it in eV
-        ph_vec = ph_vec_phonopy.transpose().reshape(3*len(self.supercell),len(self.supercell),3)
+        ph_vec = ph_vec_phonopy.transpose().reshape(3 * len(self.supercell), len(self.supercell), 3)
 
         return ph_freq, ph_vec
 
@@ -259,9 +270,18 @@ class Embedded_phonons(Phonopy):
             embedded_ddb_path: filepath where to save the DDB.
             workdir: work directory for the conversion.
         """
-        ddb_sc = phonopy_to_abinit(unit_cell=get_pmg_structure(self.supercell), supercell_matrix=[1,1,1], qpt_list=[[0,0,0]],
-                                   out_ddb_path=embedded_ddb_path, force_constants=self.force_constants,
-                                   born=self.nac_params, primitive_matrix=np.eye(3), symprec=1e-5,
-                                   tolsym=None,workdir=workdir, nsym=1)
+        ddb_sc = phonopy_to_abinit(
+            unit_cell=get_pmg_structure(self.supercell),
+            supercell_matrix=[1, 1, 1],
+            qpt_list=[[0, 0, 0]],
+            out_ddb_path=embedded_ddb_path,
+            force_constants=self.force_constants,
+            born=self.nac_params,
+            primitive_matrix=np.eye(3),
+            symprec=1e-5,
+            tolsym=None,
+            workdir=workdir,
+            nsym=1,
+        )
 
         return ddb_sc

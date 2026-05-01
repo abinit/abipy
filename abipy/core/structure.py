@@ -1,6 +1,7 @@
 """
 This module defines basic objects representing the crystalline structure.
 """
+
 from __future__ import annotations
 
 import collections
@@ -56,6 +57,7 @@ def mp_match_structure(obj):
     structure.__class__ = pmg_Structure
 
     from abipy.core import restapi
+
     structures, mpids = [], []
     with restapi.get_mprester() as rest:
         try:
@@ -99,6 +101,7 @@ def mp_search(chemsys_formula_id):
     from pymatgen.ext.matproj import MPRestError
 
     from abipy.core import restapi
+
     with restapi.get_mprester() as rest:
         try:
             if rest.get_data is None:
@@ -133,6 +136,7 @@ def cod_search(formula: str, primitive: bool = False):
         Note that the attributes evaluate to False if no match is found
     """
     from pymatgen.ext.cod import COD
+
     data = COD().get_structure_by_formula(formula)
 
     cod_ids = [e.pop("cod_id") for e in data]
@@ -142,6 +146,7 @@ def cod_search(formula: str, primitive: bool = False):
         structures = [s.get_primitive_structure() for s in structures]
 
     from abipy.core import restapi
+
     return restapi.CodStructures(structures, cod_ids, data=data)
 
 
@@ -158,10 +163,11 @@ def display_structure(obj, **kwargs):
     try:
         from nbjsmol import nbjsmol_display
     except ImportError as exc:
-        raise ImportError(str(exc) +
-                          "\ndisplay structure requires nbjsmol package\n."
-                          "Install it with `pip install nbjsmol.`\n"
-                          "See also https://github.com/gmatteo/nbjsmol.")
+        raise ImportError(
+            str(exc) + "\ndisplay structure requires nbjsmol package\n."
+            "Install it with `pip install nbjsmol.`\n"
+            "See also https://github.com/gmatteo/nbjsmol."
+        )
 
     # Cast to structure, get string with cif data and pass it to nbjsmol.
     structure = Structure.as_structure(obj)
@@ -172,25 +178,26 @@ def get_structures_from_file(filepath: PathLike, index) -> list[Structure]:
     """
     Read and return list of structures from filepath
     """
-    #if index is None:
+    # if index is None:
     #    index = -1
 
     if filepath.endswith(".traj"):
         # ASE trajectory file.
         from ase.atoms import Atoms
         from ase.io import read
+
         atoms_list = read(filepath, index=index)
         if not isinstance(atoms_list, list):
             assert isinstance(atoms_list, Atoms)
             atoms_list = [atoms_list]
 
     # TODO: HIST.nc and XDATCAR
-    #elif filepath.endswith("_HIST.nc"):
+    # elif filepath.endswith("_HIST.nc"):
     #    from abipy.dynamics.hist import HistFile
     #    with HistFile(filepath) as hist:
     #        return hist.read_structures(index)
 
-    #elif filepath.endswith("XDATCAR"):
+    # elif filepath.endswith("XDATCAR"):
 
     else:
         raise NotImplementedError(f"Don't know how to extract structures with index from {filepath=}")
@@ -237,6 +244,7 @@ class Structure(pmg_Structure, NotebookWriter):
         if hasattr(obj, "ase_objtype"):
             # ASE Atoms.
             from pymatgen.io.ase import AseAtomsAdaptor
+
             return AseAtomsAdaptor.get_structure(obj, cls=cls)
 
         if hasattr(obj, "atoms") and hasattr(obj.atoms, "ase_objtype"):
@@ -259,6 +267,7 @@ class Structure(pmg_Structure, NotebookWriter):
             return cls.as_structure(obj.final_structure)
 
         from phonopy.structure.atoms import PhonopyAtoms
+
         if isinstance(obj, PhonopyAtoms):
             return cls.from_phonopy_atoms(obj)
 
@@ -291,6 +300,7 @@ class Structure(pmg_Structure, NotebookWriter):
             # Abinit history file. In this case we return the last structure!
             # Note that HIST does not follow the etsf-io conventions.
             from abipy.dynamics.hist import HistFile
+
             with HistFile(filepath) as hist:
                 return hist.structures[-1]
 
@@ -310,11 +320,13 @@ class Structure(pmg_Structure, NotebookWriter):
                 indsym[:, :, 3] -= 1
                 new.indsym = indsym
 
-            if closeit: ncfile.close()
+            if closeit:
+                ncfile.close()
 
         elif filepath.endswith(".abi") or filepath.endswith(".in"):
             # Abinit input file. Here I assume that the input file contains a single structure.
             from abipy.abio.abivars import AbinitInputFile
+
             return AbinitInputFile.from_file(filepath).structure
 
         elif filepath.endswith(".abo") or filepath.endswith(".out"):
@@ -322,10 +334,13 @@ class Structure(pmg_Structure, NotebookWriter):
             # By design, we return the last structure if out is completed else the initial one.
             # None is returned if the structures are different.
             from abipy.abio.outputs import AbinitOutputFile
+
             with AbinitOutputFile(filepath) as out:
-                #print("initial_structures:\n", out.initial_structures, "\nfinal_structures:\n", out.final_structures)
-                if out.final_structures: return out.final_structure
-                if out.initial_structures: return out.initial_structure
+                # print("initial_structures:\n", out.initial_structures, "\nfinal_structures:\n", out.final_structures)
+                if out.final_structures:
+                    return out.final_structure
+                if out.initial_structures:
+                    return out.initial_structure
 
             raise ValueError("Cannot find structure in Abinit output file `%s`" % filepath)
 
@@ -336,6 +351,7 @@ class Structure(pmg_Structure, NotebookWriter):
         elif filepath.endswith("_DDB") or root.endswith("_DDB") or filepath.endswith(".ddb"):
             # DDB file.
             from abipy.abilab import abiopen
+
             with abiopen(filepath) as abifile:
                 return abifile.structure
 
@@ -345,13 +361,16 @@ class Structure(pmg_Structure, NotebookWriter):
                 new = pickle.load(fh)
                 if not isinstance(new, pmg_Structure):
                     # Is it a object with a structure property?
-                    if hasattr(new, "structure"): new = new.structure
+                    if hasattr(new, "structure"):
+                        new = new.structure
 
                 if not isinstance(new, pmg_Structure):
-                    raise TypeError("Don't know how to extract a Structure from file %s, received type %s" %
-                        (filepath, type(new)))
+                    raise TypeError(
+                        "Don't know how to extract a Structure from file %s, received type %s" % (filepath, type(new))
+                    )
 
-                if new.__class__ != cls: new.__class__ = cls
+                if new.__class__ != cls:
+                    new.__class__ = cls
 
         elif filepath.endswith(".xyz"):
             # ASE extended xyz format.
@@ -364,7 +383,8 @@ class Structure(pmg_Structure, NotebookWriter):
         else:
             # Invoke pymatgen and change class. Note that AbinitSpacegroup is missing here.
             new = super().from_file(filepath, primitive=primitive, sort=sort)
-            if new.__class__ != cls: new.__class__ = cls
+            if new.__class__ != cls:
+                new.__class__ = cls
 
         return new
 
@@ -386,6 +406,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         # Get pytmatgen structure and convert it to abipy structure
         from abipy.core import restapi
+
         with restapi.get_mprester() as rest:
             new = rest.get_structure_by_material_id(material_id)
             return cls.as_structure(new)
@@ -404,8 +425,10 @@ class Structure(pmg_Structure, NotebookWriter):
         Returns: |Structure| object.
         """
         from pymatgen.ext.cod import COD
+
         new = COD().get_structure_by_id(cod_id, **kwargs)
-        if primitive: new = new.get_primitive_structure()
+        if primitive:
+            new = new.get_primitive_structure()
         return cls.as_structure(new)
 
     @classmethod
@@ -414,6 +437,7 @@ class Structure(pmg_Structure, NotebookWriter):
         Returns structure from phonopy Atoms.
         """
         from pymatgen.io.phonopy import get_pmg_structure
+
         new = get_pmg_structure(atoms)
         new.__class__ = cls
         return new
@@ -427,6 +451,7 @@ class Structure(pmg_Structure, NotebookWriter):
             atoms: ASE Atoms object
         """
         import pymatgen.io.ase as aio
+
         return aio.AseAtomsAdaptor.get_structure(atoms, cls=cls)
 
     # FIXME: Temporary workaround to maintain compatibility with old pymatgen versions.
@@ -441,8 +466,10 @@ class Structure(pmg_Structure, NotebookWriter):
         Returns ASE Atoms object from structure and attach calculator calc.
         """
         import pymatgen.io.ase as aio
+
         atoms = aio.AseAtomsAdaptor.get_atoms(self)
-        if calc is not None: atoms.calc = calc
+        if calc is not None:
+            atoms.calc = calc
         return atoms
 
     def get_phonopy_atoms(self):
@@ -450,6 +477,7 @@ class Structure(pmg_Structure, NotebookWriter):
         Convert a pymatgen Structure object to a PhonopyAtoms object.
         """
         from pymatgen.io.phonopy import get_phonopy_structure
+
         return get_phonopy_structure(self)
 
     @classmethod
@@ -463,6 +491,7 @@ class Structure(pmg_Structure, NotebookWriter):
             acell: Lengths of the box in *Bohr*
         """
         from pymatgen.core.structure import Molecule
+
         cart_coords = np.atleast_2d(cart_coords)
         molecule = Molecule([p.symbol for p in pseudos], cart_coords)
         l = pmg_units.ArrayWithUnit(acell, "bohr").to("ang")
@@ -471,7 +500,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return cls.as_structure(new)
 
     @classmethod
-    def boxed_atom(cls, pseudo, cart_coords=3*(0,), acell=3*(10,)) -> Structure:
+    def boxed_atom(cls, pseudo, cart_coords=3 * (0,), acell=3 * (10,)) -> Structure:
         """
         Creates an atom in a periodic box of lengths acell in Bohr.
 
@@ -496,20 +525,16 @@ class Structure(pmg_Structure, NotebookWriter):
         """
         a = pmg_units.Length(a, units).to("ang")
         if primitive:
-            lattice = 0.5 * float(a) * np.array([
-                -1,  1,  1,
-                 1, -1,  1,
-                 1,  1, -1])
+            lattice = 0.5 * float(a) * np.array([-1, 1, 1, 1, -1, 1, 1, 1, -1])
 
             coords = [[0, 0, 0]]
 
         else:
             lattice = float(a) * np.eye(3)
-            coords = [[0, 0, 0],
-                      [0.5, 0.5, 0.5]]
+            coords = [[0, 0, 0], [0.5, 0.5, 0.5]]
             species = np.repeat(species, 2)
 
-        return cls(lattice, species, coords=coords,  **kwargs)
+        return cls(lattice, species, coords=coords, **kwargs)
 
     @classmethod
     def fcc(cls, a: float, species, primitive=True, units="ang", **kwargs) -> Structure:
@@ -525,18 +550,12 @@ class Structure(pmg_Structure, NotebookWriter):
         """
         a = pmg_units.Length(a, units).to("ang")
         if primitive:
-            lattice = 0.5 * float(a) * np.array([
-                0,  1,  1,
-                1,  0,  1,
-                1,  1,  0])
+            lattice = 0.5 * float(a) * np.array([0, 1, 1, 1, 0, 1, 1, 1, 0])
             coords = [[0, 0, 0]]
         else:
             lattice = float(a) * np.eye(3)
             species = np.repeat(species, 4)
-            coords = [[0, 0, 0],
-                      [0.5, 0.5, 0],
-                      [0.5, 0, 0.5],
-                      [0, 0.5, 0.5]]
+            coords = [[0, 0, 0], [0.5, 0.5, 0], [0.5, 0, 0.5], [0, 0.5, 0.5]]
 
         return cls(lattice, species, coords=coords, **kwargs)
 
@@ -556,10 +575,7 @@ class Structure(pmg_Structure, NotebookWriter):
             structure = Structure.zincblende(a, ["Zn", "S"])
         """
         a = pmg_units.Length(a, units).to("ang")
-        lattice = 0.5 * float(a) * np.array([
-            0,  1,  1,
-            1,  0,  1,
-            1,  1,  0])
+        lattice = 0.5 * float(a) * np.array([0, 1, 1, 1, 0, 1, 1, 1, 0])
 
         frac_coords = np.reshape([0, 0, 0, 0.25, 0.25, 0.25], (2, 3))
         return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
@@ -580,10 +596,7 @@ class Structure(pmg_Structure, NotebookWriter):
             structure = Structure.rocksalt(a, ["Na", "Cl"])
         """
         a = pmg_units.Length(a, units).to("ang")
-        lattice = 0.5 * float(a) * np.array([
-            0,  1,  1,
-            1,  0,  1,
-            1,  1,  0])
+        lattice = 0.5 * float(a) * np.array([0, 1, 1, 1, 0, 1, 1, 1, 0])
 
         frac_coords = np.reshape([0, 0, 0, 0.5, 0.5, 0.5], (2, 3))
         return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
@@ -601,13 +614,26 @@ class Structure(pmg_Structure, NotebookWriter):
         """
         a = pmg_units.Length(a, units).to("ang")
         lattice = float(a) * np.eye(3)
-        frac_coords = np.reshape([
-            0,     0,   0,  # A (2a)
-            0.5, 0.5, 0.5,  # B (2a)
-            0.5, 0.5, 0.0,  # O (6b)
-            0.5, 0.0, 0.5,  # O (6b)
-            0.0, 0.5, 0.5,  # O (6b)
-        ], (5, 3))
+        frac_coords = np.reshape(
+            [
+                0,
+                0,
+                0,  # A (2a)
+                0.5,
+                0.5,
+                0.5,  # B (2a)
+                0.5,
+                0.5,
+                0.0,  # O (6b)
+                0.5,
+                0.0,
+                0.5,  # O (6b)
+                0.0,
+                0.5,
+                0.5,  # O (6b)
+            ],
+            (5, 3),
+        )
 
         return cls(lattice, species, frac_coords, coords_are_cartesian=False, **kwargs)
 
@@ -617,6 +643,7 @@ class Structure(pmg_Structure, NotebookWriter):
         Initialize Structure from a string with Abinit input variables.
         """
         from abipy.abio.abivars import AbinitInputFile, structure_from_abistruct_fmt
+
         if "xred_symbols" not in string:
             # Standard (verbose) input file with znucl, typat etc.
             return AbinitInputFile.from_string(string).structure
@@ -643,6 +670,7 @@ class Structure(pmg_Structure, NotebookWriter):
         ``xred`` can be replaced with ``xcart`` or ``xangst``.
         """
         from abipy.flowtk.abiobjects import structure_from_abivars
+
         return structure_from_abivars(cls, *args, **kwargs)
 
     @property
@@ -661,6 +689,7 @@ class Structure(pmg_Structure, NotebookWriter):
         This array is ordered as the znucl list produced by AbiPy when writing the structure to the input file.
         """
         from abipy.flowtk.abiobjects import species_by_znucl
+
         return species_by_znucl(self)
 
     def __str__(self) -> str:
@@ -670,8 +699,10 @@ class Structure(pmg_Structure, NotebookWriter):
         """
         String representation. Extends the implementation of the superclass.
         """
-        lines = []; app = lines.append
-        if title is not None: app(marquee(title, mark="="))
+        lines = []
+        app = lines.append
+        if title is not None:
+            app(marquee(title, mark="="))
         if verbose:
             app(self.spget_summary(verbose=verbose))
         else:
@@ -680,9 +711,9 @@ class Structure(pmg_Structure, NotebookWriter):
         key = "cartesian_forces"
         if key in self.site_properties:
             # print force stats
-            cart_forces = np.reshape([site.properties.get(key) for site in self], (-1 ,3))
+            cart_forces = np.reshape([site.properties.get(key) for site in self], (-1, 3))
             force_norms = np.linalg.norm(cart_forces, axis=1)
-            min_fnorm, max_fnorm  = np.min(force_norms), np.max(force_norms)
+            min_fnorm, max_fnorm = np.min(force_norms), np.max(force_norms)
             mean_fnorm, std_fnorm = np.mean(force_norms), np.std(force_norms)
             app(f"min |F_iat|: {min_fnorm} eV/Ang")
             app(f"max |F_iat|: {max_fnorm} eV/Ang")
@@ -708,8 +739,10 @@ class Structure(pmg_Structure, NotebookWriter):
         return "\n".join(lines)
 
     def to(self, fmt=None, filename=None, **kwargs):
-        __doc__ = pmg_Structure.to.__doc__ + \
-            "\n Accepts also fmt=`abinit` or `abivars` or `.abi` as Abinit input file extension"
+        __doc__ = (
+            pmg_Structure.to.__doc__
+            + "\n Accepts also fmt=`abinit` or `abivars` or `.abi` as Abinit input file extension"
+        )
 
         filename = filename or ""
         fmt = "" if fmt is None else fmt.lower()
@@ -730,6 +763,7 @@ class Structure(pmg_Structure, NotebookWriter):
         Return: bool indicating if structures are equal and string with error message, if any.
         """
         from io import StringIO
+
         file = StringIO()
         lat_match = np.allclose(self.lattice.matrix, other.lattice.matrix, atol=atol)
         if not lat_match:
@@ -760,9 +794,9 @@ class Structure(pmg_Structure, NotebookWriter):
         """
         return mp_match_structure(self, **kwargs)
 
-    def write_cif_with_spglib_symms(self, filename, symprec=1e-3, angle_tolerance=5.0,
-                                    significant_figures=8,
-                                    ret_string=False):
+    def write_cif_with_spglib_symms(
+        self, filename, symprec=1e-3, angle_tolerance=5.0, significant_figures=8, ret_string=False
+    ):
         """
         Write CIF file with symmetries as detected by spglib.
 
@@ -776,9 +810,16 @@ class Structure(pmg_Structure, NotebookWriter):
             ret_string: True to return string.
         """
         from pymatgen.io.cif import CifWriter
-        cif_str = str(CifWriter(self,
-                      symprec=symprec, significant_figures=significant_figures, angle_tolerance=angle_tolerance,
-                      refine_struct=False))
+
+        cif_str = str(
+            CifWriter(
+                self,
+                symprec=symprec,
+                significant_figures=significant_figures,
+                angle_tolerance=angle_tolerance,
+                refine_struct=False,
+            )
+        )
 
         if not ret_string:
             with open(filename, "w") as fh:
@@ -807,12 +848,14 @@ class Structure(pmg_Structure, NotebookWriter):
             enforce_typat[natom] = Fortran conventions. Start to count from 1.
         """
         from abipy.flowtk.abiobjects import structure_to_abivars
+
         return structure_to_abivars(self, enforce_znucl=enforce_znucl, enforce_typat=enforce_typat, **kwargs)
 
     @property
     def latex_formula(self) -> str:
         """LaTeX formatted formula: e.g., Fe2O3 is transformed to Fe$_{2}$O$_{3}$."""
         from pymatgen.util.string import latexify
+
         return latexify(self.formula)
 
     @property
@@ -837,6 +880,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         if fmt == "abinit_input":
             from abipy.abio.variable import InputVariable
+
             abivars = self.to_abivars()
             for varname, value in abivars.items():
                 app(str(InputVariable(varname, value)))
@@ -858,7 +902,7 @@ class Structure(pmg_Structure, NotebookWriter):
             #  2/3  1/3  0.5 B
 
             rprim = pmg_units.ArrayWithUnit(self.lattice.matrix, "ang").to("bohr")
-            #angdeg = structure.lattice.angles
+            # angdeg = structure.lattice.angles
             xred = np.reshape([site.frac_coords for site in self], (-1, 3))
 
             # Set small values to zero. This usually happens when the CIF file
@@ -879,7 +923,7 @@ class Structure(pmg_Structure, NotebookWriter):
                 app(v_to_s(avec))
             app("# Atomic positions in reduced coordinates followed by element symbol.")
             app("xred_symbols")
-            for (frac_coords, symbol) in zip(xred, symbols, strict=False):
+            for frac_coords, symbol in zip(xred, symbols, strict=False):
                 app(v_to_s(frac_coords) + f" {symbol}")
 
             return "\n".join(lines)
@@ -894,10 +938,12 @@ class Structure(pmg_Structure, NotebookWriter):
             with_inputs: True if tabs for generating input files should be shown.
         """
         from abipy.panels.structure import StructurePanel
+
         return StructurePanel(structure=self).get_panel(with_inputs=with_inputs, **kwargs)
 
-    def get_conventional_standard_structure(self, international_monoclinic=True,
-                                            symprec=1e-3, angle_tolerance=5) -> Structure:
+    def get_conventional_standard_structure(
+        self, international_monoclinic=True, symprec=1e-3, angle_tolerance=5
+    ) -> Structure:
         """
         Gives a structure with a conventional cell according to certain standards.
         The standards are defined in :cite:`Setyawan2010`
@@ -910,9 +956,10 @@ class Structure(pmg_Structure, NotebookWriter):
         return self.__class__.as_structure(new)
 
     def abi_primitive(self, symprec=1e-3, angle_tolerance=5, no_idealize=0) -> Structure:
-        #TODO: this should be moved to pymatgen in the get_refined_structure or so ... to be considered in February 2016
+        # TODO: this should be moved to pymatgen in the get_refined_structure or so ... to be considered in February 2016
         import spglib
         from pymatgen.io.ase import AseAtomsAdaptor
+
         try:
             from ase.atoms import Atoms
         except ImportError:
@@ -922,12 +969,13 @@ class Structure(pmg_Structure, NotebookWriter):
         ase_adaptor = AseAtomsAdaptor()
         ase_atoms = ase_adaptor.get_atoms(structure=s)
 
-        #standardized = spglib.standardize_cell(ase_atoms, to_primitive=1, no_idealize=no_idealize,
+        # standardized = spglib.standardize_cell(ase_atoms, to_primitive=1, no_idealize=no_idealize,
         #                                       symprec=symprec, angle_tolerance=angle_tolerance)
 
         spglib_cell = (ase_atoms.cell, ase_atoms.get_scaled_positions(), ase_atoms.get_atomic_numbers())
-        standardized = spglib.standardize_cell(spglib_cell, to_primitive=1, no_idealize=no_idealize,
-                                               symprec=symprec, angle_tolerance=angle_tolerance)
+        standardized = spglib.standardize_cell(
+            spglib_cell, to_primitive=1, no_idealize=no_idealize, symprec=symprec, angle_tolerance=angle_tolerance
+        )
 
         standardized_ase_atoms = Atoms(scaled_positions=standardized[1], numbers=standardized[2], cell=standardized[0])
         standardized_structure = ase_adaptor.get_structure(standardized_ase_atoms)
@@ -947,6 +995,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         # vesta = True means that we have a lower triangle lattice matrix (row vectors)
         from pymatgen.core.lattice import Lattice
+
         lattice = Lattice.from_parameters(a, b, c, alpha, beta, gamma, vesta=True)
 
         if mode == "lowtri":
@@ -954,13 +1003,14 @@ class Structure(pmg_Structure, NotebookWriter):
         elif mode == "uptri":
             new_matrix = lattice.matrix.copy()
             for i in range(3):
-                new_matrix[i,0] = lattice.matrix[i,2]
-                new_matrix[i,2] = lattice.matrix[i,0]
+                new_matrix[i, 0] = lattice.matrix[i, 2]
+                new_matrix[i, 2] = lattice.matrix[i, 0]
             a1, a2, a3 = new_matrix[2], new_matrix[1], new_matrix[0]
         else:
             raise ValueError(f"Invalid {mode=}")
 
         from ase.cell import Cell
+
         atoms = self.to_ase_atoms()
         atoms.set_cell(Cell([a1, a2, a3]), scale_atoms=True)
 
@@ -978,8 +1028,9 @@ class Structure(pmg_Structure, NotebookWriter):
         new = sym_finder.get_refined_structure()
         return self.__class__.as_structure(new)
 
-    def abi_sanitize(self, symprec=1e-3, angle_tolerance=5,
-                     primitive=True, primitive_standard=False, atol=1e-12) -> Structure:
+    def abi_sanitize(
+        self, symprec=1e-3, angle_tolerance=5, primitive=True, primitive_standard=False, atol=1e-12
+    ) -> Structure:
         """
         Returns a new structure in which:
 
@@ -1005,6 +1056,7 @@ class Structure(pmg_Structure, NotebookWriter):
             PrimitiveCellTransformation,
             SupercellTransformation,
         )
+
         structure = self.__class__.from_sites(self)
 
         # Refine structure
@@ -1012,11 +1064,13 @@ class Structure(pmg_Structure, NotebookWriter):
             structure = structure.refine(symprec=symprec, angle_tolerance=angle_tolerance)
 
         # Convert to primitive structure.
-        #primitive_standard = False
+        # primitive_standard = False
         if primitive:
             if primitive_standard:
                 # Setyawan, W., & Curtarolo, S.
-                sym_finder_prim = SpacegroupAnalyzer(structure=structure, symprec=symprec, angle_tolerance=angle_tolerance)
+                sym_finder_prim = SpacegroupAnalyzer(
+                    structure=structure, symprec=symprec, angle_tolerance=angle_tolerance
+                )
                 structure = sym_finder_prim.get_primitive_standard_structure(international_monoclinic=False)
             else:
                 # Find most primitive structure.
@@ -1027,7 +1081,7 @@ class Structure(pmg_Structure, NotebookWriter):
         m = structure.lattice.matrix
         x_prod = np.dot(np.cross(m[0], m[1]), m[2])
         if x_prod < 0:
-            #print("Negative triple product --> exchanging last two lattice vectors.")
+            # print("Negative triple product --> exchanging last two lattice vectors.")
             trans = SupercellTransformation(((1, 0, 0), (0, 0, 1), (0, 1, 0)))
             structure = trans.apply_transformation(structure)
             m = structure.lattice.matrix
@@ -1055,6 +1109,7 @@ class Structure(pmg_Structure, NotebookWriter):
             A modified structure that is oxidation state decorated.
         """
         from pymatgen.analysis.bond_valence import BVAnalyzer
+
         new = BVAnalyzer(**kwargs).get_oxi_state_decorated_structure(self)
         return self.__class__.as_structure(new)
 
@@ -1126,7 +1181,8 @@ class Structure(pmg_Structure, NotebookWriter):
         for pos, eqpos in enumerate(equivalent_atoms):
             eqmap[eqpos].append(pos)
             # Add it to irred_pos if it's irreducible.
-            if pos == eqpos: irred_pos.append(pos)
+            if pos == eqpos:
+                irred_pos.append(pos)
 
         # Convert to numpy arrays
         irred_pos = np.array(irred_pos)
@@ -1139,7 +1195,8 @@ class Structure(pmg_Structure, NotebookWriter):
                 print("Wyckoff position: (%s%s)" % (wyck_mult[irr_pos], wyckoffs[irr_pos]))
                 print("\t[%d]: %s" % (irr_pos, repr(self[irr_pos])))
                 for eqind in eqmap[irr_pos]:
-                    if eqind == irr_pos: continue
+                    if eqind == irr_pos:
+                        continue
                     print("\t[%d]: %s" % (eqind, repr(self[eqind])))
             print()
 
@@ -1151,9 +1208,15 @@ class Structure(pmg_Structure, NotebookWriter):
         for i, (site, wsymb, wmul) in enumerate(zip(self, wyckoffs, wyck_mult, strict=False)):
             site_labels.append("%s%d (%s%s)" % (site.specie.symbol, i, wmul, wsymb))
 
-        return dict2namedtuple(irred_pos=irred_pos, eqmap=eqmap, wyckoffs=wyckoffs,
-                               wyck_mult=wyck_mult, wyck_labels=wyck_labels,
-                               site_labels=np.array(site_labels), spgdata=spgdata)
+        return dict2namedtuple(
+            irred_pos=irred_pos,
+            eqmap=eqmap,
+            wyckoffs=wyckoffs,
+            wyck_mult=wyck_mult,
+            wyck_labels=wyck_labels,
+            site_labels=np.array(site_labels),
+            spgdata=spgdata,
+        )
 
     def spget_summary(self, symprec=1e-3, angle_tolerance=5, site_symmetry=False, verbose=0) -> str:
         """
@@ -1172,18 +1235,21 @@ class Structure(pmg_Structure, NotebookWriter):
         abispg_number = None if self.abi_spacegroup is None else self.abi_spacegroup.spgid
 
         # Print lattice info
-        outs = [f"Full Formula ({self.composition.formula})",
-                f"Reduced Formula: {self.composition.reduced_formula}"]
+        outs = [f"Full Formula ({self.composition.formula})", f"Reduced Formula: {self.composition.reduced_formula}"]
         app = outs.append
         to_s = lambda x: "%0.6f" % x
         outs.append("abc   : " + " ".join([to_s(i).rjust(10) for i in self.lattice.abc]))
         outs.append("angles: " + " ".join([to_s(i).rjust(10) for i in self.lattice.angles]))
         app("")
         app("Spglib space group info (magnetic symmetries not taken into account).")
-        app("Spacegroup: %s (%s), Hall: %s, Abinit spg_number: %s" % (
-             spgan.get_space_group_symbol(), spgan.get_space_group_number(), spgan.get_hall(), str(abispg_number)))
-        app("Crystal_system: %s, Lattice_type: %s, Point_group: %s" % (
-            spgan.get_crystal_system(), spgan.get_lattice_type(), spgan.get_point_group_symbol()))
+        app(
+            "Spacegroup: %s (%s), Hall: %s, Abinit spg_number: %s"
+            % (spgan.get_space_group_symbol(), spgan.get_space_group_number(), spgan.get_hall(), str(abispg_number))
+        )
+        app(
+            "Crystal_system: %s, Lattice_type: %s, Point_group: %s"
+            % (spgan.get_crystal_system(), spgan.get_lattice_type(), spgan.get_point_group_symbol())
+        )
         app("")
 
         wickoffs, equivalent_atoms = spgdata.wyckoffs, spgdata.equivalent_atoms
@@ -1203,11 +1269,13 @@ class Structure(pmg_Structure, NotebookWriter):
                 "(%s%s)" % (mult, wickoffs[i]),
                 "%d" % equivalent_atoms[i],
             ]
-            if site_symmetry: row.append(sitesym_labels[i])
+            if site_symmetry:
+                row.append(sitesym_labels[i])
 
             table.append(row)
 
         from tabulate import tabulate
+
         app(tabulate(table, headers="firstrow"))
 
         # Print entire dataset.
@@ -1257,11 +1325,14 @@ class Structure(pmg_Structure, NotebookWriter):
             is initialized from an output file produced by another code.
         """
         if self.has_abi_spacegroup and not overwrite:
-            raise ValueError("Structure object already has an Abinit spacegroup object.\n"
-                              "Use `overwrite=True` to allow modification.")
+            raise ValueError(
+                "Structure object already has an Abinit spacegroup object.\nUse `overwrite=True` to allow modification."
+            )
 
-        msg = ("Structure object does not have symmetry operations computed from Abinit.\n"
-               "Calling spglib to get symmetry operations.")
+        msg = (
+            "Structure object does not have symmetry operations computed from Abinit.\n"
+            "Calling spglib to get symmetry operations."
+        )
         cprint(msg, "magenta")
 
         spglib_data = SpacegroupAnalyzer(self).get_symmetry_dataset()
@@ -1285,11 +1356,13 @@ class Structure(pmg_Structure, NotebookWriter):
         first three elements are the primitive translations which must be
         subtracted after the transformation to get back to the original unit cell (see symatm.F90).
         """
-        if getattr(self, "_indsym", None) is not None: return self._indsym
+        if getattr(self, "_indsym", None) is not None:
+            return self._indsym
         if not self.has_abi_spacegroup:
             self.spgset_abi_spacegroup(has_timerev=True, overwrite=False)
 
         from abipy.core.symmetries import indsym_from_symrel
+
         self._indsym = indsym_from_symrel(self.abi_spacegroup.symrel, self.abi_spacegroup.tnons, self, tolsym=1e-8)
         return self._indsym
 
@@ -1304,18 +1377,19 @@ class Structure(pmg_Structure, NotebookWriter):
     def site_symmetries(self):
         """Object with SiteSymmetries."""
         from abipy.core.site_symmetries import SiteSymmetries
+
         return SiteSymmetries(self)
 
     # TODO: site_symmetry or spget_site_symmetries?
     def spget_site_symmetries(self):
         import spglib
+
         indsym = self.indsym
         symrel, symafm = self.abi_spacegroup.symrel, self.abi_spacegroup.symafm
         nsym = len(symrel)
         sitesym_labels = []
         for iatom, site in enumerate(self):
-            rotations = [symrel[isym] for isym in range(nsym) if
-                         indsym[iatom, isym, 3] == iatom and symafm[isym] == +1]
+            rotations = [symrel[isym] for isym in range(nsym) if indsym[iatom, isym, 3] == iatom and symafm[isym] == +1]
             # Passing a 0-length rotations list to spglib can segfault.
             herm_symbol, ptg_num = "1", 1
             if len(rotations) != 0:
@@ -1337,10 +1411,12 @@ class Structure(pmg_Structure, NotebookWriter):
         """
         from abipy.abio import factories
         from abipy.data.hgh_pseudos import HGH_TABLE
+
         gsinp = factories.gs_input(self, HGH_TABLE, spin_mode="unpolarized")
         gsinp["chkprim"] = 0
         d = gsinp.abiget_spacegroup(tolsym=tolsym, retdict=True)
-        if pre: d = {pre + k: v for k, v in d.items()}
+        if pre:
+            d = {pre + k: v for k, v in d.items()}
         return d
 
     def print_neighbors(self, radius=2.0) -> None:
@@ -1365,6 +1441,7 @@ class Structure(pmg_Structure, NotebookWriter):
         Dynamical quadrupoles are nonzero in all noncentrosymmetric crystals,
         but also in centrosymmetric ones if one or more atoms are placed at noncentrosymmetric sites.
         """
+
         def create_image(s1, s2):
             """
             Creates the image of s2 through s1
@@ -1409,6 +1486,7 @@ class Structure(pmg_Structure, NotebookWriter):
         (Database of high symmetry k-points and high symmetry lines).
         """
         from pymatgen.symmetry.bandstructure import HighSymmKpath
+
         return HighSymmKpath(self)
 
     @cached_property
@@ -1427,6 +1505,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         # Build KpointList instance.
         from .kpoints import KpointList
+
         return KpointList(self.reciprocal_lattice, frac_coords, weights=None, names=names)
 
     def get_kcoords_from_names(self, knames, cart_coords=False) -> np.ndarray:
@@ -1466,7 +1545,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return [kpoint.compute_star(self.abi_spacegroup.fm_symmops) for kpoint in self.hsym_kpoints]
 
     # TODO
-    #def get_star_kpoint(self, kpoint):
+    # def get_star_kpoint(self, kpoint):
 
     #    # Call spglib to get spacegroup if Abinit spacegroup is not available.
     #    if self.abi_spacegroup is None:
@@ -1487,15 +1566,18 @@ class Structure(pmg_Structure, NotebookWriter):
         """
         Returns the name of the special k-point, None if kpoint is unknown.
         """
-        if self.abi_spacegroup is None: return None
+        if self.abi_spacegroup is None:
+            return None
 
         from .kpoints import Kpoint
+
         kpoint = Kpoint.as_kpoint(kpoint, self.reciprocal_lattice)
 
         # Try to find kpoint in hsym_stars without taking into account symmetry operation (compare with base_point)
         # Important if there are symmetry equivalent k-points in hsym_kpoints e.g. K and U in FCC lattice
         # as U should not be mapped onto K as done in the second loop below.
         from .kpoints import issamek
+
         for star in self.hsym_stars:
             if issamek(kpoint.frac_coords, star.base_point.frac_coords):
                 return star.name
@@ -1504,7 +1586,7 @@ class Structure(pmg_Structure, NotebookWriter):
         for star in self.hsym_stars:
             i = star.find(kpoint)
             if i != -1:
-                #print("input kpt:", kpoint, "star image", star[i], star[i].name)
+                # print("input kpt:", kpoint, "star image", star[i], star[i].name)
                 return star.name
 
         return None
@@ -1524,12 +1606,11 @@ class Structure(pmg_Structure, NotebookWriter):
         with the fractional coordinates.
         """
         # TODO:
-        #use structure.frac_coords but add reshape in pymatgen.
-        #fcoords = np.reshape([s.frac_coords for s in self], (-1, 3))
+        # use structure.frac_coords but add reshape in pymatgen.
+        # fcoords = np.reshape([s.frac_coords for s in self], (-1, 3))
         coords = {}
         for symbol in self.symbol_set:
-            coords[symbol] = np.reshape(
-                [site.frac_coords for site in self if site.specie.symbol == symbol], (-1, 3))
+            coords[symbol] = np.reshape([site.frac_coords for site in self if site.specie.symbol == symbol], (-1, 3))
 
         return coords
 
@@ -1547,8 +1628,7 @@ class Structure(pmg_Structure, NotebookWriter):
         Returns:
             one-dimensional `numpy` array.
         """
-        lattice = {"r": self.lattice,
-                   "g": self.reciprocal_lattice}[space.lower()]
+        lattice = {"r": self.lattice, "g": self.reciprocal_lattice}[space.lower()]
         return lattice.dot(coords_a, coords_b, frac_coords=frac_coords)
 
     def norm(self, coords, space="r", frac_coords=True):
@@ -1603,6 +1683,7 @@ class Structure(pmg_Structure, NotebookWriter):
         print(f"{qq_frac=}")
 
         from pymatgen.util.coord import lattice_points_in_supercell
+
         new_lattice = Lattice(np.dot(scale_matrix, self.lattice.matrix))
         frac_lattice = lattice_points_in_supercell(scale_matrix)
         cart_lattice = new_lattice.get_cartesian_coords(frac_lattice)
@@ -1615,28 +1696,32 @@ class Structure(pmg_Structure, NotebookWriter):
         new_sites = []
         for site, m0 in zip(self, magmom, strict=True):
             for cart_vec in cart_lattice:
-                #print(f"{cart_vec=}")
-                #qr = 2.0 * np.pi * np.dot(qq_cart, cart_vec)
+                # print(f"{cart_vec=}")
+                # qr = 2.0 * np.pi * np.dot(qq_cart, cart_vec)
                 qr = np.dot(qq_cart, cart_vec)
-                mm = np.array([
-                    m0[0] * np.cos(qr) - m0[1] * np.sin(qr),
-                    m0[0] * np.sin(qr) + m0[1] * np.cos(qr),
-                    m0[2],
-                ])
+                mm = np.array(
+                    [
+                        m0[0] * np.cos(qr) - m0[1] * np.sin(qr),
+                        m0[0] * np.sin(qr) + m0[1] * np.cos(qr),
+                        m0[2],
+                    ]
+                )
 
                 new_properties = site.properties.copy()
                 new_properties["magmom"] = mm
 
-                new_sites.append(PeriodicSite(
-                    site.species,
-                    site.coords + cart_vec,
-                    new_lattice,
-                    properties=new_properties,
-                    coords_are_cartesian=True,
-                    to_unit_cell=False,
-                    skip_checks=True,
-                    label=site.label,
-                ))
+                new_sites.append(
+                    PeriodicSite(
+                        site.species,
+                        site.coords + cart_vec,
+                        new_lattice,
+                        properties=new_properties,
+                        coords_are_cartesian=True,
+                        to_unit_cell=False,
+                        skip_checks=True,
+                        label=site.label,
+                    )
+                )
 
         new_charge = self._charge * np.linalg.det(scale_matrix) if self._charge else None
         return self.__class__.from_sites(new_sites, charge=new_charge, to_unit_cell=True)
@@ -1661,24 +1746,35 @@ class Structure(pmg_Structure, NotebookWriter):
         spglib_symbol, spglib_number, spglib_lattice_type = None, None, None
         if with_spglib:
             try:
-                spglib_symbol, spglib_number = self.get_space_group_info(symprec=symprec,
-                                                                         angle_tolerance=angle_tolerance)
+                spglib_symbol, spglib_number = self.get_space_group_info(
+                    symprec=symprec, angle_tolerance=angle_tolerance
+                )
                 spglib_lattice_type = self.spget_lattice_type(symprec=symprec, angle_tolerance=angle_tolerance)
 
             except Exception as exc:
-                cprint("Spglib couldn't find space group symbol and number for composition: `%s`" %
-                        str(self.composition), "red")
+                cprint(
+                    "Spglib couldn't find space group symbol and number for composition: `%s`" % str(self.composition),
+                    "red",
+                )
                 print("Exception:\n", exc)
 
         # Get spacegroup number computed by Abinit if available.
         abispg_number = None if self.abi_spacegroup is None else self.abi_spacegroup.spgid
 
-        od = OrderedDict([
-            ("formula", self.formula), ("natom", self.num_sites),
-            ("alpha", angles[0]), ("beta", angles[1]), ("gamma", angles[2]),
-            ("a", abc[0]), ("b", abc[1]), ("c", abc[2]), ("volume", self.volume),
-            ("abispg_num", abispg_number),
-        ])
+        od = OrderedDict(
+            [
+                ("formula", self.formula),
+                ("natom", self.num_sites),
+                ("alpha", angles[0]),
+                ("beta", angles[1]),
+                ("gamma", angles[2]),
+                ("a", abc[0]),
+                ("b", abc[1]),
+                ("c", abc[2]),
+                ("volume", self.volume),
+                ("abispg_num", abispg_number),
+            ]
+        )
 
         if with_spglib:
             od["spglib_symb"] = spglib_symbol
@@ -1721,6 +1817,7 @@ class Structure(pmg_Structure, NotebookWriter):
         See plot_structure for kwargs.
         """
         from abipy.tools.plotting import plot_structure
+
         return plot_structure(self, **kwargs)
 
     @add_plotly_fig_kwargs
@@ -1730,6 +1827,7 @@ class Structure(pmg_Structure, NotebookWriter):
         See plot_structure for kwargs
         """
         from abipy.tools.plotting import plotly_structure
+
         return plotly_structure(self, **kwargs)
 
     @add_fig_kwargs
@@ -1745,6 +1843,7 @@ class Structure(pmg_Structure, NotebookWriter):
         Returns: |matplotlib-Figure|.
         """
         from pymatgen.electronic_structure.plotter import plot_brillouin_zone, plot_brillouin_zone_from_kpath
+
         labels = None if not with_labels else self.hsym_kpath.kpath["kpoints"]
         if pmg_path:
             return plot_brillouin_zone_from_kpath(self.hsym_kpath, ax=ax, show=False, **kwargs)
@@ -1763,14 +1862,23 @@ class Structure(pmg_Structure, NotebookWriter):
         Returns: plotly.graph_objects.Figure
         """
         from abipy.tools.plotting import plotly_brillouin_zone, plotly_brillouin_zone_from_kpath
+
         labels = None if not with_labels else self.hsym_kpath.kpath["kpoints"]
         if pmg_path:
             return plotly_brillouin_zone_from_kpath(self.hsym_kpath, fig=fig, show=False, **kwargs)
         return plotly_brillouin_zone(self.reciprocal_lattice, fig=fig, labels=labels, show=False, **kwargs)
 
     @add_fig_kwargs
-    def plot_xrd(self, wavelength="CuKa", symprec=0, debye_waller_factors=None,
-                 two_theta_range=(0, 90), annotate_peaks=True, ax=None, **kwargs) -> Figure:
+    def plot_xrd(
+        self,
+        wavelength="CuKa",
+        symprec=0,
+        debye_waller_factors=None,
+        two_theta_range=(0, 90),
+        annotate_peaks=True,
+        ax=None,
+        **kwargs,
+    ) -> Figure:
         """
         Use pymatgen :class:`XRDCalculator` to show the XRD plot.
 
@@ -1798,6 +1906,7 @@ class Structure(pmg_Structure, NotebookWriter):
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         from pymatgen.analysis.diffraction.xrd import XRDCalculator
+
         xrd = XRDCalculator(wavelength=wavelength, symprec=symprec, debye_waller_factors=debye_waller_factors)
         xrd.get_plot(self, two_theta_range=two_theta_range, annotate_peaks=annotate_peaks, ax=ax)
 
@@ -1830,18 +1939,18 @@ class Structure(pmg_Structure, NotebookWriter):
 
         tokens = filename.strip().split(".")
         ext = tokens[-1]
-        #print("tokens", tokens, "ext", ext)
-        #if ext == "POSCAR":
+        # print("tokens", tokens, "ext", ext)
+        # if ext == "POSCAR":
 
         if not tokens[0]:
             # filename == ".ext" ==> Create temporary file.
             # nbworkdir in cwd is needed when we invoke the method from a notebook.
             from abipy.core.globals import abinb_mkstemp
-            _, rpath = abinb_mkstemp(force_abinb_workdir=False, use_relpath=False,
-                                     suffix="." + ext, text=True)
-            #if abilab.in_notebook():
+
+            _, rpath = abinb_mkstemp(force_abinb_workdir=False, use_relpath=False, suffix="." + ext, text=True)
+            # if abilab.in_notebook():
             #    _, filename = tempfile.mkstemp(suffix="." + ext, dir=abilab.get_abipy_nbworkdir(), text=True)
-            #else:
+            # else:
             #    _, filename = tempfile.mkstemp(suffix="." + ext, text=True)
 
         if ext.lower() in ("xsf", "poscar", "cif"):
@@ -1855,11 +1964,12 @@ class Structure(pmg_Structure, NotebookWriter):
             return Visualizer.from_file(filename)
         return visu(filename)
 
-    def get_chemview(self, **kwargs): # pragma: no cover
+    def get_chemview(self, **kwargs):  # pragma: no cover
         """
         Visualize structure inside the jupyter notebook using chemview package.
         """
         from pymatgen.vis.structure_chemview import quick_view
+
         return quick_view(self, **kwargs)
 
     def plot_vtk(self, show=True, **kwargs):
@@ -1873,14 +1983,17 @@ class Structure(pmg_Structure, NotebookWriter):
         Return: StructureVis object.
         """
         from pymatgen.vis.structure_vtk import StructureVis
+
         vis = StructureVis(**kwargs)
         vis.set_structure(self, to_unit_cell=True)
-        if show: vis.show()
+        if show:
+            vis.show()
         return vis
 
     def plot_mayaview(self, figure=None, show=True, **kwargs):
         """Visualize structure with mayavi."""
         from abipy.display import mvtk
+
         return mvtk.plot_structure(self, figure=figure, show=show, **kwargs)
 
     @add_fig_kwargs
@@ -1898,8 +2011,12 @@ class Structure(pmg_Structure, NotebookWriter):
         """
         if rotations == "default":
             rotations = [
-                "", "90x", "90y",
-                "45x,45y", "45y,45z", "45x,45z",
+                "",
+                "90x",
+                "90y",
+                "45x,45y",
+                "45y,45z",
+                "45x,45z",
             ]
         else:
             rotations = list_strings(rotations)
@@ -1909,13 +2026,14 @@ class Structure(pmg_Structure, NotebookWriter):
             ncols = 3
             nrows = num_plots // ncols + num_plots % ncols
 
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=False, sharey=True, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols, sharex=False, sharey=True, squeeze=False)
 
         # don't show the last ax if num_plots is odd.
-        if num_plots % ncols != 0: ax_mat[-1, -1].axis("off")
+        if num_plots % ncols != 0:
+            ax_mat[-1, -1].axis("off")
 
         from ase.visualize.plot import plot_atoms
+
         atoms = self.to_ase_atoms()
         for rotation, ax in zip(rotations, ax_mat.flat, strict=False):
             plot_atoms(atoms, ax=ax, rotation=rotation, **kwargs)
@@ -1925,7 +2043,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         return fig
 
-    def get_ngl_view(self): # pragma: no cover
+    def get_ngl_view(self):  # pragma: no cover
         """
         Visualize the structure with nglview inside the jupyter notebook.
         """
@@ -1938,7 +2056,7 @@ class Structure(pmg_Structure, NotebookWriter):
         view.add_unitcell()
         return view
 
-    def get_crystaltk_view(self): # pragma: no cover
+    def get_crystaltk_view(self):  # pragma: no cover
         """
         Visualize the structure with crystal_toolkit inside the jupyter notebook.
         """
@@ -1950,7 +2068,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         return view(self)
 
-    def get_jsmol_view(self, symprec=None, verbose=0, **kwargs): # pragma: no cover
+    def get_jsmol_view(self, symprec=None, verbose=0, **kwargs):  # pragma: no cover
         """
         Visualize the structure with jsmol inside the jupyter notebook.
 
@@ -1966,19 +2084,20 @@ class Structure(pmg_Structure, NotebookWriter):
             raise ImportError("jupyter_jsmol is not installed. See https://github.com/fekad/jupyter-jsmol")
 
         cif_str = self.write_cif_with_spglib_symms(None, symprec=symprec, ret_string=True)
-        #print("cif_str:\n", cif_str)
-        #return JsmolView.from_str(cif_str)
+        # print("cif_str:\n", cif_str)
+        # return JsmolView.from_str(cif_str)
 
-        #from IPython.display import display, HTML
+        # from IPython.display import display, HTML
         # FIXME TEMPORARY HACK TO LOAD JSMOL.js
         # See discussion at
         #   https://stackoverflow.com/questions/16852885/ipython-adding-javascript-scripts-to-ipython-notebook
-        #display(HTML('<script type="text/javascript" src="/nbextensions/jupyter-jsmol/jsmol/JSmol.min.js"></script>'))
+        # display(HTML('<script type="text/javascript" src="/nbextensions/jupyter-jsmol/jsmol/JSmol.min.js"></script>'))
 
         jsmol = JsmolView(color="white")
-        #display(jsmol)
+        # display(jsmol)
         cmd = 'load inline "%s" {1 1 1}' % cif_str
-        if verbose: print("executing cmd:", cmd)
+        if verbose:
+            print("executing cmd:", cmd)
         jsmol.script(cmd)
 
         return jsmol
@@ -1988,9 +2107,12 @@ class Structure(pmg_Structure, NotebookWriter):
         Visualize the crystalline structure with visualizer.
         See |Visualizer| for the list of applications and formats supported.
         """
-        if appname in ("mpl", "matplotlib"): return self.plot()
-        if appname == "vtk": return self.plot_vtk()
-        if appname == "mayavi": return self.plot_mayaview()
+        if appname in ("mpl", "matplotlib"):
+            return self.plot()
+        if appname == "vtk":
+            return self.plot_vtk()
+        if appname == "mayavi":
+            return self.plot_mayaview()
 
         # Get the Visualizer subclass from the string.
         visu = Visualizer.from_name(appname)
@@ -2016,16 +2138,19 @@ class Structure(pmg_Structure, NotebookWriter):
             return pformat(self.to_abivars(), indent=4)
         if fmt == "qe":
             from pymatgen.io.pwscf import PWInput
+
             return str(PWInput(self, pseudo={s: s + ".pseudo" for s in self.symbol_set}))
         if fmt == "siesta":
             return structure2siesta(self)
         if fmt in ("wannier90", "w90"):
             from abipy.wannier90.win import structure2wannier90
+
             return structure2wannier90(self)
         if fmt.lower() == "poscar":
             # Don't call super for poscar because we need more significant_figures to
             # avoid problems with abinit space group routines where the default numerical tolerance is tight.
             from pymatgen.io.vasp import Poscar
+
             try:
                 return Poscar(self).get_str(significant_figures=12)
             except AttributeError:
@@ -2033,6 +2158,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         elif fmt.lower() == "lammps":
             from pymatgen.io.lammps.data import LammpsData
+
             # Convert the structure to a LAMMPS data file
             lammps_data = LammpsData.from_structure(self)
             return lammps_data.get_str()
@@ -2063,7 +2189,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         if not frac_coords:
             # Convert to fractional coordinates.
-            displ = np.reshape([self.lattice.get_fractional_coords(vec) for vec in displ], (-1,3))
+            displ = np.reshape([self.lattice.get_fractional_coords(vec) for vec in displ], (-1, 3))
 
         # Normalize the displacement so that the maximum atomic displacement is 1 Angstrom.
         if normalize:
@@ -2074,10 +2200,7 @@ class Structure(pmg_Structure, NotebookWriter):
         for i in range(len(self)):
             self.translate_sites(indices=i, vector=eta * displ[i, :], frac_coords=True)
 
-    def displace_one_site(self, index, displ, eta,
-                          frac_coords: bool = True,
-                          to_unit_cell: bool = False
-    ) -> Structure:
+    def displace_one_site(self, index, displ, eta, frac_coords: bool = True, to_unit_cell: bool = False) -> Structure:
         """
         Displace one site of the structure along the displacement vector displ.
 
@@ -2093,7 +2216,7 @@ class Structure(pmg_Structure, NotebookWriter):
             to_unit_cell (bool): Whether new sites are transformed to unit cell
         """
         # Get a copy since we are going to modify displ.
-        displ = 1.0 * np.reshape(displ, (3, )).copy()
+        displ = 1.0 * np.reshape(displ, (3,)).copy()
 
         if np.iscomplexobj(displ):
             raise TypeError("Displacement cannot be complex")
@@ -2142,7 +2265,7 @@ class Structure(pmg_Structure, NotebookWriter):
                         Rl = np.dot(lnew, rprimd)
                         # Normalize the displacement so that the maximum atomic displacement is 1 Angstrom.
                         dnorm = np.sqrt(np.dot(Rl, Rl))
-                        if dnorm < (dmin-1e-6) and dnorm > 1e-6:
+                        if dnorm < (dmin - 1e-6) and dnorm > 1e-6:
                             found = True
                             scale_matrix[:, 0] = lnew
                             dmin = dnorm
@@ -2156,14 +2279,14 @@ class Structure(pmg_Structure, NotebookWriter):
                 for l3 in np.arange(-l[2], l[2] + 1):
                     lnew = np.array([l1, l2, l3])
                     # Check if not parallel !
-                    cp = np.cross(lnew, scale_matrix[:,0])
+                    cp = np.cross(lnew, scale_matrix[:, 0])
                     if np.dot(cp, cp) > 1e-6:
                         ql = np.dot(lnew, qpoint)
                         # Check if integer and non zero !
                         if np.abs(ql - np.round(ql)) < 1e-6:
                             Rl = np.dot(lnew, rprimd)
                             dnorm = np.sqrt(np.dot(Rl, Rl))
-                            if dnorm < (dmin-1e-6) and dnorm > 1e-6:
+                            if dnorm < (dmin - 1e-6) and dnorm > 1e-6:
                                 found = True
                                 scale_matrix[:, 1] = lnew
                                 dmin = dnorm
@@ -2184,8 +2307,8 @@ class Structure(pmg_Structure, NotebookWriter):
                         # Check if integer and non zero!
                         if np.abs(ql - np.round(ql)) < 1e-6:
                             Rl = np.dot(lnew, rprimd)
-                            dnorm = np.sqrt(np.dot(Rl,Rl))
-                            if dnorm < (dmin-1e-6) and dnorm > 1e-6:
+                            dnorm = np.sqrt(np.dot(Rl, Rl))
+                            if dnorm < (dmin - 1e-6) and dnorm > 1e-6:
                                 found = True
                                 scale_matrix[:, 2] = lnew
                                 dmin = dnorm
@@ -2216,8 +2339,8 @@ class Structure(pmg_Structure, NotebookWriter):
         supercell.make_supercell(scaling_matrix)
 
         # list of positions of non-equivalent sites for the replaced atom.
-        irred = supercell.spget_equivalent_atoms().eqmap # mapping from inequivalent sites to atoms sites
-        positions = supercell.get_symbol2indices()[replaced_atom] # get indices of the replaced atom
+        irred = supercell.spget_equivalent_atoms().eqmap  # mapping from inequivalent sites to atoms sites
+        positions = supercell.get_symbol2indices()[replaced_atom]  # get indices of the replaced atom
 
         index_non_eq_sites = []
         for pos in positions:
@@ -2228,7 +2351,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
         for index in index_non_eq_sites:
             final_structure = supercell.copy()
-            final_structure.replace(index,dopant_atom)
+            final_structure.replace(index, dopant_atom)
             doped_structure_list.append(final_structure)
 
         return doped_structure_list
@@ -2254,7 +2377,7 @@ class Structure(pmg_Structure, NotebookWriter):
                     high += z
                 else:
                     low += z
-            return np.arange(low, high+1)
+            return np.arange(low, high + 1)
 
         arange = range_vec(0)[:, None] * np.array([1, 0, 0])[None, :]
         brange = range_vec(1)[:, None] * np.array([0, 1, 0])[None, :]
@@ -2265,18 +2388,18 @@ class Structure(pmg_Structure, NotebookWriter):
         # find the translation vectors (in terms of the initial lattice vectors)
         # that are inside the unit cell defined by the scale matrix
         # we're using a slightly offset interval from 0 to 1 to avoid numerical precision issues
-        #print(scale_matrix)
+        # print(scale_matrix)
         inv_matrix = np.linalg.inv(scale_matrix)
 
         frac_points = np.dot(all_points, inv_matrix)
-        tvects = all_points[np.where(np.all(frac_points < 1-1e-10, axis=1)
-                                     & np.all(frac_points >= -1e-10, axis=1))]
+        tvects = all_points[np.where(np.all(frac_points < 1 - 1e-10, axis=1) & np.all(frac_points >= -1e-10, axis=1))]
         assert len(tvects) == np.round(abs(np.linalg.det(scale_matrix)))
 
         return tvects
 
-    def write_vib_file(self, xyz_file, qpoint, displ, do_real=True, frac_coords=True,
-                       scale_matrix=None, max_supercell=None) -> None:
+    def write_vib_file(
+        self, xyz_file, qpoint, displ, do_real=True, frac_coords=True, scale_matrix=None, max_supercell=None
+    ) -> None:
         """
         Write into the file descriptor xyz_file the positions and displacements of the atoms
 
@@ -2307,9 +2430,9 @@ class Structure(pmg_Structure, NotebookWriter):
         for at, site in enumerate(self):
             for t in tvects:
                 if do_real:
-                    new_displ[:] = np.real(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ[at,:])
+                    new_displ[:] = np.real(np.exp(2 * 1j * np.pi * (np.dot(qpoint, t))) * displ[at, :])
                 else:
-                    new_displ[:] = np.imag(np.exp(2*1j*np.pi*(np.dot(qpoint,t)))*displ[at,:])
+                    new_displ[:] = np.imag(np.exp(2 * 1j * np.pi * (np.dot(qpoint, t))) * displ[at, :])
                 if frac_coords:
                     # Convert to fractional coordinates.
                     new_displ = self.lattice.get_cartesian_coords(new_displ)
@@ -2325,8 +2448,11 @@ class Structure(pmg_Structure, NotebookWriter):
                 new_fcoords = np.mod(new_fcoords, 1)
                 coords = new_lattice.get_cartesian_coords(new_fcoords)
 
-                xyz_file.write(fmtstr.format(site.specie, coords[0], coords[1], coords[2],
-                               new_displ[0], new_displ[1], new_displ[2]))
+                xyz_file.write(
+                    fmtstr.format(
+                        site.specie, coords[0], coords[1], coords[2], new_displ[0], new_displ[1], new_displ[2]
+                    )
+                )
 
     def frozen_2phonon(self, qpoint, displ1, displ2, eta=1, frac_coords=False, scale_matrix=None, max_supercell=None):
         """
@@ -2373,7 +2499,7 @@ class Structure(pmg_Structure, NotebookWriter):
             displ2 = np.array(displ2)
 
         # from here on displ are in cartesian coordinates
-        norm_factor = np.linalg.norm(displ1+displ2, axis=1).max()
+        norm_factor = np.linalg.norm(displ1 + displ2, axis=1).max()
 
         displ1 = eta * displ1 / norm_factor
         displ2 = eta * displ2 / norm_factor
@@ -2382,17 +2508,21 @@ class Structure(pmg_Structure, NotebookWriter):
         new_displ2 = np.zeros(3, dtype=float)
         new_sites = []
         displ_list = []
-        for at,site in enumerate(self):
+        for at, site in enumerate(self):
             for t in tvects:
-                new_displ1[:] = np.real(np.exp(2*1j * np.pi * (np.dot(qpoint, t))) * displ1[at,:])
-                new_displ2[:] = np.real(np.exp(2*1j * np.pi * (np.dot(qpoint, t))) * displ2[at,:])
+                new_displ1[:] = np.real(np.exp(2 * 1j * np.pi * (np.dot(qpoint, t))) * displ1[at, :])
+                new_displ2[:] = np.real(np.exp(2 * 1j * np.pi * (np.dot(qpoint, t))) * displ2[at, :])
 
                 displ_list.append(new_displ1 + new_displ2)
                 coords = site.coords + old_lattice.get_cartesian_coords(t) + new_displ1 + new_displ2
                 new_site = PeriodicSite(
-                    site.species, coords, new_lattice,
-                    coords_are_cartesian=True, properties=site.properties,
-                    to_unit_cell=True)
+                    site.species,
+                    coords,
+                    new_lattice,
+                    coords_are_cartesian=True,
+                    properties=site.properties,
+                    to_unit_cell=True,
+                )
                 new_sites.append(new_site)
 
         new_structure = self.__class__.from_sites(new_sites)
@@ -2427,13 +2557,13 @@ class Structure(pmg_Structure, NotebookWriter):
         scale_matrix = np.array(scale_matrix, np.int16)
         if scale_matrix.shape != (3, 3):
             scale_matrix = np.array(scale_matrix * np.eye(3), np.int16)
-        #print("scale_matrix:\n", scale_matrix)
+        # print("scale_matrix:\n", scale_matrix)
 
         old_lattice = self._lattice
         new_lattice = Lattice(np.dot(scale_matrix, old_lattice.matrix))
 
         tvects = self.get_trans_vect(scale_matrix)
-        #print("tvects\n", tvects)
+        # print("tvects\n", tvects)
 
         if frac_coords:
             displ = np.array([old_lattice.get_cartesian_coords(d) for d in displ])
@@ -2448,14 +2578,18 @@ class Structure(pmg_Structure, NotebookWriter):
         displ_list = []
         for iat, site in enumerate(self):
             for t in tvects:
-                new_displ[:] = np.real(np.exp(2*1j*np.pi * (np.dot(qpoint, t))) * displ[iat,:])
+                new_displ[:] = np.real(np.exp(2 * 1j * np.pi * (np.dot(qpoint, t))) * displ[iat, :])
                 displ_list.append(list(new_displ))
 
                 coords = site.coords + old_lattice.get_cartesian_coords(t) + new_displ
                 new_site = PeriodicSite(
-                    site.species, coords, new_lattice,
-                    coords_are_cartesian=True, properties=site.properties,
-                    to_unit_cell=True)
+                    site.species,
+                    coords,
+                    new_lattice,
+                    coords_are_cartesian=True,
+                    properties=site.properties,
+                    to_unit_cell=True,
+                )
                 new_sites.append(new_site)
 
         new_structure = self.__class__.from_sites(new_sites)
@@ -2472,7 +2606,8 @@ class Structure(pmg_Structure, NotebookWriter):
         Return string with input variables for band-structure calculations in the format used by code `fmt`.
         Use `line_density` points for the smallest segment (if supported by code).
         """
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
         if fmt in ("abinit", "abivars"):
             app("# Abinit Structure")
             app(self.convert(fmt=fmt))
@@ -2488,6 +2623,7 @@ class Structure(pmg_Structure, NotebookWriter):
         elif fmt in ("wannier90", "w90"):
             app("# Wannier90 structure")
             from abipy.wannier90.win import Wannier90Input
+
             win = Wannier90Input(self)
             win.set_kpath()
             app(win.to_string())
@@ -2497,12 +2633,14 @@ class Structure(pmg_Structure, NotebookWriter):
             app(self.convert(fmt=fmt))
             # Build normalized k-path.
             from .kpoints import Kpath
+
             vertices_names = [(k.frac_coords, k.name) for k in self.hsym_kpoints]
             kpath = Kpath.from_vertices_and_names(self, vertices_names, line_density=line_density)
             app("%block BandLines")
             prev_ik = 0
             for ik, k in enumerate(kpath):
-                if not k.name: continue
+                if not k.name:
+                    continue
                 n = ik - prev_ik
                 app("{}  {:+.5f}  {:+.5f}  {:+.5f}  # {kname}".format(n if n else 1, *k.frac_coords, kname=k.name))
                 prev_ik = ik
@@ -2563,7 +2701,8 @@ class Structure(pmg_Structure, NotebookWriter):
 
         if (kppa := -float(ngkpt)) > 0:
             import pymatgen.io.abinit.abiobjects as aobj
-            ksampling = aobj.KSampling.automatic_density(self, kppa, chksymbreak=0, shifts=(0,0,0))
+
+            ksampling = aobj.KSampling.automatic_density(self, kppa, chksymbreak=0, shifts=(0, 0, 0))
             return ksampling.to_abivars()["ngkpt"]
 
         raise ValueError(f"Don't know how to convert {type(ngkpt)=}, {ngkpt=} to k-mesh!")
@@ -2630,16 +2769,12 @@ class Structure(pmg_Structure, NotebookWriter):
             if lattice_type == "cubic":
                 if "F" in spg_symbol:
                     # FCC
-                    shiftk = [0.5, 0.5, 0.5,
-                              0.5, 0.0, 0.0,
-                              0.0, 0.5, 0.0,
-                              0.0, 0.0, 0.5]
+                    shiftk = [0.5, 0.5, 0.5, 0.5, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.5]
 
                 elif "I" in spg_symbol:
                     # BCC
-                    shiftk = [0.25,  0.25,  0.25,
-                             -0.25, -0.25, -0.25]
-                    #shiftk = [0.5, 0.5, 05])
+                    shiftk = [0.25, 0.25, 0.25, -0.25, -0.25, -0.25]
+                    # shiftk = [0.5, 0.5, 05])
 
             elif lattice_type == "hexagonal":
                 # Find the hexagonal axis and set the shift along it.
@@ -2647,7 +2782,7 @@ class Structure(pmg_Structure, NotebookWriter):
                     if abs(angle - 120) < 1.0:
                         j = (i + 1) % 3
                         k = (i + 2) % 3
-                        hex_ax = [ax for ax in range(3) if ax not in [j,k]][0]
+                        hex_ax = [ax for ax in range(3) if ax not in [j, k]][0]
                         break
                 else:
                     raise ValueError("Cannot find hexagonal axis")
@@ -2658,8 +2793,7 @@ class Structure(pmg_Structure, NotebookWriter):
             elif lattice_type == "tetragonal":
                 if "I" in spg_symbol:
                     # BCT
-                    shiftk = [0.25,  0.25,  0.25,
-                             -0.25, -0.25, -0.25]
+                    shiftk = [0.25, 0.25, 0.25, -0.25, -0.25, -0.25]
 
         if shiftk is None:
             # Use default value.
@@ -2675,6 +2809,7 @@ class Structure(pmg_Structure, NotebookWriter):
             pseudos: List of |Pseudo| objects or list of filenames.
         """
         from abipy.flowtk import PseudoTable
+
         nval, table = 0, PseudoTable.as_table(pseudos)
         for site in self:
             pseudo = table.pseudo_with_symbol(site.specie.symbol)
@@ -2690,6 +2825,7 @@ class Structure(pmg_Structure, NotebookWriter):
             pseudos: List of |Pseudo| objects or list of filenames.
         """
         from abipy.flowtk import PseudoTable
+
         table = PseudoTable.as_table(pseudos)
         psp_valences = []
         for site in self:
@@ -2711,30 +2847,33 @@ class Structure(pmg_Structure, NotebookWriter):
         with open(tmpfile, "wb") as fh:
             pickle.dump(self, fh)
 
-        nb.cells.extend([
-            #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("structure = abilab.Structure.from_file('%s')" % tmpfile),
-            nbv.new_code_cell("print(structure)"),
-            nbv.new_code_cell("print(structure.abi_string)"),
-            nbv.new_code_cell("structure"),
-            nbv.new_code_cell("print(structure.spget_summary())"),
-            nbv.new_code_cell("if structure.abi_spacegroup is not None: print(structure.abi_spacegroup)"),
-            nbv.new_code_cell("print(structure.hsym_kpoints)"),
-            nbv.new_code_cell("structure.plot_bz();"),
-            nbv.new_code_cell("#import panel as pn; pn.extension()\n#structure.get_panel()"),
-            nbv.new_code_cell("# sanitized = structure.abi_sanitize(); print(sanitized)"),
-            nbv.new_code_cell("# ase_atoms = structure.to_ase_atoms()"),
-            nbv.new_code_cell("# structure.plot_atoms();"),
-            nbv.new_code_cell("# jsmol_view = structure.get_jsmol_view(); jsmol_view"),
-            nbv.new_code_cell("# ngl_view = structure.get_ngl_view(); ngl_view"),
-            nbv.new_code_cell("# ctk_view = structure.get_crystaltk_view(); ctk_view"),
-        ])
+        nb.cells.extend(
+            [
+                # nbv.new_markdown_cell("# This is a markdown cell"),
+                nbv.new_code_cell("structure = abilab.Structure.from_file('%s')" % tmpfile),
+                nbv.new_code_cell("print(structure)"),
+                nbv.new_code_cell("print(structure.abi_string)"),
+                nbv.new_code_cell("structure"),
+                nbv.new_code_cell("print(structure.spget_summary())"),
+                nbv.new_code_cell("if structure.abi_spacegroup is not None: print(structure.abi_spacegroup)"),
+                nbv.new_code_cell("print(structure.hsym_kpoints)"),
+                nbv.new_code_cell("structure.plot_bz();"),
+                nbv.new_code_cell("#import panel as pn; pn.extension()\n#structure.get_panel()"),
+                nbv.new_code_cell("# sanitized = structure.abi_sanitize(); print(sanitized)"),
+                nbv.new_code_cell("# ase_atoms = structure.to_ase_atoms()"),
+                nbv.new_code_cell("# structure.plot_atoms();"),
+                nbv.new_code_cell("# jsmol_view = structure.get_jsmol_view(); jsmol_view"),
+                nbv.new_code_cell("# ngl_view = structure.get_ngl_view(); ngl_view"),
+                nbv.new_code_cell("# ctk_view = structure.get_crystaltk_view(); ctk_view"),
+            ]
+        )
 
         return self._write_nb_nbpath(nb, nbpath)
 
 
-def dataframes_from_structures(struct_objects, index=None, symprec=1e-2, angle_tolerance=5,
-                               with_spglib=True, cart_coords=False):
+def dataframes_from_structures(
+    struct_objects, index=None, symprec=1e-2, angle_tolerance=5, with_spglib=True, cart_coords=False
+):
     """
     Build two pandas Dataframes_ with the most important geometrical parameters associated to
     a list of structures or a list of objects that can be converted into structures.
@@ -2766,11 +2905,12 @@ def dataframes_from_structures(struct_objects, index=None, symprec=1e-2, angle_t
     structures = [Structure.as_structure(obj) for obj in struct_objects]
     # Build Frame with lattice parameters.
     # Use OrderedDict to have columns ordered nicely.
-    odict_list = [(structure.get_dict4pandas(with_spglib=with_spglib, symprec=symprec,
-                                             angle_tolerance=angle_tolerance)) for structure in structures]
+    odict_list = [
+        (structure.get_dict4pandas(with_spglib=with_spglib, symprec=symprec, angle_tolerance=angle_tolerance))
+        for structure in structures
+    ]
 
-    lattice_frame = pd.DataFrame(odict_list, index=index,
-                                 columns=list(odict_list[0].keys()) if odict_list else None)
+    lattice_frame = pd.DataFrame(odict_list, index=index, columns=list(odict_list[0].keys()) if odict_list else None)
 
     # Build Frame with atomic positions.
     vtos = lambda v: "%+0.6f %+0.6f %+0.6f" % (v[0], v[1], v[2])
@@ -2782,8 +2922,7 @@ def dataframes_from_structures(struct_objects, index=None, symprec=1e-2, angle_t
         else:
             odict_list.append({i: (site.species_string, vtos(site.frac_coords)) for i, site in enumerate(structure)})
 
-    coords_frame = pd.DataFrame(odict_list, index=index,
-                                columns=list(range(max_numsite)) if odict_list else None)
+    coords_frame = pd.DataFrame(odict_list, index=index, columns=list(range(max_numsite)) if odict_list else None)
 
     return dict2namedtuple(lattice=lattice_frame, coords=coords_frame, structures=structures)
 
@@ -2803,6 +2942,7 @@ class StructureModifier:
            For example one can pass a length in Bohr that will be automatically
            converted into Angstrom before calling the pymatgen methods
     """
+
     def __init__(self, structure: Structure):
         """
         Args:
@@ -2891,8 +3031,9 @@ class StructureModifier:
 
     def frozen_2phonon(self, qpoint, displ1, displ2, eta=1, frac_coords=False, scale_matrix=None, max_supercell=None):
 
-        return self._original_structure.frozen_2phonon(qpoint, displ1, displ2, eta, frac_coords, scale_matrix,
-                                                       max_supercell)
+        return self._original_structure.frozen_2phonon(
+            qpoint, displ1, displ2, eta, frac_coords, scale_matrix, max_supercell
+        )
 
 
 def diff_structures(structures, fmt="cif", mode="table", headers=(), file=sys.stdout):
@@ -2912,14 +3053,17 @@ def diff_structures(structures, fmt="cif", mode="table", headers=(), file=sys.st
         from itertools import zip_longest  # Py3k
 
         from tabulate import tabulate
+
         table = [r for r in zip_longest(*outs, fillvalue=" ")]
         print(tabulate(table, headers=headers), file=file)
 
     elif mode == "diff":
         import difflib
+
         fromfile, tofile = "", ""
         for i in range(1, len(outs)):
-            if headers: fromfile, tofile = headers[0], headers[i]
+            if headers:
+                fromfile, tofile = headers[0], headers[i]
             diff = "\n".join(difflib.unified_diff(outs[0], outs[i], fromfile=fromfile, tofile=tofile))
             print(diff, file=file)
     else:
@@ -2965,10 +3109,10 @@ to build an appropriate supercell from partial occupancies or alternatively use 
     app("%endblock LatticeVectors")
 
     # Write atomic coordinates
-    #% block AtomicCoordinatesAndAtomicSpecies
-    #4.5000 5.0000 5.0000 1
-    #5.5000 5.0000 5.0000 1
-    #% endblock AtomicCoordinatesAndAtomicSpecies
+    # % block AtomicCoordinatesAndAtomicSpecies
+    # 4.5000 5.0000 5.0000 1
+    # 5.5000 5.0000 5.0000 1
+    # % endblock AtomicCoordinatesAndAtomicSpecies
     app("AtomicCoordinatesFormat Fractional")
     app("%block AtomicCoordinatesAndAtomicSpecies")
     for i, site in enumerate(structure):
@@ -2984,6 +3128,7 @@ class StructDiff:
     """
     Print difference among structures.
     """
+
     def __init__(self, labels: list[str], structures):
         """
         Args:
@@ -3029,8 +3174,8 @@ class StructDiff:
         Build dataframe with site positions.
         """
         # Handle possible rigid shift.
-        #shift_cart, shift_frac = np.zeros(3), np.zeros(3)
-        #if allow_rigid_shift:
+        # shift_cart, shift_frac = np.zeros(3), np.zeros(3)
+        # if allow_rigid_shift:
         #    site1, site2 = self.structs[0][0], self.structs[1][0]
         #    shift_cart = site2.coords - site1.coords
         #    shift_frac = site2.frac_coords - site1.frac_coords
@@ -3064,17 +3209,19 @@ class StructDiff:
         df = self.get_lattice_dataframe()
         print("\nLattice parameters (Ang units):", file=file)
         print(df.to_string(), file=file)
-        if only_lattice: return
+        if only_lattice:
+            return
 
         # Compare sites.
         natom = len(self.structs[0])
-        if any(len(s) != natom for s in self.structs): return
+        if any(len(s) != natom for s in self.structs):
+            return
         df = self.get_sites_dataframe(with_cart_coords=with_cart_coords)
 
         print("\nAtomic sites (Ang units):", file=file)
         print(df.to_string(), file=file)
         print(file=file)
 
-    #def diff(self, ref_label, with_cart_coords=False, file=sys.stdout) -> None:
+    # def diff(self, ref_label, with_cart_coords=False, file=sys.stdout) -> None:
     #    df = self.get_lattice_dataframe()
     #    df = self.get_sites_dataframe(with_cart_coords=with_cart_coords)

@@ -2,6 +2,7 @@
 Interface to the ABIWAN netcdf file produced by abinit when calling wannier90 in library mode.
 Inspired to the Fortran version of wannier90.
 """
+
 from __future__ import annotations
 
 import time
@@ -19,7 +20,7 @@ from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Header, Has_S
 from abipy.core.skw import ElectronInterpolator
 from abipy.core.structure import Structure
 from abipy.electrons.ebands import ElectronBands, ElectronBandsPlotter, ElectronsReader, RobotWithEbands
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_grid_legend  #, get_axarray_fig_plt
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_grid_legend  # , get_axarray_fig_plt
 from abipy.tools.typing import Figure
 
 
@@ -84,8 +85,8 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         """
         return self.r.read_value("lwindow_int").astype(bool)
 
-    #@cached_property
-    #def ndimwin(self):
+    # @cached_property
+    # def ndimwin(self):
     #    """
     #    [nsppol, nkpt] array giving the number of bands inside the outer window for each k-point and spin.
     #    """
@@ -94,7 +95,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
     @cached_property
     def have_disentangled_spin(self) -> np.ndarray:
         """[nsppol] bool array. Whether disentanglement has been performed."""
-        #return self.r.read_value("have_disentangled_spin").astype(bool)
+        # return self.r.read_value("have_disentangled_spin").astype(bool)
         # TODO: Exclude bands
         return self.nwan_spin != self.num_bands_spin
 
@@ -137,7 +138,8 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
 
     def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level verbose."""
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
 
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
@@ -149,17 +151,26 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         app(marquee("Wannier90 Results", mark="="))
 
         for spin in range(self.nsppol):
-            if self.nsppol == 2: app("For spin: %d" % spin)
-            app("No of Wannier functions: %d, No bands: %d, Number of k-point neighbours: %d" %
-                (self.nwan_spin[spin], self.num_bands_spin[spin], self.nntot))
-            app("Disentanglement: %s, exclude_bands: %s" %
-                (self.have_disentangled_spin[spin], "no" if np.all(self.bands_in[spin]) else "yes"))
+            if self.nsppol == 2:
+                app("For spin: %d" % spin)
+            app(
+                "No of Wannier functions: %d, No bands: %d, Number of k-point neighbours: %d"
+                % (self.nwan_spin[spin], self.num_bands_spin[spin], self.nntot)
+            )
+            app(
+                "Disentanglement: %s, exclude_bands: %s"
+                % (self.have_disentangled_spin[spin], "no" if np.all(self.bands_in[spin]) else "yes")
+            )
             app("")
             table = [["WF_index", "Center", "Spread"]]
             for iwan in range(self.nwan_spin[spin]):
-                table.append([iwan,
-                             "%s" % np.array2string(self.wann_centers[spin, iwan], precision=5),
-                             "%.3f" % self.wann_spreads[spin, iwan]])
+                table.append(
+                    [
+                        iwan,
+                        "%s" % np.array2string(self.wann_centers[spin, iwan], precision=5),
+                        "%.3f" % self.wann_spreads[spin, iwan],
+                    ]
+                )
             app(tabulate(table, tablefmt="plain"))
             app("")
 
@@ -167,7 +178,8 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
             app(marquee("Lwindow", mark="="))
             app("[nsppol, nkpt, max_num_bands] array. True if state lies within the outer window.\n")
             for spin in range(self.nsppol):
-                if self.nsppol == 2: app("For spin: %d" % spin)
+                if self.nsppol == 2:
+                    app("For spin: %d" % spin)
                 for ik in range(self.nkpt):
                     app("For ik: %d, %s" % (ik, self.lwindow[spin, ik]))
                 app("")
@@ -176,7 +188,8 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
             app(marquee("Bands_in", mark="="))
             app("[nsppol, mband] array. True if (spin, band) is included in the calculation. Set by exclude_bands.\n")
             for spin in range(self.nsppol):
-                if self.nsppol == 2: app("For spin: %d" % spin)
+                if self.nsppol == 2:
+                    app("For spin: %d" % spin)
                 app("%s" % str(self.bands_in[spin]))
                 app("")
 
@@ -217,8 +230,8 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         spin_rmn = [None] * self.nsppol
         spin_vmatrix = np.empty((self.nsppol, num_kpts), dtype=object)
 
-        #kptopt = self.read.read_value("kptopt")
-        #has_timrev =
+        # kptopt = self.read.read_value("kptopt")
+        # has_timrev =
 
         # Read unitary matrices from file.
         # Here be very careful with F --> C because we have to transpose.
@@ -254,10 +267,10 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
                     # TODO: Test if bands_in?
                     mask = self.lwindow[spin, ik]
                     hks = np.diag(eigs_k[mask])
-                    #v_matrix = u_matrix_opt[spin, ik][:num_wan, mask].transpose() @ uk
+                    # v_matrix = u_matrix_opt[spin, ik][:num_wan, mask].transpose() @ uk
                     v_matrix = np.matmul(u_matrix_opt[spin, ik][:num_wan, mask].transpose(), uk)
 
-                #HH_q[ik] = v_matrix.transpose().conjugate() @ hks @ v_matrix
+                # HH_q[ik] = v_matrix.transpose().conjugate() @ hks @ v_matrix
                 HH_q[ik] = np.matmul(v_matrix.transpose().conjugate(), np.matmul(hks, v_matrix))
                 spin_vmatrix[spin, ik] = v_matrix
 
@@ -266,17 +279,17 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
             rmn = np.zeros((nrpts, num_wan, num_wan), dtype=complex)
             j2pi = 2.0j * np.pi
 
-            #for ir in range(nrpts):
+            # for ir in range(nrpts):
             #   for ik, kfcs in enumerate(kfrac_coords):
             #      jqr = j2pi * np.dot(kfcs, self.irvec[ir])
             #      rmn[ir] += np.exp(-jqr) * HH_q[ik]
-            #rmn *= (1.0 / num_kpts)
+            # rmn *= (1.0 / num_kpts)
 
             for ik, kfcs in enumerate(kfrac_coords):
                 jqr = j2pi * np.dot(self.irvec, kfcs)
                 phases = np.exp(-jqr)
                 rmn += phases[:, None, None] * HH_q[ik]
-            rmn *= (1.0 / num_kpts)
+            rmn *= 1.0 / num_kpts
 
             # Save results
             spin_rmn[spin] = rmn
@@ -284,8 +297,9 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         print("HWanR built in %.3f (s)" % (time.time() - start))
         return HWanR(self.structure, self.nwan_spin, spin_vmatrix, spin_rmn, self.irvec, self.ndegen)
 
-    def interpolate_ebands(self, vertices_names=None, line_density=20,
-                           ngkpt=None, shiftk=(0, 0, 0), kpoints=None) -> ElectronBands:
+    def interpolate_ebands(
+        self, vertices_names=None, line_density=20, ngkpt=None, shiftk=(0, 0, 0), kpoints=None
+    ) -> ElectronBands:
         """
         Build new |ElectronBands| object by interpolating the KS Hamiltonian with Wannier functions.
         Supports k-path via (vertices_names, line_density), IBZ mesh defined by ngkpt and shiftk
@@ -329,22 +343,33 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
                 if num_wan < self.mwan:
                     # May have different number of wannier functions if nsppol == 2.
                     # Here I use the last value to fill eigens matrix (not very clean but oh well).
-                    eigens[spin, ik, num_wan:self.mwan] = oeigs[-1]
+                    eigens[spin, ik, num_wan : self.mwan] = oeigs[-1]
                     if write_warning:
-                        cprint("Different number wannier functions for spin. Filling last bands with oeigs[-1]",
-                               color="yellow")
+                        cprint(
+                            "Different number wannier functions for spin. Filling last bands with oeigs[-1]",
+                            color="yellow",
+                        )
                         write_warning = False
 
         print("Interpolation completed in %.3f [s]" % (time.time() - start))
         occfacts = np.zeros_like(eigens)
 
-        return ElectronBands(self.structure, kpoints, eigens, self.ebands.fermie,
-                             occfacts, self.ebands.nelect, self.nspinor, self.nspden,
-                             smearing=self.ebands.smearing)
+        return ElectronBands(
+            self.structure,
+            kpoints,
+            eigens,
+            self.ebands.fermie,
+            occfacts,
+            self.ebands.nelect,
+            self.nspinor,
+            self.nspden,
+            smearing=self.ebands.smearing,
+        )
 
     @add_fig_kwargs
-    def plot_with_ebands(self, ebands_kpath,
-                         ebands_kmesh=None, method="gaussian", step: float = 0.05, width: float = 0.1, **kwargs) -> Figure:
+    def plot_with_ebands(
+        self, ebands_kpath, ebands_kmesh=None, method="gaussian", step: float = 0.05, width: float = 0.1, **kwargs
+    ) -> Figure:
         """
         Receive an ab-initio electronic structure, interpolate the energies on the same list of k-points
         and compare the two band structures.
@@ -407,17 +432,19 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        nb.cells.extend([
-            nbv.new_code_cell("abiwan = abilab.abiopen('%s')" % self.filepath),
-            nbv.new_code_cell("print(abiwan.to_string(verbose=0))"),
-            nbv.new_code_cell("abiwan.ebands.plot();"),
-            nbv.new_code_cell("abiwan.ebands.kpoints.plot();"),
-            nbv.new_code_cell("abiwan.hwan.plot();"),
-            nbv.new_code_cell("ebands_kpath = abiwan.interpolate_ebands()"),
-            nbv.new_code_cell("ebands_kpath.plot();"),
-            nbv.new_code_cell("ebands_kmesh = abiwan.interpolate_ebands(ngkpt=[8, 8, 8])"),
-            nbv.new_code_cell("ebands_kpath.plot_with_edos(ebands_kmesh.get_edos());"),
-        ])
+        nb.cells.extend(
+            [
+                nbv.new_code_cell("abiwan = abilab.abiopen('%s')" % self.filepath),
+                nbv.new_code_cell("print(abiwan.to_string(verbose=0))"),
+                nbv.new_code_cell("abiwan.ebands.plot();"),
+                nbv.new_code_cell("abiwan.ebands.kpoints.plot();"),
+                nbv.new_code_cell("abiwan.hwan.plot();"),
+                nbv.new_code_cell("ebands_kpath = abiwan.interpolate_ebands()"),
+                nbv.new_code_cell("ebands_kpath.plot();"),
+                nbv.new_code_cell("ebands_kmesh = abiwan.interpolate_ebands(ngkpt=[8, 8, 8])"),
+                nbv.new_code_cell("ebands_kpath.plot_with_edos(ebands_kmesh.get_edos());"),
+            ]
+        )
 
         return self._write_nb_nbpath(nb, nbpath)
 
@@ -448,7 +475,7 @@ class HWanR(ElectronInterpolator):
         self.has_timrev = True
         self.verbose = 0
         self.nband = nwan_spin[0]
-        #self.nelect
+        # self.nelect
 
     def eval_sk(self, spin: int, kpt, der1=None, der2=None) -> np.ndarray:
         """
@@ -503,13 +530,18 @@ class HWanR(ElectronInterpolator):
             label = kwargs.get("label")
             if label is not None:
                 label = "spin: %d" % spin if self.nsppol == 2 else None
-            if label: with_legend = True
-            ax.plot(rvals, amax_r, marker=marker_spin[spin],
-                    lw=kwargs.get("lw", 2),
-                    color=kwargs.get("color", "k"),
-                    markeredgecolor="r",
-                    markerfacecolor="r",
-                    label=label)
+            if label:
+                with_legend = True
+            ax.plot(
+                rvals,
+                amax_r,
+                marker=marker_spin[spin],
+                lw=kwargs.get("lw", 2),
+                color=kwargs.get("color", "k"),
+                markeredgecolor="r",
+                markerfacecolor="r",
+                label=label,
+            )
 
             ax.set_yscale(yscale)
 
@@ -536,6 +568,7 @@ class AbiwanRobot(Robot, RobotWithEbands):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: AbiwanRobot
     """
+
     EXT = "ABIWAN"
 
     def get_dataframe(self, with_geo: bool = True, abspath: bool = False, funcs=None, **kwargs) -> pd.DataFrame:
@@ -554,12 +587,12 @@ class AbiwanRobot(Robot, RobotWithEbands):
         """
         # TODO
         # Add attributes specified by the users
-        #attrs = [
+        # attrs = [
         #    "energy", "pressure", "max_force",
         #    "ecut", "pawecutdg",
         #    "tsmear", "nkpt",
         #    "nsppol", "nspinor", "nspden",
-        #] + kwargs.pop("attrs", [])
+        # ] + kwargs.pop("attrs", [])
 
         rows, row_names = [], []
         for label, abiwan in self.items():
@@ -570,7 +603,7 @@ class AbiwanRobot(Robot, RobotWithEbands):
             if with_geo:
                 d.update(abiwan.structure.get_dict4pandas(with_spglib=True))
 
-            #for aname in attrs:
+            # for aname in attrs:
             #    if aname == "nkpt":
             #        value = len(abiwan.ebands.kpoints)
             #    else:
@@ -579,7 +612,8 @@ class AbiwanRobot(Robot, RobotWithEbands):
             #    d[aname] = value
 
             # Execute functions
-            if funcs is not None: d.update(self._exec_funcs(funcs, abiwan))
+            if funcs is not None:
+                d.update(self._exec_funcs(funcs, abiwan))
             rows.append(d)
 
         row_names = row_names if not abspath else self._to_relpaths(row_names)
@@ -602,8 +636,9 @@ class AbiwanRobot(Robot, RobotWithEbands):
 
         return fig
 
-    def get_interpolated_ebands_plotter(self, vertices_names=None, knames=None, line_density=20,
-                                        ngkpt=None, shiftk=(0, 0, 0), kpoints=None, **kwargs) -> ElectronBandsPlotter:
+    def get_interpolated_ebands_plotter(
+        self, vertices_names=None, knames=None, line_density=20, ngkpt=None, shiftk=(0, 0, 0), kpoints=None, **kwargs
+    ) -> ElectronBandsPlotter:
         """
         Args:
             vertices_names: Used to specify the k-path for the interpolated QP band structure
@@ -620,7 +655,8 @@ class AbiwanRobot(Robot, RobotWithEbands):
                 Has precedence over vertices_names and line_density.
         """
         diff_str = self.has_different_structures()
-        if diff_str: cprint(diff_str, color="yellow")
+        if diff_str:
+            cprint(diff_str, color="yellow")
 
         # Need KpointList object (assuming same structures in the Robot)
         nc0 = self.abifiles[0]
@@ -660,16 +696,18 @@ class AbiwanRobot(Robot, RobotWithEbands):
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
         args = [(l, f.filepath) for l, f in self.items()]
-        nb.cells.extend([
-            nbv.new_code_cell("robot = abilab.AbiwanRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-            nbv.new_code_cell("robot.get_dataframe()"),
-            nbv.new_code_cell("robot.plot_hwanr();"),
-            nbv.new_code_cell("ebands_plotter = robot.get_interpolated_ebands_plotter()"),
-            nbv.new_code_cell("ebands_plotter.ipw_select_plot()"),
-        ])
+        nb.cells.extend(
+            [
+                nbv.new_code_cell("robot = abilab.AbiwanRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+                nbv.new_code_cell("robot.get_dataframe()"),
+                nbv.new_code_cell("robot.plot_hwanr();"),
+                nbv.new_code_cell("ebands_plotter = robot.get_interpolated_ebands_plotter()"),
+                nbv.new_code_cell("ebands_plotter.ipw_select_plot()"),
+            ]
+        )
 
         # Mixins
-        #nb.cells.extend(self.get_baserobot_code_cells())
-        #nb.cells.extend(self.get_ebands_code_cells())wannier90.wout
+        # nb.cells.extend(self.get_baserobot_code_cells())
+        # nb.cells.extend(self.get_ebands_code_cells())wannier90.wout
 
         return self._write_nb_nbpath(nb, nbpath)

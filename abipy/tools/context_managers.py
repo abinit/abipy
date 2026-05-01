@@ -1,4 +1,5 @@
 """Context managers"""
+
 from __future__ import annotations
 
 import signal
@@ -21,6 +22,7 @@ class Timer:
         with Timer(header=f"Begin ABINIT", footer="ABINIT GS") as timer:
             do_stuff()
     """
+
     def __init__(self, footer=None, header=None, file=sys.stdout):
         self.header = header
         self.footer = footer

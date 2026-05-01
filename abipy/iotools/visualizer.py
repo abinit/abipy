@@ -1,4 +1,5 @@
 """Classes used to execute a visualizer within the Python interpreter."""
+
 from __future__ import annotations
 
 import abc
@@ -24,7 +25,8 @@ def find_loc(app_name: str) -> str:
     Returns the location of the application from its name. None if not found.
     """
     path = _find_loc(app_name)
-    if path is not None: return path
+    if path is not None:
+        return path
     path = _find_loc(app_name.upper())
     return path
 
@@ -32,7 +34,8 @@ def find_loc(app_name: str) -> str:
 def _find_loc(app_name: str) -> str:  # pragma: no cover
     # Try command line version
     path = which(app_name)
-    if path is not None: return path
+    if path is not None:
+        return path
 
     # Treat Mac OsX applications.
     if is_macosx():
@@ -73,6 +76,7 @@ class Visualizer(metaclass=abc.ABCMeta):
     """
     Handle the visualization of data.
     """
+
     # True if its a Mac OsX applications (default is unix executable).
     # If we have a Mac OsX application we have to run it with "open -a app_name --args"
     is_macosx_app = False
@@ -88,7 +92,11 @@ class Visualizer(metaclass=abc.ABCMeta):
 
     def __str__(self):
         return "%s: %s, is_macosx_app %s, filepath: %s" % (
-            self.__class__.__name__, self.binpath, self.is_macosx_app, self.filepath)
+            self.__class__.__name__,
+            self.binpath,
+            self.is_macosx_app,
+            self.filepath,
+        )
 
     def __call__(self) -> int:  # pragma: no cover
         """
@@ -97,8 +105,11 @@ class Visualizer(metaclass=abc.ABCMeta):
         Return: exit status of the subprocess.
         """
         from subprocess import call
+
         if not self.is_macosx_app:
-            cprint("Executing: binpath=%s, cmdarg=%s, filepath=%s" % (self.binpath, self.cmdarg, self.filepath), "yellow")
+            cprint(
+                "Executing: binpath=%s, cmdarg=%s, filepath=%s" % (self.binpath, self.cmdarg, self.filepath), "yellow"
+            )
             if self.binpath is None:
                 raise RuntimeError("binpath is None, please make sure that executable can be found in $PATH")
             return call([self.binpath, self.cmdarg, self.filepath])
@@ -113,7 +124,7 @@ class Visualizer(metaclass=abc.ABCMeta):
         """Arguments that must be used to visualize the file."""
         root, ext = os.path.splitext(self.filepath)
         ext = ext.replace(".", "")
-        #print(root, ext)
+        # print(root, ext)
         for e, args in self.EXTS:
             if e == ext:
                 return args
@@ -136,7 +147,8 @@ class Visualizer(metaclass=abc.ABCMeta):
         If ext is not None, only the visualizers supporting this extension are returned.
         """
         visus = [v for v in cls.__subclasses__() if v.is_available]
-        if ext is None: return visus
+        if ext is None:
+            return visus
         return [v for v in visus if v.support_ext(ext)]
 
     @classmethod
@@ -175,7 +187,8 @@ class Visualizer(metaclass=abc.ABCMeta):
     def from_name(cls, appname):
         """Return the visualizer class from the name of the application."""
         for visu in cls.__subclasses__():
-            if visu.name == appname: return visu
+            if visu.name == appname:
+                return visu
 
         raise cls.Error(f"{appname=} is not among the list of supported visualizers")
 
@@ -188,6 +201,7 @@ class Visualizer(metaclass=abc.ABCMeta):
 ####################
 # Concrete classes #
 ####################
+
 
 class Xcrysden(Visualizer):
     name = "xcrysden"
@@ -232,5 +246,5 @@ class Avogadro(Visualizer):
     name = "avogadro"
 
     EXTS = [
-       ("cif", ""),
+        ("cif", ""),
     ]

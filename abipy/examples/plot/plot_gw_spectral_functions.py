@@ -6,6 +6,7 @@ G0W0 spectral function
 This examples shows how to plot the G0W0 spectral functions A(w) at the gamma point.
 See also lesson tgw2_4
 """
+
 import abipy.data as abidata
 from abipy.abilab import abiopen
 

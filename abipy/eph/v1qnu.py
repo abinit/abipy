@@ -1,21 +1,21 @@
 """
 Object to plot DFPT potentials in the phonon mode representation.
 """
+
 from functools import cached_property
 
 import numpy as np
 from monty.string import marquee
 
-#from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
+# from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
 
-#from abipy.core.kpoints import Kpoint #KpointList,
-#from abipy.tools import duck
-from abipy.iotools import ETSF_Reader, xsf  #, cube Visualizer,
+# from abipy.core.kpoints import Kpoint #KpointList,
+# from abipy.tools import duck
+from abipy.iotools import ETSF_Reader, xsf  # , cube Visualizer,
 
 
 class V1qnuFile(AbinitNcFile, Has_Structure, NotebookWriter):
-
     def __init__(self, filepath):
         super().__init__(filepath)
         self.reader = r = ETSF_Reader(filepath)
@@ -44,7 +44,8 @@ class V1qnuFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     def to_string(self, verbose=0):
         """String representation."""
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
         app("")
@@ -55,11 +56,11 @@ class V1qnuFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
         return "\n".join(lines)
 
-    #@cached_property
-    #def qpoints(self):
+    # @cached_property
+    # def qpoints(self):
     #    return KpointList(self.structure.reciprocal_lattice, frac_coords=self.reader.read_value("qlist"))
 
-    #def _find_iqpt_qpoint(self, qpoint):
+    # def _find_iqpt_qpoint(self, qpoint):
     #    if duck.is_intlike(qpoint):
     #        iq = qpoint
     #        qpoint = self.qpoints[iq]
@@ -70,7 +71,7 @@ class V1qnuFile(AbinitNcFile, Has_Structure, NotebookWriter):
     #    return iq, qpoint
 
     def visualize_nu(self, nu, spin=0, appname="vesta"):
-        #iq, qpoint = self._find_iqpt_qpoint(qpoint)
+        # iq, qpoint = self._find_iqpt_qpoint(qpoint)
 
         def xsf_write(filename, datar):
             with open(filename, mode="w") as fh:
@@ -78,26 +79,27 @@ class V1qnuFile(AbinitNcFile, Has_Structure, NotebookWriter):
                 xsf.xsf_write_data(fh, self.structure, datar, add_replicas=True)
 
         from abipy.tools.numtools import transpose_last3dims
+
         wqnu = self.reader.read_variable("phfreqs")[nu]
 
         for vname in ("v1_qnu", "v1lr_qnu"):
             # Fortran array nctkarr_t("v1_qnu", "dp", "two, nfft, nspden, natom3")])
             datar = self.reader.read_variable(vname)[nu, spin]
             datar = datar[:, 0] + 1j * datar[:, 1]
-            #datar /= np.sqrt(2 * wqnu)
+            # datar /= np.sqrt(2 * wqnu)
             datar = transpose_last3dims(datar)
             datar = np.reshape(np.abs(datar), self.ngfft)
             xsf_write("%s.xsf" % vname, datar)
 
-        #visu = Visualizer.from_name(appname)
-        #ext = "xsf"
-        #if ext not in visu.supported_extensions():
+        # visu = Visualizer.from_name(appname)
+        # ext = "xsf"
+        # if ext not in visu.supported_extensions():
         #    raise ValueError("Visualizer %s does not support XSF files" % visu)
-        #from abipy.core.globals import abinb_mkstemp
-        #_, filename = abinb_mkstemp(suffix="." + ext, text=True)
+        # from abipy.core.globals import abinb_mkstemp
+        # _, filename = abinb_mkstemp(suffix="." + ext, text=True)
 
-    #@add_fig_kwargs
-    #def plot_v1qnu_vs_lr(self, ax=None, fontsize=8, **kwargs):
+    # @add_fig_kwargs
+    # def plot_v1qnu_vs_lr(self, ax=None, fontsize=8, **kwargs):
     #    """
     #    Plot the difference between the ab-initio v1_qnu and the potential obtained with Verdi's model
 
@@ -159,16 +161,19 @@ class V1qnuFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        nb.cells.extend([
-            nbv.new_code_cell("ncfile = abilab.abiopen('%s')" % self.filepath),
-            nbv.new_code_cell("print(ncfile)"),
-            nbv.new_code_cell("# ncfile.visualize_qpoint_nu(qpoint, nu, spin=0, appname='vesta'")
-        ])
+        nb.cells.extend(
+            [
+                nbv.new_code_cell("ncfile = abilab.abiopen('%s')" % self.filepath),
+                nbv.new_code_cell("print(ncfile)"),
+                nbv.new_code_cell("# ncfile.visualize_qpoint_nu(qpoint, nu, spin=0, appname='vesta'"),
+            ]
+        )
 
         return self._write_nb_nbpath(nb, nbpath)
 
 
 if __name__ == "__main__":
     import sys
+
     with V1qnuFile(sys.argv[1]) as ncfile:
         ncfile.visualize_nu(nu=5)

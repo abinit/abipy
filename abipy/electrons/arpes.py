@@ -1,13 +1,14 @@
 """
 Arpese Plotter (still under development)
 """
+
 import numpy as np
 from monty.collections import dict2namedtuple
 from scipy.interpolate import UnivariateSpline
 
 from abipy.core.mixins import Has_ElectronBands, Has_Structure, NotebookWriter
 from abipy.electrons import ElectronBands
-from abipy.tools.plotting import add_fig_kwargs, get_ax3d_fig_plt, get_ax_fig_plt, get_axarray_fig_plt  #set_axlims,
+from abipy.tools.plotting import add_fig_kwargs, get_ax3d_fig_plt, get_ax_fig_plt, get_axarray_fig_plt  # set_axlims,
 from abipy.tools.typing import Figure
 
 
@@ -27,9 +28,10 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
 
         aw = np.empty((ebands.nsppol, ebands.nkpt, ebands.mband, ntemp, nwr))
         aw_meshes = np.empty((ebands.nsppol, ebands.nkpt, ebands.mband, nwr))
-        #aw: [nwr, ntemp, max_nbcalc, nkcalc, nsppol] array
-        #aw_meshes: [max_nbcalc, nkcalc, nsppol] array with energy mesh in eV
+        # aw: [nwr, ntemp, max_nbcalc, nkcalc, nsppol] array
+        # aw_meshes: [max_nbcalc, nkcalc, nsppol] array with energy mesh in eV
         from abipy.tools.numtools import lorentzian
+
         try:
             from scipy.integrate import cumulative_trapezoid as cumtrapz
         except ImportError:
@@ -80,7 +82,7 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
         self.aw_meshes = aw_meshes
         self.tmesh = tmesh
         self.ntemp = len(tmesh)
-        #assert
+        # assert
 
         # Options passed to UnivariateSpline
         self.ext, self.k, self.s = "zeros", 3, 0
@@ -100,11 +102,12 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
 
     def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level `verbose`."""
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
         app(self.structure.to_string(verbose=verbose, title="Structure"))
         app(self.ebands.to_string(with_structure=False, verbose=verbose, title="Electronic Bands"))
 
-        #if verbose > 1:
+        # if verbose > 1:
         return "\n".join(lines)
 
     def with_points_along_path(self, frac_bounds=None, knames=None, dist_tol=1e-12):
@@ -118,12 +121,14 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
         """
         r = self.ebands.with_points_along_path(frac_bounds=frac_bounds, knames=knames, dist_tol=dist_tol)
         # Transfer data using r.ik_new2prev table.
-        return self.__class__(r.ebands,
-                              aw=self.aw[:, :, :, r.ik_new2prev, :].copy(),
-                              aw_meshes=self.aw_meshes[:, r.ik_new2prev, :].copy(),
-                              tmesh=self.tmesh)
+        return self.__class__(
+            r.ebands,
+            aw=self.aw[:, :, :, r.ik_new2prev, :].copy(),
+            aw_meshes=self.aw_meshes[:, r.ik_new2prev, :].copy(),
+            tmesh=self.tmesh,
+        )
 
-    #def interpolate(self):
+    # def interpolate(self):
     #    new_ebands = self.ebands.interpolate(lpratio=5, vertices_names=None, line_density=20,
     #                        kmesh=None, is_shift=None, filter_params=None, verbose=0)
 
@@ -156,7 +161,7 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
 
         emesh, emin, emax = self.get_emesh_eminmax(estep)
         nene = len(emesh)
-        #print("nkpt", nkpt, "nene", nene)
+        # print("nkpt", nkpt, "nene", nene)
         data = np.zeros((nkpt, nene))
 
         # aw: [nwr, ntemp, max_nbcalc, nkcalc, nsppol] array
@@ -173,7 +178,8 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
         ntemp, nene = len(temp_inds), len(wmesh)
         atw = np.zeros((ntemp, nene))
         for band in range(self.ebands.nband_sk[spin, ikpt]):
-            if band_inds is not None and band not in band_inds: continue
+            if band_inds is not None and band not in band_inds:
+                continue
             w = self.aw_meshes[spin, ikpt, band]
             for it, itemp in enumerate(temp_inds):
                 aw = self.aw[spin, ikpt, band, itemp]
@@ -182,8 +188,9 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
         return atw
 
     @add_fig_kwargs
-    def plot_ekmap_temps(self, temp_inds=None, spins=None, estep=0.02, with_colorbar=True,
-                        ylims=None, fontsize=8, **kwargs) -> Figure:
+    def plot_ekmap_temps(
+        self, temp_inds=None, spins=None, estep=0.02, with_colorbar=True, ylims=None, fontsize=8, **kwargs
+    ) -> Figure:
         """
         Plot (k, e) color maps for different temperatures.
 
@@ -199,22 +206,32 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
             ncols = 2
             nrows = (num_plots // ncols) + (num_plots % ncols)
 
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=True, squeeze=False)
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols, sharex=True, sharey=True, squeeze=False)
         ax_list = ax_list.ravel()
 
         # Don't show the last ax if numeb is odd.
-        if num_plots % ncols != 0: ax_list[-1].axis("off")
+        if num_plots % ncols != 0:
+            ax_list[-1].axis("off")
 
         for itemp, ax in zip(temp_inds, ax_list, strict=False):
-            self.plot_ekmap_itemp(itemp=itemp, spins=spins, estep=estep, ax=ax, ylims=ylims,
-                    with_colorbar=with_colorbar, show=False, **kwargs)
+            self.plot_ekmap_itemp(
+                itemp=itemp,
+                spins=spins,
+                estep=estep,
+                ax=ax,
+                ylims=ylims,
+                with_colorbar=with_colorbar,
+                show=False,
+                **kwargs,
+            )
             ax.set_title("T = %.1f K" % self.tmesh[itemp], fontsize=fontsize)
 
         return fig
 
     @add_fig_kwargs
-    def plot_ekmap_itemp(self, itemp=0, spins=None, estep=0.02, ax=None, ylims=None, with_colorbar=True, **kwargs) -> Figure:
+    def plot_ekmap_itemp(
+        self, itemp=0, spins=None, estep=0.02, ax=None, ylims=None, with_colorbar=True, **kwargs
+    ) -> Figure:
         """
         Plot (k, e) color map for given temperature.
 
@@ -236,44 +253,58 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
         a = self.get_data_nmtuple(itemp, estep, spins=spins)
 
         cmap = "jet"
-        img = ax.imshow(a.data.T, origin="lower", extent=[0, a.nkpt, a.emin, a.emax],
-                  cmap=cmap,
-                  interpolation="bilinear",
-                  #interpolation="spline36",
-                  #interpolation="bicubic",
-                  #vmin=0, vmax=np.abs(data).max()
-                  )
+        img = ax.imshow(
+            a.data.T,
+            origin="lower",
+            extent=[0, a.nkpt, a.emin, a.emax],
+            cmap=cmap,
+            interpolation="bilinear",
+            # interpolation="spline36",
+            # interpolation="bicubic",
+            # vmin=0, vmax=np.abs(data).max()
+        )
         self.ebands.plot(ax=ax, e0=0, show=False, color="w", lw=1, ls="--")
 
-        #ax.set_zlabel(r"$A(\omega)$")
-        #self.ebands.plot(ax=ax, e0=0, color="r", lw=1)
-        #ax.imshow(data, cmap=None, norm=None, aspect=None, interpolation=None, alpha=None, vmin=None, vmax=None,
+        # ax.set_zlabel(r"$A(\omega)$")
+        # self.ebands.plot(ax=ax, e0=0, color="r", lw=1)
+        # ax.imshow(data, cmap=None, norm=None, aspect=None, interpolation=None, alpha=None, vmin=None, vmax=None,
         #       origin=None, extent=None, shape=None, filternorm=1, filterrad=4.0, imlim=None, resample=None,
         #       url=None, hold=None, data=None, **kwargs)
 
         if with_colorbar:
             # Make a color bar
-            #plt.colorbar(img, cmap=cmap)
+            # plt.colorbar(img, cmap=cmap)
             # https://stackoverflow.com/questions/13310594/positioning-the-colorbar
             from mpl_toolkits.axes_grid1 import make_axes_locatable
+
             divider = make_axes_locatable(ax)
-            #cax = divider.new_vertical(size="5%", pad=0.1, pack_start=True)
-            #cax = divider.new_horizontal(size="5%", pad=0.1, pack_start=True)
+            # cax = divider.new_vertical(size="5%", pad=0.1, pack_start=True)
+            # cax = divider.new_horizontal(size="5%", pad=0.1, pack_start=True)
 
             # create an axes on the right side of ax. The width of cax will be 5%
             # of ax and the padding between cax and ax will be fixed at 0.05 inch.
             # https://matplotlib.org/2.0.2/mpl_toolkits/axes_grid/users/overview.html#axesdivider
             cax = divider.append_axes("right", size="5%", pad=0.05)
 
-            #fig.add_axes(cax)
-            #fig.colorbar(img, cax=cax, ax=ax, orientation="horizontal")
+            # fig.add_axes(cax)
+            # fig.colorbar(img, cax=cax, ax=ax, orientation="horizontal")
             fig.colorbar(img, cax=cax, ax=ax)
 
         return fig
 
     @add_fig_kwargs
-    def plot_ak_vs_temp(self, temp_inds=None, spins=None, band_inds=None, kpt_inds=None,
-                        apad=1.0, estep=0.02, colormap="jet", fontsize=8, **kwargs) -> Figure:
+    def plot_ak_vs_temp(
+        self,
+        temp_inds=None,
+        spins=None,
+        band_inds=None,
+        kpt_inds=None,
+        apad=1.0,
+        estep=0.02,
+        colormap="jet",
+        fontsize=8,
+        **kwargs,
+    ) -> Figure:
         """
 
         Args:
@@ -302,8 +333,7 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
             nrows = (num_plots // ncols) + (num_plots % ncols)
 
         # Build plot grid.
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=True, squeeze=False)
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols, sharex=True, sharey=True, squeeze=False)
         ax_list = np.array(ax_list).ravel()
         cmap = plt.get_cmap(colormap)
 
@@ -314,8 +344,14 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
                 atw = self.get_atw(xs, spin, ikpt, band_inds, temp_inds)
                 for it, itemp in enumerate(temp_inds):
                     ys = spin_sign * atw[it] + (it * apad)
-                    ax.plot(xs, ys, lw=2, alpha=0.8, color=cmap(float(it) / ntemp),
-                            label="T = %.1f K" % self.tmesh[itemp] if (ik, isp) == (0, 0) else None)
+                    ax.plot(
+                        xs,
+                        ys,
+                        lw=2,
+                        alpha=0.8,
+                        color=cmap(float(it) / ntemp),
+                        label="T = %.1f K" % self.tmesh[itemp] if (ik, isp) == (0, 0) else None,
+                    )
 
                 if spin == 0:
                     kpt = self.ebands.kpoints[ikpt]
@@ -326,8 +362,8 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
 
         return fig
 
-    #@add_fig_kwargs
-    #def plot_ak(self, temp_inds=None, spins=None, band_inds=None, kpt_inds=None,
+    # @add_fig_kwargs
+    # def plot_ak(self, temp_inds=None, spins=None, band_inds=None, kpt_inds=None,
     #           apad=1.0, estep=0.02, colormap="jet", fontsize=8, **kwargs):
     #    """
 
@@ -400,28 +436,29 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
                 ys = np.ones(nene) * ik
                 zs = np.zeros(nene)
                 for band in range(self.ebands.nband_sk[spin, ik]):
-                    if band_inds is not None and band not in band_inds: continue
+                    if band_inds is not None and band not in band_inds:
+                        continue
                     w = self.aw_meshes[spin, ik, band]
                     aw = self.aw[spin, ik, band, itemp]
                     zs += UnivariateSpline(w, aw, k=self.k, s=self.s, ext=self.ext)(xs)
 
-                ax.plot(ys, xs, zs, color="k", lw=1, alpha=0.8) #cmap(float(ik) / nkpt))
+                ax.plot(ys, xs, zs, color="k", lw=1, alpha=0.8)  # cmap(float(ik) / nkpt))
 
                 # Code to convert data in 3D polygons
                 # See https://stackoverflow.com/questions/33641551/vertically-fill-3d-matplotlib-plot
-                #h = 0.0
-                #from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-                #xs = xs.copy()
-                #ys = xs.copy()
-                #zs = zs.copy()
-                #v = []
-                #for k in range(0, len(xs) - 1):
+                # h = 0.0
+                # from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+                # xs = xs.copy()
+                # ys = xs.copy()
+                # zs = zs.copy()
+                # v = []
+                # for k in range(0, len(xs) - 1):
                 #    x = [xs[k], xs[k+1], xs[k+1], xs[k]]
                 #    y = [ys[k], ys[k+1], ys[k+1], ys[k]]
                 #    z = [zs[k], zs[k+1],       h,     h]
                 #    v.append(list(zip(x, y, z)))
-                #poly3dCollection = Poly3DCollection(v)
-                #ax.add_collection3d(poly3dCollection)
+                # poly3dCollection = Poly3DCollection(v)
+                # ax.add_collection3d(poly3dCollection)
 
         ax.set_zlabel(r"$A(\omega)$")
         self.ebands.plot(ax=ax, e0=0, color="r", lw=1)
@@ -451,12 +488,12 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
         # Plot the surface.
         xs, ys = np.meshgrid(xs, ys)
 
-        #surf = ax.plot_surface(ys, xs, zs,
+        # surf = ax.plot_surface(ys, xs, zs,
         #                       rstride=1, cstride=1,
         #                       linewidth=0, antialiased=True,
         #                       #cmap=cmap,
         #                       )
-        #cb = fig.colorbar(surf, shrink=0.5)
+        # cb = fig.colorbar(surf, shrink=0.5)
 
         ax.plot_wireframe(ys, xs, zs, rstride=1, cstride=5)
 
@@ -471,8 +508,8 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
         """
         yield None
         # TODO
-        #yield self.combiplot(show=False)
-        #yield self.gridplot(show=False)
+        # yield self.combiplot(show=False)
+        # yield self.gridplot(show=False)
 
     def write_notebook(self, nbpath=None):
         """
@@ -485,22 +522,25 @@ class ArpesPlotter(Has_Structure, Has_ElectronBands, NotebookWriter):
         tmpfile = self.pickle_dump()
 
         # TODO
-        nb.cells.extend([
-            nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("plotter = abilab.ArpesPlotter.pickle_load('%s')" % tmpfile),
-            nbv.new_code_cell("print(plotter)"),
-        ])
+        nb.cells.extend(
+            [
+                nbv.new_markdown_cell("# This is a markdown cell"),
+                nbv.new_code_cell("plotter = abilab.ArpesPlotter.pickle_load('%s')" % tmpfile),
+                nbv.new_code_cell("print(plotter)"),
+            ]
+        )
 
         return self._write_nb_nbpath(nb, nbpath)
 
 
 if __name__ == "__main__":
     import sys
-    plotter = ArpesPlotter.model_from_ebands(sys.argv[1]) #, aw, aw_meshes, tmesh)
+
+    plotter = ArpesPlotter.model_from_ebands(sys.argv[1])  # , aw, aw_meshes, tmesh)
     print(plotter.to_string(verbose=2))
-    #plotter.plot_ekmap_itemp(itemp=0, estep=0.05, with_colorbar=True)
+    # plotter.plot_ekmap_itemp(itemp=0, estep=0.05, with_colorbar=True)
     plotter.plot_ekmap_temps(estep=0.05, with_colorbar=True)
-    #plotter.plot_3dlines(itemp=0, estep=0.05, band_inds=[1, 2, 3])
-    #plotter.plot_ak()
-    #plotter.plot_ak_vs_temp()
-    #plotter.plot_surface(istep=0, estep=0.05)
+    # plotter.plot_3dlines(itemp=0, estep=0.05, band_inds=[1, 2, 3])
+    # plotter.plot_ak()
+    # plotter.plot_ak_vs_temp()
+    # plotter.plot_surface(istep=0, estep=0.05)

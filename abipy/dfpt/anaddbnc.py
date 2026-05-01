@@ -1,6 +1,7 @@
 """
 AnaddbNcFile provides a high-level interface to the data stored in the anaddb.nc file.
 """
+
 from __future__ import annotations
 
 from collections import OrderedDict
@@ -67,12 +68,14 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     @cached_property
     def params(self):
         # -666 to support old anaddb.nc files without metadata
-        return OrderedDict([
-            ("asr", int(self.r.read_value("asr", default=-666))),
-            ("chneut", int(self.r.read_value("chneut", default=-666))),
-            ("dipdip", int(self.r.read_value("dipdip", default=-666))),
-            ("symdynmat", int(self.r.read_value("symdynmat", default=-666))),
-        ])
+        return OrderedDict(
+            [
+                ("asr", int(self.r.read_value("asr", default=-666))),
+                ("chneut", int(self.r.read_value("chneut", default=-666))),
+                ("dipdip", int(self.r.read_value("dipdip", default=-666))),
+                ("symdynmat", int(self.r.read_value("symdynmat", default=-666))),
+            ]
+        )
 
     def __str__(self) -> str:
         return self.to_string()
@@ -84,7 +87,8 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         Args:
             verbose: verbosity level.
         """
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
 
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
@@ -92,6 +96,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         app(self.structure.to_string(verbose=verbose, title="Structure"))
 
         import json
+
         app(marquee("Parameters", mark="="))
         app(json.dumps(self.params, indent=2, sort_keys=True))
         app("")
@@ -133,7 +138,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             app(str(self.dchidt))
             app("")
 
-        #if self.has_piezoelectric_data:
+        # if self.has_piezoelectric_data:
         #    df = self.elastic_data.get_piezoelectric_dataframe()
 
         return "\n".join(lines)
@@ -147,7 +152,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         try:
             return DielectricTensor(self.r.read_value("emacro_cart").T.copy())
         except Exception:
-            #print(exc, "Returning None", sep="\n")
+            # print(exc, "Returning None", sep="\n")
             return None
 
     @cached_property
@@ -159,7 +164,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         try:
             return DielectricTensor(self.r.read_value("emacro_cart_rlx").T.copy())
         except Exception:
-            #print(exc, "Requires dieflag > 0", "Returning None", sep="\n")
+            # print(exc, "Requires dieflag > 0", "Returning None", sep="\n")
             return None
 
     @cached_property
@@ -181,7 +186,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             quad_cart = np.swapaxes(quad_cart, -1, -2)
             return DynQuad(quad_cart, self.structure, self.params)
         except Exception:
-            #print(exc)
+            # print(exc)
             return None
 
     @cached_property
@@ -206,7 +211,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         try:
             return NLOpticalSusceptibilityTensor(self.r.read_value("dchide"))
         except Exception:
-            #print(exc, "Requires nlflag > 0", "Returning None", sep="\n")
+            # print(exc, "Requires nlflag > 0", "Returning None", sep="\n")
             return None
 
     @cached_property
@@ -221,7 +226,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         try:
             a = self.r.read_value("dchidt").T.copy()
         except Exception:
-            #print(exc, "Requires 0 < nlflag < 3", "Returning None", sep="\n")
+            # print(exc, "Requires 0 < nlflag < 3", "Returning None", sep="\n")
             return None
 
         dchidt = []
@@ -245,7 +250,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
             carr = carr.transpose((0, 2, 1)).copy()
             return carr
         except Exception:
-            #print(exc, "Oscillator strengths require dieflag == 1, 3 or 4", "Returning None", sep="\n")
+            # print(exc, "Oscillator strengths require dieflag == 1, 3 or 4", "Returning None", sep="\n")
             return None
 
     @cached_property
@@ -294,10 +299,12 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        nb.cells.extend([
-            nbv.new_code_cell("ananc = abilab.abiopen('%s')" % self.filepath),
-            nbv.new_code_cell("print(ananc)"),
-        ])
+        nb.cells.extend(
+            [
+                nbv.new_code_cell("ananc = abilab.abiopen('%s')" % self.filepath),
+                nbv.new_code_cell("print(ananc)"),
+            ]
+        )
 
         return self._write_nb_nbpath(nb, nbpath)
 
@@ -309,6 +316,7 @@ class AnaddbNcRobot(Robot):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: AnaddbNcRobot
     """
+
     EXT = "anaddb"
 
     @property
@@ -320,8 +328,9 @@ class AnaddbNcRobot(Robot):
             return self.get_elastic_dataframe()
         return None
 
-    def get_elastic_dataframe(self, with_geo=True, abspath=False, with_params=False,
-                              funcs=None, **kwargs) -> pd.DataFrame:
+    def get_elastic_dataframe(
+        self, with_geo=True, abspath=False, with_params=False, funcs=None, **kwargs
+    ) -> pd.DataFrame:
         """
         Return a |pandas-DataFrame| with properties derived from the elastic tensor
         and an associated structure. Filename is used as index.
@@ -339,10 +348,13 @@ class AnaddbNcRobot(Robot):
                 where key is a string with the name of column and value is the value to be inserted.
         """
         # Add attributes specified by the users
-        attrs = [
-            #"energy", "pressure", "max_force",
-            #"nsppol", "nspinor", "nspden",
-        ] + kwargs.pop("attrs", [])
+        attrs = (
+            [
+                # "energy", "pressure", "max_force",
+                # "nsppol", "nspinor", "nspden",
+            ]
+            + kwargs.pop("attrs", [])
+        )
 
         rows, index = [], []
         for label, ncfile in self.items():
@@ -357,7 +369,8 @@ class AnaddbNcRobot(Robot):
                 d.update(self.params)
 
             # Execute functions
-            if funcs is not None: d.update(self._exec_funcs(funcs, ncfile))
+            if funcs is not None:
+                d.update(self._exec_funcs(funcs, ncfile))
 
             df = ncfile.elastic_data.get_elast_properties_dataframe(etypes="elastic_relaxed")
             d.update(df.to_dict("records")[0])
@@ -376,6 +389,7 @@ class AnaddbNcRobot(Robot):
         """
         df = self.get_elastic_dataframe(with_geo=False, abspath=False, with_params=False)
         from pandas.api.types import is_numeric_dtype
+
         keys = [k for k in df.keys() if is_numeric_dtype(df[k])]
         i = keys.index("fitted_to_structure")
         if i != -1:
@@ -386,8 +400,9 @@ class AnaddbNcRobot(Robot):
             ncols = 3
             nrows = (num_plots // ncols) + (num_plots % ncols)
 
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=False, sharey=False, squeeze=False)
+        ax_list, fig, plt = get_axarray_fig_plt(
+            None, nrows=nrows, ncols=ncols, sharex=False, sharey=False, squeeze=False
+        )
         ax_list = ax_list.ravel()
 
         for ix, (key, ax) in enumerate(zip(keys, ax_list, strict=False)):
@@ -408,7 +423,7 @@ class AnaddbNcRobot(Robot):
 
         return fig
 
-    #def get_voigt_dataframe(self, tensor_names):
+    # def get_voigt_dataframe(self, tensor_names):
     #    ncfile.get_voigt_dataframe(self, tensor_names):
 
     def yield_figs(self, **kwargs):  # pragma: no cover
@@ -429,11 +444,13 @@ class AnaddbNcRobot(Robot):
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
         args = [(l, f.filepath) for l, f in self.items()]
-        nb.cells.extend([
-            #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("robot = abilab.AnaddbNcRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-            #nbv.new_code_cell("df = ebands_plotter.get_ebands_frame()\ndisplay(df)"),
-        ])
+        nb.cells.extend(
+            [
+                # nbv.new_markdown_cell("# This is a markdown cell"),
+                nbv.new_code_cell("robot = abilab.AnaddbNcRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+                # nbv.new_code_cell("df = ebands_plotter.get_ebands_frame()\ndisplay(df)"),
+            ]
+        )
 
         # Mixins
         nb.cells.extend(self.get_baserobot_code_cells())

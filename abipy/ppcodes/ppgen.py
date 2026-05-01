@@ -1,4 +1,5 @@
 """Interface for pseudopotential generators."""
+
 from __future__ import annotations
 
 import abc
@@ -20,19 +21,22 @@ logger = logging.getLogger(__name__)
 
 # Possible status of the PseudoGenerator.
 
-_STATUS2STR = collections.OrderedDict([
-    (1, "Initialized"),    # PseudoGenerator has been initialized
-    (2, "Running"),        # PseudoGenerator is running.
-    (3, "Done"),           # Calculation done, This does not imply that results are OK
-    (4, "Error"),          # PP generator error.
-    (5, "Completed"),      # Execution completed successfully.
-])
+_STATUS2STR = collections.OrderedDict(
+    [
+        (1, "Initialized"),  # PseudoGenerator has been initialized
+        (2, "Running"),  # PseudoGenerator is running.
+        (3, "Done"),  # Calculation done, This does not imply that results are OK
+        (4, "Error"),  # PP generator error.
+        (5, "Completed"),  # Execution completed successfully.
+    ]
+)
 
 
 class Status(int):
     """
     An integer representing the status of the 'PseudoGenerator`.
     """
+
     def __repr__(self) -> str:
         return "<%s: %s, at %s>" % (self.__class__.__name__, str(self), id(self))
 
@@ -155,8 +159,8 @@ class _PseudoGenerator(metaclass=abc.ABCMeta):
     def parser(self):
         return self._parser
 
-    #@property
-    #def pseudo(self) -> Pseudo | None:
+    # @property
+    # def pseudo(self) -> Pseudo | None:
     #    """Pseudo object or None if not available"""
     #    try:
     #        return self._pseudo
@@ -174,7 +178,7 @@ class _PseudoGenerator(metaclass=abc.ABCMeta):
         return self._input_str
 
     def start(self) -> int:
-        """"
+        """ "
         Run the calculation in a subprocess (non-blocking interface)
         Return 1 if calculation started, 0 otherwise.
         """
@@ -189,6 +193,7 @@ class _PseudoGenerator(metaclass=abc.ABCMeta):
         self.cmd_str = " ".join(args)
 
         from subprocess import PIPE, Popen
+
         self.process = Popen(self.cmd_str, shell=True, stdout=PIPE, stderr=PIPE, cwd=self.workdir)
         self.set_status(self.S_RUN, info_msg="Start on %s" % time.asctime)
 
@@ -274,8 +279,8 @@ class _PseudoGenerator(metaclass=abc.ABCMeta):
 
     ### ABC PROTOCOL ###
 
-    #@abc.abstractproperty
-    #def parser(self):
+    # @abc.abstractproperty
+    # def parser(self):
     #    return _
 
     @abc.abstractmethod
@@ -285,8 +290,9 @@ class _PseudoGenerator(metaclass=abc.ABCMeta):
         error files produced by the application
         """
 
-#import enum
-#class CalcType(enum.Enum):
+
+# import enum
+# class CalcType(enum.Enum):
 #    nor = "non-relativistic"
 #    sr = "scalar-relativistic"
 #    fr = "fully-relativistic"

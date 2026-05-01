@@ -1,6 +1,7 @@
 """
 Tools used to parallelize sections of python code with multiprocessing or threads.
 """
+
 from __future__ import annotations
 
 import os
@@ -44,6 +45,7 @@ def pool_nprocs_pmode(nprocs: int | None, pmode: str):
     """
     from multiprocessing import Pool
     from multiprocessing.pool import ThreadPool
+
     max_nprocs = get_max_nprocs()
 
     if pmode == "seq":
@@ -64,7 +66,8 @@ def pool_nprocs_pmode(nprocs: int | None, pmode: str):
     else:
         raise ValueError(f"Invalid value of {pmode=}, it should be in ['seq', 'threads', 'processes']")
 
-    return dict2namedtuple(nprocs=nprocs or max_nprocs,
-                           pool_cls=pool_cls,
-                           using_msg=f"using {nprocs=} with {pmode=} and Pool class: {pool_cls.__name__} ...",
-                           )
+    return dict2namedtuple(
+        nprocs=nprocs or max_nprocs,
+        pool_cls=pool_cls,
+        using_msg=f"using {nprocs=} with {pmode=} and Pool class: {pool_cls.__name__} ...",
+    )

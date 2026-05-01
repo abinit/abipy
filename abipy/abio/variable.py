@@ -1,4 +1,5 @@
 """Support for Abinit input variables."""
+
 from __future__ import annotations
 
 import collections
@@ -32,6 +33,7 @@ class InputVariable:
     """
     An Abinit input variable.
     """
+
     def __init__(self, name: str, value: Any, units="", valperline: int = 3):
         """
         Args:
@@ -49,7 +51,7 @@ class InputVariable:
         if name in ["bdgw"]:
             self.valperline = 2
 
-        if (is_iter(self.value) and isinstance(self.value[-1], str) and self.value[-1] in _UNITS):
+        if is_iter(self.value) and isinstance(self.value[-1], str) and self.value[-1] in _UNITS:
             self.value = list(self.value)
             self._units = self.value.pop(-1)
 
@@ -95,7 +97,7 @@ class InputVariable:
         # For some inputs, enforce number of decimal points...
         if any(inp in var for inp in ("xred", "xcart", "rprim", "qpt", "kpt")):
             floatdecimal = 16
-            #floatdecimal = 32
+            # floatdecimal = 32
 
         if var == "qpt":
             floatdecimal = 22
@@ -113,7 +115,6 @@ class InputVariable:
 
         # values in lists
         if isinstance(value, (list, tuple)):
-
             # Reshape a list of lists into a single list
             if all(isinstance(v, (list, tuple)) for v in value):
                 line += self.format_list2d(value, floatdecimal)
@@ -151,14 +152,14 @@ class InputVariable:
             form = "e"
             addlen = 8
 
-        ndec = max(len(str(fval-int(fval)))-2, floatdecimal)
+        ndec = max(len(str(fval - int(fval))) - 2, floatdecimal)
 
         if floatdecimal > 16:
-            ndec = max(floatdecimal,ndec)
+            ndec = max(floatdecimal, ndec)
         else:
             ndec = min(ndec, 10)
 
-        sval = "{v:>{l}.{p}{f}}".format(v=fval, l=ndec+addlen, p=ndec, f=form)
+        sval = "{v:>{l}.{p}{f}}".format(v=fval, l=ndec + addlen, p=ndec, f=form)
 
         sval = sval.replace("e", "d")
 
@@ -189,13 +190,13 @@ class InputVariable:
             formatspec = f">{width}"
         else:
             # Number of decimal
-            maxdec = max(len(str(f-int(f)))-2 for f in lvals)
+            maxdec = max(len(str(f - int(f))) - 2 for f in lvals)
             ndec = min(max(maxdec, floatdecimal), 10)
 
             if all(f == 0 or (abs(f) > 1e-3 and abs(f) < 1e4) for f in lvals):
-                formatspec = f">{ndec+5}.{ndec}f"
+                formatspec = f">{ndec + 5}.{ndec}f"
             else:
-                formatspec = f">{ndec+8}.{ndec}e"
+                formatspec = f">{ndec + 8}.{ndec}e"
 
         line = "\n"
         for L in values:
@@ -215,7 +216,7 @@ class InputVariable:
         # Format the line declaring the value
         for i, val in enumerate(values):
             line += " " + self.format_scalar(val, floatdecimal)
-            if self.valperline is not None and (i+1) % self.valperline == 0:
+            if self.valperline is not None and (i + 1) % self.valperline == 0:
                 line += "\n"
 
         # Add a carriage return in case of several lines
@@ -242,8 +243,7 @@ def flatten(iterable):
                 return tuple(array)
             iterator = stack.pop()
         else:
-            if not isinstance(value, str) \
-               and isinstance(value, collections.abc.Iterable):
+            if not isinstance(value, str) and isinstance(value, collections.abc.Iterable):
                 stack.append(iterator)
                 iterator = iter(value)
             else:

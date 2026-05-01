@@ -16,7 +16,7 @@ with abilab.abiopen(abidata.ref_file("h6_FOLD2BLOCH.nc")) as ncfile:
     ncfile.ebands.plot(title="Folded bands")
 
     # Plot unfolded bands along the path defined by kbounds.
-    kbounds = [0, 1/2, 0, 0, 0, 0, 0, 0, 1/2]
+    kbounds = [0, 1 / 2, 0, 0, 0, 0, 0, 0, 1 / 2]
     klabels = ["Y", r"$\Gamma$", "X"]
     # sphinx_gallery_thumbnail_number = 2
     ncfile.plot_unfolded(kbounds, klabels, title="Unfolded bands")

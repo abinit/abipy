@@ -1,6 +1,7 @@
 """
 This module gathers the most important classes and helper functions used for scripting.
 """
+
 import sys
 import os
 import collections
@@ -19,6 +20,7 @@ from monty.termcolor import cprint
 #######################
 # Tools for unit conversion
 import pymatgen.core.units as units
+
 FloatWithUnit = units.FloatWithUnit
 ArrayWithUnit = units.ArrayWithUnit
 
@@ -28,8 +30,16 @@ ArrayWithUnit = units.ArrayWithUnit
 from abipy.flowtk import Pseudo, PseudoTable, Mrgscr, Mrgddb, Flow, Work, TaskManager, AbinitBuild, flow_main
 from abipy.core.release import __version__, min_abinit_version
 from abipy.core.globals import enable_notebook, in_notebook, disable_notebook
-from abipy.core.structure import (Lattice, Structure, StructureModifier, dataframes_from_structures,
-  mp_match_structure, mp_search, cod_search, display_structure)
+from abipy.core.structure import (
+    Lattice,
+    Structure,
+    StructureModifier,
+    dataframes_from_structures,
+    mp_match_structure,
+    mp_search,
+    cod_search,
+    display_structure,
+)
 from abipy.core.mixins import TextFile, JsonFile, CubeFile
 from abipy.core.func1d import Function1D
 from abipy.core.kpoints import set_atol_kdiff
@@ -41,8 +51,14 @@ from abipy.tools.printing import print_dataframe
 from abipy.tools.notebooks import print_source, print_doc
 from abipy.tools.serialization import mjson_load, mjson_loads, mjson_write
 from abipy.abio.factories import *
-from abipy.electrons.ebands import (ElectronBands, ElectronBandsPlotter, ElectronDos, ElectronDosPlotter,
-    dataframe_from_ebands, EdosFile)
+from abipy.electrons.ebands import (
+    ElectronBands,
+    ElectronBandsPlotter,
+    ElectronDos,
+    ElectronDosPlotter,
+    dataframe_from_ebands,
+    EdosFile,
+)
 from abipy.electrons.gsr import GsrFile, GsrRobot
 from abipy.electrons.eskw import EskwFile
 from abipy.electrons.psps import PspsFile, PspsRobot
@@ -51,13 +67,28 @@ from abipy.electrons.gwr import GwrFile
 from abipy.electrons.bse import MdfFile, MdfRobot
 from abipy.electrons.scissors import ScissorsBuilder
 from abipy.electrons.scr import ScrFile
-from abipy.electrons.denpot import (DensityNcFile, VhartreeNcFile, VxcNcFile, VhxcNcFile, PotNcFile,
-    DensityFortranFile, Cut3dDenPotNcFile)
+from abipy.electrons.denpot import (
+    DensityNcFile,
+    VhartreeNcFile,
+    VxcNcFile,
+    VhxcNcFile,
+    PotNcFile,
+    DensityFortranFile,
+    Cut3dDenPotNcFile,
+)
 from abipy.electrons.fatbands import FatBandsFile
 from abipy.electrons.optic import OpticNcFile, OpticRobot
 from abipy.electrons.fold2bloch import Fold2BlochNcfile
-from abipy.dfpt.phonons import (PhbstFile, PhbstRobot, PhononBands, PhononBandsPlotter, PhdosFile, PhononDosPlotter,
-    PhdosReader, phbands_gridplot)
+from abipy.dfpt.phonons import (
+    PhbstFile,
+    PhbstRobot,
+    PhononBands,
+    PhononBandsPlotter,
+    PhdosFile,
+    PhononDosPlotter,
+    PhdosReader,
+    phbands_gridplot,
+)
 from abipy.dfpt.ddb import DdbFile, DdbRobot
 from abipy.dfpt.anaddbnc import AnaddbNcFile, AnaddbNcRobot
 from abipy.dfpt.gruneisen import GrunsNcFile
@@ -79,110 +110,116 @@ from abipy.eph.gpath import GpathFile
 from abipy.wannier90 import WoutFile, AbiwanFile, AbiwanRobot
 from abipy.electrons.lobster import CoxpFile, ICoxpFile, LobsterDoscarFile, LobsterInput, LobsterAnalyzer
 from abipy.dynamics.cpx import EvpFile
-#try:
+# try:
 #    from abipy.ml.aseml import AseMdLog
-#except ImportError:
+# except ImportError:
 #    AseMdLog = None
 
-#from abipy.electrons.abitk import ZinvConvFile, TetraTestFile
+# from abipy.electrons.abitk import ZinvConvFile, TetraTestFile
 
 # Abinit Documentation.
 from abipy.abio.abivars_db import get_abinit_variables, abinit_help, docvar
 
+
 def _straceback():
     """Returns a string with the traceback."""
     import traceback
+
     return traceback.format_exc()
 
 
 # Abinit text files. Use OrderedDict for nice output in show_abiopen_exc2class.
-ext2file = collections.OrderedDict([
-    # ABINIT files
-    (".abi", AbinitInputFile),
-    (".in", AbinitInputFile),
-    (".abo", AbinitOutputFile),
-    (".out", AbinitOutputFile),
-    (".log", AbinitLogFile),
-    (".cif", Structure),
-    (".abivars", Structure),
-    (".ucell", Structure),
-    (".cssr", Structure),
-    (".json", JsonFile),
-    (".py", TextFile),
-    (".sh", TextFile),
-    (".stdin", TextFile),
-    (".stderr", TextFile),
-    (".err", TextFile),
-    (".files", TextFile),
-    (".stdout", TextFile),
-    (".cube", CubeFile),
-    ("anaddb.nc", AnaddbNcFile),
-    ("DEN", DensityFortranFile),
-    (".wout", WoutFile),
-    ("EDOS", EdosFile),
-    # Pseudos
-    (".psp8", Pseudo),
-    (".pspnc", Pseudo),
-    (".fhi", Pseudo),
-    ("JTH.xml", Pseudo),
-    (".upf", Pseudo),
-    # Lobster files.
-    ("COHPCAR.lobster", CoxpFile),
-    ("COOPCAR.lobster", CoxpFile),
-    ("ICOHPLIST.lobster", ICoxpFile),
-    ("DOSCAR.lobster", LobsterDoscarFile),
-    # Vasp files.
-    ("POSCAR", Structure),
-    (".vasp", Structure),
-    # ASE files
-    (".xyz", Structure),
-    #("ZINVCONV.nc", ZinvConvFile),
-    #("TETRATEST.nc", TetraTestFile),
-    # QE/CP files
-    (".evp", EvpFile),
-    # ASE files produced by Abipy.
-    #("md.aselog", AseMdLog),
-])
+ext2file = collections.OrderedDict(
+    [
+        # ABINIT files
+        (".abi", AbinitInputFile),
+        (".in", AbinitInputFile),
+        (".abo", AbinitOutputFile),
+        (".out", AbinitOutputFile),
+        (".log", AbinitLogFile),
+        (".cif", Structure),
+        (".abivars", Structure),
+        (".ucell", Structure),
+        (".cssr", Structure),
+        (".json", JsonFile),
+        (".py", TextFile),
+        (".sh", TextFile),
+        (".stdin", TextFile),
+        (".stderr", TextFile),
+        (".err", TextFile),
+        (".files", TextFile),
+        (".stdout", TextFile),
+        (".cube", CubeFile),
+        ("anaddb.nc", AnaddbNcFile),
+        ("DEN", DensityFortranFile),
+        (".wout", WoutFile),
+        ("EDOS", EdosFile),
+        # Pseudos
+        (".psp8", Pseudo),
+        (".pspnc", Pseudo),
+        (".fhi", Pseudo),
+        ("JTH.xml", Pseudo),
+        (".upf", Pseudo),
+        # Lobster files.
+        ("COHPCAR.lobster", CoxpFile),
+        ("COOPCAR.lobster", CoxpFile),
+        ("ICOHPLIST.lobster", ICoxpFile),
+        ("DOSCAR.lobster", LobsterDoscarFile),
+        # Vasp files.
+        ("POSCAR", Structure),
+        (".vasp", Structure),
+        # ASE files
+        (".xyz", Structure),
+        # ("ZINVCONV.nc", ZinvConvFile),
+        # ("TETRATEST.nc", TetraTestFile),
+        # QE/CP files
+        (".evp", EvpFile),
+        # ASE files produced by Abipy.
+        # ("md.aselog", AseMdLog),
+    ]
+)
 
 # Abinit files require a special treatment.
-abiext2ncfile = collections.OrderedDict([
-    ("GSR.nc", GsrFile),
-    ("ESKW.nc", EskwFile),
-    ("DEN.nc", DensityNcFile),
-    ("OUT.nc", OutNcFile),
-    ("VHA.nc", VhartreeNcFile),
-    ("VXC.nc", VxcNcFile),
-    ("VHXC.nc", VhxcNcFile),
-    ("POT.nc", PotNcFile),
-    ("WFK.nc", WfkFile),
-    ("HIST.nc", HistFile),
-    ("PSPS.nc", PspsFile),
-    ("DDB", DdbFile),
-    ("PHBST.nc", PhbstFile),
-    ("PHDOS.nc", PhdosFile),
-    ("SCR.nc", ScrFile),
-    ("SIGRES.nc", SigresFile),
-    ("GWR.nc", GwrFile),
-    ("GRUNS.nc", GrunsNcFile),
-    ("MDF.nc", MdfFile),
-    ("FATBANDS.nc", FatBandsFile),
-    ("FOLD2BLOCH.nc", Fold2BlochNcfile),
-    ("CUT3DDENPOT.nc", Cut3dDenPotNcFile),
-    ("OPTIC.nc", OpticNcFile),
-    ("A2F.nc", A2fFile),
-    ("SIGEPH.nc", SigEPhFile),
-    ("GSTORE.nc", GstoreFile),
-    ("GPATH.nc", GpathFile),
-    ("TRANSPORT.nc",TransportFile),
-    ("RTA.nc",RtaFile),
-    ("V1SYM.nc", V1symFile),
-    ("GKQ.nc", GkqFile),
-    ("V1QNU.nc", V1qnuFile),
-    ("V1QAVG.nc", V1qAvgFile),
-    ("ABIWAN.nc", AbiwanFile),
-    ("EPH_CUMULANT.nc", CumulantEPhFile),
-    ("VPQ.nc", VpqFile),
-])
+abiext2ncfile = collections.OrderedDict(
+    [
+        ("GSR.nc", GsrFile),
+        ("ESKW.nc", EskwFile),
+        ("DEN.nc", DensityNcFile),
+        ("OUT.nc", OutNcFile),
+        ("VHA.nc", VhartreeNcFile),
+        ("VXC.nc", VxcNcFile),
+        ("VHXC.nc", VhxcNcFile),
+        ("POT.nc", PotNcFile),
+        ("WFK.nc", WfkFile),
+        ("HIST.nc", HistFile),
+        ("PSPS.nc", PspsFile),
+        ("DDB", DdbFile),
+        ("PHBST.nc", PhbstFile),
+        ("PHDOS.nc", PhdosFile),
+        ("SCR.nc", ScrFile),
+        ("SIGRES.nc", SigresFile),
+        ("GWR.nc", GwrFile),
+        ("GRUNS.nc", GrunsNcFile),
+        ("MDF.nc", MdfFile),
+        ("FATBANDS.nc", FatBandsFile),
+        ("FOLD2BLOCH.nc", Fold2BlochNcfile),
+        ("CUT3DDENPOT.nc", Cut3dDenPotNcFile),
+        ("OPTIC.nc", OpticNcFile),
+        ("A2F.nc", A2fFile),
+        ("SIGEPH.nc", SigEPhFile),
+        ("GSTORE.nc", GstoreFile),
+        ("GPATH.nc", GpathFile),
+        ("TRANSPORT.nc", TransportFile),
+        ("RTA.nc", RtaFile),
+        ("V1SYM.nc", V1symFile),
+        ("GKQ.nc", GkqFile),
+        ("V1QNU.nc", V1qnuFile),
+        ("V1QAVG.nc", V1qAvgFile),
+        ("ABIWAN.nc", AbiwanFile),
+        ("EPH_CUMULANT.nc", CumulantEPhFile),
+        ("VPQ.nc", VpqFile),
+    ]
+)
 
 
 def abiopen_ext2class_table():
@@ -204,9 +241,11 @@ def extcls_supporting_panel(as_table=True, **tabulate_kwargs):
     items = []
 
     for ext, cls in chain(ext2file.items(), abiext2ncfile.items()):
-        if hasattr(cls, "get_panel"): items.append((ext, str(cls)))
+        if hasattr(cls, "get_panel"):
+            items.append((ext, str(cls)))
 
-    if not as_table: return items
+    if not as_table:
+        return items
 
     return tabulate(items, headers=["Extension", "Class"], **tabulate_kwargs)
 
@@ -217,6 +256,7 @@ def abipanel(**kwargs):
     """
     try:
         from abipy.panels.core import abipanel
+
         return abipanel(**kwargs)
     except ImportError as exc:
         cprint("use `conda install panel` or `pip install panel` to install the python package.", "red")
@@ -231,17 +271,21 @@ def abifile_subclass_from_filename(filename: str) -> ClassVar:
         return Flow
 
     from abipy.tools.text import rreplace
+
     for ext, cls in ext2file.items():
         # This to support gzipped files.
-        if filename.endswith(".gz"): filename = rreplace(filename, ".gz", "", occurrence=1)
-        if filename.endswith(ext): return cls
+        if filename.endswith(".gz"):
+            filename = rreplace(filename, ".gz", "", occurrence=1)
+        if filename.endswith(ext):
+            return cls
 
     ext = filename.split("_")[-1]
     try:
         return abiext2ncfile[ext]
     except KeyError:
         for ext, cls in abiext2ncfile.items():
-            if filename.endswith(ext): return cls
+            if filename.endswith(ext):
+                return cls
 
     msg = f"""
 abiopen cannot handle this file as no phython class has been registered for file:\n`{filename}`\n\n
@@ -264,12 +308,14 @@ def dir2abifiles(top: str, recurse: bool = True) -> dict:
         for dirpath, dirnames, filenames in os.walk(top):
             for f in filenames:
                 path = os.path.join(dirpath, f)
-                if not isabifile(path): continue
+                if not isabifile(path):
+                    continue
                 dl[dirpath].append(path)
     else:
         for f in os.listdir(top):
             path = os.path.join(top, f)
-            if not isabifile(path): continue
+            if not isabifile(path):
+                continue
             dl[top].append(path)
 
     return collections.OrderedDict([(k, dl[k]) for k in sorted(dl.keys())])
@@ -301,8 +347,10 @@ def abiopen(filepath: str):
     root, ext = os.path.splitext(filepath)
     if ext in (".bz2", ".gz", ".z"):
         from monty.io import zopen
+
         with zopen(filepath, mode="rt", encoding="utf-8") as f:
             import tempfile
+
             _, tmp_path = tempfile.mkstemp(suffix=os.path.basename(root), text=True)
             cprint("Creating temporary file: %s" % tmp_path, "yellow")
             with open(tmp_path, "w") as t:
@@ -314,6 +362,7 @@ def abiopen(filepath: str):
 
     # Handle old output files produced by Abinit.
     import re
+
     outnum = re.compile(r".+\.out[\d]+")
     abonum = re.compile(r".+\.abo[\d]+")
     if outnum.match(filepath) or abonum.match(filepath):
@@ -326,6 +375,7 @@ def abiopen(filepath: str):
     if os.path.basename(filepath).endswith("phonopy_params.yaml"):
         # Handle phonopy object.
         import phonopy
+
         return phonopy.load(filepath)
 
     cls = abifile_subclass_from_filename(filepath)
@@ -342,12 +392,13 @@ def abirobot(filepaths: str | list[str]) -> Robot:
         filepaths: List of strings with the filename.
     """
     from monty.string import list_strings
+
     filepaths = list_strings(filepaths)
     path = filepaths[0]
     idx = path.rfind("_")
     if idx == -1:
         raise ValueError("Cannot find `_` in the first string")
-    ext = path[idx+1:]
+    ext = path[idx + 1 :]
 
     cls = Robot.class_for_ext(ext)
     robot = cls.from_files(filepaths)
@@ -360,6 +411,7 @@ def software_stack(as_dataframe: bool = False):
     Returns ordered dict: package --> string with version info or pandas dataframe if as_dataframe.
     """
     import platform
+
     system, node, release, version, machine, processor = platform.uname()
     # These packages are required
     from importlib import import_module
@@ -382,31 +434,35 @@ def software_stack(as_dataframe: bool = False):
 
     try:
         from pymatgen.core import __version__ as pmg_version
-        #from pymatgen.settings import __version__ as pmg_version
+        # from pymatgen.settings import __version__ as pmg_version
     except AttributeError:
         pmg_version = pymatgen.__version__
 
-    d = collections.OrderedDict([
-        ("system", system),
-        ("python_version", platform.python_version()),
-        ("numpy", numpy.version.version),
-        ("scipy", scipy.version.version),
-        ("netCDF4", netCDF4.__version__),
-        ("apscheduler", apscheduler.version),
-        ("pydispatch", pydispatch.__version__),
-        ("ruamel.yaml", yaml.__version__),
-        ("boken", get_version("bokeh")),
-        ("panel", get_version("panel")),
-        ("plotly", get_version("plotly")),
-        ("ase", get_version("ase")),
-        ("phonopy", get_version("phonopy")),
-        ("monty", get_version("monty")),
-        ("pymatgen", pmg_version),
-        ("abipy", __version__),
-    ])
+    d = collections.OrderedDict(
+        [
+            ("system", system),
+            ("python_version", platform.python_version()),
+            ("numpy", numpy.version.version),
+            ("scipy", scipy.version.version),
+            ("netCDF4", netCDF4.__version__),
+            ("apscheduler", apscheduler.version),
+            ("pydispatch", pydispatch.__version__),
+            ("ruamel.yaml", yaml.__version__),
+            ("boken", get_version("bokeh")),
+            ("panel", get_version("panel")),
+            ("plotly", get_version("plotly")),
+            ("ase", get_version("ase")),
+            ("phonopy", get_version("phonopy")),
+            ("monty", get_version("monty")),
+            ("pymatgen", pmg_version),
+            ("abipy", __version__),
+        ]
+    )
 
-    if not as_dataframe: return d
+    if not as_dataframe:
+        return d
     import pandas as pd
+
     return pd.Series(data=d, name="version").to_frame().rename_axis("Package")
 
 
@@ -427,7 +483,7 @@ def abicheck(verbose: int = 0) -> str:
 
     # Get info on the Abinit build.
     # This to avoid having to depend on pytest.
-    #from abipy.core.testing import cmp_version
+    # from abipy.core.testing import cmp_version
     def cmp_version(this: str, other: str, op: str = ">=") -> bool:
         """
         Compare two version strings with the given operator ``op``
@@ -435,18 +491,20 @@ def abicheck(verbose: int = 0) -> str:
         """
         from monty.operator import operator_from_str
         from packaging.version import parse as parse_version
+
         op = operator_from_str(op)
-        return op(parse_version(this.split("-")[0]),
-                  parse_version(other.split("-")[0]))
+        return op(parse_version(this.split("-")[0]), parse_version(other.split("-")[0]))
 
     from abipy.flowtk import PyFlowScheduler
 
     if manager is not None:
         cprint("AbiPy Manager:\n%s\n" % str(manager), color="green")
         build = AbinitBuild(manager=manager)
-        if not build.has_netcdf: app("Abinit executable does not support netcdf")
+        if not build.has_netcdf:
+            app("Abinit executable does not support netcdf")
         cprint("Abinitbuild:\n%s" % str(build), color="magenta")
-        if verbose: cprint(str(build.info), color="magenta")
+        if verbose:
+            cprint(str(build.info), color="magenta")
         print()
         if not cmp_version(build.version, min_abinit_version, op=">="):
             app("Abipy requires Abinit version >= %s but got %s" % (min_abinit_version, build.version))
@@ -467,6 +525,7 @@ def abicheck(verbose: int = 0) -> str:
         app(_straceback())
 
     import pprint
+
     shell_vars = [os.environ.get(vname, "") for vname in ("PATH", "LD_LIBRARY_PATH", "TMPDIR")]
     print("Important Shell Variables:")
     pprint.pprint(shell_vars)
@@ -487,6 +546,7 @@ def install_config_files(workdir: str | None = None, force_reinstall: bool | Non
     workdir = os.path.join(os.path.expanduser("~"), ".abinit", "abipy") if workdir is None else workdir
     print("Installing configuration files in directory:", workdir)
     from monty.os import makedirs_p
+
     makedirs_p(workdir)
 
     scheduler_path = os.path.join(workdir, "scheduler.yaml")
@@ -564,14 +624,18 @@ qadapters:
             fh.write(scheduler_yaml)
         print("Scheduler configuration file written to:", scheduler_path)
     else:
-        raise RuntimeError("Configuration file: %s already exists.\nUse force_reinstall option to overwrite it" % scheduler_path)
+        raise RuntimeError(
+            "Configuration file: %s already exists.\nUse force_reinstall option to overwrite it" % scheduler_path
+        )
 
     if not os.path.isfile(manager_path) or force_reinstall:
         with open(manager_path, "w") as fh:
             fh.write(manager_yaml)
         print("Manager configuration file written to:", manager_path)
     else:
-        raise RuntimeError("Configuration file: %s already exists.\nUse force_reinstall option to overwrite it" % manager_path)
+        raise RuntimeError(
+            "Configuration file: %s already exists.\nUse force_reinstall option to overwrite it" % manager_path
+        )
 
     print("""
 Configuration files installed successfully.

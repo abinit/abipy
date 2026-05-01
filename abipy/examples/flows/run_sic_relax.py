@@ -33,20 +33,15 @@ def build_flow(options):
         ionmov=2,
         optcell=1,
         strfact=100,
-        ecutsm=0.5,       # Important!
-        dilatmx=1.15,     # Important!
+        ecutsm=0.5,  # Important!
+        dilatmx=1.15,  # Important!
         toldff=1e-6,
         tolmxf=1e-5,
         ntime=100,
     )
 
     # K-points sampling
-    shiftk = [
-        [0.5, 0.5, 0.5],
-        [0.5, 0.0, 0.0],
-        [0.0, 0.5, 0.0],
-        [0.0, 0.0, 0.5]
-    ]
+    shiftk = [[0.5, 0.5, 0.5], [0.5, 0.0, 0.0], [0.0, 0.5, 0.0], [0.0, 0.0, 0.5]]
     relax_inp.set_kmesh(ngkpt=[4, 4, 4], shiftk=shiftk)
 
     # Initialize the flow
@@ -63,6 +58,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

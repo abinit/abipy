@@ -2,25 +2,26 @@
 This module contains objects for postprocessing e-ph calculations
 using the results stored in the GSTORE.nc file.
 """
+
 from __future__ import annotations
 
 import dataclasses
 import itertools
 
-#import abipy.core.abinit_units as abu
+# import abipy.core.abinit_units as abu
 from functools import cached_property, lru_cache
 
 import numpy as np
 import pandas as pd
-from monty.string import marquee  #, list_strings
+from monty.string import marquee  # , list_strings
 from monty.termcolor import cprint
 
 from abipy.abio.robots import Robot
 from abipy.core.kpoints import kpoints_indices
-from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Header, Has_Structure  #, NotebookWriter
+from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Header, Has_Structure  # , NotebookWriter
 from abipy.core.structure import Structure
 
-#from abipy.tools import duck
+# from abipy.tools import duck
 from abipy.electrons.ebands import ElectronBands, RobotWithEbands
 from abipy.eph.common import BaseEphReader
 from abipy.tools.numtools import BzRegularGridInterpolator, nparr_to_df
@@ -44,8 +45,8 @@ def _allclose(arr_name, array1, array2, verbose: int, rtol=1e-5, atol=1e-8) -> b
     if verbose:
         cprint(f"The arrays for {arr_name} are not almost equal within the tolerances {rtol=}, {atol=}", color="red")
 
-    #differing_indices = np.where(~np.isclose(array1, array2, atol=atol))
-    #for index in zip(*differing_indices):
+    # differing_indices = np.where(~np.isclose(array1, array2, atol=atol))
+    # for index in zip(*differing_indices):
     #    print(f"Difference at index {index}: array1 = {array1[index]}, array2 = {array2[index]}, difference = {abs(array1[index] - array2[index])}")
     return False
 
@@ -75,6 +76,7 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GstoreFile
     """
+
     @classmethod
     def from_file(cls, filepath: PathLike) -> GstoreFile:
         """Initialize the object from a netcdf file."""
@@ -110,15 +112,15 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
     @cached_property
     def params(self) -> dict:
         """Dict with the convergence parameters, e.g. ``nbsum``."""
-        #od = OrderedDict([
+        # od = OrderedDict([
         #    ("nbsum", self.nbsum),
         #    ("zcut", self.zcut),
         #    ("symsigma", self.symsigma),
         #    ("nqbz", self.r.nqbz),
         #    ("nqibz", self.r.nqibz),
-        #])
+        # ])
         ## Add EPH parameters.
-        #od.update(self.r.common_eph_params)
+        # od.update(self.r.common_eph_params)
 
         od = {}
         return od
@@ -128,7 +130,8 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
 
     def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosiy level ``verbose``."""
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
 
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
@@ -163,12 +166,11 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         return "\n".join(lines)
 
     def check_unfilled_entries_in_gvals(self):
-        """
-        """
+        """ """
         r = self.r
         for spin in range(self.nsppol):
             # nctkarr_t("gvals", "dp", "gstore_cplex, nb_kq, nb_k, natom3, glob_nk, glob_nq)
-            variable = r.read_variable("gvals", path=f"gqk_spin{spin+1}")
+            variable = r.read_variable("gvals", path=f"gqk_spin{spin + 1}")
             fill_value = variable._FillValue
             # Read the data
             data = variable[:]
@@ -185,11 +187,11 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         gqk = self.gqk_spin[spin]
         # TODO: Handle 1/0 and little group with huge values
 
-        where = (np.abs(gqk.gvals_ks) > 1e-10) & (np.abs(gqk.gvals_ks) < 1e+10)
+        where = (np.abs(gqk.gvals_ks) > 1e-10) & (np.abs(gqk.gvals_ks) < 1e10)
 
         if what == "ratio":
             label = r"Ratio $|g^{\text{GWPT}}|/|g^{\text{KS}}|$"
-            #data = np.abs(gqk.gvals) / np.abs(gqk.gvals_ks)
+            # data = np.abs(gqk.gvals) / np.abs(gqk.gvals_ks)
 
             data = np.ones_like(gqk.gvals, dtype=float)
             np.divide(
@@ -213,8 +215,9 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         return label, data
 
     @add_fig_kwargs
-    def plot_gwpt_hist(self, what: str = "ratio", spin: int = 0, ax=None, hist_kwargs: dict | None = None,
-                       **kwargs) -> Figure:
+    def plot_gwpt_hist(
+        self, what: str = "ratio", spin: int = 0, ax=None, hist_kwargs: dict | None = None, **kwargs
+    ) -> Figure:
         """
         Plot histogram with the ratio between the GWPT and the KS e-ph matrix elements.
 
@@ -231,13 +234,14 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         what_list = ("gwpt", "gks", "ratio")
 
         ax_list = None
-        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=len(what_list), ncols=1,
-                                               sharex=False, sharey=True, squeeze=True)
+        ax_list, fig, plt = get_axarray_fig_plt(
+            ax_list, nrows=len(what_list), ncols=1, sharex=False, sharey=True, squeeze=True
+        )
 
         for what, ax in zip(what_list, ax_list, strict=False):
             xlabel, data = self.get_gwpt_label_data(what, spin)
             data_flat = data.flatten()
-            #print(data_flat)
+            # print(data_flat)
             hist_kwargs_ = hist_kwargs or {}
             ax.hist(data_flat, **hist_kwargs_)
             ax.set_xlabel(xlabel)
@@ -246,9 +250,7 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         return fig
 
     @add_fig_kwargs
-    def plot_gwpt_heatmap_kq(self, kpoint, qpoint,
-                             what: str = "ratio", spin: int = 0, ax=None,
-                             **kwargs) -> Figure:
+    def plot_gwpt_heatmap_kq(self, kpoint, qpoint, what: str = "ratio", spin: int = 0, ax=None, **kwargs) -> Figure:
         """
         Plot heatmap with the ratio between the GWPT and the KS e-ph matrix elements.
 
@@ -270,8 +272,7 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         label, data = self.get_gwpt_label_data(what, spin)
 
         natom = len(self.structure)
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=natom, ncols=3,
-                                               sharex=True, sharey=True, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=natom, ncols=3, sharex=True, sharey=True, squeeze=False)
 
         for iat, idir in itertools.product(range(natom), range(3)):
             # (glob_nq, glob_nk, natom3, nb_kq, nb_k)
@@ -280,25 +281,26 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
 
             ax = ax_mat[iat, idir]
             ax.imshow(grid_mn, aspect="auto", origin="lower")
-            #ax.set_colorbar(label=label)
+            # ax.set_colorbar(label=label)
             ax.set_xlabel("m band index")
             ax.set_ylabel("n band index")
-            #ax.set_title("A/B averaged over bands")
+            # ax.set_title("A/B averaged over bands")
 
         return fig
 
     @add_fig_kwargs
-    def plot_gwpt_vs_qpts(self,
-                          kpoint,
-                          band_k: int,
-                          frac_bounds,
-                          band_kq_range: range | list,
-                          spin: int = 0,
-                          dist_tol: float = 1e-12,
-                          fontsize: int = 8,
-                          **kwargs) -> Figure:
-        """
-        """
+    def plot_gwpt_vs_qpts(
+        self,
+        kpoint,
+        band_k: int,
+        frac_bounds,
+        band_kq_range: range | list,
+        spin: int = 0,
+        dist_tol: float = 1e-12,
+        fontsize: int = 8,
+        **kwargs,
+    ) -> Figure:
+        """ """
         if not self.has_gwpt:
             raise ValueError("GSTORE does not contain GWPT matrix elements.")
 
@@ -315,33 +317,36 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
             qpt_cart_coords.append(reciprocal_lattice.get_cartesian_coords(self.r.qbz[iq_bz]))
 
         from abipy.core.kpoints import find_points_along_path
+
         p = find_points_along_path(cart_bounds, qpt_cart_coords, dist_tol)
         if not len(p.ikfound):
-            raise ValueError(f"Cannot find q-points with {dist_tol=}. Check input boundaries or try to increase dist_tol.")
-        #p.ikfound, p.dist_list, p.path_ticks)
+            raise ValueError(
+                f"Cannot find q-points with {dist_tol=}. Check input boundaries or try to increase dist_tol."
+            )
+        # p.ikfound, p.dist_list, p.path_ticks)
 
         natom = len(self.structure)
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=natom, ncols=3,
-                                               sharex=False, sharey=False, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=natom, ncols=3, sharex=False, sharey=False, squeeze=False)
 
         # shape: (glob_nq, natom3, nb_kq)
-        g_qpm = gqk.gvals[:,ik_glob,:,:,in_k]
-        gks_qpm = gqk.gvals_ks[:,ik_glob,:,:,in_k]
+        g_qpm = gqk.gvals[:, ik_glob, :, :, in_k]
+        gks_qpm = gqk.gvals_ks[:, ik_glob, :, :, in_k]
 
         xs = list(range(len(p.ikfound)))
         for iat, idir in itertools.product(range(natom), range(3)):
             ax = ax_mat[iat, idir]
             ipert = iat + idir
             # (glob_nq, nb_kq) --> (nb_kq, glob_nq).
-            gwpt_bq, ks_bq = g_qpm[:,ipert,:].T.copy(), gks_qpm[:,ipert,:].T.copy()
+            gwpt_bq, ks_bq = g_qpm[:, ipert, :].T.copy(), gks_qpm[:, ipert, :].T.copy()
 
             gwpt_style = dict(marker="o", color="red")
             ks_style = dict(marker=".", color="blue")
             ratio_style = dict(ls="--", color="k")
-            #band_kq_range = [0, 4]
+            # band_kq_range = [0, 4]
 
             for ib_kq in range(gqk.nb_kq):
-                if band_kq_range is not None and ib_kq not in band_kq_range: continue
+                if band_kq_range is not None and ib_kq not in band_kq_range:
+                    continue
                 gwpt_ys = np.abs(gwpt_bq[ib_kq, p.ikfound])
                 ks_ys = np.abs(ks_bq[ib_kq, p.ikfound])
                 ax.plot(xs, gwpt_ys, **gwpt_style)
@@ -352,34 +357,28 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
                 ratio = gwpt_ys / ks_ys
                 ratio_ax.plot(xs, ratio, **ratio_style)
 
-            #set_grid_legend(ax, fontsize, xlabel=r"band index (kq)")
+            # set_grid_legend(ax, fontsize, xlabel=r"band index (kq)")
 
         return fig
 
     @add_fig_kwargs
-    def plot_gwpt_vs_ks(self,
-                        kpoint,
-                        band_k: int,
-                        spin: int = 0,
-                        fontsize: int = 8,
-                        colormap: str = "jet",
-                        **kwargs) -> Figure:
-        """
-        """
+    def plot_gwpt_vs_ks(
+        self, kpoint, band_k: int, spin: int = 0, fontsize: int = 8, colormap: str = "jet", **kwargs
+    ) -> Figure:
+        """ """
         if not self.has_gwpt:
             raise ValueError("GSTORE does not contain GWPT matrix elements.")
 
         natom = len(self.structure)
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=natom, ncols=3,
-                                               sharex=False, sharey=False, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=natom, ncols=3, sharex=False, sharey=False, squeeze=False)
 
         gqk = self.gqk_spin[spin]
         in_k = band_k - gqk.bstart_k
         ik_glob, kpoint = self.r.find_ik_glob_kpoint(kpoint, spin)
 
         # shape: (glob_nq, natom3, nb_kq)
-        g_qpm = gqk.gvals[:,ik_glob,:,:,in_k]
-        gks_qpm = gqk.gvals_ks[:,ik_glob,:,:,in_k]
+        g_qpm = gqk.gvals[:, ik_glob, :, :, in_k]
+        gks_qpm = gqk.gvals_ks[:, ik_glob, :, :, in_k]
 
         cmap = plt.get_cmap(colormap)
         colors = [cmap(iq / gqk.glob_nq) for iq in range(gqk.glob_nq)]
@@ -389,14 +388,14 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
             ax = ax_mat[iat, idir]
             ipert = iat + idir
             # (glob_nq, nb_kq)
-            gwpt_ys, ks_ys = g_qpm[:,ipert,:], gks_qpm[:,ipert,:]
+            gwpt_ys, ks_ys = g_qpm[:, ipert, :], gks_qpm[:, ipert, :]
 
             for iq in range(gqk.glob_nq):
                 numerator = np.abs(gwpt_ys[iq])
                 denominator = np.abs(ks_ys[iq])
-                #ratio = numerator / denominator
-                #ratio = np.divide(numerator, denominator, out=np.zeros_like(numerator), where=np.abs(denominator) > 1e-2)
-                #ax.plot(xs, ratio, color=colors[iq])
+                # ratio = numerator / denominator
+                # ratio = np.divide(numerator, denominator, out=np.zeros_like(numerator), where=np.abs(denominator) > 1e-2)
+                # ax.plot(xs, ratio, color=colors[iq])
                 ax.plot(xs, np.abs(gwpt_ys[iq]), color=colors[iq], ls="-")
                 ax.plot(xs, np.abs(ks_ys[iq]), color=colors[iq], ls="--")
 
@@ -411,20 +410,21 @@ class Gqk:
     This object stores the e-ph matrix elements (g or g^2) and the matrix elements
     of the velocity operator for a given spin.
     """
-    spin: int          # Spin index.
-    nb_k: int          # Number of bands at k.
-    nb_kq: int         # Number of bands at k+q.
-    bstart_k: int      # Initial band at k.
-    bstart_kq: int     # Initial band at k+q.
-    glob_nk: int       # Total number of k/q points in global matrix.
-    glob_nq: int       # Note that k-points/q-points can be filtered.
+
+    spin: int  # Spin index.
+    nb_k: int  # Number of bands at k.
+    nb_kq: int  # Number of bands at k+q.
+    bstart_k: int  # Initial band at k.
+    bstart_kq: int  # Initial band at k+q.
+    glob_nk: int  # Total number of k/q points in global matrix.
+    glob_nq: int  # Note that k-points/q-points can be filtered.
 
     gstore: GstoreFile
 
-    gvals: np.ndarray             # Array of shape (glob_nq, glob_nk, natom3, nb_kq, nb_k)
-                                  # storing complex g(k,q) in the atom representation.
+    gvals: np.ndarray  # Array of shape (glob_nq, glob_nk, natom3, nb_kq, nb_k)
+    # storing complex g(k,q) in the atom representation.
 
-    gvals_ks: np.ndarray | None   # Same as gvals but for KS if we are in GWPT mode.
+    gvals_ks: np.ndarray | None  # Same as gvals but for KS if we are in GWPT mode.
 
     vk_cart_ibz: np.ndarray | None
     vkmat_cart_ibz: np.ndarray | None
@@ -444,7 +444,7 @@ class Gqk:
         Build an instance from a GstoreFile and the spin index.
         """
         ncr = gstore.r
-        path = f"gqk_spin{spin+1}"
+        path = f"gqk_spin{spin + 1}"
         nb_k = ncr.read_dimvalue("nb_k", path=path)
         nb_kq = ncr.read_dimvalue("nb_kq", path=path)
         glob_nk = ncr.read_dimvalue("glob_nk", path=path)
@@ -456,13 +456,13 @@ class Gqk:
         # Remember that gvals on disk are always complex, in Hartree units and in the atomic representation.
 
         gvals = ncr.read_value("gvals", path=path).transpose(0, 1, 2, 4, 3, 5).copy()
-        gvals = gvals[...,0] + 1j*gvals[...,1]
+        gvals = gvals[..., 0] + 1j * gvals[..., 1]
 
         # Try to read KS gvals (produced by GWPT code)
         gvals_ks = None
         if gstore.has_gwpt:
             gvals_ks = ncr.read_value("gvals_ks", path=path).transpose(0, 1, 2, 4, 3, 5).copy()
-            gvals_ks = gvals_ks[...,0] + 1j*gvals_ks[...,1]
+            gvals_ks = gvals_ks[..., 0] + 1j * gvals_ks[..., 1]
 
         vk_cart_ibz, vkmat_cart_ibz = None, None
         if ncr.with_vk == 1:
@@ -474,7 +474,7 @@ class Gqk:
             # Have to transpose (nb_kq, nb_k) submatrix written by Fortran.
             # nctk_def_arrays(spin_ncid, nctkarr_t("vkmat_cart_ibz", "dp", "two, three, nb_k, nb_k, gstore_nkibz"))
             vkmat_cart_ibz = ncr.read_value("vkmat_cart_ibz", path=path).transpose(0, 1, 3, 2, 4).copy()
-            vkmat_cart_ibz = vkmat_cart_ibz[...,0] + 1j*vkmat_cart_ibz[...,1]
+            vkmat_cart_ibz = vkmat_cart_ibz[..., 0] + 1j * vkmat_cart_ibz[..., 1]
 
         # Note conversion between Fortran and python indexing.
         bstart_k = ncr.read_value("bstart_k", path=path) - 1
@@ -488,7 +488,8 @@ class Gqk:
 
     def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosiy level ``verbose``."""
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
 
         app(marquee(f"Gqk for spin: {self.spin}", mark="="))
         app(f"bstart_k: {self.bstart_k}")
@@ -509,8 +510,8 @@ class Gqk:
         """g2 in the atomic representation in Ha^2."""
         return np.abs(self.gvals) ** 2
 
-    #@cached_property
-    #def g_nu(self) -> np.ndarray:
+    # @cached_property
+    # def g_nu(self) -> np.ndarray:
     #   """g in the phonon representation in Ha."""
     #   self.gvals
 
@@ -521,8 +522,8 @@ class Gqk:
             return None
         return np.abs(self.gvals_ks) ** 2
 
-    #@cached_property
-    #def g_ks_nu(self) -> np.ndarray:
+    # @cached_property
+    # def g_ks_nu(self) -> np.ndarray:
     #   """g in the phonon representation in Ha."""
     #   if self.gvals_ks is None:
     #       return None
@@ -539,7 +540,7 @@ class Gqk:
             if self.vk_cart_ibz is None:
                 raise ValueError("vk_cart_ibz is not available in GSTORE!")
             # Compute the squared norm of each vector
-            v2 = np.sum(self.vk_cart_ibz ** 2, axis=2)
+            v2 = np.sum(self.vk_cart_ibz**2, axis=2)
             df = nparr_to_df("v2", v2, ["ik", "n_k"])
 
         else:
@@ -574,12 +575,12 @@ class Gqk:
         assert nb_k == nb_kq
 
         # (glob_nq, glob_nk, natom3, m_kq, n_k)
-        g2_qph_mn = self.g2[:,ik_g]
+        g2_qph_mn = self.g2[:, ik_g]
 
         # Insert g2 in g2_grid
         g2_grid = np.empty((nb_k, nb_kq, natom3, nx, ny, nz))
         for nu in range(natom3):
-            for g2_mn, q_inds in zip(g2_qph_mn[:,nu], q_indices, strict=False):
+            for g2_mn, q_inds in zip(g2_qph_mn[:, nu], q_indices, strict=False):
                 ix, iy, iz = q_inds
                 g2_grid[:, :, nu, ix, iy, iz] = g2_mn
 
@@ -641,25 +642,29 @@ class Gqk:
                 raise RuntimeError(f"Different values of {aname=}, {val1=}, {val2=}")
 
         ierr = 0
-        kws = dict(verbose=verbose) # , atol= rtol)
+        kws = dict(verbose=verbose)  # , atol= rtol)
 
         # Compare v_nk or v_mn_k.
         if self.vk_cart_ibz is not None:
-            if not _allclose("vk_cart_ibz", self.vk_cart_ibz, other.vk_cart_ibz, **kws): ierr += 1
+            if not _allclose("vk_cart_ibz", self.vk_cart_ibz, other.vk_cart_ibz, **kws):
+                ierr += 1
 
         if self.vkmat_cart_ibz is not None:
-            if not _allclose("vkmat_cart_ibz", self.vkmat_cart_ibz, other.vkmat_cart_ibz, **kws): ierr += 1
+            if not _allclose("vkmat_cart_ibz", self.vkmat_cart_ibz, other.vkmat_cart_ibz, **kws):
+                ierr += 1
 
         # Compare g or g^2.
-        if not _allclose("g2", self.g2, other.g2, **kws): ierr += 1
+        if not _allclose("g2", self.g2, other.g2, **kws):
+            ierr += 1
 
         if self.gvals is not None:
-            if not _allclose("gvals", self.gvals, other.gvals, **kws): ierr += 1
+            if not _allclose("gvals", self.gvals, other.gvals, **kws):
+                ierr += 1
 
         return ierr
 
-    #@add_fig_kwargs
-    #def plot_g2_hist(self, ax_list=None, **kwargs) -> Figure:
+    # @add_fig_kwargs
+    # def plot_g2_hist(self, ax_list=None, **kwargs) -> Figure:
 
     #    natom = len(self.structure)
     #    nrows, ncols, gridspec_kw = natom, 3, None
@@ -682,6 +687,7 @@ class GstoreReader(BaseEphReader):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GstoreReader
     """
+
     def __init__(self, filepath: PathLike):
         super().__init__(filepath)
 
@@ -705,9 +711,9 @@ class GstoreReader(BaseEphReader):
 
         # Note conversion Fortran --> C for the isym index.
         self.brange_k_spin = self.read_value("gstore_brange_k_spin")
-        self.brange_k_spin[:,0] -= 1
+        self.brange_k_spin[:, 0] -= 1
         self.brange_kq_spin = self.read_value("gstore_brange_kq_spin")
-        self.brange_kq_spin[:,0] -= 1
+        self.brange_kq_spin[:, 0] -= 1
 
         self.erange_spin = self.read_value("gstore_erange_spin")
         # Total number of k/q points for each spin after filtering (if any)
@@ -727,10 +733,10 @@ class GstoreReader(BaseEphReader):
         # nctkarr_t("gstore_kbz2ibz", "i", "six, gstore_nkbz"), &
         # nctkarr_t("gstore_qbz2ibz", "i", "six, gstore_nqbz"), &
         self.kbz2ibz = self.read_value("gstore_kbz2ibz")
-        self.kbz2ibz[:,0] -= 1
+        self.kbz2ibz[:, 0] -= 1
 
         self.qbz2ibz = self.read_value("gstore_qbz2ibz")
-        self.qbz2ibz[:,0] -= 1
+        self.qbz2ibz[:, 0] -= 1
 
         # Mapping q/k points in gqk --> BZ. Note conversion Fortran --> C for indexing.
         # nctkarr_t("gstore_qglob2bz", "i", "gstore_max_nq, number_of_spins"), &
@@ -751,7 +757,7 @@ class GstoreReader(BaseEphReader):
         qpoint = np.asarray(qpoint)
         for iq_g, iq_bz in enumerate(self.qglob2bz[spin]):
             if np.allclose(qpoint, self.qbz[iq_bz]):
-                #print(f"Found {qpoint = } with index {iq_g = }")
+                # print(f"Found {qpoint = } with index {iq_g = }")
                 return iq_g, qpoint
 
         raise ValueError(f"Cannot find {qpoint=} in {self.path}")
@@ -764,7 +770,7 @@ class GstoreReader(BaseEphReader):
         kpoint = np.asarray(kpoint)
         for ik_g, ik_bz in enumerate(self.kglob2bz[spin]):
             if np.allclose(kpoint, self.kbz[ik_bz]):
-                #print(f"Found {kpoint = } with index {ik_g = }")
+                # print(f"Found {kpoint = } with index {ik_g = }")
                 return ik_g, kpoint
 
         raise ValueError(f"Cannot find {kpoint=} in {self.path}")
@@ -792,6 +798,7 @@ class GstoreRobot(Robot, RobotWithEbands):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GstoreRobot
     """
+
     EXT = "GSTORE"
 
     def neq(self, ref_basename: str | None = None, verbose: int = 0) -> int:
@@ -824,10 +831,23 @@ class GstoreRobot(Robot, RobotWithEbands):
         Helper function to compare two GSTORE files.
         """
         # These quantities must be the same to have a meaningful comparison.
-        aname_list = ["structure", "nsppol", "nkbz", "nkibz",
-                      "nqbz", "nqibz", "completed", "kzone", "qzone", "kfilter",
-                      "brange_k_spin", "brange_kq_spin", "erange_spin", "glob_spin_nq", "glob_nk_spin",
-                     ]
+        aname_list = [
+            "structure",
+            "nsppol",
+            "nkbz",
+            "nkibz",
+            "nqbz",
+            "nqibz",
+            "completed",
+            "kzone",
+            "qzone",
+            "kfilter",
+            "brange_k_spin",
+            "brange_kq_spin",
+            "erange_spin",
+            "glob_spin_nq",
+            "glob_nk_spin",
+        ]
 
         for aname in aname_list:
             self._compare_attr_name(aname, self, gstore2)
@@ -845,7 +865,7 @@ class GstoreRobot(Robot, RobotWithEbands):
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         Used in abiview.py to get a quick look at the results.
         """
-        #for fig in self.get_ebands_plotter().yield_figs(): yield fig
+        # for fig in self.get_ebands_plotter().yield_figs(): yield fig
 
     def write_notebook(self, nbpath=None) -> str:
         """
@@ -855,14 +875,16 @@ class GstoreRobot(Robot, RobotWithEbands):
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
         args = [(l, f.filepath) for l, f in self.items()]
-        nb.cells.extend([
-            #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("robot = abilab.GstoreRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-            #nbv.new_code_cell("ebands_plotter = robot.get_ebands_plotter()"),
-        ])
+        nb.cells.extend(
+            [
+                # nbv.new_markdown_cell("# This is a markdown cell"),
+                nbv.new_code_cell("robot = abilab.GstoreRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+                # nbv.new_code_cell("ebands_plotter = robot.get_ebands_plotter()"),
+            ]
+        )
 
         # Mixins
-        #nb.cells.extend(self.get_baserobot_code_cells())
-        #nb.cells.extend(self.get_ebands_code_cells())
+        # nb.cells.extend(self.get_baserobot_code_cells())
+        # nb.cells.extend(self.get_ebands_code_cells())
 
         return self._write_nb_nbpath(nb, nbpath)

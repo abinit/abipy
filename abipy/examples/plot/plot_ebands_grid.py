@@ -10,6 +10,7 @@ We use two GSR files:
     si_scf_GSR.n: energies on a homogeneous sampling of the BZ (can be used to compute DOS)
     si_nscf_GSR.nc: energies on a k-path in the BZ (used to plot the band dispersion)
 """
+
 from abipy.abilab import ElectronBandsPlotter
 from abipy.data import ref_file
 
@@ -22,15 +23,15 @@ plotter.add_ebands("k-path", ref_file("si_nscf_GSR.nc"))
 frame = plotter.get_ebands_frame()
 print(frame)
 
-#%%
+# %%
 # To create a grid plot use:
 plotter.gridplot(with_gaps=True)
 
-#%%
+# %%
 # Plotly version:
 plotter.gridplotly(with_gaps=True)
 
-#%%
+# %%
 # To plot a grid with band structures + DOS, use the optional argument `edos_objects`
 # The first subplot gets the band dispersion from eb_objects[0] and the DOS from edos_objects[0]
 # edos_kwargs is an optional dictionary passed to `get_dos` to compute the DOS.
@@ -45,6 +46,6 @@ plotter.add_ebands("Same data", ref_file("si_nscf_GSR.nc"), edos=ref_file("si_sc
 # sphinx_gallery_thumbnail_number = 2
 plotter.gridplot()
 
-#%%
+# %%
 # Plotly version:
 plotter.gridplotly()

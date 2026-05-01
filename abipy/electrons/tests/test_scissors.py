@@ -1,4 +1,5 @@
 """Tests for electrons.bse module"""
+
 import abipy.data as abidata
 from abipy import abilab
 from abipy.core.testing import AbipyTest
@@ -6,7 +7,6 @@ from abipy.electrons.scissors import *
 
 
 class TestScissors(AbipyTest):
-
     def test_scissors_polyfit(self):
         """Testing scissors from SIGRES file."""
         # Get the quasiparticle results from the SIGRES.nc database.
@@ -16,11 +16,11 @@ class TestScissors(AbipyTest):
         # Construct the scissors operator
         domains = [[-10, 6.1], [6.1, 18]]
         scissors = qplist_spin[0].build_scissors(domains, bounds=None)
-        #scissors = qplist_spin[0].build_scissors(domains, bounds=None, plot=True)
+        # scissors = qplist_spin[0].build_scissors(domains, bounds=None, plot=True)
 
         # Read the KS band energies computed on the k-path
         with abilab.abiopen(abidata.ref_file("si_nscf_GSR.nc")) as nc:
-           ks_bands = nc.ebands
+            ks_bands = nc.ebands
 
         # Read the KS band energies computed on the Monkhorst-Pack (MP) mesh
         # and compute the DOS with the Gaussian method
@@ -57,9 +57,9 @@ class TestScissors(AbipyTest):
         builder.build(domains_spin=[[-10, 6.02], [6.1, 20]])
 
         # Test pickle.
-        #tmp_path = self.get_tmpname(suffix=".pickle")
-        #builder.pickle_dump(tmp_path)
-        #new = ScissorsBuilder.pickle_load(tmp_path)
+        # tmp_path = self.get_tmpname(suffix=".pickle")
+        # builder.pickle_dump(tmp_path)
+        # new = ScissorsBuilder.pickle_load(tmp_path)
 
         if self.has_matplotlib():
             # To plot the QP results as function of the KS energy:
@@ -72,5 +72,4 @@ class TestScissors(AbipyTest):
             assert builder.plot_qpbands(bands_filepath, show=False)
 
             dos_filepath = abidata.ref_file("si_scf_GSR.nc")
-            assert builder.plot_qpbands(bands_filepath, dos_filepath=dos_filepath,
-                    dos_args=None, show=False)
+            assert builder.plot_qpbands(bands_filepath, dos_filepath=dos_filepath, dos_args=None, show=False)

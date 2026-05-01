@@ -1,4 +1,5 @@
 """Mock objects for unit tests."""
+
 from __future__ import annotations
 
 from .flows import Flow
@@ -15,6 +16,7 @@ def change_task_start(task: Task, mocked_status="Error"):
 
 class AbinitTaskMockedStart(AbinitTask):
     """A Task whose status is always self.mocked_status."""
+
     def start(self, **kwargs):
         self.set_status(self.mocked_status, msg="Mocking status with %s" % self.mocked_status)
         return 1
@@ -28,6 +30,7 @@ def infinite_flow(flow: Flow):
 
 class InfiniteFlow(Flow):
     """A Flow that will never reach `all_ok`"""
+
     def check_status(self, **kwargs):
         super().check_status(**kwargs)
 

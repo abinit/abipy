@@ -1,6 +1,7 @@
 """
 This module provides objects related to site symmetries
 """
+
 from __future__ import annotations
 
 import numpy as np
@@ -13,7 +14,6 @@ from abipy.core.structure import Structure
 
 
 class SiteSymmetries(Has_Structure):
-
     def __init__(self, structure: Structure):
         """
         Args:
@@ -29,7 +29,7 @@ class SiteSymmetries(Has_Structure):
         nsym = len(abispg.symrel)
         indsym = self.structure.indsym
 
-        #self.eq_atoms = structure.spget_equivalent_atoms()
+        # self.eq_atoms = structure.spget_equivalent_atoms()
 
         # Precompute sympy objects used to solve linear system of equations.
         self.sp_symrel, self.sp_symrec = [], []
@@ -47,19 +47,23 @@ class SiteSymmetries(Has_Structure):
             tau = np.around(tau, decimals=5)
             self.sp_tnons.append(sp.Matrix(tau))
 
-        #from abipy.core.symmetries import indsym_from_symrel
-        #other_indsym = indsym_from_symrel(abispg.symrel, abispg.tnons, self.structure, tolsym=1e-8)
-        #assert np.all(self.structure.indsym == other_indsym)
+        # from abipy.core.symmetries import indsym_from_symrel
+        # other_indsym = indsym_from_symrel(abispg.symrel, abispg.tnons, self.structure, tolsym=1e-8)
+        # assert np.all(self.structure.indsym == other_indsym)
 
         # Compute symmetry operations in Cartesian coordinates (numpy arrays)
         a = self.structure.lattice.matrix.T
         self.symcart = np.matmul(a, np.matmul(abispg.symrel, np.linalg.inv(a)))
 
         import spglib
+
         self.sitesym_labels = []
         for iatom, site in enumerate(self.structure):
-            rotations = [abispg.symrel[isym] for isym in range(nsym) if
-                         indsym[iatom, isym, 3] == iatom and abispg.symafm[isym] == 1]
+            rotations = [
+                abispg.symrel[isym]
+                for isym in range(nsym)
+                if indsym[iatom, isym, 3] == iatom and abispg.symafm[isym] == 1
+            ]
             # Passing a 0-length rotations list to spglib can segfault.
             herm_symbol, ptg_num = "1", 1
             if len(rotations) != 0:
@@ -67,7 +71,7 @@ class SiteSymmetries(Has_Structure):
 
             self.sitesym_labels.append("%s (#%d,nsym:%d)" % (herm_symbol.strip(), ptg_num, len(rotations)))
 
-        #for irred_isite in self.irred_isites:
+        # for irred_isite in self.irred_isites:
         #    for isite_eq, rm1, tau, l0 in self.eq_sites[irred_isite]:
         #        # isite_eq = rm1(irred_site - tau) + l0
 
@@ -81,7 +85,8 @@ class SiteSymmetries(Has_Structure):
 
     def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level verbose."""
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
         app(self.structure.to_string(verbose=verbose, title="Structure"))
 
         return "\n".join(lines)
@@ -110,11 +115,12 @@ class SiteSymmetries(Has_Structure):
         indsym = self.structure.indsym
         abispg = self.structure.abi_spacegroup
         rows = []
-        for (iatom, wlabel) in zip(aview.iatom_list, aview.wyck_labels, strict=False):
+        for iatom, wlabel in zip(aview.iatom_list, aview.wyck_labels, strict=False):
             site = self.structure[iatom]
             system = []
             for isym, (rm1, tau) in enumerate(zip(self.sp_inv_symrel, self.sp_tnons, strict=False)):
-                if indsym[iatom, isym, 3] != iatom: continue
+                if indsym[iatom, isym, 3] != iatom:
+                    continue
                 l0 = indsym[iatom, isym, :3]
                 l0 = sp.Matrix(l0)
                 m = rm1 * (vector - tau) - (l0 + vector)
@@ -129,7 +135,7 @@ class SiteSymmetries(Has_Structure):
 
             # Solve system of linear equations.
             solutions = sp.solve(system, dict=True)
-            #print(solutions)
+            # print(solutions)
             if verbose and not solutions:
                 cprint("No solution for iatom %d" % iatom, "yellow")
 
@@ -177,11 +183,12 @@ class SiteSymmetries(Has_Structure):
 
         indsym = self.structure.indsym
         rows = []
-        for (iatom, wlabel) in zip(aview.iatom_list, aview.wyck_labels, strict=False):
+        for iatom, wlabel in zip(aview.iatom_list, aview.wyck_labels, strict=False):
             site = self.structure[iatom]
             system = []
             for isym, rotf in enumerate(self.sp_symrel):
-                if indsym[iatom, isym, 3] != iatom: continue
+                if indsym[iatom, isym, 3] != iatom:
+                    continue
                 m = rotf * tensor * rotf.T - tensor
                 if verbose:
                     print(92 * "=")
@@ -195,7 +202,7 @@ class SiteSymmetries(Has_Structure):
 
             # Solve system of linear equations. Print only sites for which we have constraints.
             solutions = sp.solve(system, dict=True)
-            #print(solutions)
+            # print(solutions)
             if verbose and not solutions:
                 cprint("No solution for iatom %d" % iatom, "yellow")
 
@@ -215,6 +222,7 @@ class SiteSymmetries(Has_Structure):
                 rows.append(d)
 
         import pandas as pd
+
         df = pd.DataFrame(rows, index=None, columns=list(rows[0].keys()) if rows else None)
         return df
 
@@ -240,12 +248,14 @@ class SiteSymmetries(Has_Structure):
             sym_mat = np.zeros_like(ref_mat)
             count = 0
             for isym, scart in enumerate(self.symcart):
-                if indsym[iatom, isym, 3] != iatom: continue
+                if indsym[iatom, isym, 3] != iatom:
+                    continue
                 count += 1
                 sym_mat += np.matmul(scart, np.matmul(ref_mat, scart.T))
-                #sym_mat += np.matmul(scart.T, np.matmul(ref_mat, scart))
+                # sym_mat += np.matmul(scart.T, np.matmul(ref_mat, scart))
 
-            if (nsym // count) * count != nsym: max_err = 1e+23
+            if (nsym // count) * count != nsym:
+                max_err = 1e23
             sym_mat /= count
             diff_mat = sym_mat - ref_mat
             max_err = max(max_err, np.abs(diff_mat).sum())
@@ -257,8 +267,9 @@ class SiteSymmetries(Has_Structure):
             ref_mat = tcart[iatom]
             for isym, scart in enumerate(self.symcart):
                 jatom = indsym[iatom, isym, 3]
-                if jatom == iatom: continue
-                #sym_mat = np.matmul(scart, np.matmul(ref_mat, scart.T))
+                if jatom == iatom:
+                    continue
+                # sym_mat = np.matmul(scart, np.matmul(ref_mat, scart.T))
                 sym_mat = np.matmul(scart.T, np.matmul(ref_mat, scart))
                 diff_mat = sym_mat - tcart[jatom]
                 max_err = max(max_err, np.abs(diff_mat).sum())
@@ -266,6 +277,7 @@ class SiteSymmetries(Has_Structure):
                     print("For iatom", iatom, "ref_mat, sym_mat, diff_mat")
                     print("ref_mat:\n", tcart[jatom], "\nsym_mat:\n", sym_mat, "\ndiff_mat:\n", diff_mat)
 
-        if verbose: print("Max symmetrization error:", max_err)
+        if verbose:
+            print("Max symmetrization error:", max_err)
 
         return max_err

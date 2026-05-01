@@ -9,6 +9,7 @@ produced by Lobster code <http://schmeling.ac.rwth-aachen.de/cohp/>
 Use `abiopen.py FILE` with --expose or --print for a command line interface
 and --notebook to generate a jupyter notebook.
 """
+
 import os
 
 import abipy.data as abidata

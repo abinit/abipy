@@ -1,4 +1,5 @@
 """Panels for interacting with output files in text format."""
+
 from __future__ import annotations
 
 import panel as pn
@@ -11,6 +12,7 @@ class AbinitOutputFilePanel(AbipyParameterized):
     """
     Panel with widgets to interact with the main Abinit output file.
     """
+
     def __init__(self, outfile, **params):
         super().__init__(**params)
         self.outfile = outfile
@@ -27,7 +29,8 @@ class AbinitOutputFilePanel(AbipyParameterized):
         else:
             raise ValueError(f"Invalid value for what: `{what}`")
 
-        if not cycles: return None
+        if not cycles:
+            return None
 
         num_plots, nrows, ncols = len(cycles), 1, 1
         if num_plots > 1:
@@ -35,10 +38,10 @@ class AbinitOutputFilePanel(AbipyParameterized):
             nrows = (num_plots // ncols) + (num_plots % ncols)
 
         box = pn.GridBox(nrows=nrows, ncols=ncols, sizing_mode="stretch_width")
-        #box = pn.Column(sizing_mode="stretch_width")
+        # box = pn.Column(sizing_mode="stretch_width")
 
         for icycle, cycle in enumerate(cycles):
-            #box.append(mpl(cycle.plot(title="%s cycle #%d" % (what, icycle), **self.mpl_kwargs)))
+            # box.append(mpl(cycle.plot(title="%s cycle #%d" % (what, icycle), **self.mpl_kwargs)))
             f = ply(cycle.plotly(title="%s cycle #%d" % (what, icycle + 1), show=False))
             box.append(f)
 
@@ -46,15 +49,15 @@ class AbinitOutputFilePanel(AbipyParameterized):
 
     def get_outfile_view(self) -> pn.Column:
         col = pn.Column(sizing_mode="stretch_width")
-        ca = col.append; cext = col.extend
+        ca = col.append
+        cext = col.extend
 
         filepath = self.outfile.filepath
         with open(filepath) as fh:
             text = fh.read()
 
-        ace = pnw.Ace(value=text, language="text", readonly=True,
-                      sizing_mode="stretch_width", height=1200)
-                      #sizing_mode='stretch_width', width=900)
+        ace = pnw.Ace(value=text, language="text", readonly=True, sizing_mode="stretch_width", height=1200)
+        # sizing_mode='stretch_width', width=900)
         cext([f"## Output <small>{filepath}</small>", ace, pn.layout.Divider()])
 
         return col
@@ -64,7 +67,7 @@ class AbinitOutputFilePanel(AbipyParameterized):
         d = {}
 
         d["Summary"] = self.get_summary_view_for_abiobj(self.outfile)
-        #d["Output"] = self.get_outfile_view()
+        # d["Output"] = self.get_outfile_view()
 
         df = self.outfile.get_dims_spginfo_dataframe()
         df.index.name = "Dataset"
@@ -76,16 +79,16 @@ class AbinitOutputFilePanel(AbipyParameterized):
             if box is not None:
                 d[f"{what} cycles"] = box
 
-        #timer = self.get_timer()
-        #timer.plot_all(**self.mpl_kwargs)
+        # timer = self.get_timer()
+        # timer.plot_all(**self.mpl_kwargs)
 
-        if as_dict: return d
+        if as_dict:
+            return d
 
         return self.get_template_from_tabs(d, template=kwargs.get("template"))
 
 
 class AbinitOutputFilePanelWithFileInput(AbipyParameterized):
-
     info_str = """
 This application allows users to analyze the Abinit main output file
 """
@@ -118,9 +121,11 @@ This application allows users to analyze the Abinit main output file
 
     def get_panel(self, **kwargs):
 
-        col = pn.Column("## Upload (or drag & drop) an *.abo* file (main ABINIT output file):",
-                        self.get_fileinput_section(self.file_input),
-                        sizing_mode="stretch_width")
+        col = pn.Column(
+            "## Upload (or drag & drop) an *.abo* file (main ABINIT output file):",
+            self.get_fileinput_section(self.file_input),
+            sizing_mode="stretch_width",
+        )
 
         main = pn.Column(col, self.main_area, sizing_mode="stretch_width")
 

@@ -1,4 +1,5 @@
 """Tests for varpeq module."""
+
 import os
 
 import pytest
@@ -9,9 +10,7 @@ from abipy.eph.vpq import VpqFile
 root = "/Users/giantomassi/git_repos/abinit/_build/tests/tutorespfn_teph4vpq_1-teph4vpq_2-teph4vpq_3-teph4vpq_4-teph4vpq_5-teph4vpq_6-teph4vpq_7-teph4vpq_8-teph4vpq_9-teph4vpq_10"
 
 
-
 class VarpeqTest(AbipyTest):
-
     @pytest.mark.xfail(condition=not os.path.exists(root), reason=f"{root=} does not exist")
     def test_varpeq_file(self):
         """Testing VpqFile."""
@@ -25,16 +24,16 @@ class VarpeqTest(AbipyTest):
             assert params["avg_g"]
             assert params["e_frohl"] == -0.21380923340128977
 
-            #print(vpq.ebands.kpoints.ksampling)
+            # print(vpq.ebands.kpoints.ksampling)
             for polaron in vpq.polaron_spin:
                 print(polaron)
-                #assert polaron.spin == 0
-                #assert polaron.nstates == 0
-                #assert polaron.nb == 0
-                #assert polaron.nk == 0
-                #assert polaron.nq == 0
-                #assert polaron.bstart == 0
-                #assert polaron.bstop == 0
+                # assert polaron.spin == 0
+                # assert polaron.nstates == 0
+                # assert polaron.nb == 0
+                # assert polaron.nk == 0
+                # assert polaron.nq == 0
+                # assert polaron.bstart == 0
+                # assert polaron.bstop == 0
                 df = polaron.get_final_results_df(with_params=True)
                 print(df)
 
@@ -49,16 +48,16 @@ class VarpeqTest(AbipyTest):
 
                 if self.has_matplotlib():
                     polaron.plot_scf_cycle(show=False)
-                    #polaron.plot_ank_with_ebands(ebands_kpath, ebands_kmesh=None)
-                    #polaron.plot_bqnu_with_ddb("in_DDB", with_phdos=True)
-                    #polaron.plot_bqnu_with_phbands(phbands_qpath)
+                    # polaron.plot_ank_with_ebands(ebands_kpath, ebands_kmesh=None)
+                    # polaron.plot_bqnu_with_ddb("in_DDB", with_phdos=True)
+                    # polaron.plot_bqnu_with_phbands(phbands_qpath)
 
             # Test jupyter notebook creation
-            #if self.has_nbformat():
+            # if self.has_nbformat():
             #    vpq.write_notebook(nbpath=self.get_tmpname(text=True))
 
 
-#class VarpeqRobotTest(AbipyTest):
+# class VarpeqRobotTest(AbipyTest):
 #
 #    def test_varpeq_robot(self):
 #        """Testing VarpeqRobot."""

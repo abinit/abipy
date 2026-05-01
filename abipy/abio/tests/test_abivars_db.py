@@ -1,4 +1,5 @@
 """Tests for htc.FilesFile."""
+
 import sys
 
 from abipy.abio.abivars_db import abinit_help, docvar, get_abinit_variables
@@ -6,7 +7,6 @@ from abipy.core.testing import AbipyTest
 
 
 class AbinitVariableDatabaseTest(AbipyTest):
-
     def test_database(self):
         """Testing database of ABINIT variables."""
         database = get_abinit_variables()
@@ -14,31 +14,48 @@ class AbinitVariableDatabaseTest(AbipyTest):
 
         # The text of this variable contaings greek symbols in HTML.
         var = database["cd_frqim_method"]
-        repr(var); str(var)
+        repr(var)
+        str(var)
 
         # Print all variables in the database.
         for name, var in database.items():
-            #print("testing variable: ", name)
+            # print("testing variable: ", name)
             assert var.name == name
-            repr(var); str(var)
+            repr(var)
+            str(var)
             str(var.info)
             if sys.version[0:3] > "2.7":
                 str(var._repr_html_())
 
         # Database methods.
         database.apropos("ecut")
-        #assert len(database.json_dumps_varnames())
+        # assert len(database.json_dumps_varnames())
 
         for setname in [
-            "basic", "rlx", "gstate", "eph", "ffield", "paral", "gw", "dfpt",
-            "geo", "bse", "dev", "paw", "dmft", "files", "internal", "w90"]:
+            "basic",
+            "rlx",
+            "gstate",
+            "eph",
+            "ffield",
+            "paral",
+            "gw",
+            "dfpt",
+            "geo",
+            "bse",
+            "dev",
+            "paw",
+            "dmft",
+            "files",
+            "internal",
+            "w90",
+        ]:
             assert database.vars_with_varset(setname)
 
         for section in database.my_varset_list:
             assert len(database.vars_with_varset(section))
 
         for charact in database.my_characteristics:
-            #print("character:", charact)
+            # print("character:", charact)
             assert len(database.vars_with_char(charact))
 
         name2varset = database.name2varset

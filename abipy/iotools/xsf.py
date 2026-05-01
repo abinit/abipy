@@ -1,4 +1,5 @@
 """Tools for writing Xcrysden files."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -48,8 +49,8 @@ def xsf_write_structure(file, structures: list) -> None:
 
         # TODO
         cart_forces = None
-        #if "cartesian_forces" in structure.site_properties:
-        #cart_forces = ArrayWithUnit().to("Ha ang^-1")
+        # if "cartesian_forces" in structure.site_properties:
+        # cart_forces = ArrayWithUnit().to("Ha ang^-1")
 
         fwrite("# Cartesian coordinates in Angstrom.\n")
         fwrite("PRIMCOORD %d\n" % (n + 1))
@@ -71,7 +72,7 @@ def xsf_write_structure_and_data_to_path(filepath, structure, datar, **kwargs) -
         xsf_write_data(fh, structure, datar, **kwargs)
 
 
-#def xsf_write_structure_and_multidata(filepath, structure, multi_datar, tags=None, **kwargs) -> None:
+# def xsf_write_structure_and_multidata(filepath, structure, multi_datar, tags=None, **kwargs) -> None:
 #    """
 #    """
 #    multi_datar = np.array(multi_datar, ndmin=4)
@@ -86,10 +87,8 @@ def xsf_write_structure_and_data_to_path(filepath, structure, datar, **kwargs) -
 #           xsf_write_data(fh, structure, multi_datar[i], tag=tag, **kwargs)
 
 
-
-def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None,
-                   idname="data", tag="_UNKNOWN") -> None:
-                   #idname="data", tag="_grid") -> None:
+def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None, idname="data", tag="_UNKNOWN") -> None:
+    # idname="data", tag="_grid") -> None:
     """
     Write data in the Xcrysden format (XSF)
 
@@ -148,7 +147,7 @@ def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None,
 
     for dg in range(ngrids):
         if ngrids != 1:
-            fwrite(f" BEGIN_DATAGRID_3D{tag}#{dg+1}" + "\n")
+            fwrite(f" BEGIN_DATAGRID_3D{tag}#{dg + 1}" + "\n")
         else:
             fwrite(f" BEGIN_DATAGRID_3D{tag}" + "\n")
         fwrite("%d %d %d\n" % shape[-3:])
@@ -159,7 +158,7 @@ def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None,
 
         for z in range(fgrid[0]):
             for y in range(fgrid[1]):
-                slice_x = fdata[dg,z,y]
+                slice_x = fdata[dg, z, y]
                 fwrite(" ".join(["%f" % d for d in slice_x]))
                 fwrite("\n")
             fwrite("\n")
@@ -221,8 +220,8 @@ def bxsf_write(file, structure, nsppol, nband, ngkpt, ucdata_sbk, fermie, unit="
     fw(" BEGIN_BANDGRID_3D\n")
 
     fw(str(nsppol * nband) + "\n")  # Number of bands written.
-    fw("%d %d %d\n" % tuple(ngkpt)) # Number of division in the full BZ mesh.
-    fw("0 0 0\n")                   # NB: Unshifted meshes are not supported.
+    fw("%d %d %d\n" % tuple(ngkpt))  # Number of division in the full BZ mesh.
+    fw("0 0 0\n")  # NB: Unshifted meshes are not supported.
 
     # Reciprocal lattice vectors in Ang^{-1}
     gcell = structure.lattice.reciprocal_lattice.matrix

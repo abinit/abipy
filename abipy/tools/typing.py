@@ -2,6 +2,7 @@
 This module defines convenience types for type hinting purposes.
 It extends the types provided by pymatgen with Abipy-specific ones.
 """
+
 from __future__ import annotations
 
 from collections.abc import Sequence

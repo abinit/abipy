@@ -3,6 +3,7 @@
 This script visualizes results with external graphical applications.
 or convert data from Abinit files (usually netcdf) to other formats.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -59,6 +60,7 @@ def abiview_structure(options):
 def abiview_input(options):
     """Read input file from netcdf file and print it to terminal."""
     from abipy.iotools import ETSF_Reader
+
     with ETSF_Reader(options.filepath) as r:
         input_str = r.read_string("input_string")
         print(input_str)
@@ -77,8 +79,7 @@ def abiview_hist(options):
         elif options.xdatcar:
             xpath = options.filepath + ".XDATCAR"
             handle_overwrite(xpath, options)
-            hist.write_xdatcar(filepath=xpath, groupby_type=True, overwrite=True,
-                               to_unit_cell=options.to_unit_cell)
+            hist.write_xdatcar(filepath=xpath, groupby_type=True, overwrite=True, to_unit_cell=options.to_unit_cell)
         else:
             hist.plot()
 
@@ -99,7 +100,7 @@ def abiview_data(options):
     return 0
 
 
-#def abiview_abo(options):
+# def abiview_abo(options):
 #    """
 #    Plot self-consistent iterations extracted from Abinit output file
 #    as well as timer data (if present)
@@ -118,16 +119,18 @@ def abiview_timer(options):
     key = "wall_time"
     nmax = 5
     from abipy.tools.plotting import MplExposer
+
     with AbinitOutputFile(options.filepath) as abo:
         timer = abo.get_timer()
-        #print(timer.to_string(verbose=options.verbose))
+        # print(timer.to_string(verbose=options.verbose))
 
-        with MplExposer(slide_mode=options.slide_mode,
-                        slide_timeout=options.slide_timeout,
-                        expose_web=options.expose_web,
-                        verbose=options.verbose) as e:
-
-            #e(timer.plot_efficiency(key=key, what="good+bad", nmax=nmax))
+        with MplExposer(
+            slide_mode=options.slide_mode,
+            slide_timeout=options.slide_timeout,
+            expose_web=options.expose_web,
+            verbose=options.verbose,
+        ) as e:
+            # e(timer.plot_efficiency(key=key, what="good+bad", nmax=nmax))
             e(timer.plot_pie(key=key, minfract=0.05, show=False))
             e(timer.plot_stacked_hist(key=key, nmax=nmax, show=False))
 
@@ -139,15 +142,17 @@ def abiview_memlog(options):
     Analyze the ABINIT log file to extract virtual memory info (requires Linux).
     """
     from abipy.flowtk.events import MemLogParser
+
     parser = MemLogParser(options.filepath)
     print(parser.to_string(verbose=options.verbose))
-    #return 0
+    # return 0
 
-    with MplExposer(slide_mode=options.slide_mode,
-                    slide_timeout=options.slide_timeout,
-                    expose_web=options.expose_web,
-                    verbose=options.verbose) as e:
-
+    with MplExposer(
+        slide_mode=options.slide_mode,
+        slide_timeout=options.slide_timeout,
+        expose_web=options.expose_web,
+        verbose=options.verbose,
+    ) as e:
         e(parser.plot(show=False))
         e(parser.plot_by_file(show=False))
 
@@ -161,6 +166,7 @@ def abiview_dirviz(options) -> int:
     import tempfile
 
     from abipy.flowtk.utils import Dirviz
+
     graph = Dirviz(options.filepath).get_cluster_graph(engine=options.engine)
     directory = tempfile.mkdtemp()
     print("Producing source files in:", directory)
@@ -181,14 +187,16 @@ def abiview_ebands(options) -> int:
         elif options.bxsf:
             outpath = options.filepath + ".bxsf"
             abifile.ebands.to_bxsf(handle_overwrite(outpath, options))
-        #elif options.plotly:
+        # elif options.plotly:
         #    print(abifile.to_string(verbose=options.verbose))
         else:
             print(abifile.to_string(verbose=options.verbose))
-            abifile.expose_ebands(slide_mode=options.slide_mode,
-                                  slide_timeout=options.slide_timeout,
-                                  expose_web=options.expose_web,
-                                  verbose=options.verbose)
+            abifile.expose_ebands(
+                slide_mode=options.slide_mode,
+                slide_timeout=options.slide_timeout,
+                expose_web=options.expose_web,
+                verbose=options.verbose,
+            )
 
         return 0
 
@@ -199,6 +207,7 @@ def abiview_effmass(options) -> int:
     Accept any file with ElectronBands e.g. GSR.nc, WFK.nc, ...
     """
     from abipy.electrons.effmass_analyzer import EffMassAnalyzer
+
     emana = EffMassAnalyzer.from_file(options.filepath)
     print(emana)
     emana.select_band_edges()
@@ -257,11 +266,11 @@ def abiview_ifermi_fs(options) -> int:
             with_velocities=options.with_velocities,
         )
         print(abifile.ebands, "\n")
-        print("Building Fermi surface with options:\n\n", pformat(kwargs, indent=4), end=2*"\n")
+        print("Building Fermi surface with options:\n\n", pformat(kwargs, indent=4), end=2 * "\n")
 
         r = abifile.ebands.get_ifermi_fs(**kwargs)
         r.fs_plotter.get_plot(plot_type=options.plot_type).show()
-        #abifile.ebands.get_ifermi_slices(**kwargs)
+        # abifile.ebands.get_ifermi_slices(**kwargs)
 
         return 0
 
@@ -275,8 +284,13 @@ def abiview_ddb(options) -> int:
 
         # Don't need PHDOS if phononwebsite
         nqsmall = 0 if options.phononwebsite else 10
-        ndivsm = 20; asr = 2; chneut = 1; dipdip = 1; dos_method = "tetra"; lo_to_splitting = "automatic"
-        #chneut = 0
+        ndivsm = 20
+        asr = 2
+        chneut = 1
+        dipdip = 1
+        dos_method = "tetra"
+        lo_to_splitting = "automatic"
+        # chneut = 0
         print(f"""
 Computing phonon bands and DOS from DDB file with:
 
@@ -286,9 +300,17 @@ Computing phonon bands and DOS from DDB file with:
 
         print("Invoking anaddb ...  ", end="")
         phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(
-            nqsmall=nqsmall, ndivsm=ndivsm, asr=asr, chneut=chneut, dipdip=dipdip, dos_method=dos_method,
-            lo_to_splitting=lo_to_splitting, with_phonopy_obj=options.with_phonopy,
-            verbose=options.verbose, mpi_procs=1)
+            nqsmall=nqsmall,
+            ndivsm=ndivsm,
+            asr=asr,
+            chneut=chneut,
+            dipdip=dipdip,
+            dos_method=dos_method,
+            lo_to_splitting=lo_to_splitting,
+            with_phonopy_obj=options.with_phonopy,
+            verbose=options.verbose,
+            mpi_procs=1,
+        )
         print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
 
         phbands = phbst_file.phbands
@@ -299,7 +321,7 @@ Computing phonon bands and DOS from DDB file with:
             phbands.to_xmgrace(handle_overwrite(outpath, options))
             return 0
 
-        #elif options.bxsf:
+        # elif options.bxsf:
         #    outpath = options.filepath + ".bxsf"
         #    phbands.to_bxsf(handle_overwrite(outpath, options))
         #    return 0
@@ -314,12 +336,15 @@ Computing phonon bands and DOS from DDB file with:
                 e(phbands.qpoints.plotly(show=False))
                 e(phbands.plotly_with_phdos(phdos, units=units, show=False))
                 e(phdos_file.plotly_pjdos_type(units=units, show=False))
-                e(phdos.plotly_harmonic_thermo(tstart=5, tstop=300, num=50, units="eV", formula_units=1,
-                                               quantities="all", show=False))
+                e(
+                    phdos.plotly_harmonic_thermo(
+                        tstart=5, tstop=300, num=50, units="eV", formula_units=1, quantities="all", show=False
+                    )
+                )
                 e(phdos.plotly(units=units, show=False))
                 e(phbands.plot_colored_matched(units=units, show=False))
                 e(phbands.plot_fatbands(units=units, phdos_file=phdos_file, show=False))
-                #push_to_chart_studio(figs) if options.chart_studio else plotlyfigs_to_browser(figs)
+                # push_to_chart_studio(figs) if options.chart_studio else plotlyfigs_to_browser(figs)
 
         else:
             phdos = phdos_file.phdos
@@ -336,8 +361,11 @@ Computing phonon bands and DOS from DDB file with:
                 e(phbands.plot_with_phdos(phdos, units=units, show=False))
                 e(phdos_file.plot_pjdos_type(units=units, show=False))
                 e(phbands.plot_colored_matched(units=units, show=False))
-                e(phdos.plot_harmonic_thermo(tstart=5, tstop=300, num=50, units="eV", formula_units=1,
-                                             quantities="all", show=False))
+                e(
+                    phdos.plot_harmonic_thermo(
+                        tstart=5, tstop=300, num=50, units="eV", formula_units=1, quantities="all", show=False
+                    )
+                )
                 e(phdos.plot(units=units, show=False))
                 e(phbands.plot_fatbands(units=units, phdos_file=phdos_file, show=False))
 
@@ -369,9 +397,9 @@ and the Born effective charges in Cartesian coordinates.
     chneut: {chneut}
 """)
         r = ddb.anaget_epsinf_and_becs(chneut=chneut, verbose=options.verbose)
-        print("epsilon_inf:\n", r.epsinf, end=2*"\n")
+        print("epsilon_inf:\n", r.epsinf, end=2 * "\n")
         print(r.becs)
-        #print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
+        # print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
 
     return 0
 
@@ -380,16 +408,20 @@ def abiview_ddb_vs(options) -> int:
     """
     Compute speed of sound by fitting phonon frequencies along selected directions.
     """
-    num_points = 20; asr = 2; chneut = 1; dipdip = 1
+    num_points = 20
+    asr = 2
+    chneut = 1
+    dipdip = 1
     print(f"""
 Computing phonon frequencies for linear least-squares with:
 
     {num_points=}, {asr=}, {chneut=}, {dipdip=}
 """)
     print("Invoking anaddb ...  ")
-    sv = abilab.SoundVelocity.from_ddb(options.filepath, num_points=num_points,
-                                       asr=asr, chneut=chneut, dipdip=dipdip, verbose=options.verbose)
-    #print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
+    sv = abilab.SoundVelocity.from_ddb(
+        options.filepath, num_points=num_points, asr=asr, chneut=chneut, dipdip=dipdip, verbose=options.verbose
+    )
+    # print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
 
     df = sv.get_dataframe()
     abilab.print_dataframe(df, title="Speed of sound for different directions:")
@@ -403,7 +435,9 @@ def abiview_ddb_ir(options) -> int:
     """
     Compute infra-red spectrum from DDB. Plot results.
     """
-    asr = 2; chneut = 1; dipdip = 1
+    asr = 2
+    chneut = 1
+    dipdip = 1
     print(f"""
 Computing phonon frequencies for infra-red spectrum with:
 
@@ -420,7 +454,7 @@ Computing phonon frequencies for infra-red spectrum with:
             tgen.plotly_all(gamma_ev=gamma_ev)
         else:
             tgen.plot_all(gamma_ev=gamma_ev)
-        #print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
+        # print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
 
     return 0
 
@@ -432,14 +466,23 @@ def abiview_ddb_asr(options) -> int:
     print("Computing phonon frequencies with/without ASR")
 
     with abilab.abiopen(options.filepath) as ddb:
-        plotter = ddb.anacompare_asr(asr_list=(0, 2), chneut_list=(1,), dipdip=1, lo_to_splitting="automatic",
-                                     nqsmall=10, ndivsm=20, dos_method="tetra", ngqpt=None,
-                                     verbose=0, mpi_procs=1)
+        plotter = ddb.anacompare_asr(
+            asr_list=(0, 2),
+            chneut_list=(1,),
+            dipdip=1,
+            lo_to_splitting="automatic",
+            nqsmall=10,
+            ndivsm=20,
+            dos_method="tetra",
+            ngqpt=None,
+            verbose=0,
+            mpi_procs=1,
+        )
 
         title = ddb.structure.formula
         renderer = "browser" if not options.chart_studio else "chart_studio"
         plotter.combiplotly(renderer=renderer, title=title) if options.plotly else plotter.plot(title=title)
-        #print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
+        # print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
 
     return 0
 
@@ -451,14 +494,22 @@ def abiview_ddb_dipdip(options) -> int:
     print("Computing phonon frequencies with/without dipdip.")
 
     with abilab.abiopen(options.filepath) as ddb:
-        plotter = ddb.anacompare_dipdip(chneut_list=(1,), asr=2, lo_to_splitting="automatic",
-                                        nqsmall=10, ndivsm=20, dos_method="tetra", ngqpt=None,
-                                        verbose=0, mpi_procs=1)
+        plotter = ddb.anacompare_dipdip(
+            chneut_list=(1,),
+            asr=2,
+            lo_to_splitting="automatic",
+            nqsmall=10,
+            ndivsm=20,
+            dos_method="tetra",
+            ngqpt=None,
+            verbose=0,
+            mpi_procs=1,
+        )
 
         title = ddb.structure.formula
         renderer = "browser" if not options.chart_studio else "chart_studio"
         plotter.combiplotly(renderer=renderer, title=title) if options.plotly else plotter.plot(title=title)
-        #print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
+        # print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
 
     return 0
 
@@ -470,14 +521,23 @@ def abiview_ddb_quad(options) -> int:
     print("Computing phonon frequencies with/without dip-quad and quad-quad terms.")
 
     with abilab.abiopen(options.filepath) as ddb:
-        plotter = ddb.anacompare_phbands_with_quad(asr=2, chneut=1, dipdip=1, lo_to_splitting="automatic",
-                                                   nqsmall=0, ndivsm=20, dos_method="tetra", ngqpt=None,
-                                                   verbose=0, mpi_procs=1)
+        plotter = ddb.anacompare_phbands_with_quad(
+            asr=2,
+            chneut=1,
+            dipdip=1,
+            lo_to_splitting="automatic",
+            nqsmall=0,
+            ndivsm=20,
+            dos_method="tetra",
+            ngqpt=None,
+            verbose=0,
+            mpi_procs=1,
+        )
 
         title = ddb.structure.formula
         renderer = "browser" if not options.chart_studio else "chart_studio"
         plotter.combiplotly(renderer=renderer, title=title) if options.plotly else plotter.plot(title=title)
-        #print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
+        # print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
 
     return 0
 
@@ -491,7 +551,10 @@ def abiview_ddb_isodistort_ph(options) -> int:
     with abilab.abiopen(options.filepath) as ddb:
         print(ddb.to_string(verbose=options.verbose))
         qpoint = options.qpoint
-        asr = 2; chneut = 1; dipdip = 1; lo_to_splitting = False
+        asr = 2
+        chneut = 1
+        dipdip = 1
+        lo_to_splitting = False
         print(f"""
 Computing phonon frequencies and eigenvectors with:
 
@@ -500,11 +563,12 @@ Computing phonon frequencies and eigenvectors with:
 """)
 
         print("Invoking anaddb ...  ", end="")
-        phbands = ddb.anaget_phmodes_at_qpoint(qpoint=qpoint, asr=asr, chneut=chneut, dipdip=dipdip,
-                                               verbose=options.verbose, lo_to_splitting=False)
+        phbands = ddb.anaget_phmodes_at_qpoint(
+            qpoint=qpoint, asr=asr, chneut=chneut, dipdip=dipdip, verbose=options.verbose, lo_to_splitting=False
+        )
 
         phbands.make_isodistort_ph_dir(qpoint, select_modes=None, eta=1, workdir=None)
-        #print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
+        # print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
 
     return 0
 
@@ -516,13 +580,14 @@ def abiview_ddb_qpt(options) -> int:
     """
     with abilab.abiopen(options.filepath) as ddb:
         # Execute anaddb to compute phbands without Fourier interpolation.
-        phbands, inp = ddb.anaget_phmodes_at_qpoint(qpoint=options.qpoint,
-                            asr=2, chneut=1, dipdip=1, ifcflag=0, return_input=True)
+        phbands, inp = ddb.anaget_phmodes_at_qpoint(
+            qpoint=options.qpoint, asr=2, chneut=1, dipdip=1, ifcflag=0, return_input=True
+        )
         print(inp)
         df = phbands.get_dataframe()
         abilab.print_dataframe(df, title="Phonon frequencies:")
         df_to_clipboard(options, df)
-        #print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
+        # print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
 
     return 0
 
@@ -531,7 +596,9 @@ def abiview_ddb_ifc(options) -> int:
     """
     Visualize interatomic force constants in real space.
     """
-    asr = 2; chneut = 1; dipdip = 1
+    asr = 2
+    chneut = 1
+    dipdip = 1
     print(f"""
 Computing interatomic force constants with:
 
@@ -541,7 +608,7 @@ Computing interatomic force constants with:
     with abilab.abiopen(options.filepath) as ddb:
         # Execute anaddb to compute the interatomic force constants.
         ifc = ddb.anaget_ifc(asr=asr, chneut=chneut, dipdip=dipdip)
-        #print(ifc)
+        # print(ifc)
 
         if not options.expose_web:
             # matplotlib figure and X-server.
@@ -554,7 +621,7 @@ Computing interatomic force constants with:
             e(ifc.plot_longitudinal_ifc(title="Longitudinal IFCs", show=False))
             e(ifc.plot_longitudinal_ifc_short_range(title="Longitudinal IFCs short range", show=False))
             e(ifc.plot_longitudinal_ifc_ewald(title="Longitudinal IFCs Ewald", show=False))
-        #print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
+        # print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
 
     return 0
 
@@ -564,9 +631,12 @@ def abiview_ddb_elastic(options) -> int:
     with abilab.abiopen(options.filepath) as ddb:
         print(ddb.to_string(verbose=options.verbose))
 
-        asr = 2; chneut = 1
-        relaxed_ion = "automatic"; piezo = "automatic"
-        dde = False; stress_correction = False
+        asr = 2
+        chneut = 1
+        relaxed_ion = "automatic"
+        piezo = "automatic"
+        dde = False
+        stress_correction = False
 
         print(f"""
 Calling anaddb to compute elastic and piezoelectric tensors. Require DDB with strain terms.
@@ -575,17 +645,19 @@ Calling anaddb to compute elastic and piezoelectric tensors. Require DDB with st
     {relaxed_ion=}, {piezo=}, {dde=}, {stress_correction=}
 """)
 
-        el_data = ddb.anaget_elastic(relaxed_ion=relaxed_ion,
-                                     piezo=piezo,
-                                     dde=dde,
-                                     stress_correction=stress_correction,
-                                     asr=asr,
-                                     chneut=chneut,
-                                     verbose=options.verbose,
-                                     retpath=False,
-                                     return_input=False)
+        el_data = ddb.anaget_elastic(
+            relaxed_ion=relaxed_ion,
+            piezo=piezo,
+            dde=dde,
+            stress_correction=stress_correction,
+            asr=asr,
+            chneut=chneut,
+            verbose=options.verbose,
+            retpath=False,
+            return_input=False,
+        )
         print(el_data)
-        #print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
+        # print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
 
     return 0
 
@@ -598,7 +670,7 @@ def abiview_phbands(options) -> int:
         if options.xmgrace:
             outpath = options.filepath + ".agr"
             abifile.phbands.to_xmgrace(handle_overwrite(outpath, options))
-        #elif options.bxsf:
+        # elif options.bxsf:
         #    outpath = options.filepath + ".bxsf"
         #    abifile.phbands.to_bxsf(handle_overwrite(outpath, options))
         #    return 0
@@ -606,10 +678,11 @@ def abiview_phbands(options) -> int:
             return abifile.phbands.view_phononwebsite(browser=options.browser)
         else:
             print(abifile.to_string(verbose=options.verbose))
-            abifile.expose_phbands(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                                    verbose=options.verbose, units="mev")
+            abifile.expose_phbands(
+                slide_mode=options.slide_mode, slide_timeout=options.slide_timeout, verbose=options.verbose, units="mev"
+            )
 
-        #print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
+        # print("Calculation completed.\nResults available in:", os.path.dirname(phbst_file.filepath))
 
         return 0
 
@@ -642,6 +715,7 @@ def abiview_lobster(options) -> int:
     Analyze lobster output files in directory.
     """
     from abipy.electrons.lobster import LobsterAnalyzer
+
     lobana = LobsterAnalyzer.from_dir(os.path.dirname(options.filepath), prefix=options.prefix)
     print(lobana.to_string(verbose=options.verbose))
 
@@ -649,6 +723,7 @@ def abiview_lobster(options) -> int:
         # Start ipython shell with namespace
         # Use embed because I don't know how to show a header with start_ipython.
         import IPython
+
         IPython.embed(header="The LobsterAnalyzer is bound to the `lobana` variable.\nTry `print(lobana)`")
 
     elif options.notebook:
@@ -656,7 +731,7 @@ def abiview_lobster(options) -> int:
 
     else:
         lobana.plot()
-        #lobana.plot_coxp_with_dos(from_site_index=[0, 1])
+        # lobana.plot_coxp_with_dos(from_site_index=[0, 1])
 
     return 0
 
@@ -666,6 +741,7 @@ def abiview_xrd_traj(options) -> int:
     Compare XRD spectra using the first and the last structure read from a trajectory file.
     """
     from abipy.core.structure import get_first_and_last_structure_from_file
+
     structures = get_first_and_last_structure_from_file(options.filepath)
 
     dfs = abilab.dataframes_from_structures(structures, index=["first", "last"])
@@ -674,10 +750,16 @@ def abiview_xrd_traj(options) -> int:
         abilab.print_dataframe(dfs.coords, title="Atomic positions (columns give the site index):")
 
     from pymatgen.analysis.diffraction.xrd import XRDCalculator
+
     xrd = XRDCalculator(wavelength=options.wavelength, symprec=options.symprec)
     two_theta_range = tuple(float(t) for t in options.two_theta_range)
-    xrd.plot_structures(structures, two_theta_range=two_theta_range, fontsize=6,
-                        annotate_peaks=not options.no_annotate_peaks, tight_layout=True)
+    xrd.plot_structures(
+        structures,
+        two_theta_range=two_theta_range,
+        fontsize=6,
+        annotate_peaks=not options.no_annotate_peaks,
+        tight_layout=True,
+    )
     return 0
 
 
@@ -757,30 +839,73 @@ def get_parser(with_epilog=False):
     copts_parser = argparse.ArgumentParser(add_help=False)
     copts_parser.add_argument("filepath", type=str, help="File to visualize.")
 
-    copts_parser.add_argument("--loglevel", default="ERROR", type=str,
-        help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
-    copts_parser.add_argument("-v", "--verbose", default=0, action="count", # -vv --> verbose=2
-        help="verbose, can be supplied multiple times to increase verbosity.")
-    copts_parser.add_argument("-sns", "--seaborn", const="paper", default=None, action="store", nargs="?", type=str,
-        help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster"). Default: paper')
-    copts_parser.add_argument("-mpl", "--mpl-backend", default=None,
-        help=("Set matplotlib interactive backend. "
-              "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
-              "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."))
+    copts_parser.add_argument(
+        "--loglevel",
+        default="ERROR",
+        type=str,
+        help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG",
+    )
+    copts_parser.add_argument(
+        "-v",
+        "--verbose",
+        default=0,
+        action="count",  # -vv --> verbose=2
+        help="verbose, can be supplied multiple times to increase verbosity.",
+    )
+    copts_parser.add_argument(
+        "-sns",
+        "--seaborn",
+        const="paper",
+        default=None,
+        action="store",
+        nargs="?",
+        type=str,
+        help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster"). Default: paper',
+    )
+    copts_parser.add_argument(
+        "-mpl",
+        "--mpl-backend",
+        default=None,
+        help=(
+            "Set matplotlib interactive backend. "
+            "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
+            "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."
+        ),
+    )
 
     # Parent parser for commands supporting MplExposer.
     slide_parser = argparse.ArgumentParser(add_help=False)
-    slide_parser.add_argument("-s", "--slide-mode", default=False, action="store_true",
-            help="Iterate over figures. Expose all figures at once if not given on the CLI.")
-    slide_parser.add_argument("-t", "--slide-timeout", type=int, default=None,
-            help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.")
-    slide_parser.add_argument("-ew", "--expose-web", default=False, action="store_true",
-            help="Generate matplotlib plots in $BROWSER instead of X-server. WARNING: Not all the features are supported.")
+    slide_parser.add_argument(
+        "-s",
+        "--slide-mode",
+        default=False,
+        action="store_true",
+        help="Iterate over figures. Expose all figures at once if not given on the CLI.",
+    )
+    slide_parser.add_argument(
+        "-t",
+        "--slide-timeout",
+        type=int,
+        default=None,
+        help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.",
+    )
+    slide_parser.add_argument(
+        "-ew",
+        "--expose-web",
+        default=False,
+        action="store_true",
+        help="Generate matplotlib plots in $BROWSER instead of X-server. WARNING: Not all the features are supported.",
+    )
 
     # Parent parser for commands that operating on pandas dataframes
     pandas_parser = argparse.ArgumentParser(add_help=False)
-    pandas_parser.add_argument("-c", "--clipboard", default=False, action="store_true",
-            help="Copy dataframe to the system clipboard. This can be pasted into Excel, for example")
+    pandas_parser.add_argument(
+        "-c",
+        "--clipboard",
+        default=False,
+        action="store_true",
+        help="Copy dataframe to the system clipboard. This can be pasted into Excel, for example",
+    )
 
     # Parent parser for commands supporting ipython
     ipy_parser = argparse.ArgumentParser(add_help=False)
@@ -789,20 +914,32 @@ def get_parser(with_epilog=False):
     # Parent parser for commands supporting (jupyter notebooks)
     nb_parser = argparse.ArgumentParser(add_help=False)
     nb_parser.add_argument("-nb", "--notebook", default=False, action="store_true", help="Generate jupyter notebook.")
-    nb_parser.add_argument("--foreground", action="store_true", default=False,
-        help="Run jupyter notebook in the foreground.")
+    nb_parser.add_argument(
+        "--foreground", action="store_true", default=False, help="Run jupyter notebook in the foreground."
+    )
 
     # Parent parser for commands supporting plotly plots
     plotly_parser = argparse.ArgumentParser(add_help=False)
-    plotly_parser.add_argument("-ply", "--plotly", default=False, action="store_true",
-        help="Generate plotly plots in the browser instead of matplotlib.")
-    plotly_parser.add_argument("-cs", "--chart-studio", default=False, action="store_true",
+    plotly_parser.add_argument(
+        "-ply",
+        "--plotly",
+        default=False,
+        action="store_true",
+        help="Generate plotly plots in the browser instead of matplotlib.",
+    )
+    plotly_parser.add_argument(
+        "-cs",
+        "--chart-studio",
+        default=False,
+        action="store_true",
         help="Push figure to plotly chart studio. "
-             "Requires --plotly and user account at https://chart-studio.plotly.com.")
+        "Requires --plotly and user account at https://chart-studio.plotly.com.",
+    )
 
     # Build the main parser.
-    parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
-                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        epilog=get_epilog() if with_epilog else "", formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument("-V", "--version", action="version", version=abilab.__version__)
 
     # Create the parsers for the sub-command
@@ -812,52 +949,100 @@ def get_parser(with_epilog=False):
         """Add arguments to subparser `p`."""
         for arg in args:
             if arg == "xmgrace":
-                p.add_argument("--xmgrace", default=False, action="store_true",
-                    help="Print bands in xmgrace format to stdout and exit.")
+                p.add_argument(
+                    "--xmgrace",
+                    default=False,
+                    action="store_true",
+                    help="Print bands in xmgrace format to stdout and exit.",
+                )
             elif arg == "bxsf":
-                p.add_argument("--bxsf", default=False, action="store_true",
-                    help=("Generate BXSF file suitable for the visualization of isosurfaces with Xcrysden"
-                          "(xcrysden --bxsf FILE).\n Requires k-points in IBZ. Print to stdout and exit."))
+                p.add_argument(
+                    "--bxsf",
+                    default=False,
+                    action="store_true",
+                    help=(
+                        "Generate BXSF file suitable for the visualization of isosurfaces with Xcrysden"
+                        "(xcrysden --bxsf FILE).\n Requires k-points in IBZ. Print to stdout and exit."
+                    ),
+                )
             elif arg == "phononweb":
-                p.add_argument("-web", "--phononwebsite", default=False, action="store_true",
-                    help=("Visualize phonon band structure on the phononwebsite. "
-                          "http://henriquemiranda.github.io/phononwebsite/"))
+                p.add_argument(
+                    "-web",
+                    "--phononwebsite",
+                    default=False,
+                    action="store_true",
+                    help=(
+                        "Visualize phonon band structure on the phononwebsite. "
+                        "http://henriquemiranda.github.io/phononwebsite/"
+                    ),
+                )
             elif arg == "browser":
-                p.add_argument("-b", "--browser", default=None,
+                p.add_argument(
+                    "-b",
+                    "--browser",
+                    default=None,
                     help="Define browser used by python webbrowser. "
-                         "See https://docs.python.org/2/library/webbrowser.html#webbrowser.register")
+                    "See https://docs.python.org/2/library/webbrowser.html#webbrowser.register",
+                )
             elif arg == "force":
-                p.add_argument("-f", "--force", default=False, action="store_true",
-                    help="Overwrite pre-existent files without prompting for confirmation.")
+                p.add_argument(
+                    "-f",
+                    "--force",
+                    default=False,
+                    action="store_true",
+                    help="Overwrite pre-existent files without prompting for confirmation.",
+                )
             else:
                 raise ValueError("Invalid arg: %s" % arg)
 
     # Subparser for structure command.
     p_structure = subparsers.add_parser("structure", parents=[copts_parser], help=abiview_structure.__doc__)
-    p_structure.add_argument("-a", "--appname", nargs="?", type=str, default="vesta",
-        help=("Application name. Default: vesta. "
-              "Possible options: %s, mayavi, vtk" % ", ".join(Visualizer.all_visunames())))
+    p_structure.add_argument(
+        "-a",
+        "--appname",
+        nargs="?",
+        type=str,
+        default="vesta",
+        help=(
+            "Application name. Default: vesta. "
+            "Possible options: %s, mayavi, vtk" % ", ".join(Visualizer.all_visunames())
+        ),
+    )
 
     # Subparser for input command.
     p_input = subparsers.add_parser("input", parents=[copts_parser], help=abiview_input.__doc__)
 
     # Subparser for hist command.
     p_hist = subparsers.add_parser("hist", parents=[copts_parser], help=abiview_hist.__doc__)
-    p_hist.add_argument("-a", "--appname", nargs="?", default=None, const="ovito",
-        help=("Application name. Default: ovito. "
-              "Possible options: `%s`, `mpl` (matplotlib) `mayavi`, `vtk`" % ", ".join(Visualizer.all_visunames())))
+    p_hist.add_argument(
+        "-a",
+        "--appname",
+        nargs="?",
+        default=None,
+        const="ovito",
+        help=(
+            "Application name. Default: ovito. "
+            "Possible options: `%s`, `mpl` (matplotlib) `mayavi`, `vtk`" % ", ".join(Visualizer.all_visunames())
+        ),
+    )
     p_hist.add_argument("--xdatcar", default=False, action="store_true", help="Convert HIST file into XDATCAR format.")
-    p_hist.add_argument("--to-unit-cell", default=False, action="store_true",
-            help="Whether to translate sites into the unit cell.")
+    p_hist.add_argument(
+        "--to-unit-cell", default=False, action="store_true", help="Whether to translate sites into the unit cell."
+    )
     add_args(p_hist, "force")
 
     # Subparser for data command.
     p_data = subparsers.add_parser("data", parents=[copts_parser], help=abiview_data.__doc__)
-    p_data.add_argument("-i", "--use-index", default=False, action="store_true",
-        help="Use the row index as x-value in the plot. By default the plotter uses the first column as x-values")
+    p_data.add_argument(
+        "-i",
+        "--use-index",
+        default=False,
+        action="store_true",
+        help="Use the row index as x-value in the plot. By default the plotter uses the first column as x-values",
+    )
 
     # Subparser for abo command.
-    #p_abo = subparsers.add_parser('abo', parents=[copts_parser], help=abiview_abo.__doc__)
+    # p_abo = subparsers.add_parser('abo', parents=[copts_parser], help=abiview_abo.__doc__)
 
     p_timer = subparsers.add_parser("timer", parents=[copts_parser, slide_parser], help=abiview_timer.__doc__)
 
@@ -865,10 +1050,17 @@ def get_parser(with_epilog=False):
 
     # Subparser for dirviz command.
     p_dirviz = subparsers.add_parser("dirviz", parents=[copts_parser], help=abiview_dirviz.__doc__)
-    p_dirviz.add_argument("-e", "--engine", type=str, default="fdp",
-        help=("graphviz engine: ['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage']. "
+    p_dirviz.add_argument(
+        "-e",
+        "--engine",
+        type=str,
+        default="fdp",
+        help=(
+            "graphviz engine: ['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage']. "
             "See http://www.graphviz.org/pdf/dot.1.pdf "
-            "Use `conda install python-graphviz` or `pip install graphviz` to install the python package."))
+            "Use `conda install python-graphviz` or `pip install graphviz` to install the python package."
+        ),
+    )
 
     # Subparser for ebands command.
     p_ebands = subparsers.add_parser("ebands", parents=[copts_parser, slide_parser], help=abiview_ebands.__doc__)
@@ -876,123 +1068,233 @@ def get_parser(with_epilog=False):
 
     # Subparser for effmass command.
     p_effmass = subparsers.add_parser("effmass", parents=[copts_parser, slide_parser], help=abiview_effmass.__doc__)
-    #add_args(p_ebands, "xmgrace", "bxsf", "force")
+    # add_args(p_ebands, "xmgrace", "bxsf", "force")
 
     # Subparser for skw command.
     p_skw = subparsers.add_parser("skw", parents=[copts_parser], help=abiview_skw.__doc__)
-    p_skw.add_argument("-lp", "--lpratio", type=int, default=5,
-        help=("Ratio between the number of star functions and the number of ab-initio k-points. "
-              "The default should be OK in many systems, larger values may be required for accurate derivatives."))
-    p_skw.add_argument("-ld", "--line-density", type=int, default=20,
-                      help="Number of points in the smallest segment of the k-path.")
+    p_skw.add_argument(
+        "-lp",
+        "--lpratio",
+        type=int,
+        default=5,
+        help=(
+            "Ratio between the number of star functions and the number of ab-initio k-points. "
+            "The default should be OK in many systems, larger values may be required for accurate derivatives."
+        ),
+    )
+    p_skw.add_argument(
+        "-ld", "--line-density", type=int, default=20, help="Number of points in the smallest segment of the k-path."
+    )
 
     # Subparser for fs command.
     p_fs = subparsers.add_parser("fs", parents=[copts_parser], help=abiview_fs.__doc__)
-    p_fs.add_argument("-a", "--appname", type=str, default="mpl",
-        help="Application name. Possible options: mpl (matplotlib, default), xsf (xcrysden), mayavi.")
+    p_fs.add_argument(
+        "-a",
+        "--appname",
+        type=str,
+        default="mpl",
+        help="Application name. Possible options: mpl (matplotlib, default), xsf (xcrysden), mayavi.",
+    )
 
     # Parent parser for ifermi commands
     ifermi_parser = argparse.ArgumentParser(add_help=False)
-    ifermi_parser.add_argument("-i", "--interpolation-factor", default=8, type=float,
-        help="interpolation factor for band structure  [default: 8.0]")
-    ifermi_parser.add_argument("--eref", default="fermie", type=str, choices=["fermie", "cbm", "vbm"],
+    ifermi_parser.add_argument(
+        "-i",
+        "--interpolation-factor",
+        default=8,
+        type=float,
+        help="interpolation factor for band structure  [default: 8.0]",
+    )
+    ifermi_parser.add_argument(
+        "--eref",
+        default="fermie",
+        type=str,
+        choices=["fermie", "cbm", "vbm"],
         help="Energy reference for isosurface. `eref` and `mu` define the energy level: isoe = eref + mu"
-              "Use `fermie` for metals, `cbm` for the conduction band minimum, and `vbm` for the valence band maximum, "
-             "[default: `fermie`]")
-    ifermi_parser.add_argument("-t", "--plot-type", default="plotly", choices=["plotly", "matplotlib", "mayavi"],
-        help="Plot type. Possible options: plotly (default), matplotlib, mayavi.")
-    ifermi_parser.add_argument("--wigner", "--no-wigner", dest="wigner", default=True, action=NegateAction, nargs=0,
-            help="Use the Wigner-Seitz cell or the reciprocal lattice parallelepiped. Default is: wigner")
-    ifermi_parser.add_argument("-vel", "--with-velocities", default=False, action="store_true",
-            help="Show color map with interpolated group velocities. Default is False.")
+        "Use `fermie` for metals, `cbm` for the conduction band minimum, and `vbm` for the valence band maximum, "
+        "[default: `fermie`]",
+    )
+    ifermi_parser.add_argument(
+        "-t",
+        "--plot-type",
+        default="plotly",
+        choices=["plotly", "matplotlib", "mayavi"],
+        help="Plot type. Possible options: plotly (default), matplotlib, mayavi.",
+    )
+    ifermi_parser.add_argument(
+        "--wigner",
+        "--no-wigner",
+        dest="wigner",
+        default=True,
+        action=NegateAction,
+        nargs=0,
+        help="Use the Wigner-Seitz cell or the reciprocal lattice parallelepiped. Default is: wigner",
+    )
+    ifermi_parser.add_argument(
+        "-vel",
+        "--with-velocities",
+        default=False,
+        action="store_true",
+        help="Show color map with interpolated group velocities. Default is False.",
+    )
 
     # Subparser for ifermi_fs command.
-    p_ifermi_fs = subparsers.add_parser("ifermi_fs", parents=[ifermi_parser, copts_parser], help=abiview_ifermi_fs.__doc__)
-    p_ifermi_fs.add_argument("-m", "--mu", default=0.0, type=float,
-        help="Offset in eV from the energy reference, eref, at which to calculate the isosurface. Default 0 i.e. use `eref`")
+    p_ifermi_fs = subparsers.add_parser(
+        "ifermi_fs", parents=[ifermi_parser, copts_parser], help=abiview_ifermi_fs.__doc__
+    )
+    p_ifermi_fs.add_argument(
+        "-m",
+        "--mu",
+        default=0.0,
+        type=float,
+        help="Offset in eV from the energy reference, eref, at which to calculate the isosurface. Default 0 i.e. use `eref`",
+    )
 
     # Subparser for ddb command.
     p_ddb = subparsers.add_parser("ddb", parents=[copts_parser, slide_parser, plotly_parser], help=abiview_ddb.__doc__)
-    p_ddb.add_argument("--with-phonopy", default=False, action="store_true",
-        help="Produce phonopy.yaml file. Use e.g. `abiopen.py  phonopy.yaml` to load the phonon object in the ipython terminal.")
+    p_ddb.add_argument(
+        "--with-phonopy",
+        default=False,
+        action="store_true",
+        help="Produce phonopy.yaml file. Use e.g. `abiopen.py  phonopy.yaml` to load the phonon object in the ipython terminal.",
+    )
     add_args(p_ddb, "xmgrace", "phononweb", "browser", "force")
 
     # Subparser for ddb_vs command.
-    p_ddb_vs = subparsers.add_parser("ddb_vs", parents=[copts_parser, pandas_parser, slide_parser],
-                                     help=abiview_ddb_vs.__doc__)
+    p_ddb_vs = subparsers.add_parser(
+        "ddb_vs", parents=[copts_parser, pandas_parser, slide_parser], help=abiview_ddb_vs.__doc__
+    )
 
     # Subparser for ddb_ir command.
-    p_ddb_becs = subparsers.add_parser("ddb_becs", parents=[copts_parser, pandas_parser],
-                                       help=abiview_ddb_becs.__doc__)
+    p_ddb_becs = subparsers.add_parser("ddb_becs", parents=[copts_parser, pandas_parser], help=abiview_ddb_becs.__doc__)
 
     # Subparser for ddb_ir command.
-    p_ddb_ir = subparsers.add_parser("ddb_ir", parents=[copts_parser, pandas_parser, slide_parser],
-                                     help=abiview_ddb_ir.__doc__)
+    p_ddb_ir = subparsers.add_parser(
+        "ddb_ir", parents=[copts_parser, pandas_parser, slide_parser], help=abiview_ddb_ir.__doc__
+    )
 
     # Subparser for ddb_asr command.
-    p_ddb_asr = subparsers.add_parser("ddb_asr", parents=[copts_parser, pandas_parser, slide_parser, plotly_parser],
-                                      help=abiview_ddb_asr.__doc__)
+    p_ddb_asr = subparsers.add_parser(
+        "ddb_asr", parents=[copts_parser, pandas_parser, slide_parser, plotly_parser], help=abiview_ddb_asr.__doc__
+    )
 
     # Subparser for ddb_dipdip command.
-    p_ddb_dipdip = subparsers.add_parser("ddb_dipdip", parents=[copts_parser, pandas_parser, slide_parser, plotly_parser],
-                                         help=abiview_ddb_dipdip.__doc__)
+    p_ddb_dipdip = subparsers.add_parser(
+        "ddb_dipdip",
+        parents=[copts_parser, pandas_parser, slide_parser, plotly_parser],
+        help=abiview_ddb_dipdip.__doc__,
+    )
 
     # Subparser for ddb_quad command.
-    p_ddb_quad = subparsers.add_parser("ddb_quad", parents=[copts_parser, pandas_parser, slide_parser, plotly_parser],
-                                       help=abiview_ddb_quad.__doc__)
+    p_ddb_quad = subparsers.add_parser(
+        "ddb_quad", parents=[copts_parser, pandas_parser, slide_parser, plotly_parser], help=abiview_ddb_quad.__doc__
+    )
 
     # Subparser for ddb_ph_isodistort command.
-    p_ddb_isodistort_ph = subparsers.add_parser("ddb_isodistort_ph", parents=[copts_parser],
-                                     help=abiview_ddb_isodistort_ph.__doc__)
-    p_ddb_isodistort_ph.add_argument("-q", "--qpoint", nargs=3, type=float,
-        help="q-point in reduced coordinates e.g. 0.25 0 0. Default: 0, 0, 0", default=[0, 0, 0])
+    p_ddb_isodistort_ph = subparsers.add_parser(
+        "ddb_isodistort_ph", parents=[copts_parser], help=abiview_ddb_isodistort_ph.__doc__
+    )
+    p_ddb_isodistort_ph.add_argument(
+        "-q",
+        "--qpoint",
+        nargs=3,
+        type=float,
+        help="q-point in reduced coordinates e.g. 0.25 0 0. Default: 0, 0, 0",
+        default=[0, 0, 0],
+    )
 
     # Subparser for ddb_ifc command.
-    p_ddb_ifc = subparsers.add_parser("ddb_ifc", parents=[copts_parser, pandas_parser, slide_parser],
-                                      help=abiview_ddb_ifc.__doc__)
+    p_ddb_ifc = subparsers.add_parser(
+        "ddb_ifc", parents=[copts_parser, pandas_parser, slide_parser], help=abiview_ddb_ifc.__doc__
+    )
 
     # Subparser for ddb_ifc command.
-    p_ddb_elastic = subparsers.add_parser("ddb_elastic", parents=[copts_parser, pandas_parser, slide_parser],
-                                      help=abiview_ddb_elastic.__doc__)
+    p_ddb_elastic = subparsers.add_parser(
+        "ddb_elastic", parents=[copts_parser, pandas_parser, slide_parser], help=abiview_ddb_elastic.__doc__
+    )
 
     # Subparser for ddb_qpt command.
-    p_ddb_qpt = subparsers.add_parser("ddb_qpt", parents=[copts_parser, pandas_parser, slide_parser],
-                                      help=abiview_ddb_qpt.__doc__)
+    p_ddb_qpt = subparsers.add_parser(
+        "ddb_qpt", parents=[copts_parser, pandas_parser, slide_parser], help=abiview_ddb_qpt.__doc__
+    )
 
-    p_ddb_qpt.add_argument("-q", "--qpoint", nargs=3, type=float,
-        help="q-point in reduced coordinates e.g. `-q 0.25 0 0`. Default: 0, 0, 0", default=[0, 0, 0])
+    p_ddb_qpt.add_argument(
+        "-q",
+        "--qpoint",
+        nargs=3,
+        type=float,
+        help="q-point in reduced coordinates e.g. `-q 0.25 0 0`. Default: 0, 0, 0",
+        default=[0, 0, 0],
+    )
 
     # Subparser for phbands command.
     p_phbands = subparsers.add_parser("phbands", parents=[copts_parser, slide_parser], help=abiview_phbands.__doc__)
     add_args(p_phbands, "xmgrace", "phononweb", "browser", "force")
 
     # Subparser for lobster command.
-    p_lobster = subparsers.add_parser("lobster", parents=[copts_parser, ipy_parser, nb_parser],
-        help=abiview_lobster.__doc__)
+    p_lobster = subparsers.add_parser(
+        "lobster", parents=[copts_parser, ipy_parser, nb_parser], help=abiview_lobster.__doc__
+    )
     p_lobster.add_argument("--prefix", type=str, default="", help="Prefix for lobster output files. Default: ''")
 
     # Subparser for xrd.
-    p_xrd = subparsers.add_parser("xrd_traj", parents=[copts_parser],
-        help="Compare X-ray diffraction for the first and the last structure in a trajectory file.")
-    p_xrd.add_argument("-w", "--wavelength", default="CuKa", type=str, help=(
-        "The wavelength can be specified as a string. It must be one of the "
-        "supported definitions in the WAVELENGTHS dict declared in pymatgen/analysis/diffraction/xrd.py."
-        "Defaults to 'CuKa', i.e, Cu K_alpha radiation."))
-    p_xrd.add_argument("-s", "--symprec", default=0, type=float, help=(
-        "Symmetry precision for structure refinement. "
-        "If set to 0, no refinement is done. Otherwise, refinement is performed using spglib with provided precision."))
-    p_xrd.add_argument("-t", "--two-theta-range", default=(0, 90), nargs=2, help=(
-        "Tuple for range of two_thetas to calculate in degrees. Defaults to (0, 90)."))
-    p_xrd.add_argument("-nap", "--no-annotate-peaks", default=False, action="store_true",
-        help="Whether to annotate the peaks with plane information.")
+    p_xrd = subparsers.add_parser(
+        "xrd_traj",
+        parents=[copts_parser],
+        help="Compare X-ray diffraction for the first and the last structure in a trajectory file.",
+    )
+    p_xrd.add_argument(
+        "-w",
+        "--wavelength",
+        default="CuKa",
+        type=str,
+        help=(
+            "The wavelength can be specified as a string. It must be one of the "
+            "supported definitions in the WAVELENGTHS dict declared in pymatgen/analysis/diffraction/xrd.py."
+            "Defaults to 'CuKa', i.e, Cu K_alpha radiation."
+        ),
+    )
+    p_xrd.add_argument(
+        "-s",
+        "--symprec",
+        default=0,
+        type=float,
+        help=(
+            "Symmetry precision for structure refinement. "
+            "If set to 0, no refinement is done. Otherwise, refinement is performed using spglib with provided precision."
+        ),
+    )
+    p_xrd.add_argument(
+        "-t",
+        "--two-theta-range",
+        default=(0, 90),
+        nargs=2,
+        help=("Tuple for range of two_thetas to calculate in degrees. Defaults to (0, 90)."),
+    )
+    p_xrd.add_argument(
+        "-nap",
+        "--no-annotate-peaks",
+        default=False,
+        action="store_true",
+        help="Whether to annotate the peaks with plane information.",
+    )
 
     # Subparser for denpot command.
     p_denpot = subparsers.add_parser("denpot", parents=[copts_parser], help=abiview_denpot.__doc__)
-    p_denpot.add_argument("-a", "--appname", type=str, default="vesta",
-            help=("Application name. Default: vesta. " +
-                  "Possible options: `%s`, `mayavi`, `vtk`" % ", ".join(Visualizer.all_visunames())))
+    p_denpot.add_argument(
+        "-a",
+        "--appname",
+        type=str,
+        default="vesta",
+        help=(
+            "Application name. Default: vesta. "
+            + "Possible options: `%s`, `mayavi`, `vtk`" % ", ".join(Visualizer.all_visunames())
+        ),
+    )
     p_denpot.add_argument("--chgcar", default=False, action="store_true", help="Convert Density to CHGCAR format.")
-    p_denpot.add_argument("--cube", default=False, action="store_true", help="Convert Density/Potential to CUBE format.")
+    p_denpot.add_argument(
+        "--cube", default=False, action="store_true", help="Convert Density/Potential to CUBE format."
+    )
 
     return parser
 
@@ -1020,19 +1322,30 @@ def main():
 
     cli.set_loglevel(options.loglevel)
 
-    if getattr(options, "plotly", False): options.expose = True
-    if options.verbose > 2: print(options)
+    if getattr(options, "plotly", False):
+        options.expose = True
+    if options.verbose > 2:
+        print(options)
 
     if options.mpl_backend is not None:
         # Set matplotlib backend
         import matplotlib
+
         matplotlib.use(options.mpl_backend)
 
     if options.seaborn:
         # Use seaborn settings.
         import seaborn as sns
-        sns.set(context=options.seaborn, style="darkgrid", palette="deep",
-                font="sans-serif", font_scale=1, color_codes=False, rc=None)
+
+        sns.set(
+            context=options.seaborn,
+            style="darkgrid",
+            palette="deep",
+            font="sans-serif",
+            font_scale=1,
+            color_codes=False,
+            rc=None,
+        )
 
     # Dispatch
     return globals()["abiview_" + options.command](options)

@@ -2,6 +2,7 @@
 """
 Script to generate/analyze/plot ONCVPSP pseudopotentials.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -24,7 +25,8 @@ def _find_oncv_output(path: str) -> str:
     Fix possible error in the specification of filepath when we want a `.out` file.
     Return output path.
     """
-    if path.endswith(".out"): return path
+    if path.endswith(".out"):
+        return path
     root, _ = os.path.splitext(path)
     new_path = root + ".out"
     if not os.path.exists(new_path):
@@ -38,9 +40,12 @@ def oncv_notebook(options):
     Generate jupyter notebook to plot data. Requires oncvpsp output file.
     """
     out_path = _find_oncv_output(options.filepath)
-    return oncv_make_open_notebook(out_path, foreground=options.foreground,
-                                   classic_notebook=options.classic_notebook,
-                                   no_browser=options.no_browser)
+    return oncv_make_open_notebook(
+        out_path,
+        foreground=options.foreground,
+        classic_notebook=options.classic_notebook,
+        no_browser=options.no_browser,
+    )
 
 
 def oncv_gnuplot(options):
@@ -81,11 +86,15 @@ def oncv_plot(options) -> int:
     out_path = _find_oncv_output(options.filepath)
     plotter = OncvPlotter.from_file(out_path)
 
-    #plotter.plotly_atan_logders().show()
-    #return 0
+    # plotter.plotly_atan_logders().show()
+    # return 0
 
-    plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                   use_web=options.expose_web, verbose=options.verbose)
+    plotter.expose(
+        slide_mode=options.slide_mode,
+        slide_timeout=options.slide_timeout,
+        use_web=options.expose_web,
+        verbose=options.verbose,
+    )
     return 0
 
 
@@ -100,6 +109,7 @@ def oncv_plot_pseudo(options) -> int:
 
     exposer = "panel" if options.expose_web else "mpl"
     from abipy.tools.plotting import Exposer
+
     with Exposer.as_exposer(exposer) as e:
         e.add_obj_with_yield_figs(pseudo)
 
@@ -116,13 +126,17 @@ def oncv_compare(options) -> int:
     plotter = MultiOncvPlotter.from_files(out_paths)
 
     # Plot data
-    plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                   use_web=options.expose_web, verbose=options.verbose)
+    plotter.expose(
+        slide_mode=options.slide_mode,
+        slide_timeout=options.slide_timeout,
+        use_web=options.expose_web,
+        verbose=options.verbose,
+    )
 
     return 0
 
 
-#def oncv_hints(options):
+# def oncv_hints(options):
 #    """
 #    """
 #    from abipy import flowtk
@@ -147,7 +161,8 @@ def oncv_run(options):
     # Enforce convention on output files.
     calc_type = None
     if options.rel == "nor":
-        if not root.endswith("_nor"): root += "_nor"
+        if not root.endswith("_nor"):
+            root += "_nor"
 
     elif options.rel == "fr":
         if not root.endswith("_r"):
@@ -156,8 +171,10 @@ def oncv_run(options):
 
     elif options.rel == "from_file":
         calc_type = "scalar-relativistic"
-        if root.endswith("_r"): calc_type = "fully-relativistic"
-        if root.endswith("_nor"): calc_type = "non-relativistic"
+        if root.endswith("_r"):
+            calc_type = "fully-relativistic"
+        if root.endswith("_nor"):
+            calc_type = "non-relativistic"
 
     # Build names of output files.
     psp8_path = root + ".psp8"
@@ -173,9 +190,7 @@ def oncv_run(options):
 
     # Select calc_type
     if calc_type is None:
-        calc_type = dict(nor="non-relativistic",
-                         sr="scalar-relativistic",
-                         fr="fully-relativistic")[options.rel]
+        calc_type = dict(nor="non-relativistic", sr="scalar-relativistic", fr="fully-relativistic")[options.rel]
 
     # Build Generator and start generation.
     psgen = OncvGenerator.from_file(in_path, calc_type, options.use_mgga, workdir=None)
@@ -233,6 +248,7 @@ def oncv_run(options):
     # FIXME: This part can be removed when we migrate to the new lightweight testing
     # infrastructure with small json files.
     from pseudo_dojo.core.dojoreport import DojoReport
+
     report = DojoReport.empty_from_pseudo(pseudo, onc_parser.hints, devel=False)
     report.json_write()
 
@@ -240,8 +256,12 @@ def oncv_run(options):
 
     # Build the plotter
     plotter = onc_parser.get_plotter()
-    plotter.expose(slide_mode=options.slide_mode, slide_timeout=options.slide_timeout,
-                   use_web=options.expose_web, verbose=options.verbose)
+    plotter.expose(
+        slide_mode=options.slide_mode,
+        slide_timeout=options.slide_timeout,
+        use_web=options.expose_web,
+        verbose=options.verbose,
+    )
     return 0
 
 
@@ -249,7 +269,7 @@ def oncv_ghost(options) -> int:
     """
     Scan directories for oncvpsp output files and build dataframe with ghost position
     """
-    #cli.customize_mpl(options)
+    # cli.customize_mpl(options)
 
     # Walk through the directory tree and find all .out files.
     root_dir = options.filepath
@@ -258,7 +278,7 @@ def oncv_ghost(options) -> int:
         for filename in filenames:
             if filename.endswith(".out"):
                 out_paths.append(os.path.join(dirpath, filename))
-    #print(out_paths)
+    # print(out_paths)
 
     # Parse the output file.
     ierr = 0
@@ -271,22 +291,26 @@ def oncv_ghost(options) -> int:
             continue
 
         hints = onc_parser.hints
-        rows.append(dict(
-            out_path=out_path,
-            z=onc_parser.z,
-            num_warnings=len(onc_parser.warnings),
-            num_errors=len(onc_parser.errors),
-            min_ghost_empty_ha=onc_parser.min_ghost_empty_ha,
-            #min_ghost_occ_ha=oncv_parser.min_ghost_occ_ha,
-            #ppgen_hint_low=hints["low"]["ecut"],
-            #ppgen_hint_normal=hints["normal"]["ecut"],
-            ppgen_hint_high=hints["high"]["ecut"],
-            ))
+        rows.append(
+            dict(
+                out_path=out_path,
+                z=onc_parser.z,
+                num_warnings=len(onc_parser.warnings),
+                num_errors=len(onc_parser.errors),
+                min_ghost_empty_ha=onc_parser.min_ghost_empty_ha,
+                # min_ghost_occ_ha=oncv_parser.min_ghost_occ_ha,
+                # ppgen_hint_low=hints["low"]["ecut"],
+                # ppgen_hint_normal=hints["normal"]["ecut"],
+                ppgen_hint_high=hints["high"]["ecut"],
+            )
+        )
 
     import pandas as pd
+
     df = pd.DataFrame(rows)
     df = df.sort_values(by="z")
     from abipy.tools.printing import print_dataframe
+
     print_dataframe(df)
 
     return ierr
@@ -344,11 +368,20 @@ def get_parser(with_epilog=False):
     def get_copts_parser(multi=False):
         # Parent parser implementing common options.
         p = argparse.ArgumentParser(add_help=False)
-        p.add_argument("-v", "--verbose", default=0, action="count", # -vv --> verbose=2
-                       help="Verbose, can be supplied multiple times to increase verbosity")
+        p.add_argument(
+            "-v",
+            "--verbose",
+            default=0,
+            action="count",  # -vv --> verbose=2
+            help="Verbose, can be supplied multiple times to increase verbosity",
+        )
 
-        p.add_argument("--loglevel", default="ERROR", type=str,
-                       help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+        p.add_argument(
+            "--loglevel",
+            default="ERROR",
+            type=str,
+            help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG",
+        )
 
         if multi:
             p.add_argument("filepaths", nargs="+", help="List of files to compare.")
@@ -367,6 +400,7 @@ def get_parser(with_epilog=False):
     # Build the main parser.
     parser = argparse.ArgumentParser(epilog=get_epilog(), formatter_class=argparse.RawDescriptionHelpFormatter)
     from abipy.core.release import __version__
+
     parser.add_argument("-V", "--version", action="version", version=__version__)
 
     # Create the parsers for the sub-commands
@@ -374,8 +408,14 @@ def get_parser(with_epilog=False):
 
     # Subparser for run command.
     p_run = subparsers.add_parser("run", parents=[copts_parser, plot_parser], help=oncv_run.__doc__)
-    p_run.add_argument("--rel", default="from_file", help=("Relativistic treatment: `nor` for non-relativistic, "
-        "`sr` for scalar-relativistic, `fr` for fully-relativistic. Default: `from_file` i.e. detected from file"))
+    p_run.add_argument(
+        "--rel",
+        default="from_file",
+        help=(
+            "Relativistic treatment: `nor` for non-relativistic, "
+            "`sr` for scalar-relativistic, `fr` for fully-relativistic. Default: `from_file` i.e. detected from file"
+        ),
+    )
     p_run.add_argument("--use-mgga", action="store_true", default=False, help="Produce mega-gga pseudo with oncvpspm.x")
 
     # Subparser for print command.
@@ -385,28 +425,39 @@ def get_parser(with_epilog=False):
     p_plot = subparsers.add_parser("plot", parents=[copts_parser, plot_parser], help=oncv_plot.__doc__)
 
     # Subparser for plot command.
-    p_plot_pseudo = subparsers.add_parser("plot_pseudo", parents=[copts_parser, plot_parser],
-                                          help=oncv_plot_pseudo.__doc__)
+    p_plot_pseudo = subparsers.add_parser(
+        "plot_pseudo", parents=[copts_parser, plot_parser], help=oncv_plot_pseudo.__doc__
+    )
 
     # Subparser for compare command.
-    p_compare = subparsers.add_parser("compare", parents=[copts_parser_multi, plot_parser],
-                                      help=oncv_compare.__doc__)
+    p_compare = subparsers.add_parser("compare", parents=[copts_parser_multi, plot_parser], help=oncv_compare.__doc__)
 
     # Subparser for ghost command.
-    p_ghost = subparsers.add_parser("ghost", parents=[copts_parser],
-                                      help=oncv_ghost.__doc__)
+    p_ghost = subparsers.add_parser("ghost", parents=[copts_parser], help=oncv_ghost.__doc__)
 
     # notebook options.
     p_nb = subparsers.add_parser("notebook", parents=[copts_parser], help=oncv_notebook.__doc__)
     p_nb.add_argument("-nb", "--notebook", action="store_true", default=False, help="Open file in jupyter notebook")
-    p_nb.add_argument("--classic-notebook", "-cnb", action="store_true", default=False,
-                          help="Use classic jupyter notebook instead of jupyterlab.")
-    p_nb.add_argument("--no-browser", action="store_true", default=False,
-                          help=("Start the jupyter server to serve the notebook "
-                                "but don't open the notebook in the browser.\n"
-                                "Use this option to connect remotely from localhost to the machine running the kernel"))
-    p_nb.add_argument("--foreground", action="store_true", default=False,
-                          help="Run jupyter notebook in the foreground.")
+    p_nb.add_argument(
+        "--classic-notebook",
+        "-cnb",
+        action="store_true",
+        default=False,
+        help="Use classic jupyter notebook instead of jupyterlab.",
+    )
+    p_nb.add_argument(
+        "--no-browser",
+        action="store_true",
+        default=False,
+        help=(
+            "Start the jupyter server to serve the notebook "
+            "but don't open the notebook in the browser.\n"
+            "Use this option to connect remotely from localhost to the machine running the kernel"
+        ),
+    )
+    p_nb.add_argument(
+        "--foreground", action="store_true", default=False, help="Run jupyter notebook in the foreground."
+    )
 
     parents = [copts_parser, cli.pn_serve_parser(), plot_parser]
 
@@ -417,12 +468,12 @@ def get_parser(with_epilog=False):
     p_gnuplot = subparsers.add_parser("gnuplot", parents=[copts_parser], help=oncv_gnuplot.__doc__)
 
     # Subparser for hints command.
-    #p_hints = subparsers.add_parser('hints', parents=[copts_parser], help=oncv_hints.__doc__)
-    #p_hints.add_argument("pseudo_paths", nargs="+", type=str, help="Pseudopotential path.")
-    #p_hints.add_argument("--ecut", type=float, required=True, help="Cutoff energy in Ha.")
-    #p_hints.add_argument("-rc", "--vloc-rcut-list", nargs="+", default=None, type=float,
+    # p_hints = subparsers.add_parser('hints', parents=[copts_parser], help=oncv_hints.__doc__)
+    # p_hints.add_argument("pseudo_paths", nargs="+", type=str, help="Pseudopotential path.")
+    # p_hints.add_argument("--ecut", type=float, required=True, help="Cutoff energy in Ha.")
+    # p_hints.add_argument("-rc", "--vloc-rcut-list", nargs="+", default=None, type=float,
     #                    help="List of cutoff radii for vloc in Bohr.")
-    #cli.add_expose_options_to_parser(p_hints)
+    # cli.add_expose_options_to_parser(p_hints)
 
     return parser
 
@@ -433,7 +484,8 @@ def main():
     def show_examples_and_exit(err_msg=None, error_code=1):
         """Display the usage of the script."""
         sys.stderr.write(get_epilog())
-        if err_msg: sys.stderr.write("Fatal Error\n" + err_msg + "\n")
+        if err_msg:
+            sys.stderr.write("Fatal Error\n" + err_msg + "\n")
         sys.exit(error_code)
 
     parser = get_parser(with_epilog=True)
@@ -449,8 +501,16 @@ def main():
     # Use seaborn settings.
     if getattr(options, "seaborn", None):
         import seaborn as sns
-        sns.set(context=options.seaborn, style="darkgrid", palette="deep",
-                font="sans-serif", font_scale=1, color_codes=False, rc=None)
+
+        sns.set(
+            context=options.seaborn,
+            style="darkgrid",
+            palette="deep",
+            font="sans-serif",
+            font_scale=1,
+            color_codes=False,
+            rc=None,
+        )
 
     # Dispatch
     return globals()["oncv_" + options.command](options)

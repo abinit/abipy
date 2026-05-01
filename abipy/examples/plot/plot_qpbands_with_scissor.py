@@ -9,6 +9,7 @@ We then use the scissors operator to correct the KS band structure
 computed on a high symmetry k-path. Finally, the LDA and the QPState band
 structure are plotted with matplotlib.
 """
+
 import abipy.data as abidata
 from abipy.abilab import ElectronBandsPlotter, abiopen
 

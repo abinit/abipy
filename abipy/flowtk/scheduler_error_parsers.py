@@ -3,6 +3,7 @@
 """
 Error handlers for errors originating from the Submission systems.
 """
+
 import re
 import abc
 
@@ -15,8 +16,14 @@ __maintainer__ = "Michiel van Setten"
 __email__ = "mjvansetten@gmail.com"
 __date__ = "May 2014"
 
-__all_errors__ = ['SubmitError', 'FullQueueError', 'DiskError', 'TimeCancelError', 'MemoryCancelError',
-                  'NodeFailureError']
+__all_errors__ = [
+    "SubmitError",
+    "FullQueueError",
+    "DiskError",
+    "TimeCancelError",
+    "MemoryCancelError",
+    "NodeFailureError",
+]
 
 
 class CorrectorProtocolScheduler(metaclass=ABCMeta):
@@ -108,9 +115,12 @@ class AbstractError(metaclass=ABCMeta):
         self.meta_data = meta_data if meta_data is not None else {}
 
     def __str__(self):
-        _message = '%s  %s\n' \
-                   '  error message : %s \n' \
-                   '  meta data     : %s' % (self.name, self.__doc__, self.errmsg, str(self.meta_data))
+        _message = "%s  %s\n  error message : %s \n  meta data     : %s" % (
+            self.name,
+            self.__doc__,
+            self.errmsg,
+            str(self.meta_data),
+        )
         return _message
 
     @property
@@ -139,7 +149,7 @@ class AbstractError(metaclass=ABCMeta):
         """
         what to do if every thing else fails...
         """
-        print('non of the defined solutions for %s returned success...' % self.name)
+        print("non of the defined solutions for %s returned success..." % self.name)
         return
 
 
@@ -169,7 +179,7 @@ class TimeCancelError(AbstractError):
 
     @property
     def limit(self):
-        return self.meta_data.get('broken_limit')
+        return self.meta_data.get("broken_limit")
 
     @property
     def scheduler_adapter_solutions(self):
@@ -188,7 +198,7 @@ class MemoryCancelError(AbstractError):
 
     @property
     def limit(self):
-        return self.meta_data.get('broken_limit')
+        return self.meta_data.get("broken_limit")
 
     @property
     def scheduler_adapter_solutions(self):
@@ -219,7 +229,7 @@ class NodeFailureError(AbstractError):
 
     @property
     def nodes(self):
-        return self.meta_data.get('nodes')
+        return self.meta_data.get("nodes")
 
     @property
     def scheduler_adapter_solutions(self):
@@ -242,8 +252,9 @@ class AbstractErrorParser(metaclass=ABCMeta):
                 }
 
     """
+
     def __init__(self, err_file, out_file=None, run_err_file=None, batch_err_file=None):
-        self.files = {'err': err_file, 'out': out_file, 'run_err': run_err_file, 'batch_err': batch_err_file}
+        self.files = {"err": err_file, "out": out_file, "run_err": run_err_file, "batch_err": batch_err_file}
         self.errors = []
 
     @property
@@ -273,21 +284,21 @@ class AbstractErrorParser(metaclass=ABCMeta):
         metadata = None
         for k in errmsg.keys():
             if self.files[k] is not None:
-                #print('parsing ', self.files[k], ' for ', errmsg[k]['string'])
+                # print('parsing ', self.files[k], ' for ', errmsg[k]['string'])
                 try:
-                    with open(self.files[k], mode='r') as f:
-                        lines = f.read().split('\n')
+                    with open(self.files[k], mode="r") as f:
+                        lines = f.read().split("\n")
                     for line in lines:
-                        if errmsg[k]['string'] in line:
+                        if errmsg[k]["string"] in line:
                             message = line
                             found = True
                     if found:
-                        metadata = self.extract_metadata(lines, errmsg[k]['meta_filter'])
+                        metadata = self.extract_metadata(lines, errmsg[k]["meta_filter"])
                 except (IOError, OSError):
-                    print(self.files[k], 'not found')
+                    print(self.files[k], "not found")
                     pass
                 except TypeError:
-                    print('type error', self.files[k], ' has type ', self.files[k].cls(), ' should be string.')
+                    print("type error", self.files[k], " has type ", self.files[k].cls(), " should be string.")
                     pass
 
         return found, message, metadata
@@ -303,7 +314,7 @@ class AbstractErrorParser(metaclass=ABCMeta):
             if result[0]:
                 self.errors.append(error(result[1], result[2]))
         if len(self.errors) > 0:
-            print('QUEUE_ERROR FOUND')
+            print("QUEUE_ERROR FOUND")
             for error in self.errors:
                 print(error)
 
@@ -314,51 +325,28 @@ class SlurmErrorParser(AbstractErrorParser):
     """
     Implementation of the error definitions for the Slurm scheduler
     """
+
     @property
     def error_definitions(self):
         return {
-            SubmitError: {
-                'batch_err': {
-                    'string': "Batch job submission failed",
-                    'meta_filter': {}
-                }
-            },
-            FullQueueError: {
-                'batch_err': {
-                    'string': "Job violates accounting/QOS policy",
-                    'meta_filter': {}
-                }
-            },
-            MemoryCancelError: {
-                'err': {
-                    'string': "Exceeded job memory limit",
-                    'meta_filter': {}
-                }
-            },
-#slurmstepd: error: *** JOB 1803480 CANCELLED AT 2015-12-16T14:57:32 DUE TO TIME LIMIT on lmWn009 ***
-#slurmstepd: error: *** JOB 1803712 CANCELLED AT 2015-12-17T15:21:41 DUE TO TIME LIMIT on lmWn001 ***
+            SubmitError: {"batch_err": {"string": "Batch job submission failed", "meta_filter": {}}},
+            FullQueueError: {"batch_err": {"string": "Job violates accounting/QOS policy", "meta_filter": {}}},
+            MemoryCancelError: {"err": {"string": "Exceeded job memory limit", "meta_filter": {}}},
+            # slurmstepd: error: *** JOB 1803480 CANCELLED AT 2015-12-16T14:57:32 DUE TO TIME LIMIT on lmWn009 ***
+            # slurmstepd: error: *** JOB 1803712 CANCELLED AT 2015-12-17T15:21:41 DUE TO TIME LIMIT on lmWn001 ***
             TimeCancelError: {
-                'err': {
-                    'string': "DUE TO TIME LIMIT",
-                    'meta_filter': {
-                        'time_of_cancel': [r"(.*)JOB (\d+) CANCELLED AT (\S*) DUE TO TIME LIMIT(.*)", 3]
-                    }
+                "err": {
+                    "string": "DUE TO TIME LIMIT",
+                    "meta_filter": {"time_of_cancel": [r"(.*)JOB (\d+) CANCELLED AT (\S*) DUE TO TIME LIMIT(.*)", 3]},
                 }
             },
             NodeFailureError: {
-                'run_err': {
-                    'string': "can't open /dev/ipath, network down",
-                    'meta_filter': {
-                        'nodes': [r"node(\d+)\.(\d+)can't open (\S*), network down \(err=26\)", 1]
-                    }
+                "run_err": {
+                    "string": "can't open /dev/ipath, network down",
+                    "meta_filter": {"nodes": [r"node(\d+)\.(\d+)can't open (\S*), network down \(err=26\)", 1]},
                 }
             },
-            AbstractError: {
-                'out': {
-                    'string': "a string to be found",
-                    'meta_filter': {}
-                }
-            }
+            AbstractError: {"out": {"string": "a string to be found", "meta_filter": {}}},
         }
 
 
@@ -374,31 +362,22 @@ class PBSErrorParser(AbstractErrorParser):
     def error_definitions(self):
         return {
             TimeCancelError: {
-                'out': {
-                    'string': "job killed: walltime",
-                    'meta_filter': {
-                        'broken_limit': [r"=>> PBS: job killed: walltime (\d+) exceeded limit (\d+)", 2]
-                    }
+                "out": {
+                    "string": "job killed: walltime",
+                    "meta_filter": {"broken_limit": [r"=>> PBS: job killed: walltime (\d+) exceeded limit (\d+)", 2]},
                 }
             },
-            AbstractError: {
-                'out': {
-                    'string': "a string to be found",
-                    'meta_filter': {}
-                }
-            },
+            AbstractError: {"out": {"string": "a string to be found", "meta_filter": {}}},
             MemoryCancelError: {
-                'out': {
-                    'string': "job killed: vmem",
-                    'meta_filter': {
-                        'broken_limit': [r"(.*)job killed: vmem (\d+)kb exceeded limit (\d+)kb", 3]
-                    }
+                "out": {
+                    "string": "job killed: vmem",
+                    "meta_filter": {"broken_limit": [r"(.*)job killed: vmem (\d+)kb exceeded limit (\d+)kb", 3]},
                 }
-            }
+            },
         }
 
 
-ALL_PARSERS = {'slurm': SlurmErrorParser, 'pbspro': PBSErrorParser, 'torque': PBSErrorParser}
+ALL_PARSERS = {"slurm": SlurmErrorParser, "pbspro": PBSErrorParser, "torque": PBSErrorParser}
 
 
 def get_parser(scheduler, err_file, out_file=None, run_err_file=None, batch_err_file=None):
@@ -418,9 +397,10 @@ def get_parser(scheduler, err_file, out_file=None, run_err_file=None, batch_err_
 
 
 if __name__ == "__main__":
-    my_parser = get_parser('pbs', err_file='queue.err', out_file='queue.out', run_err_file='run.err',
-                           batch_err_file='sbatch.err')
+    my_parser = get_parser(
+        "pbs", err_file="queue.err", out_file="queue.out", run_err_file="run.err", batch_err_file="sbatch.err"
+    )
     my_parser.parse()
-    print('parser.errors', my_parser.errors)
+    print("parser.errors", my_parser.errors)
     for my_error in my_parser.errors:
         print(my_error)

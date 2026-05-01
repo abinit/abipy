@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Analyze the scalability of the OpenMP sections in the GS part. 1 k-point, cg method."""
+
 import sys
 
 import abipy.data as abidata
@@ -9,23 +10,24 @@ from abipy.benchmarks import BenchmarkFlow, bench_main
 
 def make_input(paw=False):
     """Build a template input file for GS calculations with k-point parallelism"""
-    pseudos = abidata.pseudos("14si.pspnc", "8o.pspnc") if not paw else \
-              abidata.pseudos("Si.GGA_PBE-JTH-paw.xml", "o.paw")
+    pseudos = (
+        abidata.pseudos("14si.pspnc", "8o.pspnc") if not paw else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml", "o.paw")
+    )
     structure = abidata.structure_from_ucell("SiO2-alpha")
 
     inp = abilab.AbinitInput(structure, pseudos)
-    inp.set_kmesh(ngkpt=[1,1,1], shiftk=[0,0,0])
+    inp.set_kmesh(ngkpt=[1, 1, 1], shiftk=[0, 0, 0])
 
     # Global variables
     ecut = 24
     inp.set_vars(
         ecut=ecut,
-        pawecutdg=ecut*2 if paw else None,
+        pawecutdg=ecut * 2 if paw else None,
         nsppol=1,
         nband=28,
         paral_kgb=0,
-        #istwfk="*1",
-        #fftalg=312,
+        # istwfk="*1",
+        # fftalg=312,
         timopt=-1,
         chksymbreak=0,
         prtwf=0,
@@ -44,7 +46,8 @@ def build_flow(options):
     work = flowtk.Work()
 
     omp_list = options.omp_list
-    if omp_list is None: omp_list = [1, 2, 4, 6]
+    if omp_list is None:
+        omp_list = [1, 2, 4, 6]
     print("Using omp_list:", omp_list)
 
     mpi_procs = 1

@@ -1,13 +1,14 @@
 """Panels for interacting with FATBANDS.nc files."""
+
 from __future__ import annotations
 
-#import param
+# import param
 import panel as pn
 import panel.widgets as pnw
 
 from abipy.electrons.fatbands import FatBandsFile
 
-from .core import PanelWithElectronBands, depends_on_btn_click, ply  #, PanelWithEbandsRobot
+from .core import PanelWithElectronBands, depends_on_btn_click, ply  # , PanelWithEbandsRobot
 
 
 class FatBandsFilePanel(PanelWithElectronBands):
@@ -29,18 +30,21 @@ class FatBandsFilePanel(PanelWithElectronBands):
         Plot fatbands grouped by atomic type and angular momentum l
         """
         sz_mode = "stretch_width"
-        col = pn.Column(sizing_mode=sz_mode); ca = col.append
+        col = pn.Column(sizing_mode=sz_mode)
+        ca = col.append
 
         # Plot the electronic fatbands grouped by atomic type.
         ca("## Electronic fatbands grouped by atomic type")
-        fig = self.ncfile.plotly_fatbands_typeview(e0="fermie", fact=1.0, lmax=None, fig=None, ylims=None,
-                                                   blist=None, fontsize=12, band_and_dos=0, show=False)
+        fig = self.ncfile.plotly_fatbands_typeview(
+            e0="fermie", fact=1.0, lmax=None, fig=None, ylims=None, blist=None, fontsize=12, band_and_dos=0, show=False
+        )
         ca(ply(fig))
 
         # Plot the electronic fatbands grouped by l
         ca("## Electronic fatbands grouped by angular momentum l")
-        fig = self.ncfile.plotly_fatbands_lview(e0="fermie", fact=1.0, lmax=None, fig=None, ylims=None,
-                                                blist=None, fontsize=12, band_and_dos=0, show=False)
+        fig = self.ncfile.plotly_fatbands_lview(
+            e0="fermie", fact=1.0, lmax=None, fig=None, ylims=None, blist=None, fontsize=12, band_and_dos=0, show=False
+        )
         ca(ply(fig))
 
         return col
@@ -51,7 +55,8 @@ class FatBandsFilePanel(PanelWithElectronBands):
         Plot PJDOS grouped by atomic type and angular momentum l
         """
         sz_mode = "stretch_width"
-        col = pn.Column(sizing_mode=sz_mode); ca = col.append
+        col = pn.Column(sizing_mode=sz_mode)
+        ca = col.append
 
         # Plot the L-PJDOS grouped by atomic type.
         lmax = 2
@@ -77,10 +82,7 @@ class FatBandsFilePanel(PanelWithElectronBands):
             # Add DOS tab but only if we have a k-sampling.
             d["e-DOS"] = self.get_plot_edos_view()
 
-            d["FatDos"] = pn.Row(
-                self.pws_col(["## Fatdos", "plot_fatdos_btn"]),
-                self.on_plot_fatdos_btn
-            )
+            d["FatDos"] = pn.Row(self.pws_col(["## Fatdos", "plot_fatdos_btn"]), self.on_plot_fatdos_btn)
 
             if not self.ebands.isnot_ibz_sampling():
                 d["ifermi"] = self.get_ifermi_view()
@@ -91,10 +93,7 @@ class FatBandsFilePanel(PanelWithElectronBands):
             # we use the optional argument lmax
             lmax = 2
 
-            d["FatBands"] = pn.Row(
-                self.pws_col(["## Fatbands", "plot_fatbands_btn"]),
-                self.on_plot_fatbands_btn
-            )
+            d["FatBands"] = pn.Row(self.pws_col(["## Fatbands", "plot_fatbands_btn"]), self.on_plot_fatbands_btn)
 
             d["EffMass"] = self.get_effmass_view()
 
@@ -104,12 +103,13 @@ class FatBandsFilePanel(PanelWithElectronBands):
         d["Structure"] = self.get_structure_view()
         d["NcFile"] = self.ncfile.get_ncfile_view()
 
-        if as_dict: return d
+        if as_dict:
+            return d
 
         return self.get_template_from_tabs(d, template=kwargs.get("template"))
 
 
-#class FatbandsRobotPanel(PanelWithEbandsRobot):
+# class FatbandsRobotPanel(PanelWithEbandsRobot):
 #    """
 #    A Panel to interoperate with multiple GSR files.
 #    """

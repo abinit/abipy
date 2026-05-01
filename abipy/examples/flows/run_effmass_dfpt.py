@@ -27,16 +27,13 @@ def make_scf_input(usepaw=0, nspinor=1):
 
     # See https://docs.abinit.org/tests/v7/Input/t82.in
     structure = dict(
-         ntypat=1,
-         natom=2,
-         typat=[1, 1],
-         znucl=14,
-         acell=3 * [10.2073557],   # 5.4015 Ang
-         rprim=[[0.0,  0.5,  0.5],
-                [0.5,  0.0,  0.5],
-                [0.5,  0.5,  0.0]],
-         xred=[[0.0 , 0.0 , 0.0],
-               [0.25, 0.25, 0.25]],
+        ntypat=1,
+        natom=2,
+        typat=[1, 1],
+        znucl=14,
+        acell=3 * [10.2073557],  # 5.4015 Ang
+        rprim=[[0.0, 0.5, 0.5], [0.5, 0.0, 0.5], [0.5, 0.5, 0.0]],
+        xred=[[0.0, 0.0, 0.0], [0.25, 0.25, 0.25]],
     )
 
     scf_input = abilab.AbinitInput(structure=structure, pseudos=pseudos)
@@ -70,14 +67,14 @@ def build_flow(options):
 
     # Build the flow.
     from abipy.flowtk.effmass_works import EffMassAutoDFPTWork, EffMassDFPTWork
+
     flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)
 
     # Compute effective masses for each k in k0_list.
     # effmass_bands_f90 defines the band range for each k in k0_list.
     # Here we are interested in the effective masses at the Gamma point for the valence bands.
     effmass_bands_f90 = [1, 4] if scf_input["nspinor"] == 1 else [1, 8]
-    work = EffMassDFPTWork.from_scf_input(scf_input, k0_list=(0, 0, 0),
-                                          effmass_bands_f90=effmass_bands_f90)
+    work = EffMassDFPTWork.from_scf_input(scf_input, k0_list=(0, 0, 0), effmass_bands_f90=effmass_bands_f90)
     flow.register_work(work)
 
     # or use this Work to detect band edges automatically but increase ndivsm and decrease tolwfr!
@@ -96,6 +93,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

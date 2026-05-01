@@ -36,8 +36,8 @@ def make_scf_input(paral_kgb=0):
         ngkpt=[2, 2, 2],
         nshiftk=1,
         shiftk=[0, 0, 0],
-        #nshiftk=4,
-        #shiftk=[0.0, 0.0, 0.5,   # This gives the usual fcc Monkhorst-Pack grid
+        # nshiftk=4,
+        # shiftk=[0.0, 0.0, 0.5,   # This gives the usual fcc Monkhorst-Pack grid
         #        0.0, 0.5, 0.0,
         #        0.5, 0.0, 0.0,
         #        0.5, 0.5, 0.5],
@@ -77,6 +77,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

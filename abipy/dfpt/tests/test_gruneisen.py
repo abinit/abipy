@@ -1,4 +1,5 @@
 """Tests for Grunesein module."""
+
 import os
 
 import numpy as np
@@ -10,14 +11,14 @@ from abipy.dfpt.gruneisen import GrunsNcFile, calculate_gruns_finite_differences
 
 
 class GrunsFileTest(AbipyTest):
-
     def test_gruns_ncfile(self):
         """Testsing GrunsFile."""
         with abilab.abiopen(abidata.ref_file("mg2si_GRUNS.nc")) as ncfile:
-            repr(ncfile); str(ncfile)
+            repr(ncfile)
+            str(ncfile)
             assert ncfile.structure.formula == "Mg2 Si1"
             assert ncfile.iv0 == 1
-            #assert len(ncfile.volumes) == 3
+            # assert len(ncfile.volumes) == 3
             assert not ncfile.params
 
             d = ncfile.phdoses
@@ -34,16 +35,25 @@ class GrunsFileTest(AbipyTest):
 
             assert ncfile.phdos
 
-            self.assertAlmostEqual(ncfile.average_gruneisen(t=None, squared=True, limit_frequencies=None),
-                                   1.4206573918609795, places=5)
-            self.assertAlmostEqual(ncfile.average_gruneisen(t=None, squared=False, limit_frequencies="debye"),
-                                   1.2121437911186166, places=5)
-            self.assertAlmostEqual(ncfile.average_gruneisen(t=None, squared=False, limit_frequencies="acoustic"),
-                                   1.213016691881557, places=5)
-            self.assertAlmostEqual(ncfile.thermal_conductivity_slack(squared=True, limit_frequencies=None),
-                                   14.553100876473687, places=4)
-            self.assertAlmostEqual(ncfile.thermal_conductivity_slack(squared=True, limit_frequencies=None, t=300),
-                                   14.43141396698724, places=4)
+            self.assertAlmostEqual(
+                ncfile.average_gruneisen(t=None, squared=True, limit_frequencies=None), 1.4206573918609795, places=5
+            )
+            self.assertAlmostEqual(
+                ncfile.average_gruneisen(t=None, squared=False, limit_frequencies="debye"), 1.2121437911186166, places=5
+            )
+            self.assertAlmostEqual(
+                ncfile.average_gruneisen(t=None, squared=False, limit_frequencies="acoustic"),
+                1.213016691881557,
+                places=5,
+            )
+            self.assertAlmostEqual(
+                ncfile.thermal_conductivity_slack(squared=True, limit_frequencies=None), 14.553100876473687, places=4
+            )
+            self.assertAlmostEqual(
+                ncfile.thermal_conductivity_slack(squared=True, limit_frequencies=None, t=300),
+                14.43141396698724,
+                places=4,
+            )
             self.assertAlmostEqual(ncfile.debye_temp, 429.05702577371898, places=4)
             self.assertAlmostEqual(ncfile.acoustic_debye_temp, 297.49152615955893, places=4)
 
@@ -86,11 +96,15 @@ class GrunsFileTest(AbipyTest):
 
 
 class FunctionsTest(AbipyTest):
-
     def test_calculate_gruns_finite_differences(self):
         phfreqs = np.array([[[0, 0, 0]], [[1, 2, 3]], [[2, 6, 4]]])
-        eig = np.array([[[[1, 0, 0], [0, 1, 0], [0, 0, 1]]], [[[1, 0, 0], [0, 0, 1], [0, 1, 0]]],
-               [[[1, 0, 0], [0, 1, 0], [0, 0, 1]]]])
+        eig = np.array(
+            [
+                [[[1, 0, 0], [0, 1, 0], [0, 0, 1]]],
+                [[[1, 0, 0], [0, 0, 1], [0, 1, 0]]],
+                [[[1, 0, 0], [0, 1, 0], [0, 0, 1]]],
+            ]
+        )
 
         g = calculate_gruns_finite_differences(phfreqs, eig, iv0=1, volume=1, dv=1)
         self.assert_equal(g, [[-1, -1, -1]])

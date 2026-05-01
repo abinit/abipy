@@ -1,6 +1,7 @@
 """
 Base class for pseudopotential parsers
 """
+
 from __future__ import annotations
 
 import abc

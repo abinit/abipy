@@ -1,4 +1,5 @@
 """IO related utilities."""
+
 from __future__ import annotations
 
 import codecs
@@ -22,7 +23,7 @@ from abipy.tools.typing import PathLike
 def make_executable(filepath: PathLike) -> None:
     """Make file executable"""
     mode = os.stat(filepath).st_mode
-    mode |= (mode & 0o444) >> 2    # copy R bits to X
+    mode |= (mode & 0o444) >> 2  # copy R bits to X
     os.chmod(filepath, mode)
 
 
@@ -33,7 +34,8 @@ def try_files(filepaths: list[PathLike]) -> Path:
     """
     for path in filepaths:
         path = Path(str(path))
-        if path.exists(): return path
+        if path.exists():
+            return path
 
     raise RuntimeError("Cannot find {filepaths=}")
 
@@ -45,7 +47,8 @@ def file_with_ext_indir(ext: str, directory: PathLike) -> Path:
     """
     directory = Path(str(directory))
     for path in directory.listdir():
-        if path.is_dir(): continue
+        if path.is_dir():
+            continue
         if path.suffix == ext:
             return path.absolute()
 
@@ -61,7 +64,7 @@ def yaml_dump(obj: Any):
     y.dump(obj, stream)
     stream.seek(0)
     s = stream.read()
-    #print(s)
+    # print(s)
     return s
 
 
@@ -86,9 +89,12 @@ def dataframe_from_filepath(filepath: str, **kwargs) -> pd.DataFrame:
     Try to read a dataframe from an external file according to the file extension.
     """
     _, ext = os.path.splitext(filepath)
-    if ext == "csv": return pd.read_csv(filepath, **kwargs)
-    if ext == "json": return pd.read_json(filepath, **kwargs)
-    if ext in ("xls", "xlsx"): return pd.read_excel(filepath, **kwargs)
+    if ext == "csv":
+        return pd.read_csv(filepath, **kwargs)
+    if ext == "json":
+        return pd.read_json(filepath, **kwargs)
+    if ext in ("xls", "xlsx"):
+        return pd.read_excel(filepath, **kwargs)
 
     raise ValueError(f"Don't know how to construct DataFrame from file {filepath} with extension: {ext}")
 
@@ -106,6 +112,7 @@ class ExitStackWithFiles(ExitStack):
         exit_stack.enter_context(phbst_file)
         return exit_stack
     """
+
     def __init__(self):
         self.files = []
         super().__init__()
@@ -174,13 +181,14 @@ def ask_yes_no(prompt: str, default=None):  # pragma: no cover
     return answers[ans]
 
 
-def _user_wants_to_exit(): # pragma: no cover
+def _user_wants_to_exit():  # pragma: no cover
     try:
         answer = get_input("Do you want to continue [Y/n]")
     except EOFError:
         return True
 
-    if answer.lower().strip() in ["n", "no"]: return True
+    if answer.lower().strip() in ["n", "no"]:
+        return True
     return False
 
 
@@ -223,6 +231,7 @@ def input_from_editor(message=None):  # pragma: no cover
         print(message, end="")
 
     from tempfile import mkstemp
+
     fd, fname = mkstemp(text=True)
 
     Editor().edit_file(fname)
@@ -246,6 +255,7 @@ def ask_yesno(question: str, default=True):
 
 umask = os.umask(0)
 os.umask(umask)
+
 
 def _maketemp(name: str, createmode=None) -> str:
     """
@@ -361,6 +371,7 @@ def workdir_with_prefix(workdir, prefix, exist_ok=False) -> Path:
 
     return Path(workdir).absolute()
 
+
 def filepath_extract_differences(filepaths: list) -> list:
     """
     Extract the common prefix and suffix of a list of filepaths.
@@ -390,6 +401,7 @@ def filepath_extract_differences(filepaths: list) -> list:
             results.append(f"..{s[start:end]}..")
     return results
 
+
 def change_ext_from_top(top: PathLike, old_ext: str, new_ext: str) -> int:
     """
     Change the extension of all the files with extension old_ext with new_ext.
@@ -406,8 +418,9 @@ def change_ext_from_top(top: PathLike, old_ext: str, new_ext: str) -> int:
         root = Path(root)
         for filepath in files:
             filepath = root / Path(filepath)
-            if not filepath.name.endswith(old_ext): continue
-            new_name = filepath.name[:-len(old_ext)] + new_ext
+            if not filepath.name.endswith(old_ext):
+                continue
+            new_name = filepath.name[: -len(old_ext)] + new_ext
             filepath.rename(root / new_name)
             count += 1
 
@@ -487,14 +500,12 @@ if False:
 
     def add_main(self):
         """Add main section"""
-        self.text += \
-"""
+        self.text += """
 
 if __name__ == "__main__":
     main()
 """
         return self
-
 
 
 class ShellScript(_Script):

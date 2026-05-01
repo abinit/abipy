@@ -1,4 +1,5 @@
 """Integration tests for phonon flows."""
+
 from __future__ import annotations
 
 import logging
@@ -23,45 +24,63 @@ def scf_ph_inputs(tvars=None):
 
     # List of q-points for the phonon calculation (4,4,4) mesh.
     qpoints = [
-             0.00000000E+00,  0.00000000E+00,  0.00000000E+00,
-             2.50000000E-01,  0.00000000E+00,  0.00000000E+00,
-             5.00000000E-01,  0.00000000E+00,  0.00000000E+00,
-             2.50000000E-01,  2.50000000E-01,  0.00000000E+00,
-             5.00000000E-01,  2.50000000E-01,  0.00000000E+00,
-            -2.50000000E-01,  2.50000000E-01,  0.00000000E+00,
-             5.00000000E-01,  5.00000000E-01,  0.00000000E+00,
-            -2.50000000E-01,  5.00000000E-01,  2.50000000E-01,
-            ]
+        0.00000000e00,
+        0.00000000e00,
+        0.00000000e00,
+        2.50000000e-01,
+        0.00000000e00,
+        0.00000000e00,
+        5.00000000e-01,
+        0.00000000e00,
+        0.00000000e00,
+        2.50000000e-01,
+        2.50000000e-01,
+        0.00000000e00,
+        5.00000000e-01,
+        2.50000000e-01,
+        0.00000000e00,
+        -2.50000000e-01,
+        2.50000000e-01,
+        0.00000000e00,
+        5.00000000e-01,
+        5.00000000e-01,
+        0.00000000e00,
+        -2.50000000e-01,
+        5.00000000e-01,
+        2.50000000e-01,
+    ]
 
     qpoints = np.reshape(qpoints, (-1, 3))
 
     # Global variables used both for the GS and the DFPT run.
-    global_vars = dict(nband=4,
-                       ecut=3.0,
-                       ngkpt=[4, 4, 4],
-                       shiftk=[0, 0, 0],
-                       tolvrs=1.0e-6,
-                       paral_kgb=0 if tvars is None else tvars.paral_kgb,
-                    )
+    global_vars = dict(
+        nband=4,
+        ecut=3.0,
+        ngkpt=[4, 4, 4],
+        shiftk=[0, 0, 0],
+        tolvrs=1.0e-6,
+        paral_kgb=0 if tvars is None else tvars.paral_kgb,
+    )
 
-    multi = abilab.MultiDataset(structure=structure, pseudos=abidata.pseudos("13al.981214.fhi", "33as.pspnc"),
-                               ndtset=1 + len(qpoints))
+    multi = abilab.MultiDataset(
+        structure=structure, pseudos=abidata.pseudos("13al.981214.fhi", "33as.pspnc"), ndtset=1 + len(qpoints)
+    )
 
     multi.set_vars(global_vars)
 
     for i, qpt in enumerate(qpoints):
         # Response-function calculation for phonons.
-        multi[i+1].set_vars(
+        multi[i + 1].set_vars(
             nstep=20,
-            rfphon=1,        # Will consider phonon-type perturbation
-            nqpt=1,          # One wavevector is to be considered
-            qpt=qpt,         # This wavevector is q=0 (Gamma)
+            rfphon=1,  # Will consider phonon-type perturbation
+            nqpt=1,  # One wavevector is to be considered
+            qpt=qpt,  # This wavevector is q=0 (Gamma)
             kptopt=3,
-            )
+        )
 
-            #rfatpol   1 1   # Only the first atom is displaced
-            #rfdir   1 0 0   # Along the first reduced coordinate axis
-            #kptopt   2      # Automatic generation of k points, taking
+        # rfatpol   1 1   # Only the first atom is displaced
+        # rfdir   1 0 0   # Along the first reduced coordinate axis
+        # kptopt   2      # Automatic generation of k points, taking
 
     # Split input into gs_inp and ph_inputs
     return multi.split_datasets()
@@ -95,14 +114,14 @@ def itest_phonon_flow(fwp, tvars):
         ddb_path = ddb.filepath
         ddb.to_string(verbose=2)
         assert len(ddb.structure) == 2
-        #assert ddb.qpoints.frac_coords
+        # assert ddb.qpoints.frac_coords
 
     # Test PhononTask inspect method
     ph_task = flow[1][0]
     if has_matplotlib():
         assert ph_task.inspect(show=False)
     # Test get_results
-    #ph_task.get_results()
+    # ph_task.get_results()
 
     # Build new work with Anaddb tasks.
     # Construct a manager with mpi_procs==1 since anaddb do not support mpi_procs > 1 (except in elphon)
@@ -111,14 +130,16 @@ def itest_phonon_flow(fwp, tvars):
 
     # Phonons bands and DOS with gaussian method
     anaddb_input = abilab.AnaddbInput.phbands_and_dos(
-        scf_input.structure, ngqpt=ph_ngqpt, ndivsm=5, nqsmall=10, dos_method="gaussian: 0.001 eV")
+        scf_input.structure, ngqpt=ph_ngqpt, ndivsm=5, nqsmall=10, dos_method="gaussian: 0.001 eV"
+    )
 
     atask = flowtk.AnaddbTask(anaddb_input, ddb_node=ddb_path, manager=shell_manager)
     awork.register(atask)
 
     # Phonons bands and DOS with tetrahedron method
     anaddb_input = abilab.AnaddbInput.phbands_and_dos(
-        scf_input.structure, ngqpt=ph_ngqpt, ndivsm=5, nqsmall=10, dos_method="tetra")
+        scf_input.structure, ngqpt=ph_ngqpt, ndivsm=5, nqsmall=10, dos_method="tetra"
+    )
 
     atask = flowtk.AnaddbTask(anaddb_input, ddb_node=ddb_path, manager=shell_manager)
     awork.register(atask)
@@ -146,12 +167,19 @@ def itest_phonon_restart(fwp):
     structure = abidata.structure_from_ucell("AlAs")
 
     # List of q-points for the phonon calculation (4,4,4) mesh.
-    qpoints = np.reshape([
-        0.00000000E+00,  0.00000000E+00,  0.00000000E+00,
-        2.50000000E-01,  0.00000000E+00,  0.00000000E+00,
-        #5.00000000E-01,  0.00000000E+00,  0.00000000E+00,  # XXX Uncomment this line to test restart from 1DEN
-                                                            # Too long --> disabled
-    ], (-1, 3))
+    qpoints = np.reshape(
+        [
+            0.00000000e00,
+            0.00000000e00,
+            0.00000000e00,
+            2.50000000e-01,
+            0.00000000e00,
+            0.00000000e00,
+            # 5.00000000E-01,  0.00000000E+00,  0.00000000E+00,  # XXX Uncomment this line to test restart from 1DEN
+            # Too long --> disabled
+        ],
+        (-1, 3),
+    )
 
     # Global variables used both for the GS and the DFPT run.
     global_vars = dict(
@@ -162,28 +190,30 @@ def itest_phonon_restart(fwp):
         tolvrs=1.0e-5,
     )
 
-    multi = abilab.MultiDataset(structure=structure,
-                                pseudos=abidata.pseudos("13al.981214.fhi", "33as.pspnc"),
-                                ndtset=1 + len(qpoints))
+    multi = abilab.MultiDataset(
+        structure=structure, pseudos=abidata.pseudos("13al.981214.fhi", "33as.pspnc"), ndtset=1 + len(qpoints)
+    )
 
     multi.set_vars(global_vars)
 
     for i, qpt in enumerate(qpoints):
         # Response-function calculation for phonons.
-        multi[i+1].set_vars(
-            rfphon=1,        # Will consider phonon-type perturbation.
-            nqpt=1,          # One wavevector is to be considered.
-            qpt=qpt,         # q-wavevector.
+        multi[i + 1].set_vars(
+            rfphon=1,  # Will consider phonon-type perturbation.
+            nqpt=1,  # One wavevector is to be considered.
+            qpt=qpt,  # q-wavevector.
             kptopt=3,
-            nstep=5,         # This is to trigger the phonon restart.
+            nstep=5,  # This is to trigger the phonon restart.
         )
-        #rfatpol   1 1   # Only the first atom is displaced
-        #rfdir   1 0 0   # Along the first reduced coordinate axis
-        #kptopt   2      # Automatic generation of k points, taking
+        # rfatpol   1 1   # Only the first atom is displaced
+        # rfdir   1 0 0   # Along the first reduced coordinate axis
+        # kptopt   2      # Automatic generation of k points, taking
 
         # i == 0 --> restart from WFK
-        if i == 1: multi[i+1].set_vars(prtwf=-1, nstep=5)  # Restart with WFK and smart-io.
-        if i == 2: multi[i+1].set_vars(prtwf=0, nstep=8)   # Restart from 1DEN. Too long --> disabled.
+        if i == 1:
+            multi[i + 1].set_vars(prtwf=-1, nstep=5)  # Restart with WFK and smart-io.
+        if i == 2:
+            multi[i + 1].set_vars(prtwf=0, nstep=8)  # Restart from 1DEN. Too long --> disabled.
 
     all_inps = multi.split_datasets()
     scf_input, ph_inputs = all_inps[0], all_inps[1:]
@@ -205,8 +235,17 @@ def itest_phonon_restart(fwp):
     assert sum(task.num_restarts for task in flow.iflat_tasks()) > 0
 
 
-def phonon_flow(workdir, scf_input, ph_inputs, with_nscf=False, with_ddk=False, with_dde=False,
-                manager=None, flow_class=flowtk.PhononFlow, allocate=True):
+def phonon_flow(
+    workdir,
+    scf_input,
+    ph_inputs,
+    with_nscf=False,
+    with_ddk=False,
+    with_dde=False,
+    manager=None,
+    flow_class=flowtk.PhononFlow,
+    allocate=True,
+):
     """
     Build a :class:`PhononFlow` for phonon calculations.
 
@@ -254,8 +293,7 @@ def phonon_flow(workdir, scf_input, ph_inputs, with_nscf=False, with_ddk=False, 
         dde_input.set_vars(qpt=[0, 0, 0], rfddk=1, rfelfd=2)
         dde_input_idir = dde_input.deepcopy()
         dde_input_idir.set_vars(rfdir=[1, 1, 1])
-        dde_task = flow.register_task(dde_input, deps={scf_task: "WFK", ddk_task: "DDK"},
-                                      task_class=flowtk.DdeTask)[0]
+        dde_task = flow.register_task(dde_input, deps={scf_task: "WFK", ddk_task: "DDK"}, task_class=flowtk.DdeTask)[0]
 
     if not isinstance(ph_inputs, (list, tuple)):
         ph_inputs = [ph_inputs]
@@ -272,7 +310,7 @@ def phonon_flow(workdir, scf_input, ph_inputs, with_nscf=False, with_ddk=False, 
         abivars = dict(
             paral_rf=-1,
             rfatpol=[1, natom],  # Set of atoms to displace.
-            rfdir=[1, 1, 1],     # Along this set of reduced coordinate axis.
+            rfdir=[1, 1, 1],  # Along this set of reduced coordinate axis.
         )
 
         fake_task.set_vars(abivars)
@@ -298,6 +336,7 @@ def phonon_flow(workdir, scf_input, ph_inputs, with_nscf=False, with_ddk=False, 
         if with_nscf:
             # MG: Warning this code assume 0 is Gamma!
             import copy
+
             nscf_input = copy.deepcopy(scf_input)
             nscf_input.set_vars(kptopt=3, iscf=-3, qpt=irred_perts[0]["qpt"], nqpt=1)
             nscf_task = work_qpt.register_nscf_task(nscf_input, deps={scf_task: "DEN"})
@@ -311,11 +350,11 @@ def phonon_flow(workdir, scf_input, ph_inputs, with_nscf=False, with_ddk=False, 
         logger.info(irred_perts[0]["qpt"])
 
         for irred_pert in irred_perts:
-            #print(irred_pert)
+            # print(irred_pert)
             new_input = ph_input.deepcopy()
 
-            #rfatpol   1 1   # Only the first atom is displaced
-            #rfdir   1 0 0   # Along the first reduced coordinate axis
+            # rfatpol   1 1   # Only the first atom is displaced
+            # rfdir   1 0 0   # Along the first reduced coordinate axis
             qpt = irred_pert["qpt"]
             idir = irred_pert["idir"]
             ipert = irred_pert["ipert"]
@@ -326,7 +365,7 @@ def phonon_flow(workdir, scf_input, ph_inputs, with_nscf=False, with_ddk=False, 
             rfatpol = [ipert, ipert]
 
             new_input.set_vars(
-                #rfpert=1,
+                # rfpert=1,
                 qpt=qpt,
                 rfdir=rfdir,
                 rfatpol=rfatpol,
@@ -339,6 +378,7 @@ def phonon_flow(workdir, scf_input, ph_inputs, with_nscf=False, with_ddk=False, 
 
         flow.register_work(work_qpt)
 
-    if allocate: flow.allocate()
+    if allocate:
+        flow.allocate()
 
     return flow

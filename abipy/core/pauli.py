@@ -1,4 +1,5 @@
 """Pauli matrices and operations associated to them."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -8,11 +9,12 @@ class Pauli:
     """
     Pauli matrices
     """
+
     def __init__(self):
-        self.sigma_0 = np.eye(2)                      # 2x2 identity matrix
-        self.sigma_x = np.array([[0, 1], [1, 0]])     # Pauli-X (σₓ)
+        self.sigma_0 = np.eye(2)  # 2x2 identity matrix
+        self.sigma_x = np.array([[0, 1], [1, 0]])  # Pauli-X (σₓ)
         self.sigma_y = np.array([[0, -1j], [1j, 0]])  # Pauli-Y (σᵧ)
-        self.sigma_z = np.array([[1, 0], [0, -1]])    # Pauli-Z (σ_z)
+        self.sigma_z = np.array([[1, 0], [0, -1]])  # Pauli-Z (σ_z)
 
     def project_mats(self, mats: np.ndarray) -> np.ndarray:
         """
@@ -97,15 +99,15 @@ class Pauli:
 
         # Reconstruct the matrix using the Pauli basis
         reconstructed = (
-            a_0[..., np.newaxis, np.newaxis] * self.sigma_0 +
-            a_x[..., np.newaxis, np.newaxis] * self.sigma_x +
-            a_y[..., np.newaxis, np.newaxis] * self.sigma_y +
-            a_z[..., np.newaxis, np.newaxis] * self.sigma_z
+            a_0[..., np.newaxis, np.newaxis] * self.sigma_0
+            + a_x[..., np.newaxis, np.newaxis] * self.sigma_x
+            + a_y[..., np.newaxis, np.newaxis] * self.sigma_y
+            + a_z[..., np.newaxis, np.newaxis] * self.sigma_z
         )
 
         return reconstructed
 
-    #def project_mats_nspden(self, mats_nspden: np.ndarray) -> np.ndarray:
+    # def project_mats_nspden(self, mats_nspden: np.ndarray) -> np.ndarray:
     #    if mats_nspden.shape[0] % 4 != 0:
     #        raise ValueError(f"The first dimension must be divisible by 4 while it is {mats_nspden.shape[0]}")
 

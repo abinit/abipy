@@ -1,7 +1,8 @@
 """This module contains the class defining Uniform 3D meshes."""
+
 from __future__ import annotations
 
-#from itertools import product as iproduct
+# from itertools import product as iproduct
 from functools import cached_property
 
 import numpy as np
@@ -38,6 +39,7 @@ class Mesh3D:
            0-----4      +-----x
 
     """
+
     def __init__(self, shape, vectors):
         """
         Construct ``Mesh3D`` object.
@@ -66,8 +68,7 @@ class Mesh3D:
         return self.size
 
     def __eq__(self, other):
-        return (np.all(self.shape == other.shape) and
-                np.all(self.vectors == other.vectors))
+        return np.all(self.shape == other.shape) and np.all(self.vectors == other.vectors)
 
     def __ne__(self, other):
         return not self == other
@@ -169,7 +170,7 @@ class Mesh3D:
             return re
         if dtype == complex:
             im = self.random(extra_dims=extra_dims)
-            return re + 1j*im
+            return re + 1j * im
         raise ValueError("Wrong dtype: %s" % str(dtype))
 
     def crandom(self, extra_dims=()) -> np.ndarray:
@@ -182,8 +183,8 @@ class Mesh3D:
 
         Returns |numpy-array| with 4 dimensions (?, nx, ny, nz) where ?*nx*ny*nz == arr.size
         """
-        #if duck.is_intlike(extra_dims): extra_dims = (extra_dims,)
-        #shape = extra_dims + self.shape)
+        # if duck.is_intlike(extra_dims): extra_dims = (extra_dims,)
+        # shape = extra_dims + self.shape)
         return np.reshape(arr, (-1,) + self.shape)
 
     def fft_r2g(self, fr, shift_fg=False) -> np.ndarray:
@@ -199,13 +200,15 @@ class Mesh3D:
         if ndim == 3:
             assert self.size == np.prod(shape[-3:])
             fg = fftn(fr)
-            if shift_fg: fg = fftshift(fg)
+            if shift_fg:
+                fg = fftshift(fg)
 
         elif ndim > 3:
             assert self.size == np.prod(shape[-3:])
             axes = np.arange(ndim)[-3:]
             fg = fftn(fr, axes=axes)
-            if shift_fg: fg = fftshift(fg, axes=axes)
+            if shift_fg:
+                fg = fftshift(fg, axes=axes)
 
         else:
             raise NotImplementedError("ndim < 3 are not supported")
@@ -224,13 +227,15 @@ class Mesh3D:
 
         if ndim == 3:
             assert self.size == np.prod(shape[-3:])
-            if fg_ishifted: fg = ifftshift(fg)
+            if fg_ishifted:
+                fg = ifftshift(fg)
             fr = ifftn(fg)
 
         elif ndim > 3:
             assert self.size == np.prod(shape[-3:])
             axes = np.arange(ndim)[-3:]
-            if fg_ishifted: fg = ifftshift(fg, axes=axes)
+            if fg_ishifted:
+                fg = ifftshift(fg, axes=axes)
             fr = ifftn(fg, axes=axes)
 
         else:
@@ -238,7 +243,7 @@ class Mesh3D:
 
         return fr * self.size
 
-    #def fourier_interp(self, data, new_mesh, inspace="r"):
+    # def fourier_interp(self, data, new_mesh, inspace="r"):
     #    """
     #    Fourier interpolation of data.
 
@@ -292,7 +297,7 @@ class Mesh3D:
         gx_list = np.rint(fftfreq(self.nx) * self.nx)
         gy_list = np.rint(fftfreq(self.ny) * self.ny)
         gz_list = np.rint(fftfreq(self.nz) * self.nz)
-        #print(gz_list, gy_list, gx_list)
+        # print(gz_list, gy_list, gx_list)
 
         gvecs = np.empty((self.size, 3), dtype=int)
 
@@ -315,8 +320,8 @@ class Mesh3D:
 
         return 2 * np.pi * np.sqrt(gmods)
 
-    #@cached_property
-    #def gmax(self)
+    # @cached_property
+    # def gmax(self)
     #    return self.gmods.max()
 
     @cached_property
@@ -325,9 +330,11 @@ class Mesh3D:
         nx, ny, nz = self.nx, self.ny, self.nz
         rpoints = np.empty((self.size, 3))
 
-        grid_points = np.meshgrid(np.linspace(0, 1, nx, endpoint=False),
-                                  np.linspace(0, 1, ny, endpoint=False),
-                                  np.linspace(0, 1, nz, endpoint=False))
+        grid_points = np.meshgrid(
+            np.linspace(0, 1, nx, endpoint=False),
+            np.linspace(0, 1, ny, endpoint=False),
+            np.linspace(0, 1, nz, endpoint=False),
+        )
 
         rpoints[:, 0] = grid_points[0].ravel()
         rpoints[:, 1] = grid_points[1].ravel()
@@ -335,12 +342,12 @@ class Mesh3D:
 
         return rpoints
 
-    #def ogrid_rfft(self):
+    # def ogrid_rfft(self):
     #    return np.ogrid[0:1:1/self.nx,
     #                    0:1:1/self.ny,
     #                    0:1:1/self.nz]
 
-    #def line_inds(self, line):
+    # def line_inds(self, line):
     #    """
     #    Returns an ogrid with the indices associated to the specified line.
 
@@ -360,7 +367,7 @@ class Mesh3D:
     #    else:
     #        raise ValueError("Wrong line %s" % line)
 
-    #def plane_inds(self, plane, h):
+    # def plane_inds(self, plane, h):
     #    """
     #    Returns an ogrid with the indices associated to the specified plane.
 
@@ -383,7 +390,7 @@ class Mesh3D:
     #    else:
     #        raise ValueError("Wrong plane %s" % plane)
 
-    #def irottable(self, symmops):
+    # def irottable(self, symmops):
     #    nsym = len(symmops)
     #    nx, ny, nz = self.nx, self.ny, self.nz
 
@@ -432,7 +439,7 @@ class Mesh3D:
         points = np.reshape(points, (-1, 3))
         inv_vectors = self.inv_vectors
         fcoords = [np.dot(point, inv_vectors) for point in points]
-        inds = [[np.mod(int(np.rint(pc[ii]*self.shape[ii])), self.nx) for ii in range(3)] for pc in fcoords]
+        inds = [[np.mod(int(np.rint(pc[ii] * self.shape[ii])), self.nx) for ii in range(3)] for pc in fcoords]
         return np.array(inds)
 
         # return [(int(np.rint(pc[ii]*self.nx)), int(np.rint(pc[0]*self.nx)),int(np.rint(pc[0]*self.nx))) for pc in coords]
@@ -449,19 +456,23 @@ class Mesh3D:
         # h_ab = np.abs(np.dot(c_ab, self.vectors[2]) / np.linalg.norm(c_ab))
         # h_bc = np.abs(np.dot(c_bc, self.vectors[0]) / np.linalg.norm(c_bc))
         # h_ca = np.abs(np.dot(c_ca, self.vectors[1]) / np.linalg.norm(c_ca))
-        maxdiag = max([np.linalg.norm(self.dvx+self.dvy+self.dvz),
-                       np.linalg.norm(self.dvx+self.dvy-self.dvz),
-                       np.linalg.norm(self.dvx-self.dvy+self.dvz),
-                       np.linalg.norm(self.dvx-self.dvy-self.dvz)])
+        maxdiag = max(
+            [
+                np.linalg.norm(self.dvx + self.dvy + self.dvz),
+                np.linalg.norm(self.dvx + self.dvy - self.dvz),
+                np.linalg.norm(self.dvx - self.dvy + self.dvz),
+                np.linalg.norm(self.dvx - self.dvy - self.dvz),
+            ]
+        )
         c_ab = np.cross(self.dvx, self.dvy)
         c_bc = np.cross(self.dvy, self.dvz)
         c_ca = np.cross(self.dvz, self.dvx)
         h_ab = np.abs(np.dot(c_ab, self.dvz) / np.linalg.norm(c_ab))
         h_bc = np.abs(np.dot(c_bc, self.dvx) / np.linalg.norm(c_bc))
         h_ca = np.abs(np.dot(c_ca, self.dvy) / np.linalg.norm(c_ca))
-        a_factor = 1.01 * (radius+0.5*maxdiag) / h_bc
-        b_factor = 1.01 * (radius+0.5*maxdiag) / h_ca
-        c_factor = 1.01 * (radius+0.5*maxdiag) / h_ab
+        a_factor = 1.01 * (radius + 0.5 * maxdiag) / h_bc
+        b_factor = 1.01 * (radius + 0.5 * maxdiag) / h_ca
+        c_factor = 1.01 * (radius + 0.5 * maxdiag) / h_ab
         # print('HEIGHTS')
         # print(h_ab, h_bc, h_ca)
         # print(c_factor*h_ab, a_factor* h_bc, b_factor*h_ca)
@@ -481,11 +492,16 @@ class Mesh3D:
                     ipy = point_i_closest_gridpoint[1] + iy
                     for iz in range(int(mins[2]), int(maxes[2])):
                         ipz = point_i_closest_gridpoint[2] + iz
-                        gp = ipx*self.dvx + ipy * self.dvy + ipz * self.dvz
-                        dist2_gp_pp = np.dot(pp-gp, pp-gp)
+                        gp = ipx * self.dvx + ipy * self.dvy + ipz * self.dvz
+                        dist2_gp_pp = np.dot(pp - gp, pp - gp)
                         if dist2_gp_pp <= r2:
-                            dist_gridpoints.append(((np.mod(ipx, self.nx), np.mod(ipy, self.ny), np.mod(ipz, self.nz)),
-                                                    np.sqrt(dist2_gp_pp), (ipx, ipy, ipz)))
+                            dist_gridpoints.append(
+                                (
+                                    (np.mod(ipx, self.nx), np.mod(ipy, self.ny), np.mod(ipz, self.nz)),
+                                    np.sqrt(dist2_gp_pp),
+                                    (ipx, ipy, ipz),
+                                )
+                            )
             dist_gridpoints_points.append(dist_gridpoints)
         return dist_gridpoints_points
 

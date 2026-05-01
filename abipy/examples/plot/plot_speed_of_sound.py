@@ -12,7 +12,7 @@ For a command line interface use:
     abiview.py ddb_vs DDB_FILE
 """
 
-#%%
+# %%
 # Initialize object from DDB file.
 
 import os
@@ -24,18 +24,18 @@ from abipy.dfpt.vsound import SoundVelocity
 ddb_path = os.path.join(abidata.dirpath, "refs", "si_sound_vel", "Si_DDB")
 sv = SoundVelocity.from_ddb(ddb_path)
 
-#%%
+# %%
 # Get pandas dataframe with results.
 
 df = sv.get_dataframe()
 abilab.print_dataframe(df)
 
-#%%
+# %%
 # Plot fit with matplotlib
 
 sv.plot()
 
-#%%
+# %%
 # Plot fit with plotly
 
 sv.plotly(template="plotly_dark")

@@ -2,6 +2,7 @@
 """
 This script extracts the docstrings from the run_*.py scripts located in this directory.
 """
+
 import os
 import sys
 
@@ -18,7 +19,8 @@ def main():
     with open("README.md", "w") as fh:
         for script in scripts:
             mod = __import__(script)
-            if mod.__doc__ is None: missing.append(script)
+            if mod.__doc__ is None:
+                missing.append(script)
             doc = str(mod.__doc__).lstrip().rstrip()
             doc = doc.replace("\n", "\n    ")
             print("``%s``:\n\n    " % script + doc + "\n", file=fh)

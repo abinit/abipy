@@ -2,6 +2,7 @@
 Function1D describes a function of a single variable and provides an easy-to-use API
 for performing common tasks such as algebraic operations, integrations, differentiations, plots, etc.
 """
+
 from __future__ import annotations
 
 from functools import cached_property
@@ -67,10 +68,8 @@ class Function1D:
             usecols: sequence, optional. Which columns to read, with 0 being the first.
                 For example, usecols = (1,4) will extract data from the 2nd, and 5th columns.
         """
-        mesh, values = np.loadtxt(path, comments=comments, delimiter=delimiter,
-                                  usecols=usecols, unpack=True)
+        mesh, values = np.loadtxt(path, comments=comments, delimiter=delimiter, usecols=usecols, unpack=True)
         return cls(mesh, values)
-
 
     def __init__(self, mesh, values):
         """
@@ -103,9 +102,9 @@ class Function1D:
         return self.mesh[slice], self.values[slice]
 
     def __eq__(self, other) -> bool:
-        if other is None: return False
-        return (self.has_same_mesh(other) and
-                np.allclose(self.values, other.values))
+        if other is None:
+            return False
+        return self.has_same_mesh(other) and np.allclose(self.values, other.values)
 
     def __ne__(self, other) -> bool:
         return not (self == other)
@@ -123,7 +122,7 @@ class Function1D:
         cls = self.__class__
         if isinstance(other, cls):
             assert self.has_same_mesh(other)
-            return cls(self.mesh, self.values+other.values)
+            return cls(self.mesh, self.values + other.values)
         return cls(self.mesh, self.values + np.array(other))
 
     __radd__ = __add__
@@ -132,8 +131,8 @@ class Function1D:
         cls = self.__class__
         if isinstance(other, cls):
             assert self.has_same_mesh(other)
-            return cls(self.mesh, self.values-other.values)
-        return cls(self.mesh, self.values-np.array(other))
+            return cls(self.mesh, self.values - other.values)
+        return cls(self.mesh, self.values - np.array(other))
 
     def __rsub__(self, other) -> Function1D:
         return -self + other
@@ -142,8 +141,8 @@ class Function1D:
         cls = self.__class__
         if isinstance(other, cls):
             assert self.has_same_mesh(other)
-            return cls(self.mesh, self.values*other.values)
-        return cls(self.mesh, self.values*other)
+            return cls(self.mesh, self.values * other.values)
+        return cls(self.mesh, self.values * other)
 
     __rmul__ = __mul__
 
@@ -151,8 +150,8 @@ class Function1D:
         cls = self.__class__
         if isinstance(other, cls):
             assert self.has_same_mesh(other)
-            return cls(self.mesh, self.values/other.values)
-        return cls(self.mesh, self.values/other)
+            return cls(self.mesh, self.values / other.values)
+        return cls(self.mesh, self.values / other)
 
     __rtruediv__ = __truediv__
 
@@ -187,7 +186,8 @@ class Function1D:
         """
         fmt = "%s %s\n" % (fmt, fmt)
         with open(path, "w") as fh:
-            if header: fh.write(header)
+            if header:
+                fh.write(header)
             for x, y in zip(self.mesh, self.values, strict=False):
                 fh.write(fmt % (x, y))
 
@@ -248,9 +248,9 @@ class Function1D:
         |numpy-array| of len(self) - 1 elements giving the distance between two
         consecutive points of the mesh, i.e. dx[i] = ||x[i+1] - x[i]||.
         """
-        dx = np.zeros(len(self)-1)
-        for (i, x) in enumerate(self.mesh[:-1]):
-            dx[i] = self.mesh[i+1] - x
+        dx = np.zeros(len(self) - 1)
+        for i, x in enumerate(self.mesh[:-1]):
+            dx[i] = self.mesh[i + 1] - x
         return dx
 
     def find_mesh_index(self, value) -> int:
@@ -286,9 +286,10 @@ class Function1D:
         Returns:
             :class:`Function1D` with :math:`\int y(x) dx`
         """
-        if stop is None: stop = len(self.values) + 1
+        if stop is None:
+            stop = len(self.values) + 1
         x, y = self.mesh[start:stop], self.values[start:stop]
-        try :
+        try:
             from scipy.integrate import cumulative_trapezoid as cumtrapz
         except ImportError:
             from scipy.integrate import cumtrapz
@@ -301,6 +302,7 @@ class Function1D:
     def spline(self):
         """Cubic spline with s=0"""
         from scipy.interpolate import UnivariateSpline
+
         return UnivariateSpline(self.mesh, self.values, s=0)
 
     @property
@@ -341,12 +343,13 @@ class Function1D:
     @cached_property
     def l2_norm(self) -> float:
         r"""Compute :math:`\sqrt{\int |f(x)|^2 dx}`."""
-        return np.sqrt((abs(self)**2).integral()[-1][1])
+        return np.sqrt((abs(self) ** 2).integral()[-1][1])
 
     def fft(self) -> Function1D:
         """Compute the FFT transform (negative sign)."""
         # Compute FFT and frequencies.
         from scipy import fftpack
+
         n, d = len(self), self.h
         fft_vals = fftpack.fft(self.values, n=n)
         freqs = fftpack.fftfreq(n, d=d)
@@ -361,42 +364,43 @@ class Function1D:
         r"""Compute the FFT transform :math:`\int e+i`"""
         # Rearrange values in the standard order then perform IFFT.
         from scipy import fftpack
+
         n, d = len(self), self.h
         fft_vals = fftpack.ifftshift(self.values)
         fft_vals = fftpack.ifft(fft_vals, n=n)
 
         # Compute the mesh of the IFFT output.
         x0 = 0.0 if x0 is None else x0
-        stop = 1./d - 1./(n*d) + x0
+        stop = 1.0 / d - 1.0 / (n * d) + x0
         mesh = np.linspace(x0, stop, num=n)
 
         return self.__class__(mesh, fft_vals)
 
-    #def convolve_with_func1d(self, other):
+    # def convolve_with_func1d(self, other):
     #    """Convolve self with other."""
     #    assert self.has_same_mesh(other)
     #    from scipy.signal import convolve
     #    conv = convolve(self.values, other.values, mode="same") * self.h
     #    return self.__class__(self.mesh, conv)
 
-    #def gaussian_convolution(self, width, height=None):
+    # def gaussian_convolution(self, width, height=None):
     #    """Convolve data with a Gaussian of standard deviation ``width``."""
     #    from abipy.tools.numtools import gaussian
     #    gvals = gaussian(self.mesh, width, center=self.mesh[len(self)//2], height=height)
     #    return self.convolve_with_func1d(Function1D(self.mesh, gvals))
 
-    #def lorentzian_convolution(self, gamma, height=None):
+    # def lorentzian_convolution(self, gamma, height=None):
     #    """Convolve data with a Lorentzian of half-width at half-maximum ``gamma``"""
     #    from abipy.tools.numtools import lorentzian
     #    lvals = lorentzian(self.mesh, gamma, center=self.mesh[len(self)//2], height=height)
     #    return self.convolve_with_func1d(Function1D(self.mesh, lvals))
 
-    #def smooth(self, window_len=11, window="hanning"):
+    # def smooth(self, window_len=11, window="hanning"):
     #    from abipy.tools.numtools import smooth
     #    smooth_vals = smooth(self.values, window_len=window_len, window=window)
     #    return self.__class__(self.mesh, smooth_vals)
 
-    #def real_from_kk(self, with_div=True):
+    # def real_from_kk(self, with_div=True):
     #    """
     #    Compute the Kramers-Kronig transform of the imaginary part
     #    to get the real part. Assume self represents the Fourier
@@ -436,7 +440,7 @@ class Function1D:
 
     #    return self.__class__(self.mesh, (2 / np.pi) * kk_values)
 
-    #def imag_from_kk(self, with_div=True):
+    # def imag_from_kk(self, with_div=True):
     #    """
     #    Compute the Kramers-Kronig transform of the real part
     #    to get the imaginary part. Assume self represents the Fourier
@@ -509,9 +513,12 @@ class Function1D:
         lines = []
         for c in cplx_mode.lower().split("-"):
             xx, yy = self.mesh, data_from_cplx_mode(c, self.values)
-            if xfactor != 1: xx = xx * xfactor
-            if yfactor != 1: yy = yy * yfactor
-            if normalize: yy = yy / np.max(yy)
+            if xfactor != 1:
+                xx = xx * xfactor
+            if yfactor != 1:
+                yy = yy * yfactor
+            if normalize:
+                yy = yy / np.max(yy)
 
             if exchange_xy:
                 xx, yy = yy, xx
@@ -577,19 +584,23 @@ class Function1D:
             cplx_mode = kwargs.pop("cplx_mode", "re")
 
         showlegend = False
-        if "name" in kwargs: showlegend = True
+        if "name" in kwargs:
+            showlegend = True
         showlegend = kwargs.pop("showlegend", showlegend)
 
         for c in cplx_mode.lower().split("-"):
             xx, yy = self.mesh, data_from_cplx_mode(c, self.values)
-            if xfactor != 1: xx = xx * xfactor
-            if yfactor != 1: yy = yy * yfactor
+            if xfactor != 1:
+                xx = xx * xfactor
+            if yfactor != 1:
+                yy = yy * yfactor
 
             if exchange_xy:
                 xx, yy = yy, xx
 
-            fig.add_trace(go.Scatter(x=xx, y=yy, mode="lines", showlegend=showlegend, *args, **kwargs),
-                          row=ply_row, col=ply_col)
+            fig.add_trace(
+                go.Scatter(x=xx, y=yy, mode="lines", showlegend=showlegend, *args, **kwargs), row=ply_row, col=ply_col
+            )
 
     @add_plotly_fig_kwargs
     def plotly(self, exchange_xy=False, fig=None, rcd=None, **kwargs):

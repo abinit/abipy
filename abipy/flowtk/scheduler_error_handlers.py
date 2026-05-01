@@ -27,8 +27,16 @@ class SchedulerErrorHandler(ErrorHandler):
       If a application_adapter is also provided and it provides the methods defined in CorrectorProtocolApplication
       problems can also be fixed a the level of the application, e.g. making the application require less memory.
     """
-    def __init__(self, scheduler_adapter, application_adapter=None, err_file="queue.err", out_file="queue.out",
-                 run_err_file="run.err", batch_err_file="batch.err"):
+
+    def __init__(
+        self,
+        scheduler_adapter,
+        application_adapter=None,
+        err_file="queue.err",
+        out_file="queue.out",
+        run_err_file="run.err",
+        batch_err_file="batch.err",
+    ):
         self.scheduler_adapter = scheduler_adapter
         self.application_adapter = application_adapter
         self.err_file = err_file
@@ -43,8 +51,13 @@ class SchedulerErrorHandler(ErrorHandler):
         Check for the defined errors, put all found errors in self.errors, return True if any were found False if no
         errors were found
         """
-        parser = get_parser(self.scheduler_adapter.name, err_file=self.err_file, out_file=self.out_file,
-                            run_err_file=self.run_err_file, batch_err_file=self.batch_err_file)
+        parser = get_parser(
+            self.scheduler_adapter.name,
+            err_file=self.err_file,
+            out_file=self.out_file,
+            run_err_file=self.run_err_file,
+            batch_err_file=self.batch_err_file,
+        )
         parser.parse()
         self.errors = parser.errors
         if len(self.errors) == 0:

@@ -1,4 +1,5 @@
 """Tools for the submission of Tasks."""
+
 from __future__ import annotations
 
 import abc
@@ -26,7 +27,7 @@ from .utils import as_bool
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:  # needed to avoid circular imports
-    #from .works import Work
+    # from .works import Work
     from .flows import Flow
     from .tasks import Task
 
@@ -42,6 +43,7 @@ __all__ = [
 def straceback() -> str:
     """Returns a string with the traceback."""
     import traceback
+
     return traceback.format_exc()
 
 
@@ -153,7 +155,7 @@ class PyLauncher:
         self.flow = flow
         self.max_njobs_inqueue = kwargs.get("max_njobs_inqueue", 200)
 
-        #self.flow.check_pid_file()
+        # self.flow.check_pid_file()
 
     def single_shot(self):
         """
@@ -207,8 +209,10 @@ class PyLauncher:
             max_ncores_used = float("inf")
 
         for count in range(max_loops):
-            if do_exit: break
-            if count > 0: time.sleep(sleep_time)
+            if do_exit:
+                break
+            if count > 0:
+                time.sleep(sleep_time)
 
             tasks = self.fetch_tasks_to_run()
 
@@ -219,10 +223,10 @@ class PyLauncher:
             # Preventive test.
             tasks = [t for t in tasks if t not in launched]
 
-            if not tasks: continue
+            if not tasks:
+                continue
 
             for task in tasks:
-
                 # Check that we do not exceed number of cores
                 if (ncores_used + task.manager.num_cores) > max_ncores_used:
                     logger.info("reached max_ncores_used, breaking submission loop")
@@ -286,6 +290,7 @@ class BaseScheduler(metaclass=abc.ABCMeta):
            If the mail cannot be sent, the scheduler will automatically shutdown.
            This check prevents the scheduler from being trapped in an infinite loop.
     """
+
     # Configuration file.
     YAML_FILE = "scheduler.yml"
 
@@ -297,7 +302,7 @@ class BaseScheduler(metaclass=abc.ABCMeta):
     def autodoc(cls) -> str:
         """Return string with scheduler options."""
         i = cls.__init__.__doc__.index("Args:")
-        return cls.__init__.__doc__[i+5:]
+        return cls.__init__.__doc__[i + 5 :]
 
     def __init__(self, **kwargs):
         """
@@ -354,7 +359,7 @@ class BaseScheduler(metaclass=abc.ABCMeta):
         self.max_num_pyexcs = int(kwargs.pop("max_num_pyexcs", 0))
         self.max_num_abierrs = int(kwargs.pop("max_num_abierrs", 0))
         self.safety_ratio = int(kwargs.pop("safety_ratio", 5))
-        #self.max_etime_s = kwargs.pop("max_etime_s", 14 * 3600)
+        # self.max_etime_s = kwargs.pop("max_etime_s", 14 * 3600)
         self.max_nlaunches = kwargs.pop("max_nlaunches", -1)
         self.debug = kwargs.pop("debug", 0)
         self.fix_qcritical = as_bool(kwargs.pop("fix_qcritical", False))
@@ -367,12 +372,13 @@ class BaseScheduler(metaclass=abc.ABCMeta):
             raise self.Error("Unknown arguments `%s`" % str(kwargs))
 
         # Register the callaback in the scheduler
-        #if has_sched_v3:
+        # if has_sched_v3:
         logger.warning("Using scheduler v >= 3.0.0")
         from apscheduler.schedulers.blocking import BlockingScheduler
+
         self.sched = BlockingScheduler()
         self.sched.add_job(self.callback, "interval", **self.sched_options)
-        #else:
+        # else:
         #    from apscheduler.scheduler import Scheduler
         #    self.sched = Scheduler(standalone=True)
         #    self.sched.add_interval_job(self.callback, **self.sched_options)
@@ -491,7 +497,8 @@ killjobs_if_errors: yes # "yes" if the scheduler should try to kill all the runn
 
     def cancel_jobs_if_requested(self, flow: Flow) -> None:
         """Cancel all the jobs in the flow"""
-        if not self.killjobs_if_errors: return
+        if not self.killjobs_if_errors:
+            return
         cprint("killjobs_if_errors set to 'yes'. Killing jobs before aborting the flow.", "yellow")
 
         try:
@@ -516,7 +523,8 @@ killjobs_if_errors: yes # "yes" if the scheduler should try to kill all the runn
             raise self.Error(str(errors))
 
     def restart_unconverged(self, flow: Flow, max_nlaunch, excs):
-        if max_nlaunch <= 0: return 0
+        if max_nlaunch <= 0:
+            return 0
 
         for task in flow.unconverged_tasks:
             try:
@@ -544,10 +552,12 @@ killjobs_if_errors: yes # "yes" if the scheduler should try to kill all the runn
         # fix only prepares for restarting, and sets to ready
         if self.fix_qcritical:
             nfixed = flow.fix_queue_critical()
-            if nfixed: print("Fixed %d QCritical error(s)" % nfixed)
+            if nfixed:
+                print("Fixed %d QCritical error(s)" % nfixed)
 
         nfixed = flow.fix_abicritical()
-        if nfixed: print("Fixed %d AbiCritical error(s)" % nfixed)
+        if nfixed:
+            print("Fixed %d AbiCritical error(s)" % nfixed)
 
     def check_deadlocks(self, flow: Flow) -> list[str]:
         err_lines = []
@@ -584,7 +594,6 @@ killjobs_if_errors: yes # "yes" if the scheduler should try to kill all the runn
 
 
 class PyFlowScheduler(BaseScheduler):
-
     @property
     def pid_file(self) -> str:
         """
@@ -659,35 +668,42 @@ class PyFlowScheduler(BaseScheduler):
         """
         excs = []
         flow = self.flow
-        if flow is None: return
+        if flow is None:
+            return
 
         if self.use_dynamic_manager:
             # Allow to change the manager at run-time
             from .tasks import TaskManager
+
             flow.change_manager(TaskManager.from_user_config())
 
         # Here we just count the number of tasks in the flow that are in RUNNING or SUBMITTED status.
         # This logic clearly breaks down if there are multiple schedulers running on the same machine
         # but it's easy to implement without having to contact the resource manager
         # by calling `flow.get_njobs_in_queue()` that is quite expensive (and the sysadmin won't be happy!)
-        nqjobs = (len(list(flow.iflat_tasks(status=flow.S_RUN))) +
-                  len(list(flow.iflat_tasks(status=flow.S_SUB))))
+        nqjobs = len(list(flow.iflat_tasks(status=flow.S_RUN))) + len(list(flow.iflat_tasks(status=flow.S_SUB)))
 
         if nqjobs >= self.max_njobs_inqueue:
             print(f"Too many jobs in the queue: {nqjobs} >= {self.max_njobs_inqueue}. No job will be submitted.")
             flow.check_status(show=False)
             return
 
-        max_nlaunch = self.max_njobs_inqueue - nqjobs if self.max_nlaunches == -1 else \
-                      min(self.max_njobs_inqueue - nqjobs, self.max_nlaunches)
+        max_nlaunch = (
+            self.max_njobs_inqueue - nqjobs
+            if self.max_nlaunches == -1
+            else min(self.max_njobs_inqueue - nqjobs, self.max_nlaunches)
+        )
 
         # check status.
         flow.check_status(show=False)
 
         if self.max_ncores_used is not None:
             if flow.ncores_allocated > self.max_ncores_used:
-                print("Cannot exceed max_ncores_used %s" % self.max_ncores_used,
-                      ", ncores_allocated:", flow.ncores_allocated)
+                print(
+                    "Cannot exceed max_ncores_used %s" % self.max_ncores_used,
+                    ", ncores_allocated:",
+                    flow.ncores_allocated,
+                )
                 return
             max_ncores_left = self.max_ncores_used - flow.ncores_allocated
         else:
@@ -695,7 +711,8 @@ class PyFlowScheduler(BaseScheduler):
 
         # Try to restart unconverged tasks.
         max_nlaunch = self.restart_unconverged(flow, max_nlaunch, excs)
-        if max_nlaunch <= 0: return
+        if max_nlaunch <= 0:
+            return
 
         self.try_to_fix_flow(flow)
 
@@ -704,9 +721,9 @@ class PyFlowScheduler(BaseScheduler):
 
         # Submit the tasks that are ready.
         try:
-            nlaunch = PyLauncher(flow).rapidfire(max_nlaunch=max_nlaunch,
-                                                 max_ncores_used=max_ncores_left,
-                                                 sleep_time=10)
+            nlaunch = PyLauncher(flow).rapidfire(
+                max_nlaunch=max_nlaunch, max_ncores_used=max_ncores_left, sleep_time=10
+            )
             self.nlaunch += nlaunch
             if nlaunch:
                 cprint("[%s] Number of launches: %d" % (time.asctime(), nlaunch), "yellow")
@@ -729,12 +746,13 @@ class PyFlowScheduler(BaseScheduler):
             s = straceback()
             self.exceptions.append(s)
             # This is useful when debugging
-            #self.cancel_jobs_if_requested(self.flow)
+            # self.cancel_jobs_if_requested(self.flow)
             self.shutdown(msg="Exception raised in callback!\n" + s)
 
     def _callback(self):
         """The actual callback."""
-        if self.debug: print(">>>>> _callback: Number of open file descriptors: %s" % get_open_fds())
+        if self.debug:
+            print(">>>>> _callback: Number of open file descriptors: %s" % get_open_fds())
 
         self._runem_all()
 
@@ -762,22 +780,29 @@ class PyFlowScheduler(BaseScheduler):
 
         if delta_etime.total_seconds() > self.num_reminders * self.remindme_s:
             self.num_reminders += 1
-            msg = ("Just to remind you that the scheduler with pid %s, flow %s has been running for %s " %
-                  (self.pid, flow, delta_etime))
+            msg = "Just to remind you that the scheduler with pid %s, flow %s has been running for %s " % (
+                self.pid,
+                flow,
+                delta_etime,
+            )
             retcode = self.send_email(msg, tag="[REMINDER]")
 
             if retcode:
-                msg += ("\nThe scheduler tried to send an e-mail to remind the user," +
-                        " but send_email returned %d. Error is not critical though!" % retcode)
+                msg += (
+                    "\nThe scheduler tried to send an e-mail to remind the user,"
+                    + " but send_email returned %d. Error is not critical though!" % retcode
+                )
                 print(msg)
 
-        #if delta_etime.total_seconds() > self.max_etime_s:
+        # if delta_etime.total_seconds() > self.max_etime_s:
         #    err_lines.append("\nExceeded max_etime_s %s. Will shutdown the scheduler and exit" % self.max_etime_s)
 
         # Too many exceptions. Shutdown the scheduler.
         if self.num_excs > self.max_num_pyexcs:
             msg = "Number of exceptions %s > %s. Will shutdown the scheduler and exit" % (
-                self.num_excs, self.max_num_pyexcs)
+                self.num_excs,
+                self.max_num_pyexcs,
+            )
             err_lines.append(boxed(msg))
 
         # Paranoid check: disable the scheduler if we have submitted
@@ -785,13 +810,17 @@ class PyFlowScheduler(BaseScheduler):
         # such as race conditions between difference callbacks!)
         if self.nlaunch > self.safety_ratio * flow.num_tasks:
             msg = "Too many jobs launched %d. Total number of tasks = %s, Will shutdown the scheduler and exit" % (
-                self.nlaunch, flow.num_tasks)
+                self.nlaunch,
+                flow.num_tasks,
+            )
             err_lines.append(boxed(msg))
 
         # Count the number of tasks with status == S_ERROR.
         if flow.num_errored_tasks > self.max_num_abierrs:
             msg = "Number of tasks with ERROR status %s > %s. Will shutdown the scheduler and exit" % (
-                flow.num_errored_tasks, self.max_num_abierrs)
+                flow.num_errored_tasks,
+                self.max_num_abierrs,
+            )
             err_lines.append(boxed(msg))
 
         # Test for deadlocks.
@@ -830,7 +859,8 @@ class PyFlowScheduler(BaseScheduler):
                 print(">>>>> shutdown: Number of open file descriptors: %s" % get_open_fds())
 
             retcode = self.send_email(msg)
-            if self.debug: print("send_mail retcode", retcode)
+            if self.debug:
+                print("send_mail retcode", retcode)
 
             # Write file with the list of exceptions:
             if self.exceptions:
@@ -865,20 +895,21 @@ class PyFlowScheduler(BaseScheduler):
             logger.debug("This should be the shutdown of the scheduler")
 
             # Unschedule all the jobs before calling shutdown
-            #self.sched.print_jobs()
-            #if not has_sched_v3:
+            # self.sched.print_jobs()
+            # if not has_sched_v3:
             #    #self.sched.print_jobs()
             #    for job in self.sched.get_jobs():
             #        self.sched.unschedule_job(job)
             #    self.sched.shutdown()
-            #else:
+            # else:
             self.sched.shutdown(wait=False)
 
             # Uncomment the line below if shutdown does not work!
-            #os.system("kill -9 %d" % os.getpid())
+            # os.system("kill -9 %d" % os.getpid())
 
     def _send_email(self, msg: str, tag) -> int:
-        if self.mailto is None: return -1
+        if self.mailto is None:
+            return -1
 
         header = msg.splitlines()
         app = header.append
@@ -905,7 +936,6 @@ class PyFlowScheduler(BaseScheduler):
 
 
 class MultiFlowScheduler(BaseScheduler):
-
     # TODO: history, logging, shutdown better treatment of exceptions....
 
     def __init__(self, sqldb_path, **kwargs):
@@ -919,6 +949,7 @@ class MultiFlowScheduler(BaseScheduler):
         self.incoming_flow_queue = Queue()
 
         import threading
+
         self._lock = threading.Lock()
 
         self.sqldb_path = sqldb_path
@@ -940,7 +971,8 @@ class MultiFlowScheduler(BaseScheduler):
         self._errored_flow_ids.append(flow_idx)
 
     def handle_flow_exception(self) -> None:
-        if not self._errored_flow_ids: return
+        if not self._errored_flow_ids:
+            return
         for idx in self._errored_flow_ids:
             flow = self.flows[idx]
             self.errored_flows.append(flow)
@@ -958,13 +990,15 @@ class MultiFlowScheduler(BaseScheduler):
         self.sched.start()
 
     # TODO
-    #def stop(self):
-    #def restart(self):
+    # def stop(self):
+    # def restart(self):
 
     def sql_connect(self):
         import sqlite3
-        con = sqlite3.connect(self.sqldb_path, check_same_thread=True,
-                              detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES)
+
+        con = sqlite3.connect(
+            self.sqldb_path, check_same_thread=True, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES
+        )
         con.row_factory = sqlite3.Row
         return con
 
@@ -998,10 +1032,19 @@ class MultiFlowScheduler(BaseScheduler):
                 break
 
         if flows:
+
             def get_record(flow):
                 formula = flow[0][0].input.structure.formula
-                return (str(flow.status), formula, flow.workdir, os.path.basename(flow.pyfile),
-                        flow.node_id, datetime.datetime.now(), None, flow.user_message)
+                return (
+                    str(flow.status),
+                    formula,
+                    flow.workdir,
+                    os.path.basename(flow.pyfile),
+                    flow.node_id,
+                    datetime.datetime.now(),
+                    None,
+                    flow.user_message,
+                )
 
             with self.sql_connect() as con:
                 cur = con.cursor()
@@ -1014,18 +1057,19 @@ class MultiFlowScheduler(BaseScheduler):
     def get_dataframe(self) -> pd.DataFrame:
         with self.sql_connect() as con:
             df = pd.read_sql_query("SELECT * FROM flows", con)
-            #print("dtype", df["upload_date"].dtype)
+            # print("dtype", df["upload_date"].dtype)
             return df
 
     def get_json_status(self) -> dict:
         # https://stackoverflow.com/questions/25455067/pandas-dataframe-datetime-index-doesnt-survive-json-conversion-and-reconversion
         status = dict(
-            dataframe=self.get_dataframe().to_json() #, date_format='iso'#date_unit='ns'),
+            dataframe=self.get_dataframe().to_json()  # , date_format='iso'#date_unit='ns'),
         )
         return status
 
     def get_flow_and_status_by_nodeid(self, node_id):
         from abipy.flowtk.flows import Flow
+
         with self.sql_connect() as con:
             cur = con.cursor()
             cur.execute("SELECT workdir, status FROM flows WHERE flow_id = ?", [node_id])
@@ -1047,6 +1091,7 @@ class MultiFlowScheduler(BaseScheduler):
 
     def groupby_status(self):
         from collections import defaultdict
+
         d = defaultdict(list)
 
         with self.sql_connect() as con:
@@ -1063,7 +1108,7 @@ class MultiFlowScheduler(BaseScheduler):
 
     def remove_flows_with_status(self, status):
         if status == "Running":
-           raise ValueError("You cannot remove a flow that is in `Running` mode!")
+            raise ValueError("You cannot remove a flow that is in `Running` mode!")
 
         count = 0
         with self._lock, self.sql_connect() as con:
@@ -1076,7 +1121,8 @@ class MultiFlowScheduler(BaseScheduler):
 
             for row in rows:
                 workdir = row["workdir"]
-                if not os.path.exists(workdir): continue
+                if not os.path.exists(workdir):
+                    continue
                 os.rmdir(workdir)
                 count += 1
 
@@ -1085,15 +1131,16 @@ class MultiFlowScheduler(BaseScheduler):
 
     def callback(self):
         """The function that will be executed by the scheduler."""
-        #locked = self._lock.acquire(blocking=False, timeout=-1)
-        #if not locked: return
-        #with self._lock:
+        # locked = self._lock.acquire(blocking=False, timeout=-1)
+        # if not locked: return
+        # with self._lock:
 
         new_flows = self.get_incoming_flows()
         if new_flows:
             self.flows.extend(new_flows)
 
-        if not self.flows: return
+        if not self.flows:
+            return
         excs = []
 
         # check status.
@@ -1106,28 +1153,30 @@ class MultiFlowScheduler(BaseScheduler):
         # by calling `flow.get_njobs_in_queue()` that is quite expensive (and the sysadmin won't be happy!)
         nqjobs = 0
         for flow in self.flows:
-            nqjobs += (len(list(flow.iflat_tasks(status=flow.S_RUN))) +
-                       len(list(flow.iflat_tasks(status=flow.S_SUB))))
+            nqjobs += len(list(flow.iflat_tasks(status=flow.S_RUN))) + len(list(flow.iflat_tasks(status=flow.S_SUB)))
 
         if nqjobs >= self.max_njobs_inqueue:
-            print(f"Too many jobs in the queue: {nqjobs} >= {self.max_njobs_inqueue}.\n",
-                  "No job will be submitted.")
+            print(f"Too many jobs in the queue: {nqjobs} >= {self.max_njobs_inqueue}.\n", "No job will be submitted.")
             for flow in self.flows:
                 flow.check_status(show=False)
             return
 
-        max_nlaunch = self.max_njobs_inqueue - nqjobs if self.max_nlaunches == -1 else \
-                      min(self.max_njobs_inqueue - nqjobs, self.max_nlaunches)
+        max_nlaunch = (
+            self.max_njobs_inqueue - nqjobs
+            if self.max_nlaunches == -1
+            else min(self.max_njobs_inqueue - nqjobs, self.max_nlaunches)
+        )
 
         # This check is not perfect, we should make a list of tasks to submit
         # and then select a subset so that we don't exceed max_ncores_used
         # Many sections of this code should be rewritten though.
-        #if self.max_ncores_used is not None and flow.ncores_used > self.max_ncores_used:
+        # if self.max_ncores_used is not None and flow.ncores_used > self.max_ncores_used:
         ncores_allocated = sum(flow.ncores_allocated for flow in self.flows)
         if self.max_ncores_used is not None:
             if ncores_allocated > self.max_ncores_used:
-                print("Cannot exceed max_ncores_used %s" % self.max_ncores_used,
-                      ", ncores_allocated:", ncores_allocated)
+                print(
+                    "Cannot exceed max_ncores_used %s" % self.max_ncores_used, ", ncores_allocated:", ncores_allocated
+                )
                 return
             max_ncores_left = self.max_ncores_used - ncores_allocated
         else:
@@ -1136,22 +1185,23 @@ class MultiFlowScheduler(BaseScheduler):
         # Try to restart unconverged tasks.
         for flow in self.flows:
             max_nlaunch = self.restart_unconverged(flow, max_nlaunch, excs)
-            if max_nlaunch <= 0: return
+            if max_nlaunch <= 0:
+                return
 
         for flow in self.flows:
             self.try_to_fix_flow(flow)
             # Update the pickle file.
             flow.pickle_dump()
 
-        #with self.handle_flow_exceptions:
+        # with self.handle_flow_exceptions:
 
         for i, flow in enumerate(self.flows):
             # Submit the tasks that are ready.
             try:
                 if max_nlaunch > 0:
-                    nlaunch = PyLauncher(flow).rapidfire(max_nlaunch=max_nlaunch,
-                                                         max_ncores_used=max_ncores_left,
-                                                         sleep_time=10)
+                    nlaunch = PyLauncher(flow).rapidfire(
+                        max_nlaunch=max_nlaunch, max_ncores_used=max_ncores_left, sleep_time=10
+                    )
                     self.nlaunch += nlaunch
                     max_nlaunch -= nlaunch
                     if nlaunch:
@@ -1165,7 +1215,7 @@ class MultiFlowScheduler(BaseScheduler):
         for flow in self.flows:
             flow.show_status()
 
-        #if max_nlaunch <= 0: return
+        # if max_nlaunch <= 0: return
 
         self.update_flows_and_slqdb()
 
@@ -1206,12 +1256,12 @@ class MultiFlowScheduler(BaseScheduler):
             values = [(str(flow.S_RUN), now, flow.node_id) for flow in self.flows]
 
             if self.completed_flows:
-               values.extend([(str(flow.status), now, flow.node_id) for flow in self.completed_flows])
-               self.completed_flows = []
+                values.extend([(str(flow.status), now, flow.node_id) for flow in self.completed_flows])
+                self.completed_flows = []
 
             if self.errored_flows:
-               values.extend([(str(flow.S_ERROR), now, flow.node_id) for flow in self.errored_flows])
-               self.errored_flows = []
+                values.extend([(str(flow.S_ERROR), now, flow.node_id) for flow in self.errored_flows])
+                self.errored_flows = []
 
             cur.executemany(query, values)
 
@@ -1225,14 +1275,14 @@ def print_flowsdb_file(filepath: str) -> None:
     import sqlite3
 
     from abipy.tools.printing import print_dataframe
+
     with sqlite3.connect(filepath) as con:
         df = pd.read_sql_query("SELECT * FROM flows", con)
-        #print(type(df["upload_date"]))
+        # print(type(df["upload_date"]))
         print_dataframe(df, title=filepath)
 
 
-def sendmail(subject: str, text: str, mailto: str,
-             sender: str | None = None) -> int:
+def sendmail(subject: str, text: str, mailto: str, sender: str | None = None) -> int:
     """
     Sends an e-mail with unix sendmail.
 
@@ -1244,8 +1294,10 @@ def sendmail(subject: str, text: str, mailto: str,
 
     Returns: Exit status
     """
+
     def user_at_host():
         from socket import gethostname
+
         return os.getlogin() + "@" + gethostname()
 
     # Body of the message.
@@ -1254,9 +1306,11 @@ def sendmail(subject: str, text: str, mailto: str,
     except OSError:
         sender = "abipyscheduler@youknowwhere"
 
-    if is_string(mailto): mailto = [mailto]
+    if is_string(mailto):
+        mailto = [mailto]
 
     from email.mime.text import MIMEText
+
     mail = MIMEText(text)
     mail["Subject"] = subject
     mail["From"] = sender
@@ -1269,7 +1323,8 @@ def sendmail(subject: str, text: str, mailto: str,
     from subprocess import PIPE, Popen
 
     _sendmail = which("sendmail")
-    if _sendmail is None: return -1
+    if _sendmail is None:
+        return -1
     # msg is string not bytes so must use universal_newlines
     p = Popen([_sendmail, "-t"], stdin=PIPE, stderr=PIPE, universal_newlines=True)
 
@@ -1277,7 +1332,7 @@ def sendmail(subject: str, text: str, mailto: str,
     return len(errdata)
 
 
-#def _test_sendmail():
+# def _test_sendmail():
 #    retcode = sendmail("sendmail_test", text="hello\nworld", mailto="nobody@nowhere.com")
 #    print("Retcode", retcode)
 #    assert retcode == 0
