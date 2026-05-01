@@ -71,6 +71,7 @@ class SchedulerErrorHandler(ErrorHandler):
         self.return_corrections()
 
     def return_corrections(self):
+        """Returns the dictionary with the corrections."""
 
         for error in self.errors:
             self.corrections.update({error: {"scheduler_adapter_solutions": [], "aplication_adapter_solutions": []}})

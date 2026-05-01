@@ -287,6 +287,7 @@ class SlurmJob(QueueJob):
         return None
 
     def get_info(self, **kwargs):
+        """Returns a dictionary with information about the job."""
         # See https://computing.llnl.gov/linux/slurm/sacct.html
         # If SLURM job ids are reset, some job numbers will
         # probably appear more than once refering to different jobs.
@@ -341,6 +342,7 @@ class SlurmJob(QueueJob):
         return AttrDict(exitcode=exitcode, signal=signal, status=status)
 
     def get_stats(self, **kwargs) -> dict:
+        """Returns a dictionary with statistics about the job."""
         cmd = "sacct --long --job %s --parsable2" % self.qid
         process = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE)
         out, err = process.communicate()
@@ -392,6 +394,7 @@ class PbsProJob(QueueJob):
     )
 
     def estimated_start_time(self):
+        """Returns the estimated start time of the job."""
         # qstat -T - Shows the estimated start time for all jobs in the queue.
         #                                                                           Est
         #                                                            Req'd  Req'd   Start
@@ -415,6 +418,7 @@ class PbsProJob(QueueJob):
         return sdate
 
     def get_info(self, **kwargs):
+        """Returns a dictionary with information about the job."""
 
         # See also qstat -f
         # http://sc.tamu.edu/help/origins/batch.shtml#qstat

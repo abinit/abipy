@@ -698,6 +698,7 @@ class Work(BaseWork, NodeContainer):
         self.wdir = Directory(self.workdir)
 
     def chroot(self, new_workdir: str) -> None:
+        """Changes the working directory of the work and its tasks."""
         self.set_workdir(new_workdir, chroot=True)
 
         for i, task in enumerate(self):
@@ -759,6 +760,7 @@ class Work(BaseWork, NodeContainer):
 
     @property
     def processes(self) -> list:
+        """List of processes associated with the tasks."""
         return [task.process for task in self]
 
     @property

@@ -173,6 +173,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         self.with_qpath = pnw.Checkbox(name="Show q-path with plotly", value=True)
 
     def get_becs_view(self) -> pn.Row:
+        """Returns the view for Born effective charges."""
         return pn.Row(
             self.pws_col(
                 [
@@ -231,6 +232,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         return col
 
     def get_eps0_view(self) -> pn.Row:
+        """Returns the view for epsilon_0."""
         return pn.Row(
             self.pws_col(
                 [
@@ -298,6 +300,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         return col
 
     def get_phbands_view(self) -> pn.Row:
+        """Returns the view for phonon bands."""
         return pn.Row(
             self.pws_col(
                 [
@@ -374,6 +377,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
             return col
 
     def get_vsound_view(self) -> pn.Row:
+        """Returns the view for speed of sound."""
         return pn.Row(
             self.pws_col(
                 [
@@ -429,6 +433,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         return col
 
     def get_asr_dipdip_view(self) -> pn.Row:
+        """Returns the view for ASR and DIPDIP options."""
         return pn.Row(
             self.pws_col(
                 [
@@ -487,6 +492,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         return col
 
     def get_dos_vs_qmesh_view(self) -> pn.Row:
+        """Returns the view for DOS vs q-mesh."""
         return pn.Row(
             self.pws_col(
                 [
@@ -543,6 +549,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         return col
 
     def get_quadrupoles_view(self) -> pn.Row:
+        """Returns the view for quadrupoles."""
         return pn.Row(
             self.pws_col(
                 [
@@ -588,6 +595,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         return col
 
     def get_ifcs_view(self) -> pn.Row:
+        """Returns the view for IFCs."""
         return pn.Row(
             self.pws_col(
                 [
@@ -623,6 +631,7 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         return col
 
     def get_elastic_view(self) -> pn.Row:
+        """Returns the view for elastic properties."""
         return pn.Row(
             self.pws_col(
                 [
@@ -751,6 +760,7 @@ Also, avoid uploading big files (size > XXX).
         #                                          active=False, width=200, height=10, align="center")
 
     def on_file_input(self, event) -> None:
+        """Callback for file input."""
 
         with Loading(self.main_area):
             new_abifile = self.get_abifile_from_file_input(self.file_input, use_structure=self.use_structure)
@@ -762,6 +772,7 @@ Also, avoid uploading big files (size > XXX).
             self.main_area.objects = [self.abifile.get_panel()]
 
     def on_mpid_input(self, event) -> None:
+        """Callback for Materials Project ID input."""
 
         with Loading(self.mpid_input, err_wdg=self.mpid_err_wdg):
             self.abifile = Structure.from_mpid(self.mpid_input.value)
@@ -769,6 +780,7 @@ Also, avoid uploading big files (size > XXX).
             self.main_area.objects = [self.abifile.get_panel()]
 
     def get_panel(self):
+        """Returns the main panel."""
 
         if self.use_structure:
             title = "Structure Analyzer"

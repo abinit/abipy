@@ -231,6 +231,7 @@ class ParalHintsParser:
         self._errors = collections.deque(maxlen=100)
 
     def add_error(self, errmsg: str) -> None:
+        """Adds an error message to the deque."""
         self._errors.append(errmsg)
 
     def parse(self, filename: str) -> ParalHints:
@@ -314,10 +315,12 @@ class ParalHints(collections.abc.Iterable):
 
     @pmg_serialize
     def as_dict(self, **kwargs) -> dict:
+        """Returns a MSONable dict representation of the object."""
         return {"info": self.info, "confs": self._confs}
 
     @classmethod
     def from_dict(cls, d: dict) -> ParalHints:
+        """Reconstructs the object from a dict."""
         return cls(info=d["info"], confs=d["confs"])
 
     def copy(self) -> ParalHints:
@@ -325,6 +328,7 @@ class ParalHints(collections.abc.Iterable):
         return copy.copy(self)
 
     def get_dataframe(self) -> pd.DataFrame:
+        """Returns a pandas DataFrame with the configurations."""
         rows = []
         for conf in self:
             d = conf.copy()
@@ -374,6 +378,7 @@ class ParalHints(collections.abc.Iterable):
         return self
 
     def multidimensional_optimization(self, priorities=("speedup", "efficiency")):
+        """Selects optimal configurations based on multiple criteria."""
         # Mapping property --> options passed to sparse_histogram
         opts = dict(speedup=dict(step=1.0), efficiency=dict(step=0.1), mem_per_proc=dict(memory=1024))
         # opts = dict(zip(priorities, bin_widths))

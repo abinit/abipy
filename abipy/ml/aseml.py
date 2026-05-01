@@ -401,9 +401,11 @@ class AseResults(HasPickleIO):
 
     @property
     def pressure(self) -> float:
+        """Pressure in GPa."""
         return -self.stress.trace() / 3
 
     def get_voigt_stress(self):
+        """Returns the stress tensor in Voigt notation."""
         """xx, yy, zz, yz, xz, xy"""
         return full_3x3_to_voigt_6_stress(self.stress)
 
@@ -550,6 +552,7 @@ class AseResultsComparator(HasPickleIO):
         self.iref = 0
 
     def __len__(self):
+        """Returns the number of keys."""
         return len(self.keys)
 
     @cached_property
@@ -609,6 +612,7 @@ def main():
         return idir
 
     def ivoigt_from_comp(self, voigt_comp: str) -> int:
+        """Index from Voigt component string."""
         iv = "xx yy zz yz xz xy".split().index(voigt_comp)
         return iv
 
@@ -679,6 +683,7 @@ def main():
         return xs, ys
 
     def xy_stress_for_keys(self, key1, key2, voigt_comp, sort=True) -> tuple:
+        """Returns (xs, ys) arrays with stress for (key1, key2)."""
         """
         Return xs, ys sorted arrays with the stress along the voigt component for (key1, key2).
         """
@@ -708,6 +713,7 @@ def main():
         return df
 
     def get_stress_dataframe(self) -> pd.DataFrame:
+        """Returns a DataFrame with the stress trajectory."""
         """
         Return DataFrame with columns [sxx,syy,szz, ... ,istep,key]
         """

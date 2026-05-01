@@ -115,6 +115,7 @@ class Mesh3D:
 
     @cached_property
     def inv_vectors(self):
+        """Inverse of the lattice vectors."""
         return np.linalg.inv(self.vectors)
 
     def _new_array(self, dtype=float, zero=True, extra_dims=()):
@@ -440,6 +441,7 @@ class Mesh3D:
 
     # @DW TODO Add test.
     def dist_gridpoints_in_spheres(self, points, radius):
+        """Find grid points within spheres centered at `points` with `radius`."""
         # c_ab = np.cross(self.vectors[0], self.vectors[1])
         # c_bc = np.cross(self.vectors[1], self.vectors[2])
         # c_ca = np.cross(self.vectors[2], self.vectors[0])

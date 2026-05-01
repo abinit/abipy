@@ -1300,6 +1300,7 @@ class Kpath(KpointList):
 
     @classmethod
     def from_structure(cls, structure, line_density: int = 20) -> Kpath:
+        """Builds a Kpath from the high-symmetry k-points of the structure."""
         knames = [k.name for k in structure.hsym_kpoints]
         return cls.from_names(structure, knames, line_density=line_density)
 

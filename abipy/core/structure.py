@@ -725,6 +725,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return "\n".join(lines)
 
     def to(self, fmt=None, filename=None, **kwargs):
+        """Write structure to file or return string representation."""
         __doc__ = (
             pmg_Structure.to.__doc__
             + "\n Accepts also fmt=`abinit` or `abivars` or `.abi` as Abinit input file extension"
@@ -942,6 +943,7 @@ class Structure(pmg_Structure, NotebookWriter):
         return self.__class__.as_structure(new)
 
     def abi_primitive(self, symprec=1e-3, angle_tolerance=5, no_idealize=0) -> Structure:
+        """Returns the primitive structure found by spglib."""
         # TODO: this should be moved to pymatgen in the get_refined_structure or so ... to be considered in February 2016
         import spglib
         from pymatgen.io.ase import AseAtomsAdaptor
@@ -1368,6 +1370,7 @@ class Structure(pmg_Structure, NotebookWriter):
 
     # TODO: site_symmetry or spget_site_symmetries?
     def spget_site_symmetries(self):
+        """Returns the site symmetries detected by spglib."""
         import spglib
 
         indsym = self.indsym

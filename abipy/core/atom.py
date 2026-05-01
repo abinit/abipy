@@ -116,6 +116,7 @@ class NlkState(collections.namedtuple("NlkState", "n, l, k")):
 
     @classmethod
     def from_nlkap(cls, n: int, l: int, kap: int | None) -> NlkState:
+        """Builds an NlkState from n, l and the kappa index."""
         k = None
         if kap is not None:
             # if(ikap==1) kap=-(ll+1)
@@ -137,18 +138,21 @@ class NlkState(collections.namedtuple("NlkState", "n, l, k")):
 
     @cached_property
     def latex(self) -> str:
+        """LaTeX representation of the state."""
         lc = l2char[self.l]
         # e.g. 2s or 2s^+
         return f"${self.n}{lc}$" if self.k is None else f"${self.n}{lc}^{self.ksign}$"
 
     @cached_property
     def latex_l(self) -> str:
+        """LaTeX representation of the angular momentum part."""
         lc = l2char[self.l]
         # e.g. s or s^+
         return f"${lc}$" if self.k is None else f"${lc}^{self.ksign}$"
 
     @cached_property
     def ksign(self) -> str:
+        """Sign of the k index (+ for k=1, - for k=2)."""
         return {1: "+", 2: "-"}[self.k]
 
     @cached_property
@@ -200,10 +204,12 @@ class QState(collections.namedtuple("QState", "n, l, occ, eig, j, s")):
 
     @property
     def has_j(self) -> bool:
+        """True if the quantum state has a J quantum number."""
         return self.j is not None
 
     @property
     def has_s(self) -> bool:
+        """True if the quantum state has a spin quantum number."""
         return self.s is not None
 
 
@@ -221,6 +227,7 @@ class AtomicConfiguration:
 
     @classmethod
     def from_string(cls, Z: int, string: str, has_s: bool = False, has_j: bool = False) -> AtomicConfiguration:
+        """Builds an AtomicConfiguration from a string."""
         if not has_s and not has_j:
             # Ex: [He] 2s2 2p3
             states = states_from_string(string)
@@ -364,6 +371,7 @@ class RadialFunction:
 
     @property
     def to_dict(self) -> dict:
+        """JSON-serializable dict representation."""
         return dict(
             name=str(self.name),
             rmesh=list(self.rmesh),
@@ -503,7 +511,7 @@ class RadialFunction:
         return pad_intg
 
     def get_intr2j0(self, ecut: float, numq: float = 3001):
-        """Compute 4\pi\int[(\frac{\sin(2\pi q r)}{2\pi q r})(r^2 n(r))dr]."""
+        """Compute 4\\pi\\int[(\frac{\\sin(2\\pi q r)}{2\\pi q r})(r^2 n(r))dr]."""
         qmax = np.sqrt(ecut / 2) / np.pi
         qmesh = np.linspace(0, qmax, num=numq, endpoint=True)
         outs = np.empty(len(qmesh))

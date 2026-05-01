@@ -111,6 +111,7 @@ class Status(int):
 
     @property
     def color_opts(self) -> dict:
+        """Returns the color options for the status."""
         return self._STATUS2COLOR_OPTS[self]
 
     @property
@@ -164,6 +165,7 @@ class Dependency:
 
     @property
     def info(self) -> str:
+        """Returns a string with information about the dependency."""
         return str(self.node)
 
     @property
@@ -330,6 +332,7 @@ class NodeResults(dict, MSONable):
 
     @property
     def exceptions(self):
+        """List of exceptions raised by the node."""
         return self["exceptions"]
 
     @property
@@ -361,6 +364,7 @@ class NodeResults(dict, MSONable):
         return self
 
     def push_exceptions(self, *exceptions):
+        """Adds exceptions to the internal list."""
         for exc in exceptions:
             newstr = str(exc)
             if newstr not in self.exceptions:
@@ -370,17 +374,21 @@ class NodeResults(dict, MSONable):
 
     @pmg_serialize
     def as_dict(self):
+        """Returns a MSONable dict representation of the object."""
         return self.copy()
 
     @classmethod
     def from_dict(cls, d):
+        """Reconstructs the object from a dict."""
         return cls({k: v for k, v in d.items() if k not in ("@module", "@class")})
 
     def json_dump(self, filename):
+        """Dumps the object to a JSON file."""
         json_pretty_dump(self.as_dict(), filename)
 
     @classmethod
     def json_load(cls, filename):
+        """Loads the object from a JSON file."""
         return cls.from_dict(loadfn(filename))
 
     def update_collection(self, collection):
@@ -672,6 +680,7 @@ class Node(metaclass=abc.ABCMeta):
 
     @property
     def user_message(self) -> str:
+        """User message associated with the node."""
         return self._user_message
 
     @check_spectator

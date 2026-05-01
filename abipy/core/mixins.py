@@ -432,6 +432,7 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
 
     @cached_property
     def tsmear(self):
+        """Smearing temperature in Hartree."""
         return self.ebands.smearing.tsmear_ev.to("Ha")
 
     def get_ebands_params(self) -> dict:

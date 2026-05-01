@@ -782,6 +782,7 @@ class AbipyParameterized(param.Parameterized):
         return items
 
     def get_summary_view_for_abiobj(self, abiobj, **kwargs):
+        """Returns a terminal view with the summary of the abinit object."""
         text = abiobj.to_string(verbose=self.verbose)
 
         view = pnw.Terminal(
@@ -801,6 +802,7 @@ class AbipyParameterized(param.Parameterized):
 
     @staticmethod
     def html_with_clipboard_btn(html_str: str, **kwargs):
+        """Returns an HTML pane with a clipboard button."""
         if hasattr(html_str, "_repr_html_"):
             html_str = html_str._repr_html_()
 
@@ -820,6 +822,7 @@ class AbipyParameterized(param.Parameterized):
 
     @staticmethod
     def get_fileinput_section(file_input) -> pn.Column:
+        """Returns a styled FileInput section."""
         # All credits go to:
         # https://github.com/MarcSkovMadsen/awesome-panel/blob/master/application/pages/styling/fileinput_area.py
         #
@@ -844,6 +847,7 @@ class AbipyParameterized(param.Parameterized):
 
     @staticmethod
     def get_abifile_from_file_input(file_input, use_structure=False):
+        """Returns an Abinit file object from a FileInput widget."""
         # print("filename", file_input.filename, "\nvalue", file_input.value)
         workdir = tempfile.mkdtemp()
 
@@ -875,6 +879,7 @@ class AbipyParameterized(param.Parameterized):
 
     @staticmethod
     def get_alert_data_transfer() -> pn.pane.Alert:
+        """Returns an alert message about large data transfer."""
         # https://discourse.holoviz.org/t/max-upload-size/2121/5
         return pn.pane.Alert(
             """
@@ -893,9 +898,11 @@ Also, use `.abi` for ABINIT input files and `.abo` for the main output file.
 
     @staticmethod
     def get_template_cls_from_name(template):
+        """Returns the template class from the given name."""
         return get_template_cls_from_name(template)
 
     def get_abinit_template_cls_kwds(self):
+        """Returns the default keywords for Abinit templates."""
         return get_abinit_template_cls_kwds()
 
     def get_template_from_tabs(self, tabs, template, **tabs_kwargs):

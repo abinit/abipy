@@ -796,6 +796,7 @@ class AbinitSpaceGroup(OpSequence):
 
     @property
     def num_spatial_symmetries(self) -> int:
+        """Number of spatial symmetry operations."""
         fact = 2 if self.has_timerev else 1
         return int(len(self) / fact)
 
@@ -1103,6 +1104,7 @@ class LatticeRotation(Operation):
 
     @property
     def root_inv(self):
+        """Index of the root of the inverse."""
         try:
             return self._root_inv
         except AttributeError:
@@ -1131,6 +1133,7 @@ class LatticeRotation(Operation):
 
     @cached_property
     def name(self):
+        """String representation of the rotation."""
         # Sign of the determinant (only if improper)
         name = "-" if self.det == -1 else ""
         name += str(self.order)
