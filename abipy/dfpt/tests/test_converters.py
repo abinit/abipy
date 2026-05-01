@@ -145,8 +145,7 @@ class ConverterTest(AbipyTest):
         orig_fc = parse_FORCE_CONSTANTS(fc_path)
         orig_nac = parse_BORN(phonon_conv.primitive, filename=born_path)
         # create the Phonopy object here to take advantage of the information in phonopy_conv
-        phonon_orig = Phonopy(unitcell=phonon_conv.unitcell, supercell_matrix=scm, primitive_matrix=np.eye(3),
-                              nac_params=None)
+        phonon_orig = Phonopy(unitcell=phonon_conv.unitcell, supercell_matrix=scm, primitive_matrix=np.eye(3))
         phonon_orig.force_constants = orig_fc
 
         phfreqs_phonopy_orig = np.array([phonon_orig.get_frequencies(q.frac_coords) for q in qpoints])

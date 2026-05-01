@@ -90,7 +90,10 @@ class PhonopyWork(Work):
 
         supercell_matrix = np.diag(scdims)
         phonopy_kwargs = phonopy_kwargs if phonopy_kwargs is not None else {}
+        nac_params = phonopy_kwargs.pop("nac_params", None)
         new.phonon = phonon = Phonopy(unitcell, supercell_matrix, **phonopy_kwargs)
+        if nac_params is not None:
+            phonon.nac_params = nac_params
 
         displ_kwargs = displ_kwargs if displ_kwargs is not None else {}
         phonon.generate_displacements(**displ_kwargs)  # distance=0.01,

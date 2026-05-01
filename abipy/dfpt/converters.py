@@ -87,8 +87,9 @@ def abinit_to_phonopy(anaddbnc,
 
     # use phonopy to get the proper supercell given by the primitive and the matrix
     # and convert it to pymatgen
-    phonon = Phonopy(phon_at, supercell_matrix, primitive_matrix=np.eye(3), nac_params=nac_params,
-                     symprec=symprec)
+    phonon = Phonopy(phon_at, supercell_matrix, primitive_matrix=np.eye(3), symprec=symprec)
+    if nac_params is not None:
+        phonon.nac_params = nac_params
     phon_supercell = phonon.supercell
     supercell = get_pmg_structure(phon_supercell)
 
@@ -278,12 +279,11 @@ def phonopy_to_abinit(unit_cell=None,
                       unitcell=unit_cell,
                       symprec=symprec,
                       is_nac=False,
-                      nac_params=None,
                       calculator=calculator
                       )
     else:
         # no nac_params here, otherwise they will be used for the interpolation
-        phonon = Phonopy(phon_at, supercell_matrix, primitive_matrix=primitive_matrix, nac_params=None,
+        phonon = Phonopy(phon_at, supercell_matrix, primitive_matrix=primitive_matrix,
                          symprec=symprec, calculator=calculator)
 
     primitive = get_pmg_structure(phonon.primitive)
