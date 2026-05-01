@@ -664,6 +664,10 @@ class OrbmagFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         return cls(filepath)
 
     def __init__(self, filepath: str):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
         self.r = ElectronsReader(filepath)
 

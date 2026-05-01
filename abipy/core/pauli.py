@@ -9,6 +9,7 @@ class Pauli:
     """Pauli matrices."""
 
     def __init__(self):
+        """Initialize the Pauli matrices."""
         self.sigma_0 = np.eye(2)  # 2x2 identity matrix
         self.sigma_x = np.array([[0, 1], [1, 0]])  # Pauli-X (σₓ)
         self.sigma_y = np.array([[0, -1j], [1j, 0]])  # Pauli-Y (σᵧ)

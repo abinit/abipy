@@ -134,6 +134,10 @@ class VpqFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return cls(filepath)
 
     def __init__(self, filepath: PathLike):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
         self.r = VpqReader(filepath)
 
@@ -1186,6 +1190,10 @@ class VpqReader(BaseEphReader):
     """
 
     def __init__(self, filepath: PathLike):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
 
         # Netcdf Variables

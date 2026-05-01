@@ -64,6 +64,10 @@ class GwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):  # ,
         return cls(filepath)
 
     def __init__(self, filepath: PathLike):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
         self.r = GwanReader(filepath)
 
@@ -360,6 +364,10 @@ class GwanReader(BaseEphReader):
     """
 
     def __init__(self, filepath: PathLike):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
 
         # Read important dimensions.

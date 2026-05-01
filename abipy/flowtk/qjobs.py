@@ -419,7 +419,6 @@ class PbsProJob(QueueJob):
 
     def get_info(self, **kwargs):
         """Returns a dictionary with information about the job."""
-
         # See also qstat -f
         # http://sc.tamu.edu/help/origins/batch.shtml#qstat
 

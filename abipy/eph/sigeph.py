@@ -272,6 +272,11 @@ class QpTempList(list):
     """
 
     def __init__(self, *args, **kwargs):
+        """
+        Args:
+            args: Positional arguments passed to the list constructor.
+            kwargs: Keyword arguments. Supports `is_e0sorted`.
+        """
         super().__init__(*args)
         self.is_e0sorted = kwargs.get("is_e0sorted", False)
 
@@ -975,6 +980,10 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return cls(filepath)
 
     def __init__(self, filepath: str):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
         self.reader = self.r = r = SigmaPhReader(filepath)
 
@@ -2764,6 +2773,10 @@ class SigEPhRobot(Robot, RobotWithEbands):
     EXT = "SIGEPH"
 
     def __init__(self, *args):
+        """
+        Args:
+            args: Positional arguments passed to the Robot constructor.
+        """
         super().__init__(*args)
         if len(self.abifiles) in (0, 1):
             return
@@ -3773,6 +3786,10 @@ class SigmaPhReader(BaseEphReader):
     """
 
     def __init__(self, path: str):
+        """
+        Args:
+            path: Path to the netcdf file.
+        """
         super().__init__(path)
 
         self.nsppol = self.read_dimvalue("nsppol")

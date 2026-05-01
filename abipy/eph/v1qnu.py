@@ -17,6 +17,10 @@ from abipy.iotools import ETSF_Reader, xsf  # , cube Visualizer,
 
 class V1qnuFile(AbinitNcFile, Has_Structure, NotebookWriter):
     def __init__(self, filepath):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
         self.reader = r = ETSF_Reader(filepath)
         # Read dimensions.

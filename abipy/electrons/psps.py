@@ -141,6 +141,7 @@ class PspsFile(AbinitNcFile, NotebookWriter):
         return cls(os.path.join(task.outdir.path_in("out_PSPS.nc")))
 
     def __init__(self, filepath: str):
+        """Initialize the object from a file path."""
         super().__init__(filepath)
         self.r = PspsReader(filepath)
         # TODO
@@ -653,6 +654,7 @@ class PspsReader(ETSF_Reader):
     """
 
     def __init__(self, filepath: str):
+        """Initialize the reader from a file path."""
         super().__init__(filepath)
 
         # Get important dimensions.
@@ -774,6 +776,8 @@ class VnlProjector:
 
     def __init__(self, itypat, ln, ekb, qmesh, data):
         """
+        Initialize the projector with its data.
+
         Args:
             itypat: Type atom index (C index >= 0)
             ln: Tuple with l and n.

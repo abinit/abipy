@@ -4163,6 +4163,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
     """
 
     def __init__(self, filepath: str):
+        """Initialize the object from a file path."""
         # Open the file, read data and create objects.
         super().__init__(filepath)
 
@@ -5562,6 +5563,7 @@ class PhononDosPlotter(NotebookWriter):
     """
 
     def __init__(self, key_phdos=None, phdos_kwargs=None):
+        """Initialize the plotter with phonon DOSes."""
         self._phdoses_dict = {}
         if key_phdos is None:
             key_phdos = []

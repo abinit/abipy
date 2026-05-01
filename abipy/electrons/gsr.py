@@ -89,6 +89,10 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return cls(filepath)
 
     def __init__(self, filepath: str):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
         self.r = self.reader = GsrReader(filepath)
 

@@ -1353,6 +1353,15 @@ class LobsterAnalyzer(NotebookWriter):
         return cls(dirpath, prefix, **kwargs)
 
     def __init__(self, dirpath, prefix, coop_path=None, cohp_path=None, icohp_path=None, lobdos_path=None):
+        """
+        Args:
+            dirpath: Path to the directory.
+            prefix: Filename prefix.
+            coop_path: Path to COOP file.
+            cohp_path: Path to COHP file.
+            icohp_path: Path to ICOHP file.
+            lobdos_path: Path to DOSCAR file.
+        """
         self.coop = CoxpFile.from_file(coop_path) if coop_path else None
         self.cohp = CoxpFile.from_file(cohp_path) if cohp_path else None
         self.icohp = ICoxpFile.from_file(icohp_path) if icohp_path else None

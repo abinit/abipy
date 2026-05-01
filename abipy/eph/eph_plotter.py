@@ -51,6 +51,13 @@ class EphPlotter:
         return cls(ebands_kpath, phbst_file, phdos_file, ebands_kmesh=ebands_kmesh)
 
     def __init__(self, ebands_kpath, phbst_file, phdos_file, ebands_kmesh=None):
+        """
+        Args:
+            ebands_kpath: |ElectronBands| object with energies on a k-path or path to file.
+            phbst_file: |PhbstFile| object or path to file.
+            phdos_file: |PhdosFile| object or path to file.
+            ebands_kmesh: (optional) |ElectronBands| object with energies on a k-mesh or path to file.
+        """
         self.eb_kpath = ElectronBands.as_ebands(ebands_kpath)
         self.eb_kmesh = ElectronBands.as_ebands(ebands_kmesh) if ebands_kmesh is not None else None
 

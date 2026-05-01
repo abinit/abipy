@@ -1435,6 +1435,7 @@ class RobotPythonScript:
     """
 
     def __init__(self, robot: Robot, filepath_py: str):
+        """Initialize the object with robot and file path."""
         self.robot = robot
         self.filepath_py = filepath_py
 

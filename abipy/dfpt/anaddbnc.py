@@ -55,6 +55,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return cls(filepath)
 
     def __init__(self, filepath: str):
+        """Initialize the object from a file path."""
         super().__init__(filepath)
         self.r = ETSF_Reader(filepath)
 

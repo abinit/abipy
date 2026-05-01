@@ -117,6 +117,10 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         return cls(filepath)
 
     def __init__(self, filepath: str):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
         self.r = self.reader = r = ElectronsReader(filepath)
 

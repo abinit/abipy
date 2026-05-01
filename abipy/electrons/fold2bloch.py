@@ -68,6 +68,10 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         return cls(ncpath)
 
     def __init__(self, filepath: str):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
         self.r = ElectronsReader(filepath)
 

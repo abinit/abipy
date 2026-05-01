@@ -5583,6 +5583,11 @@ class ElectronDosPlotter(NotebookWriter):
     # TODO: down-up option animate?
 
     def __init__(self, key_edos=None, edos_kwargs=None):
+        """
+        Args:
+            key_edos: List of (label, edos) tuples. edos can be a file path or |ElectronDos| object.
+            edos_kwargs: Dictionary with arguments passed to ``as_edos``.
+        """
         if key_edos is None:
             key_edos = []
         key_edos = [(k, ElectronDos.as_edos(v, edos_kwargs)) for k, v in key_edos]

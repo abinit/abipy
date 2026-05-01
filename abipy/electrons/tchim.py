@@ -58,6 +58,7 @@ class TchimFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
     """
 
     def __init__(self, filepath: PathLike):
+        """Initialize the object from a file path."""
         super().__init__(filepath)
         self.r = TchimReader(filepath)
 
@@ -363,6 +364,7 @@ class TchimReader(ElectronsReader):
     """
 
     def __init__(self, filepath: PathLike):
+        """Initialize the reader from a file path."""
         super().__init__(filepath)
 
         # Read important dimensions.
@@ -481,6 +483,8 @@ class TchimVsSus:
 
     def __init__(self, tchim_filepath: str, sus_filepath: str):
         """
+        Initialize the object with file paths.
+
         Args:
             tchim_filepath: TCHIM filename.
             sus_filepath: SUS filename.

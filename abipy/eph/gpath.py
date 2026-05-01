@@ -58,6 +58,10 @@ class GpathFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return cls(filepath)
 
     def __init__(self, filepath: PathLike):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
         self.r = GpathReader(filepath)
 
@@ -359,6 +363,10 @@ class GpathReader(BaseEphReader):
     """
 
     def __init__(self, filepath: PathLike):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
 
         # Read important dimensions.

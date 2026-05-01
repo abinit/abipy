@@ -55,6 +55,10 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
     """
 
     def __init__(self, filepath: str):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
         self.reader = r = ETSF_Reader(filepath)
         # Read medadata

@@ -87,6 +87,10 @@ class CumulantEPhFile(SigEPhFile):
         return cls(filepath)
 
     def __init__(self, filepath):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         self._filepath = filepath
         self.r = r = CumulantPhReader(filepath)
         self.nkcalc = r.nkcalc
@@ -182,6 +186,10 @@ class CumulantPhReader(SigmaPhReader):
     """
 
     def __init__(self, path: str):
+        """
+        Args:
+            path: Path to the netcdf file.
+        """
         super().__init__(path)
 
         # Check if the cumulant function exists
@@ -300,6 +308,22 @@ class CumulantSelfEnergy(EphSelfEnergy):
         frohl_dvals_de0ks=None,
         frohl_spfunc_wr=None,
     ):
+        """
+        Args:
+            wmesh: Frequency mesh in eV.
+            qp: |CumulantQpTempState| object.
+            gw_vals: Green's function in frequency domain.
+            spfunccumul_wr: Spectral function.
+            time_mesh: Time mesh.
+            ct_vals: Cumulant function in time.
+            gt_vals: Green's function in time.
+            vals_e0ks: Self-energy at KS energy.
+            dvals_de0ks: Derivative of self-energy at KS energy.
+            dw_vals: Debye-Waller term.
+            frohl_vals_e0ks: Frohlich term at KS energy.
+            frohl_dvals_de0ks: Derivative of Frohlich term at KS energy.
+            frohl_spfunc_wr: Frohlich spectral function.
+        """
 
         # Set dimensions
         ntemp = len(qp.tmesh)

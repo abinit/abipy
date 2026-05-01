@@ -376,6 +376,7 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
         return cls(filename)
 
     def __init__(self, filepath: str):
+        """Initialize the object from a file path."""
         super().__init__(filepath)
 
         with open(filepath) as fh:

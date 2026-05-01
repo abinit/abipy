@@ -38,6 +38,7 @@ class _DielectricTensor:
     """
 
     def __init__(self, mdf, structure):
+        """Initialize the object with MDF and structure."""
         nfreq = len(mdf.wmesh)
 
         self._wmesh = mdf.wmesh
@@ -169,6 +170,8 @@ class DielectricFunction:
 
     def __init__(self, structure, qpoints, wmesh, emacros_q, info):
         """
+        Initialize the object with structure, q-points, frequency mesh and data.
+
         Args:
             structure: |Structure| object.
             qpoints: |KpointList| with the q-points in reduced coordinates.
@@ -326,6 +329,7 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return cls(filepath)
 
     def __init__(self, filepath: str):
+        """Initialize the object from a file path."""
         super().__init__(filepath)
         self.r = MdfReader(filepath)
 
@@ -580,6 +584,7 @@ class MdfPlotter:
     """
 
     def __init__(self):
+        """Initialize the plotter."""
         self._mdfs = {}
 
     def add_mdf(self, label, mdf):
@@ -672,6 +677,7 @@ class MultipleMdfPlotter:
     # alpha = 0.6
 
     def __init__(self):
+        """Initialize the plotter."""
         # [label][mdf_type] --> DielectricFunction
         self._mdfs = {}
 
@@ -1095,6 +1101,8 @@ class _Tensor:
 
     def __init__(self, red_tensor, lattice, space="r"):
         """
+        Initialize the tensor with reduced components and lattice.
+
         Args:
             red_tensor: array-like object with the 9 cartesian components of the tensor
             lattice: Lattice object defining the reference system

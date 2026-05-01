@@ -67,6 +67,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return cls(filepath)
 
     def __init__(self, filepath: str):
+        """Initialize the object from a file path."""
         super().__init__(filepath)
         self.r = ScrReader(filepath)
 
@@ -326,6 +327,10 @@ class ScrReader(ETSF_Reader):
     """
 
     def __init__(self, filepath: str):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
 
         # Read and store important quantities.
@@ -532,7 +537,9 @@ class _AwggMatrix:
         return out_cls
 
     def __init__(self, wpoints, gsphere, wggmat, inord="C"):
-        """ "
+        """
+        Initialize the matrix with frequencies, G-sphere and data.
+
         Args:
             gsphere: |GSphere| with G-vectors and k-point object.
             wpoints: Complex frequency points in Hartree.

@@ -169,6 +169,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
     # TODO: Extract number of errors and warnings.
 
     def __init__(self, filepath: str):
+        """Initialize the object from a file path."""
         super().__init__(filepath)
         self.debug_level = 0
         self._parse()
@@ -1177,6 +1178,7 @@ class OutNcFile(AbinitNcFile):
     # TODO: This object is deprecated
 
     def __init__(self, filepath: str):
+        """Initialize the object from a file path."""
         super().__init__(filepath)
         self.reader = NetcdfReader(filepath)
         self._varscache = dict.fromkeys(self.reader.rootgrp.variables)

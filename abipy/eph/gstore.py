@@ -83,6 +83,10 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         return cls(filepath)
 
     def __init__(self, filepath: PathLike):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
         self.r = GstoreReader(filepath)
 
@@ -689,6 +693,10 @@ class GstoreReader(BaseEphReader):
     """
 
     def __init__(self, filepath: PathLike):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
 
         # Read important dimensions.

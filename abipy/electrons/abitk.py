@@ -67,6 +67,7 @@ class KmeshFile(AbinitNcFile, Has_Structure):
         return cls(filepath)
 
     def __init__(self, filepath: str):
+        """Initialize the object from a file path."""
         super().__init__(filepath)
         self.r = r = ElectronsReader(filepath)
 

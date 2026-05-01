@@ -631,6 +631,7 @@ class ValueWithUnit:
     """
 
     def __init__(self, value=None, units=None):
+        """Initialize the object with value and units."""
         self.value = value
         self.units = units
 
@@ -650,6 +651,7 @@ class Range:
     stop = None
 
     def __init__(self, start=None, stop=None):
+        """Initialize the object with start and stop values."""
         self.start = start
         self.stop = stop
 
@@ -705,6 +707,7 @@ class MultipleValue:
     """
 
     def __init__(self, number=None, value=None):
+        """Initialize the object with number and value."""
         self.number = number
         self.value = value
 

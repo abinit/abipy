@@ -4827,6 +4827,7 @@ class OpticInput(AbiAbstractInput, MSONable):
     _NAME2VAR = {v.name: v for v in _VARIABLES}
 
     def __init__(self, **kwargs):
+        """Initialize the object with the given variables."""
         # Initialize with default values.
         self._vars = collections.OrderedDict((v.name, v.default) for v in self._VARIABLES)
 
@@ -5000,6 +5001,8 @@ class Cut3DInput(MSONable):
 
     def __init__(self, infile_path=None, output_filepath=None, options=None):
         """
+        Initialize the object with infile_path, output_filepath and options.
+
         Args:
             infile_path: absolute or relative path to the input file produced by abinit (e.g. DEN, WFK, ...). Can be
                 None to be defined at a later time.

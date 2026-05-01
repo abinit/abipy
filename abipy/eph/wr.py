@@ -14,6 +14,10 @@ from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt  # , get_axarray
 
 class WrNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     def __init__(self, filepath):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
         self.reader = r = ETSF_Reader(filepath)
 

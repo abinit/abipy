@@ -142,6 +142,10 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
         return cls(filepath)
 
     def __init__(self, filepath: str):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
         self.reader = OpticReader(filepath)
 
@@ -485,6 +489,10 @@ class OpticReader(ElectronsReader):
     """
 
     def __init__(self, filepath: str) -> None:
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
         self.ntemp = self.read_dimvalue("ntemp")
 

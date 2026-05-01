@@ -1721,6 +1721,10 @@ class GwrRobot(Robot, RobotWithEbands):
     }
 
     def __init__(self, *args):
+        """
+        Args:
+            args: Files or list of files.
+        """
         super().__init__(*args)
         if len(self.abifiles) in (0, 1):
             return

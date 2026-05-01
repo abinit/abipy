@@ -311,6 +311,11 @@ class LrujAnalyzer:
     """
 
     def __init__(self, manager=None, verbose=0):
+        """
+        Args:
+            manager: |TaskManager| object.
+            verbose: Verbosity level.
+        """
         self.ncfiles_of_key = {}
         self.results_of_key = {}
         self.manager = manager

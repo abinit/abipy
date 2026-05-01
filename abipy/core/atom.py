@@ -538,6 +538,7 @@ class RadialWaveFunction(RadialFunction):
     """
 
     def __init__(self, nlk: NlkState, name: str, rmesh, values):
+        """Initialize the object from quantum numbers, name, rmesh and values."""
         super().__init__(name, rmesh, values)
         self.nlk = nlk
 

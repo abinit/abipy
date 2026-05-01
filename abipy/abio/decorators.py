@@ -90,6 +90,7 @@ class SpinDecorator(AbinitInputDecorator):
     """This decorator changes the spin polarization."""
 
     def __init__(self, spinmode, kptopt_ifspinor=4):
+        """Initialize the decorator with spinmode and kptopt_ifspinor."""
         self.spinmode = aobj.SpinMode.as_spinmode(spinmode)
         self.kptopt_ifspinor = kptopt_ifspinor
 
@@ -126,6 +127,7 @@ class SmearingDecorator(AbinitInputDecorator):
     """This decorator changes the electronic smearing."""
 
     def __init__(self, smearing):
+        """Initialize the decorator with smearing."""
         self.smearing = aobj.Smearing.as_smearing(smearing)
 
     @pmg_serialize

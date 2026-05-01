@@ -68,6 +68,7 @@ class AnaddbError(DdbError):
     """
 
     def __init__(self, *args, **kwargs):
+        """Initialize the exception with task and report."""
         self.task, self.report = kwargs.pop("task"), kwargs.pop("report")
         super().__init__(*args, **kwargs)
 
@@ -165,6 +166,7 @@ class DdbFile(TextFile, Has_Structure, NotebookWriter):
         return obj if isinstance(obj, cls) else cls.from_file(obj)
 
     def __init__(self, filepath: str):
+        """Initialize the object from a file path."""
         super().__init__(filepath)
 
         self._header = self._parse_header()

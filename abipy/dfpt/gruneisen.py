@@ -61,6 +61,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return cls(filepath)
 
     def __init__(self, filepath: str):
+        """Initialize the object from a file path."""
         super().__init__(filepath)
         self.reader = GrunsReader(filepath)
 
@@ -900,6 +901,7 @@ class GrunsReader(ETSF_Reader):
     # nctkarr_t("gruns_xred", "dp", "three, number_of_atoms, gruns_nvols") &
 
     def __init__(self, filepath: str):
+        """Initialize the object from a file path."""
         super().__init__(filepath)
 
         # Read and store important quantities.

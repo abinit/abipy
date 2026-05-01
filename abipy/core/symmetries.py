@@ -1025,6 +1025,7 @@ class LatticeRotation(Operation):
     _E3D = np.identity(3, int)
 
     def __init__(self, mat):
+        """Initialize the object from a 3x3 matrix."""
         self.mat = np.asarray(mat, dtype=int)
         self.mat.shape = (3, 3)
 

@@ -27,6 +27,10 @@ class TransportFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWrit
         return cls(filepath)
 
     def __init__(self, filepath):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
         self.reader = TransportReader(filepath)
 
@@ -234,6 +238,10 @@ class TransportReader(ElectronsReader):
     """
 
     def __init__(self, filepath):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         self.filepath = filepath
         super().__init__(filepath)
 

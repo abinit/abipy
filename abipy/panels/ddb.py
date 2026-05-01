@@ -761,7 +761,6 @@ Also, avoid uploading big files (size > XXX).
 
     def on_file_input(self, event) -> None:
         """Callback for file input."""
-
         with Loading(self.main_area):
             new_abifile = self.get_abifile_from_file_input(self.file_input, use_structure=self.use_structure)
 
@@ -773,7 +772,6 @@ Also, avoid uploading big files (size > XXX).
 
     def on_mpid_input(self, event) -> None:
         """Callback for Materials Project ID input."""
-
         with Loading(self.mpid_input, err_wdg=self.mpid_err_wdg):
             self.abifile = Structure.from_mpid(self.mpid_input.value)
 
@@ -781,7 +779,6 @@ Also, avoid uploading big files (size > XXX).
 
     def get_panel(self):
         """Returns the main panel."""
-
         if self.use_structure:
             title = "Structure Analyzer"
             msg = "## Upload (or drag & drop) **any file** with a structure (*.nc*, *.abi*, *.cif*, *.xsf*, POSCAR):"
