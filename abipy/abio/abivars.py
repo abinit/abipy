@@ -597,6 +597,10 @@ for dataset in abinp.datasets:
 
 
 class AbinitInputParser:
+    """
+    Parser for Abinit input files.
+    """
+
     verbose = 0
 
     def parse(self, s: str):
@@ -787,6 +791,9 @@ class AbinitInputParser:
 
     @staticmethod
     def eval_abinit_operators(tokens):
+        """
+        Evaluate Abinit operators in a list of tokens.
+        """
         return eval_abinit_operators(tokens)
 
     @staticmethod

@@ -1230,6 +1230,7 @@ class AbstractQmeshAnalyzer(metaclass=abc.ABCMeta):
 
 
 class QHAQmeshAnalyzer(AbstractQmeshAnalyzer):
+    """Class to analyze the convergence of QHA results with respect to the q-mesh."""
     def __init__(self, gsr_paths, ddb_paths):
         """
         Creates an instance of QHA from a list of GSR files and a list of PHDOS.nc files.

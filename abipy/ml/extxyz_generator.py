@@ -80,6 +80,10 @@ class ExtxyzIOWriter:
         return cls(filepaths)
 
     def __init__(self, filepaths: list[PathLike]):
+        """
+        Args:
+            filepaths: List of file paths to process.
+        """
         self.filepaths = list_strings(filepaths)
         if not self.filepaths:
             raise RuntimeError("Empty list of filepaths!")

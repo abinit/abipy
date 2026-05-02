@@ -55,6 +55,7 @@ class ScriptEditor:
     _shell = "/bin/bash"
 
     def __init__(self):
+        """Initialize the editor."""
         self._lines = []
 
     @property
@@ -598,6 +599,10 @@ killjobs_if_errors: yes # "yes" if the scheduler should try to kill all the runn
 
 
 class PyFlowScheduler(BaseScheduler):
+    """
+    This object schedules the submission of the tasks in a single |Flow|.
+    """
+
     @property
     def pid_file(self) -> str:
         """
@@ -940,9 +945,18 @@ class PyFlowScheduler(BaseScheduler):
 
 
 class MultiFlowScheduler(BaseScheduler):
+    """
+    This object schedules the submission of the tasks in multiple |Flow| objects.
+    """
+
     # TODO: history, logging, shutdown better treatment of exceptions....
 
     def __init__(self, sqldb_path, **kwargs):
+        """
+        Args:
+            sqldb_path: Path to the SQL database used to store the status of the flows.
+            kwargs: See BaseScheduler for the meaning of the other arguments.
+        """
         super().__init__(**kwargs)
         self.flows = []
 
@@ -1236,7 +1250,6 @@ class MultiFlowScheduler(BaseScheduler):
 
     def update_flows_and_slqdb(self):
         """Update the status of the flows in the database."""
-
         done = []
         for i, flow in enumerate(self.flows):
             if flow.all_ok:

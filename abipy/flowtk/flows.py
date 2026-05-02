@@ -3081,6 +3081,10 @@ abilab.enable_notebook(with_seaborn=True)
 
 
 class G0W0WithQptdmFlow(Flow):
+    """
+    This Flow provides a high-level interface to compute G0W0 with qptdm.
+    """
+
     def __init__(self, workdir, scf_input, nscf_input, scr_input, sigma_inputs, manager=None):
         """
         Build a :class:`Flow` for one-shot G0W0 calculations.

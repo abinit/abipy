@@ -26,6 +26,9 @@ from abipy.tools.iotools import workdir_with_prefix
 
 
 class RelaxationProfiler:
+    """
+    Profile the structural relaxation using ML potentials and Abinit.
+    """
     def __init__(
         self,
         atoms: Any,

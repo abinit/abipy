@@ -12,6 +12,7 @@ from abipy.core.structure import Structure
 
 
 class SiteSymmetries(Has_Structure):
+    """Class to analyze and store site symmetries of a structure."""
     def __init__(self, structure: Structure):
         """
         Args:

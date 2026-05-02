@@ -14,6 +14,11 @@ class HistFilePanel(AbipyParameterized):
     """Panel with widgets to interact with a |HistFile|."""
 
     def __init__(self, hist: HistFile, **params):
+        """
+        Args:
+            hist: |HistFile| object.
+            params: Parameters passed to the parent class.
+        """
         self.hist = hist
 
         _what_list = ["abc", "angles", "energy", "volume", "pressure", "forces"]

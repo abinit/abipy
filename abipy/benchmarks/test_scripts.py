@@ -13,6 +13,9 @@ root = os.path.abspath(os.path.join(os.path.dirname(__file__)))
 
 
 class TestScripts(AbipyTest):
+    """
+    Test scripts in the benchmarks directory.
+    """
     # def test_all_scripts(self):
     #    """Testing all scripts in abipy/benckmarks"""
     #    from subprocess import call

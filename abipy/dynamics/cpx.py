@@ -106,6 +106,7 @@ def parse_file_with_header(filepath: PathLike) -> pd.DataFrame:
 
 @dataclasses.dataclass
 class Key:
+    """Entry in EvpFile.COLS_DICT."""
     name: str
     info: str = "No info available"
     color: str = "b"
@@ -147,6 +148,7 @@ class EvpFile(TextFile, NotebookWriter):
 
     @cached_property
     def time_key(self) -> str:
+        """Return the key used to store the time in the dataframe."""
         key1 = "time(ps)"
         key2 = "tps(ps)"
         if key1 in self.df.keys():

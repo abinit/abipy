@@ -176,6 +176,7 @@ class ParalConf(AttrDict):
     _DEFAULTS = {"omp_ncpus": 1, "mem_per_cpu": 0.0, "vars": {}}
 
     def __init__(self, *args, **kwargs):
+        """Initialize the build object."""
         super().__init__(*args, **kwargs)
 
         # Add default values if k not already in self.
@@ -224,9 +225,14 @@ class ParalHintsError(Exception):
 
 
 class ParalHintsParser:
+    """
+    Parser for the `AutoParal` section (YAML format) produced by ABINIT.
+    """
+
     Error = ParalHintsError
 
     def __init__(self):
+        """Initialize the parser."""
         # Used to push error strings.
         self._errors = collections.deque(maxlen=100)
 
@@ -261,6 +267,11 @@ class ParalHints(collections.abc.Iterable):
     Error = ParalHintsError
 
     def __init__(self, info: dict, confs: list[dict]):
+        """
+        Args:
+            info: Dictionary with general information.
+            confs: List of parallel configurations.
+        """
         self.info = info
         self._confs = [ParalConf(**d) for d in confs]
 
@@ -1171,6 +1182,11 @@ class AbinitBuild:
     """
 
     def __init__(self, workdir=None, manager=None):
+        """
+        Args:
+            workdir: Working directory.
+            manager: |TaskManager| object.
+        """
         manager = TaskManager.as_manager(manager).to_shell_manager(mpi_procs=1)
 
         # Build a simple manager to run the job in a shell subprocess
@@ -4623,7 +4639,6 @@ class GwrTask(AbinitTask):
 
     def setup(self):
         """Method called before submitting the task."""
-
         # if self["gwr_task"] in (GWR_TASK.HDIAGO_FULL, ):
         #    print("To perform full diago, need to know mpw...")
         #    parent_scf_task = self.get_parents()

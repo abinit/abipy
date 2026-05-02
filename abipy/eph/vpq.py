@@ -87,6 +87,9 @@ from abipy.tools.typing import Figure, PathLike
 
 @dataclasses.dataclass(kw_only=True)
 class Entry:
+    """
+    Metadata for a polaron result.
+    """
     name: str  # Entry name
     latex: str  # Latex label
     info: str  # Description string

@@ -264,6 +264,12 @@ class HTMLwithClipboardBtn(pn.pane.HTML):
     # _init_counter = [0]
 
     def __init__(self, object=None, btn_cls=None, **params):
+        """
+        Args:
+            object: HTML content.
+            btn_cls: CSS class for the button.
+            params: Parameters passed to the parent class.
+        """
         super().__init__(object=object, **params)
 
         # self._init_counter[0] += 1
@@ -580,6 +586,10 @@ class ButtonContext:
     """
 
     def __init__(self, btn: pnw.Button):
+        """
+        Args:
+            btn: The button to wrap with context.
+        """
         self.btn = btn
         self.prev_name, self.prev_type = btn.name, btn.button_type
 
@@ -610,6 +620,12 @@ class Loading:
     """A context manager for setting the loading attribute of a panel object."""
 
     def __init__(self, panel_obj, err_wdg=None, width=70):
+        """
+        Args:
+            panel_obj: The panel object to set loading for.
+            err_wdg: Optional error widget to display exceptions.
+            width: Width for text wrapping.
+        """
         self.panel_obj = panel_obj
         self.err_wdg = err_wdg
         if err_wdg is not None:
@@ -632,6 +648,12 @@ class ActiveBar:
     """A context manager that sets progress.active to True on entry and False when we exit."""
 
     def __init__(self, progress, err_wdg=None, width=70):
+        """
+        Args:
+            progress: The progress bar widget.
+            err_wdg: Optional error widget to display exceptions.
+            width: Width for text wrapping.
+        """
         self.progress = progress
         self.err_wdg = err_wdg
         if err_wdg is not None:
@@ -689,7 +711,10 @@ class AbipyParameterized(param.Parameterized):
     warning = pn.pane.Markdown(SHARED_WIDGETS_WARNING, name="warning")
 
     def __init__(self, **params):
-
+        """
+        Args:
+            params: Parameters passed to the parent class.
+        """
         super().__init__(**params)
         if self.has_remote_server:
             self.param.mpi_procs.bounds = (1, 1)
@@ -1032,7 +1057,11 @@ class PanelWithStructure(AbipyParameterized):
     )
 
     def __init__(self, structure: Structure, **params):
-
+        """
+        Args:
+            structure: |Structure| object.
+            params: Parameters passed to the parent class.
+        """
         super().__init__(**params)
         self.structure = structure
 
@@ -1188,6 +1217,11 @@ class NcFileViewer(AbipyParameterized):
     nc_path = param.String("/", doc="nc group")
 
     def __init__(self, ncfile, **params):
+        """
+        Args:
+            ncfile: |AbinitNcFile| object.
+            params: Parameters passed to the parent class.
+        """
         super().__init__(**params)
         self.ncfile = ncfile
         self.netcdf_info_btn = pnw.Button(name="Show info", button_type="primary")
@@ -1294,7 +1328,11 @@ class PanelWithElectronBands(PanelWithStructure):
     effmass_spin = param.ObjectSelector(default=0, objects=[0, 1], label="Spin index")
 
     def __init__(self, ebands, **params):
-
+        """
+        Args:
+            ebands: |ElectronBands| object.
+            params: Parameters passed to the parent class.
+        """
         self.ebands = ebands
         PanelWithStructure.__init__(self, structure=ebands.structure, **params)
 
@@ -1652,6 +1690,11 @@ class BaseRobotPanel(AbipyParameterized):
     """Base class for panels with AbiPy robot."""
 
     def __init__(self, robot, **params):
+        """
+        Args:
+            robot: |Robot| object.
+            params: Parameters passed to the parent class.
+        """
         self.robot = robot
         self.compare_params_btn = pnw.Button(name="Compare structures", button_type="primary")
         self.transpose_params = pnw.Checkbox(name="Transpose table", value=True)
@@ -1692,7 +1735,11 @@ class PanelWithEbandsRobot(BaseRobotPanel):
     """Mixin class for panels with a robot that owns a list of of |ElectronBands|."""
 
     def __init__(self, robot, **params):
-
+        """
+        Args:
+            robot: |Robot| object.
+            params: Parameters passed to the parent class.
+        """
         BaseRobotPanel.__init__(self, robot=robot, **params)
 
         # Widgets to plot ebands.

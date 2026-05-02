@@ -9,6 +9,11 @@ class WorkPanel(NodeParameterized):
     """Panel to interact with an AbiPy Work."""
 
     def __init__(self, work, **params):
+        """
+        Args:
+            work: |Work| object.
+            params: Parameters passed to the parent class.
+        """
         NodeParameterized.__init__(self, node=work, **params)
         self.work = work
 

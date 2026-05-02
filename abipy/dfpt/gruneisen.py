@@ -106,6 +106,7 @@ class GrunsNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @property
     def iv0(self) -> int:
+        """Index of the central volume V0."""
         return self.reader.iv0
 
     @cached_property

@@ -22,6 +22,7 @@ class StrEnum(str, enum.Enum):
     """StrEnum were added in version 3.11"""
 
     def __new__(cls, *args):
+        """Create a new member."""
         for arg in args:
             if not isinstance(arg, (str, enum.auto)):
                 raise TypeError(f"Values of StrEnums must be strings: {arg!r} is a {type(arg)}")

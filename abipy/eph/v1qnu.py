@@ -16,6 +16,9 @@ from abipy.iotools import ETSF_Reader, xsf  # , cube Visualizer,
 
 
 class V1qnuFile(AbinitNcFile, Has_Structure, NotebookWriter):
+    """
+    This file stores the results of a V1qnu calculation.
+    """
     def __init__(self, filepath):
         """
         Args:
@@ -36,6 +39,7 @@ class V1qnuFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return self.reader.read_structure()
 
     def close(self):
+        """Close the file."""
         self.reader.close()
 
     @cached_property
@@ -75,6 +79,9 @@ class V1qnuFile(AbinitNcFile, Has_Structure, NotebookWriter):
     #    return iq, qpoint
 
     def visualize_nu(self, nu, spin=0, appname="vesta"):
+        """
+        Visualize the DFPT potential for a given phonon mode.
+        """
         # iq, qpoint = self._find_iqpt_qpoint(qpoint)
 
         def xsf_write(filename, datar):

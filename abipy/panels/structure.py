@@ -607,6 +607,9 @@ Examples of AbiPy scripts to automate calculations without datasets are availabl
 
 
 class InputFileGenerator(AbipyParameterized):
+    """
+    Panel for generating ABINIT input files from structures.
+    """
     abi_sanitize = param.Boolean(True, doc="Sanitize structure")
 
     info_str = """
@@ -621,7 +624,10 @@ or through the Materials Project identifier (*mp-id*).
 """
 
     def __init__(self, **params):
-
+        """
+        Args:
+            params: Parameters passed to the parent class.
+        """
         super().__init__(**params)
 
         # Spglib widgets
@@ -651,6 +657,7 @@ or through the Materials Project identifier (*mp-id*).
         self.input_structure = structure
 
     def on_file_input(self, event):
+        """Callback for file input change."""
         self.mpid_err_wdg.object = ""
         # print("filename", self.file_input.filename)
         if self.file_input.value is None:
@@ -670,12 +677,14 @@ or through the Materials Project identifier (*mp-id*).
         self.update_main_area()
 
     def on_mpid_input(self, event):
+        """Callback for Materials Project ID input change."""
         with Loading(self.mpid_input, err_wdg=self.mpid_err_wdg):
             self._set_structure(Structure.from_mpid(self.mpid_input.value))
 
         self.update_main_area()
 
     def update_main_area(self):
+        """Update the main area with tabs."""
         with Loading(self.main_area):
             d = self.input_structure.get_panel(as_dict=True)
             d = {k: d[k] for k in ("GS-input", "Ebands-input", "PH-input", "Summary")}
@@ -683,6 +692,7 @@ or through the Materials Project identifier (*mp-id*).
             self.main_area.objects = [tabs]
 
     def get_panel(self):
+        """Return the panel object."""
         col = pn.Column(
             "## Upload (or drag & drop) **any file** with a structure (*.nc*, *.abi*, *.cif*, *.xsf*, *POSCAR*):",
             self.get_fileinput_section(self.file_input),

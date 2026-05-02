@@ -97,6 +97,9 @@ def x2_grid(what_list) -> tuple:
 
 
 class RtaFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
+    """
+    This file stores the results of a RTA calculation.
+    """
     @classmethod
     def from_file(cls, filepath: str) -> RtaFile:
         """Initialize the object from a netcdf file."""

@@ -15,6 +15,11 @@ class FatBandsFilePanel(PanelWithElectronBands):
     """Panel with widgets to interact with a |FatBandsFile|."""
 
     def __init__(self, ncfile: FatBandsFile, **params):
+        """
+        Args:
+            ncfile: |FatBandsFile| object.
+            params: Parameters passed to the parent class.
+        """
         PanelWithElectronBands.__init__(self, ebands=ncfile.ebands, **params)
         self.ncfile = ncfile
 

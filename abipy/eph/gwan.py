@@ -222,6 +222,7 @@ class Gqk:
 
     @property
     def structure(self):
+        """|Structure| object."""
         return self.gstore.structure
 
     def get_dataframe(self, what: str = "g2") -> pd.DataFrame:
@@ -448,6 +449,7 @@ class GwanReader(BaseEphReader):
     # TODO: This fix to read groups should be imported in pymatgen.
     @cached_property
     def path2group(self) -> dict:
+        """Dictionary mapping path to group."""
         return self.rootgrp.groups
 
 

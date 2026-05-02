@@ -9,10 +9,16 @@ from abipy.panels.core import AbipyParameterized, depends_on_btn_click, dfc, mpl
 
 
 class PhononBandsPlotterPanel(AbipyParameterized):
-    """ """
+    """
+    Panel for interacting with PhononBandsPlotter objects.
+    """
 
     def __init__(self, plotter, **params):
-
+        """
+        Args:
+            plotter: |PhononBandsPlotter| object.
+            params: Parameters passed to the parent class.
+        """
         self.phbands_plotter_mode = pnw.Select(
             name="Plot Mode", value="gridplot", options=["gridplot", "combiplot", "boxplot", "combiboxplot"]
         )  # "animate",
@@ -24,6 +30,7 @@ class PhononBandsPlotterPanel(AbipyParameterized):
 
     @depends_on_btn_click("phbands_blotter_btn")
     def on_phbands_plot_btn(self) -> pn.Row:
+        """Callback for phonon bands plot button click."""
         plot_mode = self.phbands_plotter_mode.value
         plotfunc = getattr(self.plotter, plot_mode, None)
         if plotfunc is None:

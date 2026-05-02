@@ -87,6 +87,7 @@ class ThermalData(Serializable):
         return self.to_string()
 
     def to_string(self, verbose: int = 0) -> str:
+        """String representation."""
         def format_array(arr):
             if arr is None:
                 return "None"
@@ -428,6 +429,7 @@ class QHA_ZSISA(HasPickleIO):
         self.ave_z_guess = abs(self.az_guess) + abs(self.bz_guess) + abs(self.cz_guess)
 
     def print_mat_entries(self, what: str, file=sys.stdout) -> None:
+        """Print entries of a 6D matrix."""
         mat6d = getattr(self, what, None)
         if mat6d is None:
             raise ValueError("Invalid value for {what=}")
@@ -463,7 +465,7 @@ class QHA_ZSISA(HasPickleIO):
         return file.getvalue()
 
     def stress_v_ZSISA(self, temp: float, pressure: float) -> tuple:
-
+        """Compute thermal stress for v-ZSISA model."""
         e, S = self.get_vib_free_energies(temp)
 
         v = self.volume_guess
@@ -641,7 +643,7 @@ class QHA_ZSISA(HasPickleIO):
         return dtol, gibbs, stress, therm
 
     def stress_ZSISA_2DOF(self, temp: float, pressure: float) -> tuple:
-
+        """Compute thermal stress and thermal expansion for uniaxial structures (2DOF)."""
         # Get vibrational free energy and entropy at a specific temperature
         # e = Vibrational free energy (F_vib)
         # S = Entropy (S)
@@ -785,7 +787,7 @@ class QHA_ZSISA(HasPickleIO):
         return dtol, gibbs, stress, therm
 
     def stress_ZSISA_3DOF(self, temp: float, pressure: float, mode: str) -> tuple:
-
+        """Compute thermal stress and thermal expansion for 3DOF structures."""
         # Get vibrational free energy and entropy at a specific temperature
         # e = Vibrational free energy (F_vib)
         # S = Entropy (S)
@@ -1041,7 +1043,7 @@ class QHA_ZSISA(HasPickleIO):
         return dtol, gibbs, stress, therm, elastic
 
     def stress_ZSISA_monoclinic(self, temp: float, pressure: float, mode: str) -> tuple:
-
+        """Compute thermal stress and thermal expansion for monoclinic structures."""
         # Get vibrational free energy and entropy at a specific temperature
         # e = Vibrational free energy (F_vib)
         # S = Entropy (S)
@@ -1375,7 +1377,7 @@ class QHA_ZSISA(HasPickleIO):
         return dtol, gibbs, stress, therm, elastic
 
     def stress_ZSISA_triclinic(self, temp: float, pressure: float, mode: str) -> tuple:
-
+        """Compute thermal stress and thermal expansion for triclinic structures."""
         # Get vibrational free energy and entropy at a specific temperature
         # e = Vibrational free energy (F_vib)
         # S = Entropy (S)
@@ -1863,6 +1865,7 @@ class QHA_ZSISA(HasPickleIO):
         return dtol, gibbs, stress, therm, elastic
 
     def stress_ZSISA_slab_1DOF(self, temp: float, pressure: float) -> tuple:
+        """Compute thermal stress and thermal expansion for slabs (1DOF)."""
         e, S = self.get_vib_free_energies(temp)
 
         X0 = self.ave_x[0, 0, 0, 0, 0, 0]
@@ -1904,6 +1907,7 @@ class QHA_ZSISA(HasPickleIO):
         return dtol, gibbs, stress
 
     def stress_ZSISA_slab_2DOF(self, temp: float, pressure: float) -> tuple:
+        """Compute thermal stress and thermal expansion for slabs (2DOF)."""
         e, S = self.get_vib_free_energies(temp)
 
         X0 = self.ave_x[0, 1, 0, 0, 0, 0]
@@ -1965,7 +1969,7 @@ class QHA_ZSISA(HasPickleIO):
         return dtol, gibbs, stress
 
     def stress_ZSISA_slab_3DOF(self, temp: float, pressure: float) -> tuple:
-
+        """Compute thermal stress and thermal expansion for slabs (3DOF)."""
         e, S = self.get_vib_free_energies(temp)
 
         Ax0 = self.ax[0, 1, 1, 0, 0, 0]

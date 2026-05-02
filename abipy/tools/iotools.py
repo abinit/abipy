@@ -112,6 +112,7 @@ class ExitStackWithFiles(ExitStack):
     """
 
     def __init__(self):
+        """Initialize the exit stack."""
         self.files = []
         super().__init__()
 
@@ -196,11 +197,16 @@ class EditorError(Exception):
 
 
 class Editor:  # pragma: no cover
+    """Helper class to open files in a system editor."""
     DEFAULT_EDITOR = "vi"
 
     Error = EditorError
 
     def __init__(self, editor=None):
+        """
+        Args:
+            editor: Name or path to the editor. If None, it is read from the EDITOR environment variable.
+        """
         if editor is None:
             self.editor = os.getenv("EDITOR", self.DEFAULT_EDITOR)
         else:
@@ -475,6 +481,10 @@ class PythonScript(_Script):
     """
 
     def __init__(self, filepath: str):
+        """
+        Args:
+            filepath: Path to the script file.
+        """
         super().__init__(filepath)
 
         self.text = """\
@@ -512,6 +522,10 @@ class ShellScript(_Script):
     """
 
     def __init__(self, filepath: str):
+        """
+        Args:
+            filepath: Path to the script file.
+        """
         super().__init__(filepath)
 
         self.text = """\

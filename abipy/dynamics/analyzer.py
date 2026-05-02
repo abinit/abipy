@@ -634,6 +634,7 @@ class MdAnalyzer(HasPickleIO):
 
     @property
     def engine(self) -> str:
+        """The engine used to produce the MD trajectory."""
         return self._engine
 
     @engine.setter
@@ -648,6 +649,7 @@ class MdAnalyzer(HasPickleIO):
 
     @property
     def latex_formula(self) -> str:
+        """LaTeX formatted formula."""
         return self._latex_formula
 
     @latex_formula.setter
@@ -657,10 +659,12 @@ class MdAnalyzer(HasPickleIO):
 
     @property
     def latex_formula_n_temp(self) -> str:
+        """LaTeX formatted formula and temperature."""
         return f"{self.latex_formula}\nT = {self.temperature} K"
 
     @property
     def latex_avg_volume(self) -> str:
+        """LaTeX formatted average volume."""
         return r"V$_{\mathrm{ave}}$ = " + f"{self.avg_volume:.2f}" + r"$\mathrm{{\AA}^3}$"
 
     @property
@@ -1020,10 +1024,12 @@ class Msdtt0:
 
     @property
     def times(self) -> np.ndarray:
+        """Time mesh."""
         return self.mda.times
 
     @property
     def temperature(self) -> float:
+        """Temperature in Kelvin."""
         return self.mda.temperature
 
     @cached_property
@@ -1228,6 +1234,7 @@ class Msdtt0:
 
     @add_fig_kwargs
     def plot_mat(self, cmap="jet", fontsize=8, ax=None, **kwargs) -> Figure:
+        """Plot the MSD(t, t0) matrix."""
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         im = ax.matshow(self.arr_tt0, cmap=cmap)
         fig.colorbar(im, ax=ax)
@@ -1547,6 +1554,7 @@ class DiffusionDataList(list):
         yield self.plot(show=False)
 
     def expose(self, exposer="mpl", **kwargs):
+        """Expose the results to an exposer."""
         from abipy.tools.plotting import Exposer
 
         with Exposer.as_exposer(exposer) as e:
@@ -1637,6 +1645,7 @@ class MultiMdAnalyzer(HasPickleIO):
         return self.mdas.__getitem__(items)
 
     def has_same_system(self) -> bool:
+        """True if all analyzers have the same chemical system."""
         return all(mda.latex_formula == self[0].latex_formula for mda in self)
 
     def set_temp_colormap(self, colormap) -> None:
@@ -1672,6 +1681,7 @@ class MultiMdAnalyzer(HasPickleIO):
             yield mda, mda.temperature, self.temp_cmap(float(itemp) / len(self))
 
     def get_msdtt0_symbol_tmax(self, symbol: str, tmax: float, atom_inds=None, nprocs=None) -> Msdtt0List:
+        """Get the Msdtt0 objects for the given symbol and max time."""
         msdtt0_list = Msdtt0List()
         for mda in self:
             obj = mda.get_msdtt0_symbol_tmax(symbol, tmax, atom_inds=atom_inds, nprocs=nprocs)
@@ -2046,6 +2056,10 @@ class ArrheniusPlotter:
     """
 
     def __init__(self, entries=None):
+        """
+        Args:
+            entries: List of ArrheniusEntry.
+        """
         self.entries = entries or []
         self.symb2oxi = common_oxidation_states()
 

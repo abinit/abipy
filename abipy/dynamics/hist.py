@@ -53,6 +53,10 @@ class HistFile(AbinitNcFile, NotebookWriter):
         return cls(filepath)
 
     def __init__(self, filepath: str):
+        """
+        Args:
+            filepath: Path to the HIST.nc file.
+        """
         super().__init__(filepath)
         self.reader = self.r = HistReader(filepath)
 
@@ -759,6 +763,12 @@ class HistFile(AbinitNcFile, NotebookWriter):
         return figure
 
     def mvanimate(self, delay=500):  # pragma: no cover
+        """
+        Animate the relaxation with mayavi.
+
+        Args:
+            delay: Delay in ms between frames.
+        """
         from abipy.display import mvtk
 
         figure, mlab = mvtk.get_fig_mlab(figure=None)

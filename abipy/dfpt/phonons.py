@@ -1693,6 +1693,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
     @property
     def split_qpoints(self):
+        """List of numpy arrays with q-points for each segment."""
         try:
             return self._split_qpoints
         except AttributeError:
@@ -1701,6 +1702,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
 
     @property
     def split_phfreqs(self):
+        """List of numpy arrays with phonon frequencies for each segment."""
         try:
             return self._split_phfreqs
         except AttributeError:
@@ -4176,6 +4178,7 @@ class PhdosFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @cached_property
     def qptrlatt(self):
+        """Reciprocal lattice of the q-mesh."""
         return self.r.read_value("qptrlatt")
 
     @cached_property

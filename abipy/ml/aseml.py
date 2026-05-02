@@ -209,6 +209,10 @@ class AseTrajectoryPlotter:
     """
 
     def __init__(self, traj: Trajectory):
+        """
+        Args:
+            traj: ASE trajectory.
+        """
         self.traj = traj
         self.natom = len(traj[0])
         self.traj_size = len(traj)
@@ -1079,6 +1083,13 @@ class AseRelaxation:
     """
 
     def __init__(self, dyn, r0, r1, traj_path):
+        """
+        Args:
+            dyn: ASE dynamics.
+            r0: Initial result.
+            r1: Final result.
+            traj_path: Path to the trajectory file.
+        """
         self.dyn = dyn
         self.r0, self.r1 = r0, r1
         self.traj_path = str(traj_path)
@@ -1640,6 +1651,7 @@ class CalcBuilder:
         self._model = None
 
     def reset(self) -> None:
+        """Reset the model."""
         self._model = None
 
     def get_calculator(self, with_delta: bool = True, reset: bool = False) -> Calculator:
@@ -3265,6 +3277,9 @@ class MlValidateWithAbinitio(_MlNebBase):
 """
 
     def get_abinitio_results(self) -> list[AseResults]:
+        """
+        Return the ab-initio results.
+        """
         results = []
         for filepath in self.filepaths:
             results.extend(self._get_results_filepath(filepath))
@@ -3603,6 +3618,14 @@ class GsMl(MlBase):
     """
 
     def __init__(self, atoms, nn_name, verbose, workdir, prefix=None):
+        """
+        Args:
+            atoms: ASE atoms.
+            nn_name: Name of the NN potential.
+            verbose: Verbosity level.
+            workdir: Working directory.
+            prefix: Prefix for the workdir.
+        """
         super().__init__(workdir, prefix)
         self.atoms = atoms
         self.nn_name = nn_name
@@ -3995,11 +4018,15 @@ class MlCwfEos(MlBase):
 """
 
     def run(self):
+        """Run the calculation."""
         for nn_name in self.nn_names:
             for set_name in self.configurations_set_name:
                 self.run_nn_name_set_name(nn_name, set_name)
 
     def run_nn_name_set_name(self, nn_name: str, set_name: str) -> dict:
+        """
+        Run for a given NN name and set name.
+        """
         print(f"Computing ML EOS with {nn_name=}, {set_name=} ...")
         # This piece of code is taken from get_results.py
         try:

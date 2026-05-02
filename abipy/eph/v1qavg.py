@@ -88,6 +88,7 @@ class V1qAvgFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return "maxw" in self.reader.rootgrp.variables
 
     def close(self) -> None:
+        """Close the file."""
         self.reader.close()
 
     @cached_property

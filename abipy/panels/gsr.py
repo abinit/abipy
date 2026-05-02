@@ -15,6 +15,11 @@ class GsrFilePanel(PanelWithElectronBands):
     """Panel with widgets to interact with a |GsrFile|."""
 
     def __init__(self, ncfile: GsrFile, **params):
+        """
+        Args:
+            ncfile: |GsrFile| object.
+            params: Parameters passed to the parent class.
+        """
         PanelWithElectronBands.__init__(self, ebands=ncfile.ebands, **params)
         self.ncfile = ncfile
 
@@ -58,6 +63,11 @@ class GsrRobotPanel(PanelWithEbandsRobot):
     """A Panel to interact with multiple GSR files."""
 
     def __init__(self, robot: GsrRobot, **params):
+        """
+        Args:
+            robot: |GsrRobot| object.
+            params: Parameters passed to the parent class.
+        """
         PanelWithEbandsRobot.__init__(self, robot=robot, **params)
 
         self.gsr_dataframe_btn = pnw.Button(name="Compute", button_type="primary")
@@ -65,6 +75,7 @@ class GsrRobotPanel(PanelWithEbandsRobot):
 
     @depends_on_btn_click("gsr_dataframe_btn")
     def on_gsr_dataframe_btn(self) -> pn.Column:
+        """Callback for 'Compute' button click."""
         df = self.robot.get_dataframe(with_geo=True)
         transpose = self.transpose_gsr_dataframe.value
 

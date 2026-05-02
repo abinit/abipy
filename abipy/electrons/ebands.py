@@ -1778,7 +1778,6 @@ class ElectronBands(Has_Structure):
             spin: Spin index. If None, the state with the highest energy (for VBM)
                 or lowest energy (for CBM) across all spin channels is returned.
         """
-
         if spin is None:
             # Return max/min over spins (if any)
             if vbm_or_cbm == "vbm":

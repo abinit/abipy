@@ -17,6 +17,11 @@ class TaskPanel(NodeParameterized):
     """Provides widgets to interact with an AbiPy Task."""
 
     def __init__(self, task: AbinitTask, **params):
+        """
+        Args:
+            task: |AbinitTask| object.
+            params: Parameters passed to the parent class.
+        """
         NodeParameterized.__init__(self, node=task, **params)
         self.task = task
 

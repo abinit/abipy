@@ -1319,6 +1319,7 @@ class LobsterInput:
 
 
 class LobsterAnalyzer(NotebookWriter):
+    """Class to analyze the results of a Lobster calculation."""
     @classmethod
     def from_dir(cls, dirpath, prefix=""):
         """

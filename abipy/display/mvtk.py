@@ -260,11 +260,21 @@ def plot_labels(labels, lattice=None, coords_are_cartesian=False, figure=None, *
 
 
 class MayaviFieldAnimator:  # pragma: no cover
+    """
+    Animator for Mayavi fields.
+    """
     def __init__(self, filepaths):
+        """
+        Args:
+            filepaths: List of file paths to animate.
+        """
         self.filepaths = filepaths
         self.num_files = len(filepaths)
 
     def volume_animate(self):
+        """
+        Animate the volume.
+        """
         from abipy import abilab
 
         with abilab.abiopen(self.filepaths[0]) as nc:

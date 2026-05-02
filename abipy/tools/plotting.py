@@ -1222,6 +1222,7 @@ class ConvergenceAnalyzer:
 
 
 class ArrayPlotter:
+    """Class to plot multiple numpy arrays."""
     def __init__(self, *labels_and_arrays):
         """
         Args:
@@ -1330,6 +1331,13 @@ class Marker:
     """
 
     def __init__(self, x, y, s, **scatter_kwargs):
+        """
+        Args:
+            x: x-coordinates.
+            y: y-coordinates.
+            s: size of the markers.
+            scatter_kwargs: kwargs passed to scatter.
+        """
         self.x, self.y, self.s = np.array(x), np.array(y), np.array(s)
 
         if len(self.x) != len(self.y):
@@ -1764,6 +1772,10 @@ class GenericDataFilePlotter:
     """
 
     def __init__(self, filepath: str):
+        """
+        Args:
+            filepath: Path to the data file.
+        """
         with open(filepath) as fh:
             self.od = _generic_parser_fh(fh)
 
@@ -1816,6 +1828,7 @@ class GenericDataFilePlotter:
 
 
 class GenericDataFilesPlotter:
+    """Class to plot data from multiple generic text files."""
     @classmethod
     def from_files(cls, filepaths: list[str]) -> GenericDataFilesPlotter:
         """Build object from a list of `filenames`."""
@@ -1825,6 +1838,7 @@ class GenericDataFilesPlotter:
         return new
 
     def __init__(self):
+        """Initialize empty plotter."""
         self.odlist = []
         self.filepaths = []
 

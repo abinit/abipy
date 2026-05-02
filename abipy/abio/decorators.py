@@ -96,10 +96,12 @@ class SpinDecorator(AbinitInputDecorator):
 
     @pmg_serialize
     def as_dict(self) -> dict:
+        """Return dictionary with decorator parameters."""
         return dict(spinmode=self.spinmode.as_dict(), kptopt_ifspinor=self.kptopt_ifspinor)
 
     @classmethod
     def from_dict(cls, d: dict) -> SpinDecorator:
+        """Build the decorator from a dictionary."""
         return cls(aobj.SpinMode.from_dict(d["spinmode"]), kptopt_ifspinor=d["kptopt_ifspinor"])
 
     def _decorate(self, inp, deepcopy=True):
@@ -132,10 +134,12 @@ class SmearingDecorator(AbinitInputDecorator):
 
     @pmg_serialize
     def as_dict(self) -> dict:
+        """Return dictionary with decorator parameters."""
         return {"smearing": self.smearing.as_dict()}
 
     @classmethod
     def from_dict(cls, d: dict) -> SmearingDecorator:
+        """Build the decorator from a dictionary."""
         return cls(aobj.Smearing.from_dict(d["smearing"]))
 
     def _decorate(self, inp, deepcopy=True):
@@ -157,10 +161,12 @@ class XcDecorator(AbinitInputDecorator):
 
     @pmg_serialize
     def as_dict(self):
+        """Return dictionary with decorator parameters."""
         return {"ixc": self.ixc}
 
     @classmethod
     def from_dict(cls, d: dict) -> XcDecorator:
+        """Build the decorator from a dictionary."""
         return cls(d["ixc"])
 
     def _decorate(self, inp, deepcopy=True):
@@ -188,10 +194,12 @@ class LdaUDecorator(AbinitInputDecorator):
 
     @pmg_serialize
     def as_dict(self) -> dict:
+        """Return dictionary with decorator parameters."""
         return dict(symbols_luj=self.symbols_luj, usepawu=self.usepawu, unit=self.unit)
 
     @classmethod
     def from_dict(cls, d: dict) -> LdaUDecorator:
+        """Build the decorator from a dictionary."""
         return cls(**{k: v for k, v in d.items() if not k.startswith("@")})
 
     def _decorate(self, inp, deepcopy=True):
@@ -232,10 +240,12 @@ class LexxDecorator(AbinitInputDecorator):
 
     @classmethod
     def from_dict(cls, d: dict) -> LexxDecorator:
+        """Build the decorator from a dictionary."""
         return cls(**{k: v for k, v in d.items() if not k.startswith("@")})
 
     @pmg_serialize
     def as_dict(self) -> dict:
+        """Return dictionary with decorator parameters."""
         return {"symbols_lexx": self.symbols_lexx, "exchmix": self.exchmix}
 
     def _decorate(self, inp, deepcopy=True):

@@ -45,6 +45,10 @@ class File:
     """
 
     def __init__(self, path: str):
+        """
+        Args:
+            path: Path to the file.
+        """
         self._path = os.path.abspath(path)
 
     def __repr__(self):
@@ -161,6 +165,10 @@ class Directory:
     """
 
     def __init__(self, path: str):
+        """
+        Args:
+            path: Path to the directory.
+        """
         self._path = os.path.abspath(path)
 
     def __repr__(self):
@@ -603,6 +611,7 @@ class FilepathFixer:
     """
 
     def __init__(self):
+        """Initialize the fixer."""
         # dictionary mapping the *official* file extension to
         # the regular expression used to tokenize the basename of the file
         # To add a new file it's sufficient to add a new regexp and
@@ -839,6 +848,10 @@ class Condition:
         return cls(cmap=obj)
 
     def __init__(self, cmap=None):
+        """
+        Args:
+            cmap: Dictionary with operators and operands.
+        """
         self.cmap = {} if cmap is None else cmap
 
     def __str__(self):
@@ -905,7 +918,18 @@ class Editor:
 
 
 class SparseHistogram:
+    """
+    Histogram of a list of objects based on a property.
+    """
+
     def __init__(self, items, key=None, num=None, step=None):
+        """
+        Args:
+            items: List of objects.
+            key: Function used to extract the property from the object.
+            num: Number of bins.
+            step: Bin width.
+        """
         if num is None and step is None:
             raise ValueError("Either num or step must be specified")
 
@@ -947,10 +971,18 @@ class SparseHistogram:
 
 
 class Dirviz:
+    """
+    This object provides helper methods to visualize the content of a directory.
+    """
+
     # file_color = np.array((255, 0, 0)) / 255
     # dir_color = np.array((0, 0, 255)) / 255
 
     def __init__(self, top):
+        """
+        Args:
+            top: Path to the directory.
+        """
         # if not os.path.isdir(top):
         #    raise TypeError("%s should be a directory!" % str(top))
         self.top = os.path.abspath(top)

@@ -14,6 +14,11 @@ class SigEPhFilePanel(PanelWithElectronBands):
     """Panel with widgets to interact with a |SigEphFile|."""
 
     def __init__(self, sigeph: SigEPhFile, **params):
+        """
+        Args:
+            sigeph: |SigEPhFile| object.
+            params: Parameters passed to the parent class.
+        """
         PanelWithElectronBands.__init__(self, ebands=sigeph.ebands, **params)
         self.sigeph = sigeph
 
@@ -27,6 +32,7 @@ class SigEPhFilePanel(PanelWithElectronBands):
         # sigma_band_select  = param.ObjectSelector(default=0, objects=[0], doc="Band index in sigma_nk")
 
     def plot_lws(self) -> pn.GridSpec:
+        """Plot line widths."""
         # Insert results in grid.
         gspec = pn.GridSpec(sizing_mode="scale_width")
         for i, rta_type in enumerate(("serta", "mrta")):
@@ -38,6 +44,7 @@ class SigEPhFilePanel(PanelWithElectronBands):
         return gspec
 
     def plot_qpgaps(self) -> pn.GridSpec:
+        """Plot quasiparticle gaps."""
         # Insert results in grid.
         gspec = pn.GridSpec(sizing_mode="scale_width")
 
@@ -50,6 +57,7 @@ class SigEPhFilePanel(PanelWithElectronBands):
         return gspec
 
     def plot_qps_vs_e0(self):
+        """Plot quasiparticle energies vs KS energies."""
         return mpl(self.sigeph.plot_qps_vs_e0(**self.mpl_kwargs))
 
     @depends_on_btn_click("plot_qpsolution_btn")

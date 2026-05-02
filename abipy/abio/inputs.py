@@ -4046,6 +4046,7 @@ class AnaddbInput(AbiAbstractInput, MSONable, Has_Structure):
 
     @property
     def vars(self) -> dict:
+        """Dictionary with Anaddb input variables."""
         return self._vars
 
     def set_spell_check(self, false_or_true: bool) -> None:
@@ -4734,6 +4735,9 @@ with the Abinit version you are using. Please contact the AbiPy developers."""
 
 
 class OpticVar(collections.namedtuple("OpticVar", "name default group help")):
+    """
+    This object stores information on a variable used by the `optic` code.
+    """
     def __str__(self):
         sval = str(self.default)
         return (4 * " ").join([sval, "!" + self.help])
@@ -4842,6 +4846,7 @@ class OpticInput(AbiAbstractInput, MSONable):
 
     @property
     def vars(self) -> dict:
+        """Dictionary with Optic input variables."""
         return self._vars
 
     def _check_varname(self, key: str) -> None:
@@ -5274,6 +5279,7 @@ class AtdepInput(AbiAbstractInput, MSONable, Has_Structure):
 
     @property
     def vars(self) -> dict:
+        """Dictionary with Atdep input variables."""
         return self._vars
 
     def set_spell_check(self, false_or_true: bool) -> None:
@@ -5440,7 +5446,10 @@ with the Abinit version you are using. Please contact the AbiPy developers."""
         return self.to_string(mode="html")
 
     def abivalidate(self, workdir=None, manager=None):
-        pass
+        """
+        Run ATDEP in dry-run mode to validate the input file.
+        Note: This method is a stub.
+        """
 
 
 def product_dict(d: dict):

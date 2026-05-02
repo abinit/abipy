@@ -60,14 +60,17 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         self.r = ETSF_Reader(filepath)
 
     def close(self):
+        """Close the file."""
         self.r.close()
 
     @cached_property
     def structure(self):
+        """|Structure| object."""
         return self.r.read_structure()
 
     @cached_property
     def params(self):
+        """Dictionary with calculation parameters."""
         # -666 to support old anaddb.nc files without metadata
         return OrderedDict(
             [
@@ -180,6 +183,7 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @cached_property
     def dyn_quad(self) -> DynQuad | None:
+        """Dynamic quadrupoles. None if not available."""
         try:
             # First two dimension are associated to the q-point, then atomic perturbation in Cart coords.
             # nctkarr_t('quadrupoles_cart', "dp", 'three, three, three, number_of_atoms')
@@ -322,9 +326,11 @@ class AnaddbNcRobot(Robot):
 
     @property
     def has_elastic_data(self) -> bool:
+        """True if all files have elastic data."""
         return all(ncfile.has_elastic_data for ncfile in self.abifiles)
 
     def get_dataframe(self):
+        """Return a |pandas-DataFrame| with results."""
         if self.has_elastic_data:
             return self.get_elastic_dataframe()
         return None

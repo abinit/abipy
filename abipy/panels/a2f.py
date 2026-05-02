@@ -13,6 +13,11 @@ class A2fFilePanel(PanelWithElectronBands):
     """Panel with widgets to interact with a |GsrFile|."""
 
     def __init__(self, ncfile, **params):
+        """
+        Args:
+            ncfile: |A2fFile| object.
+            params: Parameters passed to the parent class.
+        """
         PanelWithElectronBands.__init__(self, ebands=ncfile.ebands, **params)
         self.ncfile = ncfile
 

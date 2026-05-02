@@ -123,6 +123,11 @@ class FFTBenchmark:
         return parse_prof_file(fileobj)
 
     def __init__(self, title, FFT_tests):
+        """
+        Args:
+            title: Title of the benchmark.
+            FFT_tests: List of |FFT_Test| objects.
+        """
         self.title = title
 
         self._fftalgs = []
@@ -322,6 +327,11 @@ class FFTProf:
     Error = FFTProfError
 
     def __init__(self, fft_input, executable="fftprof"):
+        """
+        Args:
+            fft_input: Input string for fftprof.
+            executable: Name or path to the fftprof executable.
+        """
         self.verbose = 1
         self.fft_input = fft_input
 

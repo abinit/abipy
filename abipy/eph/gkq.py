@@ -28,6 +28,9 @@ from abipy.tools.typing import Figure, PathLike
 
 
 class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
+    """
+    This file stores the results of a GKQ calculation.
+    """
     @classmethod
     def from_file(cls, filepath: PathLike):
         """Initialize the object from a netcdf_ file."""
@@ -75,6 +78,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return "\n".join(lines)
 
     def close(self) -> None:
+        """Close the file."""
         self.r.close()
 
     @cached_property
@@ -520,6 +524,7 @@ class GkqRobot(Robot, RobotWithEbands):
 
     @cached_property
     def kpoints(self):
+        """List of k-points."""
         # Consistency check: kmesh should be the same in each file.
         ref_kpoints = self.abifiles[0].ebands.kpoints
         for i, abifile in enumerate(self.abifiles):

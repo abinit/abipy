@@ -179,7 +179,16 @@ def get_installed_repos_and_root(dirpath: str | None = None) -> tuple[list[Pseud
 
 
 class Citation:
+    """
+    This object stores information on a citation (title and doi).
+    """
+
     def __init__(self, title: str, doi: str):
+        """
+        Args:
+            title: Title of the publication.
+            doi: DOI of the publication.
+        """
         self.title = title
         self.doi = doi
 

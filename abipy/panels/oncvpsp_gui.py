@@ -381,6 +381,10 @@ class OncvInput(AbipyParameterized):
         return cls(**d)
 
     def __init__(self, **params):
+        """
+        Args:
+            params: Parameters passed to the parent class.
+        """
         super().__init__(**params)
 
     def __str__(self) -> str:
@@ -429,7 +433,10 @@ class OncvInput(AbipyParameterized):
         """Return the minimum of rc(l) over l."""
         return min(p.rc for p in self.lparams)
 
-    def find_lparam(self, l: int, what: str) -> tuple(int, float):
+    def find_lparam(self, l: int, what: str) -> tuple[int, float]:
+        """
+        Find the l-parameter for a given l and attribute name.
+        """
         for i, p in enumerate(self.lparams):
             if p.l == l:
                 return i, getattr(p, what)
@@ -488,6 +495,9 @@ def run_psgen(psgen: OncvGenerator, data: dict) -> dict:
 
 
 class OncvGui(AbipyParameterized):
+    """
+    GUI for generating and analyzing ONCV pseudopotentials.
+    """
     calc_type = param.ObjectSelector(
         default="scalar-relativistic",
         objects=["scalar-relativistic", "fully-relativistic", "non-relativistic"],
@@ -540,6 +550,13 @@ class OncvGui(AbipyParameterized):
         return cls(oncv_input=OncvInput.from_file(path), plotlyFlag=plotlyFlag, in_filepath=path)
 
     def __init__(self, oncv_input, plotlyFlag, in_filepath="", **params):
+        """
+        Args:
+            oncv_input: |OncvInput| object.
+            plotlyFlag: True if plotly should be used for plotting.
+            in_filepath: Path to the input file.
+            params: Parameters passed to the parent class.
+        """
         super().__init__(**params)
 
         self.ace_kwargs = dict(
@@ -580,6 +597,7 @@ class OncvGui(AbipyParameterized):
 
     @param.depends("ace_theme")
     def change_ace_theme(self):
+        """Callback to change the theme of the ACE editor."""
         # print("Changing theme")
         self.input_ace.theme = self.ace_theme
 
@@ -602,6 +620,7 @@ class OncvGui(AbipyParameterized):
         return self.get_oncv_input()
 
     def starmap(self, func, list_of_args):
+        """Parallel starmap implementation using threads."""
         import time
 
         time_start = time.time()
@@ -662,6 +681,7 @@ class OncvGui(AbipyParameterized):
         return template
 
     def get_history_view(self) -> pn.Row:
+        """Return the history view panel."""
         return pn.Row(
             self.pws_col(
                 [
@@ -675,6 +695,7 @@ class OncvGui(AbipyParameterized):
 
     @depends_on_btn_click("history_btn")
     def on_history_btn(self) -> pn.Column:
+        """Callback for history button click."""
         # print("hello")
         hist_len = len(self.input_history)
         idx = self.history_idx
@@ -1103,6 +1124,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
             self.out_area.objects = col.objects
 
     def get_rc_qcut_opt_view(self) -> pn.Row:
+        """Return the view for rc/qcut optimization."""
         oncv_input = self.get_oncv_input()
 
         menu_items = [(f"l = {l}", str(l)) for l in range(oncv_input.lmax + 1)]
@@ -1255,6 +1277,7 @@ The present values of rc_l are: {rc_l}
             # self.tabs[0].active = 1
 
     def on_save_btn(self, event) -> None:
+        """Callback for save button click."""
         with ButtonContext(event.obj):
             print("on_save_button")
             # self._execute_stdout_path

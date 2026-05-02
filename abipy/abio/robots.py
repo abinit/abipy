@@ -400,9 +400,11 @@ class Robot(NotebookWriter):
         self.close()
 
     def keys(self):
+        """Return the labels of the files in the robot."""
         return self._abifiles.keys()
 
     def items(self):
+        """Return (label, abifile) pairs."""
         return self._abifiles.items()
 
     def add_extfile_of_node(self, node, nids=None, task_class=None) -> None:
@@ -1034,6 +1036,7 @@ Expecting callable or attribute name or key in abifile.params"""
     @staticmethod
     @wraps(plot_xy_with_hue)
     def plot_xy_with_hue(*args, **kwargs) -> Figure:
+        """Helper function to plot xy data with hue."""
         return plot_xy_with_hue(*args, **kwargs)
 
     @staticmethod

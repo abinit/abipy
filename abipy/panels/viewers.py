@@ -11,7 +11,17 @@ from panel.viewable import Viewer
 
 
 class AceViewer(Viewer):
+    """
+    Panel viewer using the ACE editor to display text files.
+    """
     def __init__(self, filepath: str, theme="terminal", height=1200, **params):
+        """
+        Args:
+            filepath: Path to the text file.
+            theme: ACE theme.
+            height: Height of the widget.
+            params: Parameters passed to the parent class.
+        """
         self.filepath = filepath
         super().__init__(**params)
 
@@ -36,6 +46,7 @@ class AceViewer(Viewer):
         )
 
     def open_ace_editor(self, event) -> None:
+        """Callback to open and read the file into the ACE editor."""
         self.ace.visible = True
         self.ace.value = open(self.filepath).read()
         self.open_btn.name = "Reopen %s" % os.path.basename(self.filepath)
@@ -45,8 +56,18 @@ class AceViewer(Viewer):
 
 
 class JSONViewer(Viewer):
+    """
+    Panel viewer for JSON data (dictionaries).
+    """
     def __init__(self, dictionary, theme="dark", hover_preview=True, depth=2, **params):
-
+        """
+        Args:
+            dictionary: Dictionary with data.
+            theme: JSON theme.
+            hover_preview: True if hover preview is enabled.
+            depth: Initial depth for expansion.
+            params: Parameters passed to the parent class.
+        """
         super().__init__(**params)
 
         self.json = pn.pane.JSON(

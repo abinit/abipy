@@ -247,15 +247,15 @@ class QueueJob:
 
     def get_info(self, **kwargs):
         """Return information about the job."""
-        return None
+        return
 
     def get_nodes(self, **kwargs):
         """Return the list of nodes used by the job."""
-        return None
+        return
 
     def get_stats(self, **kwargs):
         """Return statistics about the job."""
-        return None
+        return
 
 
 class ShellJob(QueueJob):

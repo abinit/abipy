@@ -683,7 +683,18 @@ class EventHandler(MSONable, metaclass=abc.ABCMeta):
 
 
 class Correction(MSONable):
+    """
+    This object stores information on a correction applied by an |EventHandler|.
+    """
+
     def __init__(self, handler, actions, event, reset=False):
+        """
+        Args:
+            handler: The |EventHandler| that applied the correction.
+            actions: Dictionary with the actions applied.
+            event: The |AbinitEvent| that triggered the correction.
+            reset: True if the task should be restarted from scratch.
+        """
         self.handler = handler
         self.actions = actions
         self.event = event
@@ -796,6 +807,10 @@ class DilatmxErrorHandler(ErrorHandler):
     can_change_physics = False
 
     def __init__(self, max_dilatmx=1.3):
+        """
+        Args:
+            max_dilatmx: Maximum value of dilatmx allowed.
+        """
         self.max_dilatmx = max_dilatmx
 
     @pmg_serialize

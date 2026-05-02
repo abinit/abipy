@@ -310,10 +310,11 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
 
 class SusFile(ScrFile):
-    pass
+    """File object for SUS.nc files."""
 
 
 class ScrReader(ETSF_Reader):
+    """Class to read screening files."""
     """
     This object reads the results stored in the SCR (Screening) file produced by ABINIT.
     It provides helper functions to access the most important quantities.

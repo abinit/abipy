@@ -202,6 +202,12 @@ class SlurmJobArray:
     """
 
     def __init__(self, header: str, command: str, arr_options: list[str]):
+        """
+        Args:
+            header: String with the SLURM header.
+            command: String with the command to execute.
+            arr_options: List of strings with the options for the job array.
+        """
         self.command = command
         if not self.command.endswith(" "):
             self.command += " "

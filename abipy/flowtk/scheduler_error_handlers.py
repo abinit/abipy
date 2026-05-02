@@ -37,6 +37,15 @@ class SchedulerErrorHandler(ErrorHandler):
         run_err_file="run.err",
         batch_err_file="batch.err",
     ):
+        """
+        Args:
+            scheduler_adapter: Scheduler adapter.
+            application_adapter: Application adapter.
+            err_file: Error file.
+            out_file: Output file.
+            run_err_file: Run error file.
+            batch_err_file: Batch error file.
+        """
         self.scheduler_adapter = scheduler_adapter
         self.application_adapter = application_adapter
         self.err_file = err_file

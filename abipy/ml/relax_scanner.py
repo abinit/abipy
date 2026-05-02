@@ -441,6 +441,12 @@ class RelaxScannerAnalyzer:
         return cls(entries, scanner)
 
     def __init__(self, entries: list[Entry], scanner: RelaxScanner, verbose: int = 0):
+        """
+        Args:
+            entries: List of Entry objects.
+            scanner: RelaxScanner instance.
+            verbose: Verbosity level.
+        """
         self.entries = entries
         self.scanner = scanner
         self.verbose = verbose
@@ -464,6 +470,7 @@ class RelaxScannerAnalyzer:
 
     @property
     def workdir(self):
+        """Working directory."""
         return self.scanner.workdir
 
     # @property
@@ -508,11 +515,13 @@ class RelaxScannerAnalyzer:
         return self.to_string()
 
     def to_string(self, verbose=0) -> str:
+        """String representation with verbosity level `verbose`."""
         s = self.scanner.to_string(verbose=verbose)
         return s
 
     @cached_property
     def lattice(self):
+        """Lattice object."""
         return Lattice(self.df.attrs["lattice_matrix"])
 
     def pairs_enediff_dist(self, ediff_tol=1e-3, dist_tol=3.5, neb_method=None, nprocs=-1) -> list[Pair]:

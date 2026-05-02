@@ -245,6 +245,9 @@ class DeltaSCF:
         return pd.DataFrame(list_of_dict)
 
     def get_dict_per_specie(self, specie) -> dict:
+        """
+        Dict. with relevant properties per specie.
+        """
         stru = self.structuregs
         indices = stru.indices_from_symbol(specie.name)
         dr_sp = []
@@ -537,6 +540,7 @@ class DeltaSCF:
         return fig
 
     def get_dict_results(self) -> dict:
+        """Return a dictionary with the main results."""
         d = dict(
             [
                 (r"E_em", self.E_em()),

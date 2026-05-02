@@ -142,7 +142,7 @@ def as_slice(obj: Any) -> slice:
 
 
 class NoDefaultProvided:
-    pass
+    """Sentinel object used for defaults."""
 
 
 def hasattrd(obj: Any, name: str) -> bool:

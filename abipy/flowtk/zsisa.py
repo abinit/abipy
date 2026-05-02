@@ -596,6 +596,10 @@ _ALPHA_COMPS = (
 
 @dataclasses.dataclass(kw_only=True)
 class ThermalRelaxEntry:
+    """
+    Entry with the results of a thermal relaxation run for a given (T, P).
+    """
+
     nqsmall_or_qppa: int  # Define the q-mesh for the computation of the PHDOS.
     pressure_gpa: float  # Pressure in GPa.
     temperature: float  # Temperature in K.

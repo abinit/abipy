@@ -38,6 +38,10 @@ class HtmlDiff:
     """
 
     def __init__(self, filepaths: list[str]):
+        """
+        Args:
+            filepaths: List of paths to the files to compare.
+        """
         if len(filepaths) < 2:
             raise ValueError("You need more than one file to compare!")
         self.filepaths = filepaths

@@ -219,6 +219,7 @@ class QHA_2D(HasPickleIO):
 
     @cached_property
     def use_einfvib2(self) -> bool:
+        """True if we are in EinfVib2 mode."""
         return len(self.lattice_a_from_phdos) == 3 and len(self.lattice_c_from_phdos) == 3
 
     def get_initial_guess_ac(self) -> np.array:

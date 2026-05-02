@@ -23,6 +23,7 @@ except ImportError:
 
 
 class MyElasticTensor(ElasticTensor):
+    """Subclass of ElasticTensor with additional methods for HTML representation."""
     def _repr_html_(self):
         """Integration with jupyter notebooks."""
         return self.get_voigt_dataframe()._repr_html_()
@@ -65,6 +66,7 @@ class MyElasticTensor(ElasticTensor):
 
 
 class MyPiezoTensor(PiezoTensor):
+    """Subclass of PiezoTensor with additional methods for HTML representation."""
     def _repr_html_(self) -> str:
         """Integration with jupyter notebooks."""
         return self.get_voigt_dataframe()._repr_html_()
@@ -430,11 +432,13 @@ class ElasticData(Has_Structure, MSONable):
         return pd.DataFrame(rows, index=index, columns=columns)
 
     def get_elastic_voigt_dataframe(self, voigt_as_index=True, tol=None):
+        """Return a |pandas-DataFrame| with elastic tensor elements in Voigt notation."""
         return self.get_voigt_dataframe(
             tensor_names=self.ALL_ELASTIC_TENSOR_NAMES, voigt_as_index=voigt_as_index, tol=tol
         )
 
     def get_piezo_voigt_dataframe(self, voigt_as_index=True, tol=None):
+        """Return a |pandas-DataFrame| with piezoelectric tensor elements in Voigt notation."""
         return self.get_voigt_dataframe(
             tensor_names=self.ALL_PIEZOELECTRIC_TENSOR_NAMES, voigt_as_index=voigt_as_index, tol=tol
         )

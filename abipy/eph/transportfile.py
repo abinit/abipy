@@ -21,6 +21,9 @@ __all__ = [
 
 
 class TransportFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
+    """
+    This file stores the results of a TRANSPORT calculation.
+    """
     @classmethod
     def from_file(cls, filepath):
         """Initialize the object from a netcdf file."""

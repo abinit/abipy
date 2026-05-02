@@ -106,6 +106,7 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
 
     @cached_property
     def gqk_spin(self) -> list:
+        """List of |Gqk| objects, one for each spin."""
         return [Gqk.from_gstore(self, spin) for spin in range(self.nsppol)]
 
     @cached_property
@@ -507,6 +508,7 @@ class Gqk:
 
     @property
     def structure(self) -> Structure:
+        """|Structure| object."""
         return self.gstore.structure
 
     @cached_property
@@ -786,6 +788,7 @@ class GstoreReader(BaseEphReader):
     # TODO: This fix to read groups should be imported in pymatgen.
     @cached_property
     def path2group(self) -> dict:
+        """Dictionary mapping path to group."""
         return self.rootgrp.groups
 
 

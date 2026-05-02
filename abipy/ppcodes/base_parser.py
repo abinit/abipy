@@ -24,6 +24,10 @@ class BaseParser(metaclass=abc.ABCMeta):
     Error = ParserError
 
     def __init__(self, filepath: str) -> None:
+        """
+        Args:
+            filepath: Path to the output file.
+        """
         self.filepath = os.path.abspath(filepath)
         self.workdir = os.path.abspath(os.path.dirname(filepath))
         self.run_completed = False

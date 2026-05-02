@@ -32,6 +32,10 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
     """
 
     def __init__(self, filepath: PathLike):
+        """
+        Args:
+            filepath: Path to the .wout file.
+        """
         super().__init__(filepath)
         self.warnings = []
         self.use_disentangle = False

@@ -53,6 +53,10 @@ class OncvPlotter(NotebookWriter):
         return cls(parser)
 
     def __init__(self, parser: OncvParser):
+        """
+        Args:
+            parser: |OncvParser| object.
+        """
         self.parser = parser
 
     @staticmethod
@@ -766,6 +770,7 @@ class MultiOncvPlotter(NotebookWriter):
         return new
 
     def __init__(self):
+        """Initialize empty plotter."""
         self._plotters_dict = {}
 
     def add_file(self, label: str, filepath: str) -> None:

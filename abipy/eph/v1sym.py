@@ -16,6 +16,9 @@ from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt
 
 
 class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
+    """
+    This file stores the results of a V1sym calculation.
+    """
     def __init__(self, filepath):
         """
         Args:
@@ -49,6 +52,7 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return self.reader.read_value("pertsy_qpt")
 
     def close(self):
+        """Close the file."""
         self.reader.close()
 
     @cached_property
@@ -74,6 +78,7 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @cached_property
     def qpoints(self):
+        """List of q-points."""
         return KpointList(self.structure.reciprocal_lattice, frac_coords=self.reader.read_value("qpts"))
 
     def _find_iqpt_qpoint(self, qpoint):
@@ -87,6 +92,9 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return iq, qpoint
 
     def read_v1_at_iq(self, key, iq, reshape_nfft_nspden=False):
+        """
+        Read the DFPT potential at a given q-point index.
+        """
         # Fortran array ("two, nfft, nspden, natom3, nqpt")
         v1 = self.reader.read_variable(key)[iq]
         v1 = v1[..., 0] + 1j * v1[..., 1]

@@ -231,6 +231,10 @@ class EnumAction(argparse.Action):
     """
 
     def __init__(self, **kwargs):
+        """
+        Args:
+            kwargs: Parameters passed to the parent class.
+        """
         # Pop off the type value
         enum_type = kwargs.pop("type", None)
 

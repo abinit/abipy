@@ -52,6 +52,9 @@ class CumulantQpTempState(QpTempState):
     """
 
     def set_energies(self, wmesh, vals_wr, vals_e0ks, ntemp, nwr):
+        """
+        Determine the QP energies.
+        """
         # Determination of the QP energies
         for it in range(ntemp):
             # Checking where Re Sigma(w) crosses with w => e^QP = e^KS ( set to 0.0 ) + Sigma( e^QP )
@@ -292,6 +295,9 @@ class CumulantPhReader(SigmaPhReader):
 
 
 class CumulantSelfEnergy(EphSelfEnergy):
+    """
+    This object stores the electron self-energy computed with the cumulant expansion.
+    """
     def __init__(
         self,
         wmesh,
@@ -364,7 +370,9 @@ class CumulantSelfEnergy(EphSelfEnergy):
         )
 
     def calculate_sigma_skb_fromgw(self, wmesh, qp, gw_vals):
-
+        """
+        Calculate the self-energy from the Green's function.
+        """
         # Initial setting
         nwr = len(wmesh)
         ntemp = len(qp.tmesh)
@@ -387,7 +395,9 @@ class CumulantSelfEnergy(EphSelfEnergy):
 
     @classmethod
     def calculate_gw_from_sigeph_skb(cls, sigeph, time_tol=1e-4) -> CumulantQpTempState:
-
+        """
+        Calculate the Green's function from the electron-phonon self-energy.
+        """
         # Initialization
         wmesh_init = sigeph.wmesh
         sigma = sigeph.vals_wr

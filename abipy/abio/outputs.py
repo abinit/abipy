@@ -789,6 +789,9 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         return cycles
 
     def get_berry_phase_polarization(self) -> BerryPhasePolarization:
+        """
+        Return :class:`BerryPhasePolarization` object with the results.
+        """
         return BerryPhasePolarization.from_abo_file(self.filepath)
 
     def plot(self, tight_layout=True, with_timer=False, show=True):

@@ -17,8 +17,12 @@ from abipy.panels.core import AbipyParameterized, ButtonContext, Loading, depend
 
 
 class FilePathSelect(pnw.Select):
+    """Select widget for file paths."""
     @classmethod
     def from_filepaths(cls, filepaths: list[str], filter_files=True, **kwargs):
+        """
+        Build the widget from a list of file paths.
+        """
         import os
 
         items = [(os.path.basename(p), p) for p in filepaths]
@@ -40,6 +44,7 @@ class FilePathSelect(pnw.Select):
 
     @property
     def filepath(self) -> str:
+        """The selected absolute file path."""
         return self._base2path[self.value]
 
     def __bool__(self):
@@ -47,9 +52,16 @@ class FilePathSelect(pnw.Select):
 
 
 class NodeParameterized(AbipyParameterized):
-    """ """
+    """
+    Base class for panels interacting with Flow nodes.
+    """
 
     def __init__(self, node: Node, **params):
+        """
+        Args:
+            node: |Node| object.
+            params: Parameters passed to the parent class.
+        """
         super().__init__(**params)
         self.node = node
 
@@ -105,6 +117,7 @@ class NodeParameterized(AbipyParameterized):
             self.filepath_select_dir[where] = FilePathSelect.from_filepaths(filepaths)  # , name=f"Files in {where}")
 
     def get_status_view(self) -> pn.Column:
+        """Return the status view panel."""
         return pn.Column(
             f"## Show the status of: `{self.node!r}`",
             pn.Row(
@@ -118,7 +131,7 @@ class NodeParameterized(AbipyParameterized):
 
     @depends_on_btn_click("status_btn")
     def on_status_btn(self) -> None:
-        """Show the status of the node."""
+        """Callback for status button click."""
         term = pnw.Terminal(
             output="\n\n",
             height=1200,  # Need this one else the terminal is not shown properly
@@ -172,6 +185,7 @@ class NodeParameterized(AbipyParameterized):
         return ply(fig)
 
     def get_history_view(self) -> pn.Column:
+        """Return the history view panel."""
         return pn.Column(
             f"## Show the history of: `{self.node!r}`",
             self.wdg_box(["verbose", "history_btn"]),
@@ -182,7 +196,7 @@ class NodeParameterized(AbipyParameterized):
 
     @depends_on_btn_click("history_btn")
     def on_history_btn(self) -> None:
-        """Show the history of the node."""
+        """Callback for history button click."""
         term = pnw.Terminal(
             output="\n\n",
             height=1200,  # Need this one else the terminal is not show properly
@@ -199,6 +213,7 @@ class NodeParameterized(AbipyParameterized):
         return term
 
     def get_graphviz_view(self) -> pn.Column:
+        """Return the graphviz view panel."""
         return pn.Column(
             f"## Graphviz options for node: `{self.node!r}`",
             pn.WidgetBox(self.engine, self.dirtree, self.graphviz_btn),
@@ -209,7 +224,7 @@ class NodeParameterized(AbipyParameterized):
 
     @depends_on_btn_click("graphviz_btn")
     def on_graphviz_btn(self) -> None:
-        """Visualize node dependencies with [graphviz package](https://graphviz.readthedocs.io/en/stable/index.html)"""
+        """Callback for graphviz button click."""
         if self.dirtree.value:
             graph = self.node.get_graphviz_dirtree(engine=self.engine.value)
         else:
@@ -221,6 +236,7 @@ class NodeParameterized(AbipyParameterized):
         return pn.Column("## Dependency Graph:", pn.pane.SVG(graph), sizing_mode="stretch_width")
 
     def get_debug_view(self) -> pn.Column:
+        """Return the debug view panel."""
         return pn.Column(
             f"## Debug node:`{self.node!r}`",
             self.pws_col(["verbose", "debug_btn"]),
@@ -234,6 +250,7 @@ class NodeParameterized(AbipyParameterized):
 
     @depends_on_btn_click("debug_btn")
     def on_debug_btn(self) -> None:
+        """Callback for debug button click."""
         term = pnw.Terminal(
             output="\n\n",
             height=1200,  # Need this one else the terminal is not show properly
@@ -243,6 +260,7 @@ class NodeParameterized(AbipyParameterized):
         return term
 
     def get_events_view(self) -> pn.Column:
+        """Return the events view panel."""
         return pn.Column(
             f"## Show the events of: `{self.node!r}`",
             self.pws_col(["verbose", "events_btn"]),
@@ -253,6 +271,7 @@ class NodeParameterized(AbipyParameterized):
 
     @depends_on_btn_click("events_btn")
     def on_events_btn(self) -> pnw.Terminal:
+        """Callback for events button click."""
         term = pnw.Terminal(
             output="\n\n",
             height=1200,  # Need this one else the terminal is not show properly
@@ -263,6 +282,7 @@ class NodeParameterized(AbipyParameterized):
 
     @depends_on_btn_click("corrections_btn")
     def on_corrections_btn(self) -> pnw.Terminal:
+        """Callback for corrections button click."""
         term = pnw.Terminal(
             output="\n\n",
             height=1200,  # Need this one else the terminal is not show properly
@@ -273,6 +293,7 @@ class NodeParameterized(AbipyParameterized):
 
     @depends_on_btn_click("handlers_btn")
     def on_handlers_btn(self):
+        """Callback for handlers button click."""
         term = pnw.Terminal(
             output="\n\n",
             height=1200,  # Need this one else the terminal is not show properly
@@ -282,12 +303,14 @@ class NodeParameterized(AbipyParameterized):
         return term
 
     def get_dims_and_vars_view(self) -> pn.Row:
+        """Return the dimensions and variables view panel."""
         row = pn.Row(pn.Column(self.vars_text, self.vars_btn), self.on_vars_btn)
         return row
         # d["Dims"] = pn.Row(pn.Column(self.dims_btn), self.on_dims_btn)
 
     @depends_on_btn_click("vars_btn")
     def on_vars_btn(self):
+        """Callback for variables button click."""
         if not self.vars_text.value:
             return None
         varnames = [s.strip() for s in self.vars_text.value.split(",")]
@@ -296,6 +319,7 @@ class NodeParameterized(AbipyParameterized):
 
     @depends_on_btn_click("dims_btn")
     def on_dims_btn(self) -> pn.Row:
+        """Callback for dimensions button click."""
         df = self.flow.get_dims_dataframe(nids=self.nids, printout=False, with_colors=False)
         return pn.Row(dfc(df), sizing_mode="scale_width")
 
@@ -385,7 +409,13 @@ class NodeParameterized(AbipyParameterized):
 
 
 class StatusCards(param.Parameterized):
+    """Panel widget with cards showing the status of the Flow."""
     def __init__(self, df: pd.DataFrame, **params):
+        """
+        Args:
+            df: DataFrame with status information.
+            params: Parameters passed to the parent class.
+        """
         self.df = df
         super().__init__(**params)
 
@@ -431,10 +461,12 @@ class StatusCards(param.Parameterized):
         return self.layout
 
     def open_all_cards(self, event):
+        """Open all cards."""
         for card in self.cards.values():
             card.collapsed = False
 
     def close_all_cards(self, event):
+        """Close all cards."""
         for card in self.cards.values():
             card.collapsed = True
 

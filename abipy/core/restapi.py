@@ -340,6 +340,7 @@ class CodStructures(DatabaseStructures):
 
 
 class Dotdict(dict):
+    """Dictionary subclass supporting dot notation access."""
     def dotget(self, key, default=None):
         """d.dotget["foo.bar"] --> d["foo"]["bar"] if "foo.bar" not in self."""
         # if key is in dict access as normal

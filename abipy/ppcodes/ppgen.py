@@ -303,6 +303,13 @@ class OncvGenerator(_PseudoGenerator):
             return cls(input_str, calc_type, use_mgga=use_mgga, workdir=workdir)
 
     def __init__(self, input_str: str, calc_type: str, use_mgga: bool, workdir: str | None = None):
+        """
+        Args:
+            input_str: Input string for ONCVPSP.
+            calc_type: Calculation type (non-relativistic, scalar-relativistic, or fully-relativistic).
+            use_mgga: True if meta-GGA should be used.
+            workdir: Optional working directory.
+        """
         super().__init__(workdir=workdir)
 
         self._input_str = input_str

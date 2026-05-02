@@ -45,6 +45,10 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         return cls(filepath)
 
     def __init__(self, filepath: str):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
         self.r = AbiwanReader(filepath)
 
@@ -453,6 +457,15 @@ class HWanR(ElectronInterpolator):
     """
 
     def __init__(self, structure, nwan_spin, spin_vmatrix, spin_rmn, irvec, ndegen):
+        """
+        Args:
+            structure: Structure object.
+            nwan_spin: Number of Wannier functions for each spin.
+            spin_vmatrix: Unitary matrices.
+            spin_rmn: Real-space Hamiltonian.
+            irvec: Lattice vectors.
+            ndegen: Degeneracy of each point.
+        """
         self.structure = structure
         self.nwan_spin = nwan_spin
         self.spin_vmatrix = spin_vmatrix

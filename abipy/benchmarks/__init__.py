@@ -74,6 +74,7 @@ class BenchmarkFlow(Flow):
 
     @property
     def exclude_nodeids(self):
+        """Set of node IDs to exclude from the benchmark."""
         if not hasattr(self, "_exclude_nodeids"):
             self._exclude_nodeids = set()
         return self._exclude_nodeids
@@ -102,6 +103,9 @@ class BenchmarkFlow(Flow):
         return parser
 
     def build_and_pickle_dump(self, **kwargs):
+        """
+        Build the flow and pickle it.
+        """
         cnt = 0
         for task in self.iflat_tasks():
             if task.node_id in self.exclude_nodeids:

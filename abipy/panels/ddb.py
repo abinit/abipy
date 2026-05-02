@@ -96,6 +96,10 @@ class PanelWithAnaddbParams(param.Parameterized):
     )
 
     def __init__(self, **params):
+        """
+        Args:
+            params: Parameters passed to the parent class.
+        """
         super().__init__(**params)
         # FIXME
         self.nqsmall_list = pnw.LiteralInput(name="nqmall_list (python syntax)", value=[10, 20, 30], type=list)
@@ -154,6 +158,11 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
     vsound_qpt_norm = param.Number(0.1, bounds=(0, None), label="Norm of the largest q-point")
 
     def __init__(self, ddb: DdbFile, **params):
+        """
+        Args:
+            ddb: |DdbFile| object.
+            params: Parameters passed to the parent class.
+        """
         PanelWithStructure.__init__(self, structure=ddb.structure, **params)
         PanelWithAnaddbParams.__init__(self)
         self.ddb = ddb
@@ -726,12 +735,19 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
 
 
 class PanelWithFileInput(AbipyParameterized):
+    """
+    Panel for analyzing ABINIT files with file input widget.
+    """
     info_str = """
 Post-process the data stored in one of the ABINIT output files (*GSR.nc*, *DDB*, *FATBANDS.nc*, etc)
 """
 
     def __init__(self, use_structure=False, **params):
-
+        """
+        Args:
+            use_structure: True if structure analyzer should be used.
+            params: Parameters passed to the parent class.
+        """
         super().__init__(**params)
 
         self.use_structure = use_structure
@@ -809,15 +825,25 @@ Also, avoid uploading big files (size > XXX).
 
 
 class PanelWithStructureInput(PanelWithFileInput):
+    """
+    Panel for analyzing structure files with file input widget.
+    """
     info_str = """
 This app allows users to upload a file with structure info and operate on it.
 """
 
     def __init__(self, **params):
+        """
+        Args:
+            params: Parameters passed to the parent class.
+        """
         super().__init__(use_structure=True, **params)
 
 
 class DdbPanelWithFileInput(AbipyParameterized):
+    """
+    Panel for analyzing DDB files with file input widget.
+    """
     info_str = """
 This app allows users to upload a DDB file with the dynamical matrix, compute
 phonon-related properties such as band structures, DOS, infrared absorption and visualize
@@ -825,7 +851,10 @@ the results.
 """
 
     def __init__(self, **params):
-
+        """
+        Args:
+            params: Parameters passed to the parent class.
+        """
         super().__init__(**params)
 
         help_md = pn.pane.Markdown(f"""
@@ -847,7 +876,7 @@ the results.
         #                                          active=False, width=200, height=10, align="center")
 
     def on_file_input(self, event) -> None:
-
+        """Callback for file input."""
         with Loading(self.main_area):
             self.mpid_err_wdg.object = ""
             new_abifile = self.get_abifile_from_file_input(self.file_input)
@@ -859,7 +888,7 @@ the results.
             self.main_area.objects = [self.abifile.get_panel()]
 
     def on_mpid_input(self, event):
-
+        """Callback for Materials Project ID input."""
         from abipy.dfpt.ddb import DdbFile
 
         with Loading(self.mpid_input, err_wdg=self.mpid_err_wdg):
@@ -867,7 +896,7 @@ the results.
             self.main_area.objects = [self.abifile.get_panel()]
 
     def get_panel(self):
-
+        """Return the panel object."""
         col = pn.Column(
             "## Upload (or drag & drop) a DDB file:",
             self.get_fileinput_section(self.file_input),
@@ -883,12 +912,18 @@ the results.
 
 
 class CompareDdbWithMP(AbipyParameterized):
+    """
+    Panel for comparing a DDB file with the one from Materials Project.
+    """
     info_str = """
 This app alllows users to upload a DDB file and compare it with the one available on the MP.
 """
 
     def __init__(self, **params):
-
+        """
+        Args:
+            params: Parameters passed to the parent class.
+        """
         super().__init__(**params)
 
         help_md = pn.pane.Markdown(f"""
@@ -913,6 +948,7 @@ This app alllows users to upload a DDB file and compare it with the one availabl
         self.mp_err_wdg = pn.pane.Markdown("")
 
     def on_file_input(self, event) -> None:
+        """Callback for file input."""
         abinit_ddb = self.get_abifile_from_file_input(self.file_input)
         from abipy.dfpt.ddb import DdbRobot
 
@@ -927,6 +963,7 @@ This app alllows users to upload a DDB file and compare it with the one availabl
             self.main_area.objects = [DdbRobotPanel(ddb_robot).get_panel()]
 
     def get_panel(self):
+        """Return the panel object."""
         col = pn.Column(
             "## Upload (or drag & drop) a DDB file:",
             self.get_fileinput_section(self.file_input),
@@ -949,6 +986,11 @@ class DdbRobotPanel(BaseRobotPanel, PanelWithAnaddbParams):
     """
 
     def __init__(self, robot: DdbRobot, **params):
+        """
+        Args:
+            robot: |DdbRobot| object.
+            params: Parameters passed to the parent class.
+        """
         BaseRobotPanel.__init__(self, robot=robot, **params)
         PanelWithAnaddbParams.__init__(self)
 
@@ -1264,13 +1306,19 @@ class DdbRobotPanel(BaseRobotPanel, PanelWithAnaddbParams):
 
 
 class RobotWithFileInput(AbipyParameterized):
+    """
+    Panel for creating a robot from a set of files selected by the user.
+    """
     info_str = """
 This app allows users to create an AbiPy robot to post-process
 a set of ABINIT output files of the same type.
  """
 
     def __init__(self, **params):
-
+        """
+        Args:
+            params: Parameters passed to the parent class.
+        """
         help_md = pn.pane.Markdown(f"""
 ## Description
 
@@ -1292,6 +1340,7 @@ a set of ABINIT output files of the same type.
 
     # @depends_on_btn_click("robot_files_btn")
     def on_load_files(self, event):
+        """Callback for load files button."""
         if not self.file_selector.value:
             return
         # self.mpid_err_wdg.object = ""
@@ -1310,7 +1359,7 @@ a set of ABINIT output files of the same type.
         self.main_area.objects = [self.robot.get_panel()]
 
     def get_panel(self):
-
+        """Return the panel object."""
         # Add help section explaining how to use the filesector. See:
         # https://panel.holoviz.org/reference/widgets/FileSelector.html
         help_md = pn.pane.Markdown("""

@@ -13,6 +13,9 @@ from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt  # , get_axarray
 
 
 class WrNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
+    """
+    This file stores the results of a WR calculation.
+    """
     def __init__(self, filepath):
         """
         Args:
@@ -34,7 +37,9 @@ class WrNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         self.ngfft = r.read_value("ngfft")
 
     def create_xsf(self, iatom=0, red_dir=(1, 0, 0), u=1.0, ispden=0):
-
+        """
+        Create XSF file for visualization.
+        """
         nfft, nrpt = self.nfft, self.nrpt
 
         nx, ny, nz = self.ngfft
@@ -165,6 +170,7 @@ class WrNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return self.reader.read_structure()
 
     def close(self):
+        """Close the file."""
         self.reader.close()
 
     @cached_property

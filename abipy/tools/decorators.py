@@ -21,6 +21,10 @@ class cached_classproperty:
     """class-level property that is also cached."""
 
     def __init__(self, func):
+        """
+        Args:
+            func: Function to be decorated.
+        """
         self.func = func
         self._cache_name = f"__cached_{func.__name__}"
 
@@ -144,6 +148,14 @@ class Appender:
     """
 
     def __init__(self, addendum, join="", indents=0, dedent=True, debug=False):
+        """
+        Args:
+            addendum: String to be appended to the docstring.
+            join: String used to join the docstring and addendum.
+            indents: Number of indents to add to the addendum.
+            dedent: True if docstrings should be dedented.
+            debug: True to print debug information.
+        """
         if indents > 0:
             self.addendum = indent(addendum, indents=indents)
         else:

@@ -281,6 +281,12 @@ class GridFsFile(AttrDict):
     """Information on a file that will stored in the MongoDb gridfs collection."""
 
     def __init__(self, path, fs_id=None, mode="b"):
+        """
+        Args:
+            path: Path to the file.
+            fs_id: GridFS ID.
+            mode: Open mode.
+        """
         super().__init__(path=path, fs_id=fs_id, mode=mode)
 
 
@@ -318,6 +324,11 @@ class NodeResults(dict, MSONable):
         return node.Results(node, **kwargs)
 
     def __init__(self, node, **kwargs):
+        """
+        Args:
+            node: The |Node| instance.
+            kwargs: Extra arguments.
+        """
         super().__init__(**kwargs)
         self.node = node
 
@@ -513,6 +524,7 @@ class Node(metaclass=abc.ABCMeta):
     color_rgb = np.array((105, 105, 105)) / 255
 
     def __init__(self):
+        """Initialize the Node."""
         self._in_spectator_mode = False
 
         # Node identifier.
@@ -1091,6 +1103,10 @@ class FileNode(Node):
     color_rgb = np.array((102, 51, 255)) / 255
 
     def __init__(self, filename: str):
+        """
+        Args:
+            filename: Path to the file.
+        """
         super().__init__()
         self.filepath = os.path.abspath(filename)
 
@@ -1392,6 +1408,11 @@ class GarbageCollector:
     """This object stores information on the"""
 
     def __init__(self, exts, policy):
+        """
+        Args:
+            exts: List of extensions.
+            policy: Policy for garbage collection.
+        """
         self.exts, self.policy = set(exts), policy
 
 

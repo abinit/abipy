@@ -122,6 +122,9 @@ class QpTempState(namedtuple("QpTempState", "spin kpoint band tmesh e0 qpe ze0 f
 
     @classmethod
     def get_fields(cls, exclude=()) -> tuple:
+        """
+        Return the list of fields.
+        """
         fields = list(cls._fields) + ["qpeme0"]
         for e in exclude:
             fields.remove(e)

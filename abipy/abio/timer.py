@@ -10,6 +10,9 @@ from abipy.flowtk import AbinitTimerParser as _Parser
 
 
 class AbinitTimerParser(_Parser, NotebookWriter):
+    """
+    Parser for Abinit timer data.
+    """
     def yield_figs(self, **kwargs):  # pragma: no cover
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
