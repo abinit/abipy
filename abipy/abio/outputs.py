@@ -799,7 +799,9 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         Plot GS/DFPT SCF cycles and timer data found in the output file.
 
         Args:
-            with_timer: True if timer section should be plotted
+            tight_layout: True to use tight layout.
+            with_timer: True if timer section should be plotted.
+            show: True to show the plot.
         """
         from abipy.tools.plotting import MplExposer  # , PanelExposer
 
@@ -963,7 +965,7 @@ def validate_output_parser(abitests_dir=None, output_files=None) -> int:  # prag
     Validate/test Abinit output parser.
 
     Args:
-        dirpath: Abinit tests directory.
+        abitests_dir: Abinit tests directory.
         output_files: List of Abinit output files.
 
     Return: Exit code.

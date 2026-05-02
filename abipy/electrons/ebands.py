@@ -323,7 +323,7 @@ class Smearing(AttrDict):
 
     @classmethod
     def as_smearing(cls, obj):
-        """ "
+        """
         Convert obj into a Smearing instance.
         Accepts: Smearing instance, None (if info are not available), Dict-like object.
         """
@@ -3744,7 +3744,7 @@ class ElectronBands(Has_Structure):
     #    return 1. / ders2
 
     def get_effmass_analyzer(self):
-        """ "
+        """
         Return an instance of EffMassAnalyzer to compute effective masses with finite differences
         """
         from abipy.electrons.effmass_analyzer import EffMassAnalyzer
@@ -4100,12 +4100,12 @@ class ElectronBandsPlotter(NotebookWriter):
 
     @property
     def ebands_list(self) -> list[ElectronBands]:
-        """ "List of |ElectronBands| objects."""
+        """List of |ElectronBands| objects."""
         return list(self.ebands_dict.values())
 
     @property
     def edoses_list(self) -> list[ElectronDos]:
-        """ "List of |ElectronDos| objects."""
+        """List of |ElectronDos| objects."""
         return list(self.edoses_dict.values())
 
     def iter_lineopt(self):

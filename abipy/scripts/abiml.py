@@ -377,7 +377,7 @@ def main(ctx, seaborn):
 def relax(
     ctx, filepath, nn_name, relax_mode, fmax, pressure, steps, optimizer, fix_inds, fix_symbols, workdir, verbose
 ):
-    """
+    r"""
     Structural relaxation with ASE and ML potential.
 
     Usage example:
@@ -437,7 +437,7 @@ def abinit_relax(ctx, filepath, workdir, verbose):
     "--config", default="abiml_eos.yml", type=click.Path(), callback=set_default, is_eager=True, expose_value=False
 )
 def eos(ctx, filepath, nn_name, relax_mode, fmax, pressure, steps, optimizer, workdir, verbose):
-    """
+    r"""
     EOS computation with ASE and ML potential.
 
     Usage example:
@@ -503,7 +503,7 @@ def md(
     workdir,
     verbose,
 ):
-    """
+    r"""
     MD simulation with ASE and ML potential.
 
     Usage example:
@@ -569,7 +569,7 @@ def neb(
     workdir,
     verbose,
 ):
-    """
+    r"""
     NEB calculation with ASE and ML potential.
 
     Usage example:
@@ -637,7 +637,7 @@ def mneb(
     workdir,
     verbose,
 ):
-    """
+    r"""
     Multi-NEB calculation with ASE and ML potential.
 
     Usage example:
@@ -704,7 +704,7 @@ def ph(
     workdir,
     verbose,
 ):
-    """
+    r"""
     Use phonopy and ML potential to compute phonons.
 
     Usage example:
@@ -793,7 +793,7 @@ def phddb(
     workdir,
     verbose,
 ):
-    """
+    r"""
     Use phonopy and ML potential to compute phonons and compare with DDB.
 
     Usage example:
@@ -877,7 +877,7 @@ def vqha(
     workdir,
     verbose,
 ):
-    """
+    r"""
     Use phonopy and ML potential to perform VZSISA-QHA calculations.
 
     Usage example:
@@ -938,7 +938,7 @@ def vqha(
     "--config", default="abiml_order.yml", type=click.Path(), callback=set_default, is_eager=True, expose_value=False
 )
 def order(ctx, filepath, nn_name, max_ns, relax_mode, fmax, pressure, steps, optimizer, workdir, verbose):
-    """
+    r"""
     Generate ordered structures from CIF with partial occupancies.
 
     Usage example:
@@ -994,7 +994,7 @@ def order(ctx, filepath, nn_name, max_ns, relax_mode, fmax, pressure, steps, opt
 def scan_relax(
     ctx, filepath, nn_name, isite, mesh, relax_mode, fmax, pressure, steps, optimizer, nprocs, workdir, verbose
 ):
-    """
+    r"""
     Generate 3D mesh of (nx,ny,nz) initial positions and perform multiple relaxations
     in which all atoms are fixed except the one initially placed at the mesh point.
 
@@ -1065,7 +1065,7 @@ def scan_relax(
     "--config", default="abiml_validate.yml", type=click.Path(), callback=set_default, is_eager=True, expose_value=False
 )
 def validate(ctx, filepaths, nn_names, traj_range, symbol, stress, delta, traj, exposer, nprocs, workdir, verbose):
-    """
+    r"""
     Compare ab-initio energies, forces, and stresses with ML-computed ones.
 
     usage example:

@@ -1,4 +1,4 @@
-""" "Panels to interact with the AbiPy tasks."""
+"""Panels to interact with the AbiPy tasks."""
 
 from __future__ import annotations
 

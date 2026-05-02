@@ -312,6 +312,7 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
 
         Args:
             fontsize: legend and label fontsize.
+            **kwargs: Keyword arguments (currently unused).
 
         Returns: |matplotlib-Figure|
         """
@@ -367,6 +368,7 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
 
         Args:
             fontsize: legend and label fontsize.
+            **kwargs: Keyword arguments (currently unused).
 
         Returns: |matplotlib-Figure|
         """

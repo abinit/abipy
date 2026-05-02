@@ -1,4 +1,4 @@
-""" "Basic tools and mixin classes for AbiPy panels."""
+"""Basic tools and mixin classes for AbiPy panels."""
 
 from __future__ import annotations
 

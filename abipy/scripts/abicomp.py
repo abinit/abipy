@@ -670,7 +670,7 @@ def abicomp_skw_ibz_kpath(options):
 
 
 def abicomp_pseudos(options):
-    """ "Compare multiple pseudos and print table to terminal."""
+    """Compare multiple pseudos and print table to terminal."""
     # Make sure entries in index are unique.
     index = [os.path.basename(p) for p in options.paths]
     if len(index) != len(set(index)):
@@ -683,7 +683,7 @@ def abicomp_pseudos(options):
 
 
 def abicomp_psps(options):
-    """ "Compare multiple PSPS.nc files."""
+    """Compare multiple PSPS.nc files."""
     return _invoke_robot(options)
 
 

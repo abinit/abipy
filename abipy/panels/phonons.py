@@ -1,4 +1,4 @@
-""" "Panels for phonon-related objects."""
+"""Panels for phonon-related objects."""
 
 from __future__ import annotations
 

@@ -250,8 +250,8 @@ class Variable:
             characteristics (list): List of characteristics or None
             excludes (str): String with variables that are exluded if this variable is given.
             requires (str): String with variables that are required.
-            commentdefault=None,
-            commentdims=None,
+            commentdefault (str): Optional comment for the default value.
+            commentdims (str): Optional comment for the dimensions.
             added_in_version (str): String with the Abinit version in which this variable was added.
                 None if variable is present in Abinit <= 8.6.3
             alternative_name: alias name (used if a new variable with a different name was introduced, in place
@@ -1195,7 +1195,7 @@ class InputVariables(OrderedDict):
 
         Args:
             varset: Select variables with this `varset`. Include all if None
-        vartype: Select variables with this `vartype`. Include all
+            vartype: Select variables with this `vartype`. Include all if None.
             engine: ['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage']
             graph_attr: Mapping of (attribute, value) pairs for the graph.
             node_attr: Mapping of (attribute, value) pairs set for all nodes.

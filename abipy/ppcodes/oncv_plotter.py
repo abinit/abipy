@@ -107,6 +107,9 @@ class OncvPlotter(NotebookWriter):
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
+            with_xlabel: True to add xlabel.
+            fontsize: Font size for labels.
+            **kwargs: Keyword arguments passed to plot method.
         """
         ae, ps = self.parser.atan_logders.ae, self.parser.atan_logders.ps
         ax, fig, plt = get_ax_fig_plt(ax)
@@ -163,6 +166,8 @@ class OncvPlotter(NotebookWriter):
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
             what: "bound_states" or "scattering_states".
+            fontsize: Font size for labels.
+            **kwargs: Keyword arguments passed to plot method.
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
@@ -206,6 +211,8 @@ class OncvPlotter(NotebookWriter):
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: Font size for labels.
+            **kwargs: Keyword arguments passed to plot method.
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
@@ -241,6 +248,9 @@ class OncvPlotter(NotebookWriter):
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
+            timesr2: True to plot r^2 * rho.
+            fontsize: Font size for labels.
+            **kwargs: Keyword arguments passed to plot method.
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
@@ -266,6 +276,10 @@ class OncvPlotter(NotebookWriter):
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
+            order: Order of the derivative.
+            acc: Accuracy of the finite difference.
+            fontsize: Font size for labels.
+            **kwargs: Keyword arguments passed to plot method.
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
@@ -297,6 +311,8 @@ class OncvPlotter(NotebookWriter):
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: Font size for labels.
+            **kwargs: Keyword arguments passed to plot method.
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
@@ -326,6 +342,8 @@ class OncvPlotter(NotebookWriter):
         Args:
             xscale: "log" to plot vtau in log scale or "linear". For other options see matplotlib.
             ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: Font size for labels.
+            **kwargs: Keyword arguments passed to plot method.
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
@@ -350,8 +368,10 @@ class OncvPlotter(NotebookWriter):
         Plot kinetic energy densities tauPS and tau(M+PS) on axis ax.
 
         Args:
-            yscale: "log" to plot tau in log scale or "linear". For other options see matplotlib.
             ax: |matplotlib-Axes| or None if a new figure should be created.
+            yscale: "log" to plot tau in log scale or "linear". For other options see matplotlib.
+            fontsize: Font size for labels.
+            **kwargs: Keyword arguments passed to plot method.
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
@@ -379,6 +399,10 @@ class OncvPlotter(NotebookWriter):
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
+            order: Order of the derivative.
+            acc: Accuracy of the finite difference.
+            fontsize: Font size for labels.
+            **kwargs: Keyword arguments passed to plot method.
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
@@ -411,6 +435,8 @@ class OncvPlotter(NotebookWriter):
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: Font size for labels.
+            **kwargs: Keyword arguments passed to plot method.
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
@@ -456,7 +482,10 @@ class OncvPlotter(NotebookWriter):
         Plot the density form factor as a function of ecut in Ha.
 
         Args:
+            ecut: Maximum energy cutoff in Ha.
             ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: Font size for labels.
+            **kwargs: Keyword arguments passed to plot method.
 
         Return: matplotlib Figure.
         """
@@ -496,6 +525,8 @@ class OncvPlotter(NotebookWriter):
 
         Args:
             ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: Font size for labels.
+            **kwargs: Keyword arguments passed to scatter method.
 
         Return: matplotlib Figure.
         """
@@ -575,6 +606,7 @@ def oncv_make_open_notebook(
     Generate an ipython notebook and open it in the browser.
 
     Args:
+        outpath: Path to the output file.
         foreground: By default, jupyter is executed in background and stdout, stderr are redirected
             to devnull. Use foreground to run the process in foreground
         classic_notebook: True to use the classic notebook instead of jupyter-lab (default)
@@ -789,7 +821,7 @@ class MultiOncvPlotter(NotebookWriter):
 
     @property
     def plotters(self) -> list[OncvPlotter]:
-        """ "List of registered `Plotters`."""
+        """List of registered `Plotters`."""
         return list(self._plotters_dict.values())
 
     @property
@@ -833,6 +865,11 @@ class MultiOncvPlotter(NotebookWriter):
 
         Args:
             ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
+            with_xlabel: True to add xlabel.
+            xlims: X-axis limits.
+            ylims: Y-axis limits.
+            fontsize: Font size for labels.
+            **kwargs: Keyword arguments passed to plot method.
         """
         ax_list, fig, plt = self._get_ax_list(ax_list, sharex=True)
 
@@ -854,6 +891,8 @@ class MultiOncvPlotter(NotebookWriter):
         Args:
             ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
             what: "bound_states" or "scattering_states".
+            fontsize: Font size for labels.
+            **kwargs: Keyword arguments passed to plot method.
         """
         ax_list, fig, plt = self._get_ax_list(ax_list, sharex=True)
 
@@ -872,7 +911,8 @@ class MultiOncvPlotter(NotebookWriter):
 
         Args:
             ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
-            ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: Font size for labels.
+            **kwargs: Keyword arguments passed to plot method.
         """
         ax_list, fig, plt = self._get_ax_list(ax_list, sharex=True)
 
@@ -891,7 +931,9 @@ class MultiOncvPlotter(NotebookWriter):
 
         Args:
             ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
-            ax: |matplotlib-Axes| or None if a new figure should be created.
+            timesr2: True to plot r^2 * rho.
+            fontsize: Font size for labels.
+            **kwargs: Keyword arguments passed to plot method.
         """
         ax_list, fig, plt = self._get_ax_list(ax_list, sharex=False)
 
@@ -911,6 +953,10 @@ class MultiOncvPlotter(NotebookWriter):
 
         Args:
             ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
+            order: Order of the derivative.
+            acc: Accuracy of the finite difference.
+            fontsize: Font size for labels.
+            **kwargs: Keyword arguments passed to plot method.
         """
         ax_list, fig, plt = self._get_ax_list(ax_list, sharex=False)
 
@@ -929,6 +975,8 @@ class MultiOncvPlotter(NotebookWriter):
 
         Args:
             ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: Font size for labels.
+            **kwargs: Keyword arguments passed to plot method.
         """
         ax_list, fig, plt = self._get_ax_list(ax_list, sharex=False)
 
@@ -948,6 +996,10 @@ class MultiOncvPlotter(NotebookWriter):
 
         Args:
             ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
+            order: Order of the derivative.
+            acc: Accuracy of the finite difference.
+            fontsize: Font size for labels.
+            **kwargs: Keyword arguments passed to plot method.
         """
         ax_list, fig, plt = self._get_ax_list(ax_list, sharex=False)
 
@@ -966,6 +1018,8 @@ class MultiOncvPlotter(NotebookWriter):
 
         Args:
             ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: Font size for labels.
+            **kwargs: Keyword arguments passed to plot method.
         """
         ax_list, fig, plt = self._get_ax_list(ax_list, sharex=True)
 
@@ -1007,7 +1061,10 @@ class MultiOncvPlotter(NotebookWriter):
         Plot the density form factor as a function of ecut in Ha on ax_list for all pseudos.
 
         Args:
+            ecut: Maximum energy cutoff in Ha.
             ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: Font size for labels.
+            **kwargs: Keyword arguments passed to plot method.
 
         Return: matplotlib Figure.
         """
@@ -1028,6 +1085,8 @@ class MultiOncvPlotter(NotebookWriter):
 
         Args:
             ax_list: List of |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: Font size for labels.
+            **kwargs: Keyword arguments passed to plot method.
 
         Return: matplotlib Figure.
         """
@@ -1073,8 +1132,8 @@ def psp8_get_densities(path, fc_file=None, ae_file=None, plot=False):
 
     Args:
         path: path of the psp8 file
-        fc_file, ae_file: File-like object to `.fc.` and `.AE` file
-            Set to None if files are now wanted.
+        fc_file: File-like object to `.fc.` file. Set to None if file is not wanted.
+        ae_file: File-like object to `.AE` file. Set to None if file is not wanted.
         plot: If true, call matplotlib to plot densities.
 
     Return:

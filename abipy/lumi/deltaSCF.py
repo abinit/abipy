@@ -217,7 +217,7 @@ class DeltaSCF:
         return index
 
     def get_dict_per_atom(self, index, defect_symbol) -> dict:
-        """ "
+        """
         Dict. with relevant properties per atom.
         """
         stru = self.structuregs

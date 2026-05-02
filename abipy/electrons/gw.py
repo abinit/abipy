@@ -963,7 +963,7 @@ class SigresFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return self.qpgaps[spin, ik], self.ksgaps[spin, ik]
 
     def read_sigee_skb(self, spin: int, kpoint: KptSelect, band: int, e0=None) -> SelfEnergy:
-        """ "
+        """
         Read self-energy for (spin, kpoint, band).
         """
         ik_ibz = self.r.kpt2ibz(kpoint)

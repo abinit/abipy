@@ -228,7 +228,7 @@ class PWWaveFunction(WaveFunction):
             nspinor: number of spinorial components.
             spin: spin index (only used if collinear-magnetism).
             band: band index (>=0)
-            gsphere |GSphere| instance.
+            gsphere: |GSphere| instance.
             ug: 2D array containing u[nspinor,G] for G in gsphere.
         """
         self.structure = structure
@@ -388,6 +388,7 @@ class PWWaveFunction(WaveFunction):
                 coordinates (if not integers). Use True to pass points in cartesian coordinates.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: legend and title fontsize.
+            **kwargs: Keyword arguments passed to plot method.
 
         Return: |matplotlib-Figure|
         """
@@ -432,6 +433,7 @@ class PWWaveFunction(WaveFunction):
             with_krphase: True to include the :math:`e^{ikr}` phase-factor.
             max_nn: By default, only the first ``max_nn`` neighbors are showed.
             fontsize: legend and label fontsize.
+            **kwargs: Keyword arguments (currently unused).
 
         Return: |matplotlib-Figure|
         """

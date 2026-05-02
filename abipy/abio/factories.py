@@ -247,6 +247,9 @@ def gs_input(
         smearing: Smearing technique.
         charge: Electronic charge added to the unit cell.
         scf_algorithm: Algorithm used for solving of the SCF cycle.
+        ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
+        pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos
+            according to accuracy)
     """
     multi = ebands_input(
         structure,
@@ -389,6 +392,10 @@ def ion_ioncell_relax_input(
         smearing: Smearing technique.
         charge: Electronic charge added to the unit cell.
         scf_algorithm: Algorithm used for the solution of the SCF cycle.
+        ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
+        pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos
+            according to accuracy)
+        shift_mode: Mode to be used for the shifts (G, M, S, or O).
     """
     # Scf options
     inp = scf_input(
@@ -454,6 +461,9 @@ def ion_ioncell_relax_and_ebands_input(
         smearing: Smearing technique.
         charge: Electronic charge added to the unit cell.
         scf_algorithm: Algorithm used for solving of the SCF cycle.
+        ecut: cutoff energy in Ha (if None, ecut is initialized from the pseudos according to accuracy)
+        pawecutdg: cutoff energy in Ha for PAW double-grid (if None, pawecutdg is initialized from the pseudos
+            according to accuracy)
 
     Returns: |MultiDataset| object
     """
@@ -1732,6 +1742,7 @@ def ddkpert_from_gsinput(
             Default to False. (TODO: Should be implemented)
         ddk_tol: a dictionary with a single key defining the type of tolerance used for the DDK calculations and its value.
             Default: {"tolvrs": 1.0e-22}.
+        nband: Number of bands for the calculation. If None, it is automatically initialized.
         manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
     """
     gs_input = gs_input.deepcopy()
@@ -2042,6 +2053,7 @@ def conduc_from_inputs(
         tmesh: The mesh of temperature (in Kelvin) where we calculate the conductivity.
         ddb_ngqpt: the coarse grid of q-points used to compute the DDB and DVDB files in the previous phonon_work.
         eph_ngqpt_fine: the fine grid of q-points used for the Fourier nterpolation.
+        sigma_erange: The energy range for Sigma_nk.
         boxcutmin: For the last task only, 1.1 is often used to decrease memory and is faster over the Abinit default of 2.
         mixprec: For the last task only, 1 is often used to make the EPH calculation faster. Note that Abinit default is 0.
     """
@@ -2099,6 +2111,7 @@ def conduc_kerange_from_inputs(
         scf_input: |AbinitInput| representing a ground state calculation, the SCF performed to get the WFK.
         nscf_input: |AbinitInput| representing a nscf ground state calculation, the NSCF performed to get the WFK.
             most parameters for subsequent tasks will be taken from this inputs.
+        tmesh: The mesh of temperature (in Kelvin) where we calculate the conductivity.
         ddb_ngqpt: the coarse q-point grid used to get the DDB and DVDB files.
         eph_ngqpt_fine: the fine qpoints grid that will be interpolated.
         sigma_ngkpt: The fine grid of kpt inside the sigma interval

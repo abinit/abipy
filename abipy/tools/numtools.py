@@ -14,6 +14,7 @@ def print_stats_arr(arr: np.ndarray, take_abs=False) -> None:
     Print statistics on a NumPy array.
 
     Args:
+        arr: NumPy array.
         take_abs: use abs(arr) if True.
     """
     if np.iscomplexobj(arr):
@@ -135,6 +136,7 @@ def data_from_cplx_mode(cplx_mode: str, arr, tol=None):
             "all" for both re and im.
             "abs" means that the absolute value of the complex number is shown.
             "angle" will display the phase of the complex number in radians.
+        arr: NumPy array.
         tol: If not None, values below tol are set to zero. Cannot be used with "angle"
     """
     if cplx_mode == "re":
@@ -367,6 +369,7 @@ def find_convindex(values, tol, min_numpts=1, mode="abs", vinf=None):
         abs(value[i] - vinf) / vinf < tol if mode == "rel"
 
     Args:
+        values: List of values.
         tol: Tolerance
         min_numpts: Minimum number of points that must be converged.
         mode: "abs" for absolute convergence, "rel" for relative convergence.
@@ -474,6 +477,7 @@ class BlochRegularGridInterpolator:
             idat: Index of the sub-array to interpolate. If None, all sub-arrays are interpolated.
             cartesian: True if points are in cartesian coordinates.
             kpoint: k-point in reduced coordinates. If not None, the phase-factor e^{ikr} is included.
+            **kwargs: Keyword arguments passed to the interpolator.
 
         Return:
             [ndat, npoints] array or [1, npoints] if idat is not None
@@ -514,6 +518,7 @@ class BlochRegularGridInterpolator:
             cartesian: By default, `point1` and `point1` are interpreted as points in fractional
                 coordinates (if not integers). Use True to pass points in cartesian coordinates.
             kpoint: k-point in reduced coordinates. If not None, the phase-factor e^{ikr} is included.
+            **kwargs: Keyword arguments passed to eval_points.
 
         Return: named tuple with
             site1, site2: None if the points do not represent atomic sites.
@@ -622,6 +627,7 @@ class BzRegularGridInterpolator:
         Args:
             frac_coords: reduced coordinates of the k-point unless `cartesian`.
             cartesian: True if k-point is in cartesian coordinates.
+            **kwargs: Keyword arguments passed to the interpolator.
 
         Return:
             [ndat] array with interpolated data.
@@ -651,6 +657,7 @@ class BzRegularGridInterpolator:
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            **kwargs: Keyword arguments passed to ax.plot.
         """
         # Get high-symmetry path from structure.
         kpoints = self.structure.hsym_kpoints

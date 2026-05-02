@@ -176,7 +176,7 @@ class _PseudoGenerator(metaclass=abc.ABCMeta):
         return self._input_str
 
     def start(self) -> int:
-        """ "
+        """
         Run the calculation in a subprocess (non-blocking interface)
         Return 1 if calculation started, 0 otherwise.
         """

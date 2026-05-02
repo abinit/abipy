@@ -1,4 +1,4 @@
-""" "Panels for HIST files."""
+"""Panels for HIST files."""
 
 from __future__ import annotations
 

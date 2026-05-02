@@ -4860,12 +4860,12 @@ class PhononBandsPlotter(NotebookWriter):
 
     @property
     def phbands_list(self) -> list[PhononBands]:
-        """ "List of |PhononBands| objects."""
+        """List of |PhononBands| objects."""
         return list(self._bands_dict.values())
 
     @property
     def phdoses_list(self) -> list[PhononDos]:
-        """ "List of |PhononDos|."""
+        """List of |PhononDos|."""
         return list(self._phdoses_dict.values())
 
     def iter_lineopt(self):

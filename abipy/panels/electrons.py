@@ -1,4 +1,4 @@
-""" "
+"""
 AbiPy panels for electronic properties.
 """
 

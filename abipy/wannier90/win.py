@@ -160,6 +160,7 @@ class Wannier90Input(AbstractInput, Has_Structure):
         Args:
             sortmode: "a" for alphabetical order, None if no sorting is wanted
             mode: Either `text` or `html` if HTML output with links is wanted.
+            verbose: Verbosity level.
         """
         lines = []
         app = lines.append

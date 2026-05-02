@@ -1650,7 +1650,7 @@ class KSamplingInfo(AttrDict):
 
     @classmethod
     def as_ksampling(cls, obj) -> KSamplingInfo:
-        """ "
+        """
         Convert obj into a :class:`KSamplingInfo` instance.
         Accepts: :class:`KSamplingInfo` instance, None (if info are not available) or dict-like object.
         """

@@ -176,7 +176,7 @@ class CumulantEPhFile(SigEPhFile):
         return "\n".join(lines)
 
     def get_cumulant_skb(self, spin, kpoint, band):
-        """ "Return e-ph self-energy for the given (spin, kpoint, band)."""
+        """Return e-ph self-energy for the given (spin, kpoint, band)."""
         return self.r.read_cumulant_skb(spin, kpoint, band)
 
 

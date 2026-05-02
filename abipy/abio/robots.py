@@ -76,7 +76,7 @@ class Robot(NotebookWriter):
     def __init__(self, *args):
         """
         Args:
-            args is a list of tuples (label, filepath)
+            *args: list of tuples (label, filepath) or (label, abipy_file)
         """
         self._abifiles, self._do_close = {}, {}
         self._exceptions = deque(maxlen=100)
@@ -134,6 +134,7 @@ class Robot(NotebookWriter):
         Similar to `from_dir` but accepts a list of directories instead of a single directory.
 
         Args:
+            dirpaths: List of directories.
             walk: if True, directories inside `top` are included as well.
             abspath: True if paths in index should be absolute. Default: Relative to `top`.
         """
@@ -229,6 +230,7 @@ class Robot(NotebookWriter):
         Build a Robot from a list of `filenames`.
 
         Args:
+            filenames: List of filenames.
             labels: List of labels associated to filenammes.
                 If None, labels are automatically generated from absolute paths.
             abspath: True if paths in index should be absolute. Default: Relative to `top`.
@@ -986,6 +988,7 @@ Expecting callable or attribute name or key in abifile.params"""
             abspath: True if paths in index should be absolute. Default: Relative to getcwd().
             filter_abifile: Function that receives an ``abifile`` object and returns
                 True if the file should be added to the plotter.
+            **kwargs: Keyword arguments passed to dataframes_from_structures.
         """
         from abipy.core.structure import dataframes_from_structures
 
@@ -1256,6 +1259,7 @@ Expecting callable or attribute name or key in abifile.params"""
                 If callable, the output of hue(abifile) is used.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: legend and label fontsize.
+            **kwargs: Keyword arguments passed to matplotlib plot method.
 
         Returns: |matplotlib-Figure|
 

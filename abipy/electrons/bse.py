@@ -398,7 +398,7 @@ class MdfFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return self.r.read_params()
 
     def get_mdf(self, mdf_type="exc"):
-        """ "
+        """
         Returns the macroscopic dielectric function.
         """
         return {"exc": self.exc_mdf, "rpa": self.rpanlf_mdf, "gwrpa": self.gwnlf_mdf}[mdf_type.lower()]

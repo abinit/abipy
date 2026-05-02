@@ -409,9 +409,7 @@ class RadialFunction:
 
     @property
     def inodes(self) -> list[int]:
-        """ "
-        List with the index of the nodes of the radial function.
-        """
+        """List with the index of the nodes of the radial function."""
         inodes = []
         for i in range(len(self.values) - 1):
             if self.values[i] * self.values[i + 1] <= 0:
@@ -511,7 +509,7 @@ class RadialFunction:
         return pad_intg
 
     def get_intr2j0(self, ecut: float, numq: float = 3001):
-        """Compute 4\\pi\\int[(\frac{\\sin(2\\pi q r)}{2\\pi q r})(r^2 n(r))dr]."""
+        r"""Compute 4\\pi\\int[(\frac{\\sin(2\\pi q r)}{2\\pi q r})(r^2 n(r))dr]."""
         qmax = np.sqrt(ecut / 2) / np.pi
         qmesh = np.linspace(0, qmax, num=numq, endpoint=True)
         outs = np.empty(len(qmesh))

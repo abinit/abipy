@@ -339,8 +339,18 @@ def get_axarray_fig_plt(
     current active figure.
 
     Args:
+        ax_array: Array of Axes objects or None if subplots should be created.
+        nrows: Number of rows in the grid.
+        ncols: Number of columns in the grid.
+        sharex: Controls sharing of properties among x-axes.
+        sharey: Controls sharing of properties among y-axes.
+        squeeze: If True, extra dimensions are squeezed out from the returned array of Axes.
+        subplot_kw: Dict with keywords passed to the add_subplot call used to create each subplot.
+        gridspec_kw: Dict with keywords passed to the GridSpec constructor used to create the grid the subplots are placed on.
+        grid: If True, activate the grid.
         rescale_fig: If true, scale figure’s size proportionally to the number of rows (nrows)
             and columns (ncols) in the grid. Useful to avoid squashing subplots.
+        **fig_kw: Keyword arguments are passed to plt.subplots.
 
     Returns:
         ax: Array of Axes objects
@@ -430,6 +440,7 @@ def set_axlims(ax, lims: tuple, axname: str) -> tuple:
     Set the data limits for the axis ax.
 
     Args:
+        ax: matplotlib Axes.
         lims: tuple(2) for (left, right), tuple(1) or scalar for left only.
         axname: "x" for x-axis, "y" for y-axis.
 
@@ -499,7 +510,9 @@ def set_ticks_fontsize(ax_or_axlist, fontsize: int, xy_string: str = "xy", **kwa
 
     Args:
         ax_or_axlist: Axes or list of axes.
+        fontsize: Font size for the labels.
         xy_string: "x" to share x-axis, "xy" for both.
+        **kwargs: Keyword arguments passed to tick_params.
     """
     ax_list = [ax_or_axlist] if not duck.is_listlike(ax_or_axlist) else ax_or_axlist
 
@@ -517,8 +530,9 @@ def set_ticks_format(ax_or_axlist, format: str = "%.2f", xy_string: str = "xy", 
 
     Args:
         ax_or_axlist: Axes or list of axes.
-        xy_string: "x" to share x-axis, "xy" for both.
         format: Format string for the ticks.
+        xy_string: "x" to share x-axis, "xy" for both.
+        **kwargs: Keyword arguments passed to formatter.
     """
     ax_list = [ax_or_axlist] if not duck.is_listlike(ax_or_axlist) else ax_or_axlist
     formatter = StrMethodFormatter(format)
@@ -545,10 +559,15 @@ def set_grid_legend(
     Activate grid and legend for one axis or a list of axis.
 
     Args:
+        ax_or_axlist: Axes or list of axes.
+        fontsize: Font size.
+        xlabel: Label for x-axis.
+        ylabel: Label for y-axis.
         grid: True to activate the grid.
         legend: True to activate the legend.
         direction: Use "x" ("y") if to add xlabel (ylabel) only to the last ax.
-        title: Title string
+        title: Title string.
+        legend_loc: Location of the legend.
     """
     if duck.is_listlike(ax_or_axlist):
         for ix, ax in enumerate(ax_or_axlist):
@@ -684,11 +703,13 @@ def plot_xy_with_hue(
             A negative value is interpreted as relative convergence.
         span_style: dictionary with options passed to ax.axhspan.
         ax: |matplotlib-Axes| or None if a new figure should be created.
-        xlims, ylims: Set the data limits for the x(y)-axis. Accept tuple e.g. `(left, right)`
+        xlims: Set the data limits for the x-axis. Accept tuple e.g. `(left, right)`
             or scalar e.g. `left`. If left (right) is None, default values are used
+        ylims: Set the data limits for the y-axis. Same API as `xlims`.
         col2label: Dictionary mapping column name to label for plot.
         fontsize: Legend fontsize.
-        kwargs: Keyword arguments passed to ax.plot method.
+        step: True to use step plot.
+        **kwargs: Keyword arguments passed to ax.plot method.
 
     Returns: |matplotlib-Figure|
     """
@@ -861,7 +882,8 @@ def quadratic_fit_ax(ax, xs, ys, fontsize: int, with_label: bool = True, num_pts
         ys: Y-values.
         fontsize: fontsize for legends and titles.
         with_label: True to add label to the plot.
-        kwargs: keyword arguments passed to ax.plot.
+        num_pts: Number of points for the fit.
+        **kwargs: keyword arguments passed to ax.plot.
 
     Return: (params, covariance)
     """
@@ -908,6 +930,7 @@ def plot_array(array, color_map=None, cplx_mode="abs", **kwargs) -> Figure:
             "re" for the real part, "im" for the imaginary part.
             "abs" means that the absolute value of the complex number is shown.
             "angle" will display the phase of the complex number in radians.
+        **kwargs: Keyword arguments passed to imshow.
     """
     # Handle vectors
     array = np.atleast_2d(array)
@@ -961,6 +984,7 @@ class ConvergenceAnalyzer:
             filepath: Filename.
             xkey: name of the x-variable.
             ytols_dict: dict mapping the name of the y-variable to absolute tolerance(s).
+            **kwargs: Keyword arguments passed to dataframe_from_filepath.
         """
         df = dataframe_from_filepath(filepath, **kwargs)
         return cls.from_dataframe(df, xkey, ytols_dict)
@@ -983,9 +1007,9 @@ class ConvergenceAnalyzer:
     def __init__(self, xkey: str, xs: VectorLike, yvals_dict: dict[str, VectorLike], ytols_dict: dict):
         """
         Args:
-            xkey:
-            xs:
-            yvals_dict:
+            xkey: Key for x-variable.
+            xs: X-values.
+            yvals_dict: Dictionary mapping y-variable name to values.
             ytols_dict: dict mapping the name of the y-variable to absolute tolerance(s).
 
         .. code-block::
@@ -1272,6 +1296,7 @@ class ArrayPlotter:
             cplx_mode: "abs" for absolute value, "re", "im", "angle"
             colormap: matplotlib colormap.
             fontsize: legend and label fontsize.
+            **kwargs: Keyword arguments passed to matshow.
         """
         # Build grid of plots.
         num_plots, ncols, nrows = len(self), 1, 1
@@ -1392,6 +1417,7 @@ class Exposer:
 
         Args:
             exposer: "mpl" for MplExposer, "panel" for PanelExposer.
+            **kwargs: Keyword arguments passed to the constructor.
         """
         if isinstance(exposer, cls):
             return exposer
@@ -1452,7 +1478,8 @@ class MplExposer(Exposer):  # pragma: no cover
         Args:
             slide_mode: If True, iterate over figures. Default: Expose all figures at once.
             slide_timeout: Close figure after slide-timeout seconds. Block if None.
-            verbose: verbosity level
+            verbose: verbosity level.
+            **kwargs: Keyword arguments passed to super.
         """
         self.figures = []
         self.slide_mode = bool(slide_mode)
@@ -1518,7 +1545,9 @@ class PanelExposer(Exposer):  # pragma: no cover
         """
         Args:
             title: String to be show in the header.
-            verbose: verbosity level
+            dpi: Dots per inch.
+            verbose: verbosity level.
+            **kwargs: Keyword arguments passed to super.
         """
         self.title = title
         self.figures = []
@@ -1676,6 +1705,7 @@ def plot_structure(
         to_unit_cell: True if sites should be wrapped into the first unit cell.
         style: "points+labels" to show atoms sites with labels.
         color_scheme: color scheme for atom types. Allowed values in ("Jmol", "VESTA")
+        **kwargs: Keyword arguments passed to plot_unit_cell.
 
     Returns: |matplotlib-Figure|
     """
@@ -2040,8 +2070,10 @@ class PlotlyRowColDesc:
     def __init__(self, py_row: int, py_col: int, nrows: int, ncols: int):
         """
         Args:
-            py_row, py_col: python index of the subplot in the grid (starts from 0)
-            nrows, ncols: Number of rows/cols in the grid.
+            py_row: Python row index.
+            py_col: Python column index.
+            nrows: Number of rows in the grid.
+            ncols: Number of columns in the grid.
         """
         self.py_row, self.py_col = (py_row, py_col)
         self.nrows, self.ncols = (nrows, ncols)
@@ -2634,6 +2666,7 @@ def plotly_structure(
         to_unit_cell: True if sites should be wrapped into the first unit cell.
         style: "points+labels" to show atoms sites with labels.
         color_scheme: color scheme for atom types. Allowed values in ("Jmol", "VESTA")
+        **kwargs: Keyword arguments passed to scatter.
 
     Returns: |matplotlib-Figure|
     """
@@ -2875,6 +2908,7 @@ def plotly_points(points, lattice=None, coords_are_cartesian=False, fold=False, 
             Requires lattice if False.
         fold: whether the points should be folded inside the first Brillouin Zone.
             Defaults to False. Requires lattice if True.
+        labels: list of labels for the points.
         fig: plotly figure or None if a new figure should be created.
         kwargs: kwargs passed to the matplotlib function 'scatter'. Color defaults to blue
 
@@ -2914,8 +2948,8 @@ def plotly_brillouin_zone_from_kpath(kpath, fig=None, **kwargs):
 
     Args:
         kpath (HighSymmKpath): a HighSymmKPath object
-        ax: matplotlib :class:`Axes` or None if a new figure should be created.
-        **kwargs: provided by add_fig_kwargs decorator
+        fig: plotly figure or None if a new figure should be created.
+        **kwargs: provided by add_plotly_fig_kwargs decorator.
 
     Returns: plotly figure.
     """
@@ -2954,8 +2988,8 @@ def plotly_brillouin_zone(
             Defaults to False. Requires lattice if True.
         coords_are_cartesian: Set to True if you are providing
             coordinates in cartesian coordinates. Defaults to False.
-        ax: matplotlib :class:`Axes` or None if a new figure should be created.
-        kwargs: provided by add_fig_kwargs decorator
+        fig: plotly figure or None if a new figure should be created.
+        kwargs: provided by add_plotly_fig_kwargs decorator.
 
     Returns: plotly figure
     """
@@ -3153,7 +3187,10 @@ class PolyfitPlotter:
             deg_list: List with degrees of the fitting polynomial.
             num: Number of samples to generate. Default is 100. Must be non-negative.
             ax: |matplotlib-Axes| or None if a new figure should be created.
+            xlabel: Label for x-axis.
+            ylabel: Label for y-axis.
             fontsize: Legend fontsize.
+            **kwargs: Keyword arguments passed to plot method.
         """
         xs, ys = self.xs, self.ys
         ax, fig, plt = get_ax_fig_plt(ax=ax)

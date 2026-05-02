@@ -249,9 +249,10 @@ def input_from_editor(message=None):  # pragma: no cover
 def ask_yesno(question: str, default=True):
     """
     Args:
-        question ():
-        default ():
+        question: The question to ask.
+        default: Default answer if input is empty or EOF occurs.
     Returns:
+        True if answer is yes/y, False otherwise.
     """
     try:
         answer = input(question)
@@ -307,10 +308,10 @@ class AtomicFile:
     def __init__(self, name, mode="w+b", createmode=None, encoding=None):
         """
         Args:
-            name ():
-            mode ():
-            createmode ():
-            encoding ():
+            name: permanent name of the file.
+            mode: mode in which the file is opened.
+            createmode: permission bits to use if the file does not exist.
+            encoding: encoding to use for the file.
         """
         self.__name = name  # permanent name
         self._tempname = _maketemp(name, createmode=createmode)

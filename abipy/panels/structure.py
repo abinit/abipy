@@ -1,4 +1,4 @@
-""" "GUIs for structure."""
+"""GUIs for structure."""
 
 from __future__ import annotations
 

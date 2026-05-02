@@ -383,6 +383,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
             method: Integration scheme for DOS.
             step: Energy step (eV) of the linear mesh for DOS computation.
             width: Standard deviation (eV) of the gaussian for DOS computation.
+            **kwargs: Keyword arguments passed to combiplot.
         """
         ebands_kpath = ElectronBands.as_ebands(ebands_kpath)
         wan_ebands_kpath = self.interpolate_ebands(kpoints=ebands_kpath.kpoints)
@@ -587,12 +588,11 @@ class AbiwanRobot(Robot, RobotWithEbands):
         Args:
             with_geo: True if structure info should be added to the dataframe.
             abspath: True if paths in index should be absolute. Default: Relative to getcwd().
-
-        kwargs:
-            attrs: List of additional attributes of the |GsrFile| to add to the DataFrame.
             funcs: Function or list of functions to execute to add more data to the DataFrame.
                 Each function receives a |GsrFile| object and returns a tuple (key, value)
                 where key is a string with the name of column and value is the value to be inserted.
+            **kwargs: Additional keyword arguments. Supported:
+                attrs: List of additional attributes of the |GsrFile| to add to the DataFrame.
         """
         # TODO
         # Add attributes specified by the users
@@ -637,6 +637,7 @@ class AbiwanRobot(Robot, RobotWithEbands):
             ax: |matplotlib-Axes| or None if a new figure should be created.
             colormap: matplotlib color map.
             fontsize: fontsize for legends and titles
+            **kwargs: Keyword arguments passed to plot method.
         """
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         cmap = plt.get_cmap(colormap)
@@ -662,6 +663,7 @@ class AbiwanRobot(Robot, RobotWithEbands):
             shiftk: Shifts for k-meshs. Used with ngkpt.
             kpoints: |KpointList| object taken e.g from a previous ElectronBands.
                 Has precedence over vertices_names and line_density.
+            **kwargs: Keyword arguments (currently unused).
         """
         diff_str = self.has_different_structures()
         if diff_str:

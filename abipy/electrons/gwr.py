@@ -1540,7 +1540,7 @@ class GwrReader(ETSF_Reader):
         return np.linspace(start=e0 - self.wr_step * (nwr // 2), stop=e0 + self.wr_step * (nwr // 2), num=nwr)
 
     def read_sigee_skb(self, spin: int, kpoint: KptSelect, band: int) -> GwrSelfEnergy:
-        """ "
+        """
         Read self-energy for the given (spin, kpoint, band).
         """
         ikcalc, kpoint = self.get_ikcalc_kpoint(kpoint)

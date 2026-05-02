@@ -1313,7 +1313,7 @@ class SigEPhFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter)
         return od
 
     def get_sigeph_skb(self, spin, kpoint, band):
-        """ "Return e-ph self-energy for the given (spin, kpoint, band)."""
+        """Return e-ph self-energy for the given (spin, kpoint, band)."""
         return self.r.read_sigeph_skb(spin, kpoint, band)
 
     # def get_arpes_plotter(self):

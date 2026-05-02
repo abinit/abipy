@@ -414,6 +414,7 @@ class _Field(Has_Structure):
                 coordinates (if not integers). Use True to pass points in cartesian coordinates.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: legend and title fontsize.
+            **kwargs: Keyword arguments passed to matplotlib plot method.
         """
         # Interpolate along line.
         r = self.get_interpolator().eval_line(point1, point2, num=num, cartesian=cartesian)

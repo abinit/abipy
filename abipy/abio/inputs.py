@@ -808,6 +808,7 @@ with the Abinit version you are using? Please contact the AbiPy developers."""
             with_structure: False if section with structure variables should not be printed.
             with_pseudos: False if JSON section with pseudo data should not be added.
             exclude: List of variable names that should be ignored.
+            verbose: Verbosity level.
             files_file: if True a string compatible with the presence of a files file
                 will be generated. Otherwise all the required variables will be added
                 to the string.
@@ -1061,7 +1062,7 @@ with the Abinit version you are using? Please contact the AbiPy developers."""
         value of ecut using a scaling factor that depends on ``accuracy``.
 
         Args:
-            accuracy:
+            accuracy: String defining the accuracy level ("low", "normal", "high").
 
         Return: Dictionary with variables.
         """
@@ -1238,6 +1239,7 @@ with the Abinit version you are using? Please contact the AbiPy developers."""
                 a very large number of wavevectors.
             kptbounds: k-points defining the path in k-space.
                 If None, we use the default high-symmetry k-path defined in the pymatgen database.
+            iscf: Abinit iscf variable. Default: -2.
         """
         # self.pop_vars(["ngkpt", "shiftk"]) ??
 
@@ -1438,9 +1440,9 @@ with the Abinit version you are using? Please contact the AbiPy developers."""
             nsppol: Spin polarization (Abinit input variable).
             occ1k_spin: List of `nppols` strings with the occupations for a single kpoint and
                 the spin_up, spin_down channels if nsppol is 2.
-            nspinor:
-            kptopt:
-            occopt:
+            nspinor: Number of spinor components.
+            kptopt: Option for the generation of the k-mesh.
+            occopt: Occupation option.
         """
         self._check_nsppol_nspinor(nsppol, nspinor)
 
@@ -1516,6 +1518,7 @@ with the Abinit version you are using? Please contact the AbiPy developers."""
             input_list = gs_template.linspace("ecut", start=10, stop=60)
 
         Args:
+            varname: Name of the Abinit variable.
             start: The starting value of the sequence.
             stop: The end value of the sequence, unless `endpoint` is set to False.
                 In this case, the sequence consists of all but the last of ``ndtset + 1``
@@ -1543,6 +1546,7 @@ with the Abinit version you are using? Please contact the AbiPy developers."""
         be consistent. It is better to use ``linspace`` for these cases.
 
         Args:
+            varname: Name of the Abinit variable.
             start:  Start of interval. The interval includes this value. The default start value is 0.
             stop: End of interval.  The interval does not include this value, except
                 in some cases where `step` is not an integer and floating point
@@ -1946,6 +1950,7 @@ with the Abinit version you are using? Please contact the AbiPy developers."""
         Args:
             kpts: List of k-points in reduced coordinates.
             tolwfr: Tolerance on residuals.
+            iscf: Abinit iscf variable. Default: -2.
             extra_abivars: Extra input variables.
         """
         nscf_input = self.deepcopy()
@@ -1981,10 +1986,11 @@ with the Abinit version you are using? Please contact the AbiPy developers."""
 
         Args:
             kpts: List of k-points in reduced coordinates where effective masses are wanted.
-            effmas_bands_f90: (nkpt, 2) array with band range for effmas computation.
+            effmass_bands_f90: (nkpt, 2) array with band range for effmas computation.
                 WARNING: Assumes Fortran convention with indices starting from 1.
             ngfft: FFT divisions (3 integers). Used to enforce the same FFT mesh in the NSCF run as the one used for GS.
             tolwfr: Tolerance on residuals.
+            iscf: Abinit iscf variable. Default: -2.
         """
         multi = MultiDataset.replicate_input(input=self, ndtset=3)
         multi.pop_vars(["ngkpt", "nshiftk", "shiftk", "iscf"])
@@ -2057,6 +2063,7 @@ with the Abinit version you are using? Please contact the AbiPy developers."""
             prtwf: 1WFs are only needed for restarting 2nd order DFPT or non-linear response.
                 Since these files are huge, we use prtwf -1 so that the 1WF file is produced
                 only if the calculation is not converged so that AbiPy can restart it.
+            prepgkk: Abinit prepgkk variable.
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
 
         .. WARNING::
@@ -2623,6 +2630,7 @@ with the Abinit version you are using? Please contact the AbiPy developers."""
             kptopt: 2 to take into account time-reversal symmetry.
             nstep: Max number of SCF iterations. Since AbiPy is still not able to restart
             a Quadrupole calculation, we increase the value if not already provided by the user.
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
         """
         if tolerance is None:
             tolerance = {"tolvrs": 1.0e-10}
@@ -2916,7 +2924,9 @@ with the Abinit version you are using? Please contact the AbiPy developers."""
             ecuteps: Cutoff energy for chi0 in Ha.
             gw_qprange: 0 to compute the QP corrections only for the fundamental and the direct gap.
                 For other values see Abinit docs.
-            gwr_task: String defining the GWR task
+            ecutwfn: Cutoff energy for wavefunctions in Ha.
+            gwr_task: String defining the GWR task.
+            **kwargs: Extra arguments.
         """
         ecut = float(self["ecut"])
 
@@ -3326,6 +3336,7 @@ with the Abinit version you are using? Please contact the AbiPy developers."""
             ngkpt: Number of divisions for the k-mesh (default None i.e. use ngkpt from self)
             shiftk: Shiftks (default None i.e. use shiftk from self)
             kptopt: Option for k-point generation. If None, the value in self is used.
+            ixc: Exchange-correlation functional.
             workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
             phonon_pert: if True also the phonon perturbations will be considered. Default False.
@@ -3758,6 +3769,7 @@ class MultiDataset:
 
         Args:
             mode: Either ``text`` or ``html`` if HTML output with links is wanted.
+            verbose: Verbosity level.
             with_pseudos: False if JSON section with pseudo data should not be added.
             files_file: if True a string compatible with the presence of a files file
                 will be generated. Otherwise all the required variables will be added
@@ -4097,8 +4109,12 @@ with the Abinit version you are using. Please contact the AbiPy developers."""
         Args:
             structure: |Structure| object
             qpoint: Reduced coordinates of the q-point where phonon frequencies and modes are wanted
-            asr, chneut, dipdp, ifcflag: Anaddb input variable. See official documentation.
-            dipquad, quadquad: 1 to include DQ, QQ terms (provided DDB contains dynamical quadrupoles).
+            asr: Acoustic Sum Rule flag. See official documentation.
+            chneut: Charge neutrality requirement for effective charges.
+            dipdip: Dipole-dipole interaction treatment.
+            ifcflag: Interatomic force constant flag.
+            dipquad: 1 to include DQ terms (provided DDB contains dynamical quadrupoles).
+            quadquad: 1 to include QQ terms (provided DDB contains dynamical quadrupoles).
             lo_to_splitting: if True calculation of the LO-TO splitting will be included if qpoint==Gamma
             directions: list of 3D directions along which the LO-TO splitting will be calculated. If None the three
                 cartesian direction will be used
@@ -4153,8 +4169,12 @@ with the Abinit version you are using. Please contact the AbiPy developers."""
         Args:
             structure: |Structure| object
             qpoints: List of reduced coordinates of the q-point where phonon frequencies and modes are wanted
-            asr, chneut, dipdp, ifcflag: Anaddb input variable. See official documentation.
-            dipquad, quadquad: 1 to include DQ, QQ terms (provided DDB contains dynamical quadrupoles).
+            asr: Acoustic Sum Rule flag. See official documentation.
+            chneut: Charge neutrality requirement for effective charges.
+            dipdip: Dipole-dipole interaction treatment.
+            ifcflag: Interatomic force constant flag.
+            dipquad: 1 to include DQ terms (provided DDB contains dynamical quadrupoles).
+            quadquad: 1 to include QQ terms (provided DDB contains dynamical quadrupoles).
             lo_to_splitting: if True calculation of the LO-TO splitting will be included if qpoint==Gamma
             directions: list of 3D directions along which the LO-TO splitting will be calculated. If None the three
                 cartesian direction will be used
@@ -4221,8 +4241,14 @@ with the Abinit version you are using. Please contact the AbiPy developers."""
         """
         Build an |AnaddbInput| for the calculation of piezoelectric and elastic tensor calculations.
 
-        Args:
-            asr, chneut, dipdp: Anaddb input variable. See official documentation.
+            structure: |Structure| object
+            relaxed_ion: True to activate computation of relaxed-ion elastic and piezoelectric tensors.
+            stress_correction: True to activate computation of stress correction in elastic tensor.
+            asr: Acoustic Sum Rule flag. See official documentation.
+            chneut: Charge neutrality requirement for effective charges.
+            dipdip: Dipole-dipole interaction treatment.
+            anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
+            anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
         """
         comment = "ANADDB input for piezoelectric and elastic tensor calculation"
 
@@ -4284,9 +4310,11 @@ with the Abinit version you are using. Please contact the AbiPy developers."""
             q1shft: Shifts used for the coarse Q-mesh
             qptbounds Boundaries of the path. If None, the path is generated from an internal database
                 depending on the input structure.
-            asr, chneut: Anaddb input variable. See official documentation.
+            asr: Acoustic Sum Rule flag. See official documentation.
+            chneut: Charge neutrality requirement for effective charges.
             dipdip: 1 to activate the treatment of the dipole-dipole interaction (requires BECS and dielectric tensor).
-            dipquad, quadquad: 1 to include DQ, QQ terms (provided DDB contains dynamical quadrupoles).
+            dipquad: 1 to include DQ terms (provided DDB contains dynamical quadrupoles).
+            quadquad: 1 to include QQ terms (provided DDB contains dynamical quadrupoles).
             dos_method: Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
                 In the later case, the value 0.001 eV is used as gaussian broadening
             lo_to_splitting: if True calculation of the LO-TO splitting will be included
@@ -4386,15 +4414,10 @@ with the Abinit version you are using. Please contact the AbiPy developers."""
         """
         Build an |AnaddbInput| for the computation of phonon modes.
 
-        Args:
-            Structure: |Structure| object
-            ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
-            nqsmall: Used to generate the (dense) mesh for the DOS.
-                It defines the number of q-points used to sample the smallest lattice vector.
-            q1shft: Shifts used for the coarse Q-mesh
-            qptbounds Boundaries of the path. If None, the path is generated from an internal database
-                depending on the input structure.
-            asr, chneut, dipdp: Anaddb input variable. See official documentation.
+            structure: |Structure| object
+            enunit: Energy unit flag.
+            asr: Acoustic Sum Rule flag.
+            chneut: Charge neutrality requirement.
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
         """
@@ -4442,7 +4465,9 @@ with the Abinit version you are using. Please contact the AbiPy developers."""
             ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
             ifcout: Number of neighbouring atoms for which the ifc's will be output. If None all the atoms in the big box.
             q1shft: Shifts used for the coarse Q-mesh
-            asr, chneut, dipdip: Anaddb input variable. See official documentation.
+            asr: Acoustic Sum Rule flag.
+            chneut: Charge neutrality requirement.
+            dipdip: Dipole-dipole interaction treatment.
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
         """
@@ -4534,7 +4559,11 @@ with the Abinit version you are using. Please contact the AbiPy developers."""
             q1shft: Shifts used for the coarse Q-mesh
             qptbounds: Boundaries of the path. If None, the path is generated from an internal database
                 depending on the input structure.
-            asr, chneut, dipdp, ramansr, alphon: Anaddb input variable. See official documentation.
+            asr: Acoustic Sum Rule flag.
+            chneut: Charge neutrality requirement.
+            dipdip: Dipole-dipole interaction treatment.
+            ramansr: Raman sum rule flag.
+            alphon: Contribution of the atomic positions to the nonlinear optical properties.
             dos_method: Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
                 In the later case, the value 0.001 eV is used as gaussian broadening
             directions: list of 3D directions along which the non analytical contribution will be calculated.
@@ -4640,6 +4669,8 @@ with the Abinit version you are using. Please contact the AbiPy developers."""
         Args:
             sortmode: "a" for alphabetical order, None if no sorting is wanted
             mode: Either `text` or `html` if HTML output with links is wanted.
+            verbose: Verbosity level.
+            files_file: True if the file is a files file.
         """
         lines = []
         app = lines.append
@@ -4934,7 +4965,8 @@ class OpticInput(AbiAbstractInput, MSONable):
             structure: Crystalline structure
             assume_symmetric_tensor: True if tensor can be assumed symmetric.
                 Note that the tensor is symmetric only for a lossless and non-optically active material.
-            symprec, angle_tolerance: Parameters passed to spglib.
+            symprec: Symmetry precision passed to spglib.
+            angle_tolerance: Angle tolerance passed to spglib.
 
         Return:
             Set internal variables and return list of components to compute.
@@ -5388,8 +5420,8 @@ with the Abinit version you are using. Please contact the AbiPy developers."""
         String representation.
 
         Args:
-            sortmode: "a" for alphabetical order, None if no sorting is wanted
             mode: Either `text` or `html` if HTML output with links is wanted.
+            verbose: Verbosity level.
         """
         lines = []
         app = lines.append
@@ -5500,6 +5532,7 @@ def kpoints_from_line_density(structure, line_density, symprec=1e-2):
     Compute an high-symmetry k-path using pymatgen conventions and line_density
 
     Args:
+        structure: |Structure| object.
         line_density: Number of points in each segment is computed as: int(ceil(distance * line_density))
             where distance is the length of the segment.
             This option is the recommended one if the k-path contains two consecutive high symmetry k-points

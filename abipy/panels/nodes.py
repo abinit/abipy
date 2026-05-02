@@ -1,4 +1,4 @@
-""" "Panels to interact with AbiPy flows."""
+"""Panels to interact with AbiPy flows."""
 
 from __future__ import annotations
 

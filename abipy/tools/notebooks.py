@@ -43,6 +43,7 @@ def print_source(function, **kwargs):  # pragma: no cover
     For use inside a jupyter_ notebook: given a function, print the source code.
 
     Args:
+        function: Function object to print the source of.
         **kwargs: Passed to HtmlFormatter
 
     Return:
@@ -65,6 +66,7 @@ def print_doc(function, **kwargs):  # pragma: no cover
     For use inside a jupyter_ notebook: given a function, print the docstring.
 
     Args:
+        function: Function object to print the docstring of.
         **kwargs: Passed to HtmlFormatter
 
     Return:
