@@ -7,12 +7,14 @@ from __future__ import division
 import re
 from docutils import nodes
 from docutils.parsers.rst import directives
+
 try:
     from sphinx.util.compat import Directive
 except ImportError:
     from docutils.parsers.rst import Directive
 
 CONTROL_HEIGHT = 30
+
 
 def get_size(d, key):
     if key not in d:
@@ -22,10 +24,14 @@ def get_size(d, key):
         raise ValueError("invalid size %r" % d[key])
     return int(m.group(1)), m.group(2) or "px"
 
+
 def css(d):
     return "; ".join(sorted("%s: %s" % kv for kv in d.items()))
 
-class youtube(nodes.General, nodes.Element): pass
+
+class youtube(nodes.General, nodes.Element):
+    pass
+
 
 def visit_youtube_node(self, node):
     aspect = node["aspect"]
@@ -77,8 +83,10 @@ def visit_youtube_node(self, node):
         self.body.append(self.starttag(node, "iframe", **attrs))
         self.body.append("</iframe>")
 
+
 def depart_youtube_node(self, node):
     pass
+
 
 class YouTube(Directive):
     has_content = True
@@ -103,6 +111,7 @@ class YouTube(Directive):
         width = get_size(self.options, "width")
         height = get_size(self.options, "height")
         return [youtube(id=self.arguments[0], aspect=aspect, width=width, height=height)]
+
 
 def setup(app):
     app.add_node(youtube, html=(visit_youtube_node, depart_youtube_node))

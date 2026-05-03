@@ -1,4 +1,5 @@
 """Scissors operator."""
+
 from __future__ import annotations
 
 import os
@@ -34,6 +35,7 @@ class Scissors:
     The standard way to create this object is via the methods provided by the factory class :class:`ScissorBuilder`.
     Once the instance has been created, one can correct the band structure by calling the `apply` method.
     """
+
     Error = ScissorsError
 
     def __init__(self, func_list, domains, residues, bounds=None):
@@ -72,7 +74,7 @@ class Scissors:
             try:
                 self.func_low = lambda x: float(bounds[0][1])
             except Exception:
-                x_low = self.domains[0,0]
+                x_low = self.domains[0, 0]
                 fx_low = func_list[0](x_low)
                 self.func_low = lambda x: fx_low
         else:
@@ -96,17 +98,17 @@ class Scissors:
         # Get the list of domains.
         domains = self.domains
 
-        if eig < domains[0,0]:
+        if eig < domains[0, 0]:
             # Eig is below the first point of the first domain.
             # Call func_low
-            print("left ", eig, " < ", domains[0,0])
+            print("left ", eig, " < ", domains[0, 0])
             self.out_bounds[0] += 1
             return self.func_low(eig)
 
-        if eig > domains[-1,1]:
+        if eig > domains[-1, 1]:
             # Eig is above the last point of the last domain.
             # Call func_high
-            print("right ", eig, " > ", domains[-1,1])
+            print("right ", eig, " > ", domains[-1, 1])
             self.out_bounds[1] += 1
             return self.func_high(eig)
 
@@ -147,6 +149,7 @@ class ScissorsBuilder:
         Generate object from (SIGRES.nc) file. Main entry point for client code.
         """
         from abipy.abilab import abiopen
+
         with abiopen(filepath) as ncfile:
             return cls(qps_spin=ncfile.qplist_spin, sigres_ebands=ncfile.ebands)
 
@@ -170,10 +173,12 @@ class ScissorsBuilder:
             bounds_spin = [a.tolist() for a in self.bounds_spin.values()]
 
         # This trick is needed because we cannot pickle bound methods of the scissors operator.
-        d = dict(qps_spin=self._qps_spin,
-                 sigres_ebands=self.sigres_ebands,
-                 domains_spin=[a for a in self.domains_spin.values()],
-                 bounds_spin=bounds_spin)
+        d = dict(
+            qps_spin=self._qps_spin,
+            sigres_ebands=self.sigres_ebands,
+            domains_spin=[a for a in self.domains_spin.values()],
+            bounds_spin=bounds_spin,
+        )
 
         with open(filepath, "wb") as fh:
             pickle.dump(d, fh, protocol=protocol)
@@ -248,17 +253,20 @@ class ScissorsBuilder:
             e_bands = self.sigres_ebands
             for spin in e_bands.spins:
                 gap_mid = (e_bands.homos[spin].eig + e_bands.lumos[spin].eig) / 2
-                domains_spin[spin] = [[self.e0min - 0.2 * abs(self.e0min), gap_mid],
-                                      [gap_mid, self.e0max + 0.2 * abs(self.e0max)]]
-                #print("domains", domains_spin[spin])
+                domains_spin[spin] = [
+                    [self.e0min - 0.2 * abs(self.e0min), gap_mid],
+                    [gap_mid, self.e0max + 0.2 * abs(self.e0max)],
+                ]
+                # print("domains", domains_spin[spin])
         elif nsppol == 1:
             domains_spin = np.reshape(domains_spin, (1, -1, 2))
         elif nsppol == 2:
             assert len(domains_spin) == nsppol
-            if bounds_spin is not None: assert len(bounds_spin) == nsppol
+            if bounds_spin is not None:
+                assert len(bounds_spin) == nsppol
         else:
             raise ValueError("Wrong number of spins %d" % nsppol)
-            #if len(domains_spin) != nsppol:
+            # if len(domains_spin) != nsppol:
             #    raise ValueError("len(domains_spin) == %s != nsppol %s" % (len(domains_spin), nsppol))
 
         # Construct the scissors operator for each spin.
@@ -336,7 +344,7 @@ class ScissorsBuilder:
         # Read the KS band energies from bands_filepath and apply the scissors operator.
         with abiopen(bands_filepath) as ncfile:
             ks_bands = ncfile.ebands
-            #structure = ncfile.structure
+            # structure = ncfile.structure
 
         qp_bands = ks_bands.apply_scissors(self._scissors_spin)
 
@@ -359,9 +367,9 @@ class ScissorsBuilder:
         plotter.add_ebands(bands_label, ks_bands, edos=ks_dos)
         plotter.add_ebands(bands_label + " + scissors", qp_bands, edos=qp_dos)
 
-        #qp_marker: if int > 0, markers for the ab-initio QP energies are displayed. e.g qp_marker=50
-        #qp_marker = 50
-        #if qp_marker is not None:
+        # qp_marker: if int > 0, markers for the ab-initio QP energies are displayed. e.g qp_marker=50
+        # qp_marker = 50
+        # if qp_marker is not None:
         #    # Compute correspondence between the k-points in qp_list and the k-path in qp_bands.
         #    # TODO
         #    # WARNING: strictly speaking one should check if qp_kpoint is in the star of k-point.

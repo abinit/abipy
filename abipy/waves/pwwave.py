@@ -1,7 +1,8 @@
 """This module contains the class describing a planewave wavefunction."""
+
 from __future__ import annotations
 
-#import copy
+# import copy
 import numpy as np
 from monty.termcolor import cprint
 
@@ -21,18 +22,21 @@ def latex_label_ispinor(ispinor: int, nspinor: int) -> str:
     if nspinor == 1:
         return ""
     if nspinor == 2:
-        return {k: v.replace("myuparrow", "uparrow") for k, v in
-                    {0: r"$\sigma=\myuparrow$", 1: r"$\sigma=\downarrow$"}.items()}[ispinor]
+        return {
+            k: v.replace("myuparrow", "uparrow")
+            for k, v in {0: r"$\sigma=\myuparrow$", 1: r"$\sigma=\downarrow$"}.items()
+        }[ispinor]
     raise ValueError("Wrong value for nspinor: %s" % nspinor)
 
 
 class WaveFunction:
-    """
-    Abstract class defining base and abstract methods for wavefunction objects.
-    """
+    """Abstract class defining base and abstract methods for wavefunction objects."""
+
     def __eq__(self, other):
-        if other is None: return False
-        if self.gsphere != other.gsphere: return False
+        if other is None:
+            return False
+        if self.gsphere != other.gsphere:
+            return False
         return np.allclose(self.ug, other.ug)
 
     def __ne__(self, other):
@@ -119,15 +123,15 @@ class WaveFunction:
         except AttributeError:
             pass
 
-    #@property
-    #def ur_xyz(self):
+    # @property
+    # def ur_xyz(self):
     #    """
     #    Returns a copy with ur[nspinor, nx, ny, nz]. Mainly used for post-processing.
     #    """
     #    return self.mesh.reshape(self.ur).copy()
 
-    #@property
-    #def ur2_xyz(self):
+    # @property
+    # def ur2_xyz(self):
     #    """
     #    Returns ur2[nx, ny, nz]. Mainly used for post-processing.
     #    """
@@ -144,7 +148,7 @@ class WaveFunction:
         self._mesh = mesh
         self.delete_ur()
 
-    #def deepcopy(self):
+    # def deepcopy(self):
     #    """Deep copy of self."""
     #    return copy.deepcopy(self)
 
@@ -187,9 +191,9 @@ class WaveFunction:
 
     def to_string(self, verbose=0) -> str:
         """String representation."""
-        lines = []; app = lines.append
-        app("%s: nspinor: %d, spin: %d, band: %d " % (
-            self.__class__.__name__, self.nspinor, self.spin, self.band))
+        lines = []
+        app = lines.append
+        app("%s: nspinor: %d, spin: %d, band: %d " % (self.__class__.__name__, self.nspinor, self.spin, self.band))
 
         if hasattr(self, "gsphere"):
             app(self.gsphere.to_string(verbose=verbose))
@@ -201,11 +205,9 @@ class WaveFunction:
     # TODO: get_ur2?
     @property
     def ur2(self):
-        """
-        [nx, ny, nz] array with :math:`||u(r)||^2` in real space.
-        """
+        """[nx, ny, nz] array with :math:`||u(r)||^2` in real space."""
         ur2 = (self.ur.conj() * self.ur).real.copy()
-        #if self.nspinor == 2: ur2 = ur2.sum(axis=3)
+        # if self.nspinor == 2: ur2 = ur2.sum(axis=3)
         return ur2
 
 
@@ -216,6 +218,7 @@ class PWWaveFunction(WaveFunction):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: PWWaveFunction
     """
+
     def __init__(self, structure: Structure, nspinor, spin, band, gsphere, ug):
         """
         Creation method.
@@ -225,7 +228,7 @@ class PWWaveFunction(WaveFunction):
             nspinor: number of spinorial components.
             spin: spin index (only used if collinear-magnetism).
             band: band index (>=0)
-            gsphere |GSphere| instance.
+            gsphere: |GSphere| instance.
             ug: 2D array containing u[nspinor,G] for G in gsphere.
         """
         self.structure = structure
@@ -238,7 +241,7 @@ class PWWaveFunction(WaveFunction):
         self._gsphere = gsphere
         self._ug = np.array(ug)
 
-    #def kinetic_energy(self):
+    # def kinetic_energy(self):
     #    """Computes the matrix element of the kinetic operator in reciprocal space."""
     #    tug = -0.5 * self.gsphere.kpg2 * self.ug
     #    return np.vdot(self.ug, tug).sum()
@@ -285,13 +288,12 @@ class PWWaveFunction(WaveFunction):
         raise ValueError("Wrong space: %s" % str(space))
 
     def get_interpolator(self):
-        """
-        Return an interpolator object that interpolates periodic functions in real space.
-        """
+        """Return an interpolator object that interpolates periodic functions in real space."""
         from abipy.tools.numtools import BlochRegularGridInterpolator
+
         return BlochRegularGridInterpolator(self.structure, self.ur)
 
-    #def pww_translation(self, gvector, rprimd):
+    # def pww_translation(self, gvector, rprimd):
     #    """Returns the pwwave of the kpoint translated by one gvector."""
     #    gsph = self.gsphere.copy()
     #    wpww = PWWaveFunction(self.structure, self.nspinor, self.spin, self.band, gsph, self.ug.copy())
@@ -299,7 +301,7 @@ class PWWaveFunction(WaveFunction):
     #    wpww.pww_translation_inplace(gvector, rprimd)
     #    return wpww
 
-    #def pww_translation_inplace(self, gvector, rprimd):
+    # def pww_translation_inplace(self, gvector, rprimd):
     #    """Translates the pwwave from 1 kpoint by one gvector."""
     #    self.gsphere.kpoint = self.gsphere.kpoint + gvector
     #    self.gsphere.gvecs = self.gsphere.gvecs + gvector
@@ -307,7 +309,7 @@ class PWWaveFunction(WaveFunction):
     #    newmesh = Mesh3D(fft_ndivs, rprimd, pbc=True)
     #    self.mesh = newmesh
 
-    #def pwwtows_inplace(self):
+    # def pwwtows_inplace(self):
     #    """Wrap the kpoint to the interval ]-1/2,1/2] and update pwwave accordingly."""
     #    kpoint = Kpoint(self.gsphere.kpoint, self.gsphere.gprimd)
     #    wkpt = kpoint.wrap_to_ws()
@@ -320,7 +322,7 @@ class PWWaveFunction(WaveFunction):
     #    self.gsphere.gvecs = self.gsphere.gvecs + gvector
     #    self.gsphere.kpoint = wkpt.rcoord
 
-    #def pwwtows(self):
+    # def pwwtows(self):
     #    """Return the pwwave of the kpoint wrapped to the interval ]-1/2,1/2]."""
     #    gsph = self.gsphere.copy()
     #    wpww = PWWaveFunction(self.structure, self.nspinor, self.spin, self.band, gsph, self.ug.copy())
@@ -328,7 +330,7 @@ class PWWaveFunction(WaveFunction):
     #    wpww.mesh = self.mesh
     #    return wpww
 
-    #def rotate(self, symmop, mesh=None):
+    # def rotate(self, symmop, mesh=None):
     #    """
     #    Apply the symmetry operation `symmop` to the periodic part.
 
@@ -368,8 +370,9 @@ class PWWaveFunction(WaveFunction):
     #    return new
 
     @add_fig_kwargs
-    def plot_line(self, point1, point2, num=200, with_krphase=False, cartesian=False,
-                  ax=None, fontsize=12, **kwargs) -> Figure:
+    def plot_line(
+        self, point1, point2, num=200, with_krphase=False, cartesian=False, ax=None, fontsize=12, **kwargs
+    ) -> Figure:
         """
         Plot (interpolated) wavefunction in real space along a line defined by ``point1`` and ``point2``.
 
@@ -385,13 +388,15 @@ class PWWaveFunction(WaveFunction):
                 coordinates (if not integers). Use True to pass points in cartesian coordinates.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: legend and title fontsize.
+            **kwargs: Keyword arguments passed to plot method.
 
         Return: |matplotlib-Figure|
         """
         # Interpolate along line.
         interpolator = self.get_interpolator()
-        r = interpolator.eval_line(point1, point2, num=num, cartesian=cartesian,
-                                   kpoint=None if not with_krphase else self.kpoint)
+        r = interpolator.eval_line(
+            point1, point2, num=num, cartesian=cartesian, kpoint=None if not with_krphase else self.kpoint
+        )
         # Plot data.
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         which = r"\psi(r)" if with_krphase else "u(r)"
@@ -409,8 +414,9 @@ class PWWaveFunction(WaveFunction):
         return fig
 
     @add_fig_kwargs
-    def plot_line_neighbors(self, site_index, radius, num=200, with_krphase=False,
-                            max_nn=10, fontsize=12, **kwargs) -> Figure:
+    def plot_line_neighbors(
+        self, site_index, radius, num=200, with_krphase=False, max_nn=10, fontsize=12, **kwargs
+    ) -> Figure:
         """
         Plot (interpolated) density/potential in real space along the lines connecting
         an atom specified by ``site_index`` and all neighbors within a sphere of given ``radius``.
@@ -427,6 +433,7 @@ class PWWaveFunction(WaveFunction):
             with_krphase: True to include the :math:`e^{ikr}` phase-factor.
             max_nn: By default, only the first ``max_nn`` neighbors are showed.
             fontsize: legend and label fontsize.
+            **kwargs: Keyword arguments (currently unused).
 
         Return: |matplotlib-Figure|
         """
@@ -439,14 +446,15 @@ class PWWaveFunction(WaveFunction):
         # Sort sites by distance.
         nn_list = sorted(nn_list, key=lambda t: t[1])
         if max_nn is not None and len(nn_list) > max_nn:
-            cprint("For radius %s, found %s neighbors but only max_nn %s sites are show." %
-                   (radius, len(nn_list), max_nn), "yellow")
+            cprint(
+                "For radius %s, found %s neighbors but only max_nn %s sites are show." % (radius, len(nn_list), max_nn),
+                "yellow",
+            )
             nn_list = nn_list[:max_nn]
 
         # Get grid of axes (one row for neighbor)
         nrows, ncols = len(nn_list), 1
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=True, squeeze=True)
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols, sharex=True, sharey=True, squeeze=True)
         ax_list = ax_list.ravel()
 
         interpolator = self.get_interpolator()
@@ -455,7 +463,7 @@ class PWWaveFunction(WaveFunction):
 
         # For each neighbor, plot psi along the line connecting site to nn.
         for i, (nn, ax) in enumerate(zip(nn_list, ax_list, strict=False)):
-            #nn_site, nn_dist, nn_sc_index = nn
+            # nn_site, nn_dist, nn_sc_index = nn
             nn_site = nn
             nn_dist = nn.nn_distance
             nn_sc_index = nn.index
@@ -505,6 +513,7 @@ class PWWaveFunction(WaveFunction):
             # fname == ".ext" ==> Create temporary file.
             # dir = os.getcwd() is needed when we invoke the method from a notebook.
             from abipy.core.globals import abinb_mkstemp
+
             _, filename = abinb_mkstemp(suffix="." + ext, text=True)
             print("Creating temporary file: %s" % filename)
 

@@ -1,4 +1,4 @@
-""""Tests for analyzer module."""
+""" "Tests for analyzer module."""
 
 from abipy.core.testing import AbipyTest
 
@@ -6,10 +6,10 @@ from abipy.core.testing import AbipyTest
 class AnalyzerTest(AbipyTest):
     pass
 
-    #def test_md_analyzer(self):
-    #def test_multi_md_analyzer(self):
+    # def test_md_analyzer(self):
+    # def test_multi_md_analyzer(self):
 
-    #def test_arrhenius_plotter(self):
+    # def test_arrhenius_plotter(self):
     #    key_path = {
     #        "matgl-MD":  "diffusion_cLLZO-matgl.csv",
     #        "m3gnet-MD": "diffusion_cLLZO-m3gnet.csv",

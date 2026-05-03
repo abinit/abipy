@@ -6,6 +6,7 @@ Ground-state SCF cycle
 This example shows how to plot the results of the
 GS self-consistent cycle reported in the main output file.
 """
+
 import abipy.data as abidata
 from abipy.abilab import abiopen
 

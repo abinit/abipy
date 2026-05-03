@@ -1,6 +1,5 @@
-"""
-Classes and functions for parsing the ONCVPSP output file and plotting the results.
-"""
+"""Classes and functions for parsing the ONCVPSP output file and plotting the results."""
+
 from __future__ import annotations
 
 import os
@@ -15,7 +14,7 @@ import pandas as pd
 from monty.collections import AttrDict, dict2namedtuple
 from monty.termcolor import colored
 
-from abipy.core.atom import NlkState, RadialFunction, RadialWaveFunction  #, l2char
+from abipy.core.atom import NlkState, RadialFunction, RadialWaveFunction  # , l2char
 from abipy.ppcodes.base_parser import BaseParser
 
 # Object returned by self._grep
@@ -31,9 +30,8 @@ AtanLogDer = namedtuple("AtanLogDer", "l, energies, values")
 
 @dataclass
 class AtomicLevel:
-    """
-    Stores the energy levels of the AE isolated atom.
-    """
+    """Stores the energy levels of the AE isolated atom."""
+
     nlk: NlkState
     eig: float
     occ: float
@@ -63,6 +61,7 @@ class OncvParser(BaseParser):
         p.plot_atanlogder_econv()
 
     """
+
     # TODO Improve fully-relativistic case.
 
     def scan(self, verbose: int = 0) -> OncvParser:
@@ -76,11 +75,11 @@ class OncvParser(BaseParser):
         except Exception as exc:
             raise self.Error(f"Exception while parsing: {self.filepath}") from exc
 
-        #if not self.run_completed:
+        # if not self.run_completed:
         #    cprint("oncvpsp output is not completed. Exiting", "red")
         #    return 1
 
-        #if self.errors:
+        # if self.errors:
         #    lines.append(f"# ERRORS ({len(self.errors)})")
         #    lines.extend([colored(s, "red") for s in self.errors])
 
@@ -88,10 +87,12 @@ class OncvParser(BaseParser):
 
     @property
     def is_metapsp(self) -> bool:
+        """True if the pseudopotential is of type METAPSP."""
         return self.generator_type == "METAPSP"
 
     @property
     def is_oncvpsp(self) -> bool:
+        """True if the pseudopotential is of type ONCVPSP."""
         return self.generator_type == "ONCVPSP"
 
     def _scan(self, verbose: int = 0) -> OncvParser:
@@ -108,9 +109,10 @@ class OncvParser(BaseParser):
                     assert self.generator_type in ("ONCVPSP", "METAPSP")
 
                 if self.generator_type == "METAPSP":
-                    if i == 1: continue
+                    if i == 1:
+                        continue
 
-                #print(f"{i=}: {line=}")
+                # print(f"{i=}: {line=}")
                 line = line.strip()
                 self.lines.append(line)
 
@@ -121,21 +123,19 @@ class OncvParser(BaseParser):
                     self.run_completed = True
 
                 # lines that contain the word ERROR but do not seem to indicate an actual terminating error
-                acceptable_error_markers = [
-                  "run_config: ERROR for fully non-local  PS atom,"
-                ]
+                acceptable_error_markers = ["run_config: ERROR for fully non-local  PS atom,"]
 
                 if "ERROR" in line:
                     # Example:
                     # test_data: must have fcfact>0.0 for icmod= 1
                     # ERROR: test_data found   1 errors; stopping
                     if line in acceptable_error_markers:
-                        self._warnings.append("\n".join(self.lines[i-1:i+1]))
+                        self._warnings.append("\n".join(self.lines[i - 1 : i + 1]))
                     else:
-                        self._errors.append("\n".join(self.lines[i-1:i+1]))
+                        self._errors.append("\n".join(self.lines[i - 1 : i + 1]))
 
                 if "WARNING" in line:
-                    self._warnings.append("\n".join(self.lines[i:i+2]))
+                    self._warnings.append("\n".join(self.lines[i : i + 2]))
 
                 if "GHOST(+)" in line:
                     # Testing for highly-localized positive-energy ghosts
@@ -154,11 +154,12 @@ class OncvParser(BaseParser):
         self.gendate = toks.pop(-1)
         self.calc_type, self.version = toks[0], toks[2]
         if self.is_metapsp:
-            if self.calc_type == "alpha": self.calc_type = "scalar-relativistic"
+            if self.calc_type == "alpha":
+                self.calc_type = "scalar-relativistic"
 
-        #print(self.version)
+        # print(self.version)
         self.major_version, self.minor_version, self.patch_level = tuple(map(int, self.version.split(".")))[:3]
-        #print(f"{self.major_version=}, {self.minor_version=}, {self.patch_level=}")
+        # print(f"{self.major_version=}, {self.minor_version=}, {self.patch_level=}")
 
         # Read configuration (not very robust because we assume the user didn't change the template but oh well)
 
@@ -169,7 +170,6 @@ class OncvParser(BaseParser):
 
         header = "# atsym  z    nc    nv    iexc   psfile"
         for i, line in enumerate(self.lines):
-
             if line.startswith("# atsym"):
                 values = self.lines[i + 1].split()
                 if len(values) != 6:
@@ -178,15 +178,17 @@ class OncvParser(BaseParser):
                     atmsym, z = l[0:2], l[2:]
                     values.insert(0, z)
                     values.insert(0, atmsym)
-                    #print(values)
+                    # print(values)
 
                 keys = header[1:].split()
                 # assert len(keys) == len(values)
                 # Store values in self.
                 for k, v in zip(keys, values, strict=False):
                     # Convert nc and nv to int.
-                    if k in ("nc", "nv", "iexc"): v = int(v)
-                    if k in ("z", ): v = float(v)
+                    if k in ("nc", "nv", "iexc"):
+                        v = int(v)
+                    if k in ("z",):
+                        v = float(v)
                     setattr(self, k, v)
                 break
 
@@ -196,7 +198,7 @@ class OncvParser(BaseParser):
         for i, line in enumerate(self.lines):
             if line.startswith(header):
                 tokens = self.lines[i + 1].split()
-                #print("tokens", tokens)
+                # print("tokens", tokens)
                 self.lloc = int(tokens[0])
                 self.lptopt = int(tokens[1])
                 self.rc5 = float(tokens[2])
@@ -247,7 +249,7 @@ class OncvParser(BaseParser):
                 # Parse core levels
                 beg, is_valence = i + 1, False
                 for c in range(nc):
-                    tokens = self.lines[beg+c].split()
+                    tokens = self.lines[beg + c].split()
                     n, l, f = tokens[:3]
                     n, l, f = int(n), int(l), float(f)
                     eigs = parse_eigs(tokens[3:])
@@ -264,8 +266,8 @@ class OncvParser(BaseParser):
                 # Parse valence levels
                 beg, is_valence = i + nc + 1, True
                 for v in range(nv):
-                    #print("lines[beg+v]", self.lines[beg+v])
-                    tokens = self.lines[beg+v].split()
+                    # print("lines[beg+v]", self.lines[beg+v])
+                    tokens = self.lines[beg + v].split()
                     n, l, f = tokens[:3]
                     n, l, f = int(n), int(l), float(f)
                     eigs = parse_eigs(tokens[3:])
@@ -287,26 +289,27 @@ class OncvParser(BaseParser):
 
     @cached_property
     def min_ghost_empty_ha(self):
+        """Minimum ghost energy (in Hartree) found in the empty states."""
         ghost_ene = np.inf
         for line in self.warnings:
-            if "GHOST(+)" not in line: continue
+            if "GHOST(+)" not in line:
+                continue
             ghost_ene = min(ghost_ene, float(line.split()[2]))
 
         return None if ghost_ene == np.inf else ghost_ene
 
     @cached_property
     def lmax(self) -> int:
+        """Maximum angular momentum found in the file."""
         # Read lmax (not very robust because we assume the user didn't change the template but oh well)
         header = "# lmax"
         for i, line in enumerate(self.lines):
             if line.startswith(header):
-                return int(self.lines[i+1])
+                return int(self.lines[i + 1])
         raise self.Error(f"Cannot find line with `#lmax` in: {self.filepath}")
 
     def to_string(self, verbose: int = 0) -> str:
-        """
-        String representation.
-        """
+        """String representation."""
         lines = []
         app = lines.append
 
@@ -328,8 +331,9 @@ class OncvParser(BaseParser):
         app(str(df) + 2 * "\n")
 
         from pprint import pformat
+
         app("# Results:\n")
-        app(pformat(self.get_results()) + 2*"\n")
+        app(pformat(self.get_results()) + 2 * "\n")
 
         if self.warnings:
             lines.append(f"# WARNINGS ({len(self.warnings)})")
@@ -351,9 +355,7 @@ class OncvParser(BaseParser):
 
     @cached_property
     def rc_l(self) -> dict[int, float]:
-        """
-        Core radii as a function of l extracted from the output file.
-        """
+        """Core radii as a function of l extracted from the output file."""
         rc_l = {}
         header = "#   l,   rc,"
         for i, line in enumerate(self.lines):
@@ -362,9 +364,10 @@ class OncvParser(BaseParser):
                 nxt = 0
                 while True:
                     ln = self.lines[beg + nxt]
-                    if ln.startswith("#"): break
+                    if ln.startswith("#"):
+                        break
                     tokens = ln.split()
-                    #print("line:", ln, "\ntokens", tokens)
+                    # print("line:", ln, "\ntokens", tokens)
                     l, rc = int(tokens[0]), float(tokens[1])
                     rc_l[l] = rc
                     nxt += 1
@@ -376,12 +379,10 @@ class OncvParser(BaseParser):
 
     @cached_property
     def kinerr_nlk(self) -> dict[NlkState, namedtuple]:
-        """
-        Dictionary with the error on the kinetic energy indexed by nlk.
-        """
+        """Dictionary with the error on the kinetic energy indexed by nlk."""
         # In relativistic mode we write data inside the following loops:
 
-        #do l1=1,lmax+1
+        # do l1=1,lmax+1
         #   ll=l1-1
         #   if(ll==0) then
         #    mkap=1
@@ -408,8 +409,8 @@ class OncvParser(BaseParser):
             # Calculating first optimized projector for l=   0
             re_start = re.compile(r"^Calculating (?P<iproj>(first|second)) optimized projector for l=\s+(?P<l>\d+)")
             # TODO: In FR mode, we have
-            #Calculating first optimized projector for l=   0
-            #Calculating second optimized projector for l=   0
+            # Calculating first optimized projector for l=   0
+            # Calculating second optimized projector for l=   0
 
         nlk = None
         iproj_l_seen = set()
@@ -421,7 +422,7 @@ class OncvParser(BaseParser):
                 if self.major_version > 3 or self.is_metapsp:
                     # for l=   0
                     iproj = int(m.group("iproj"))
-                    l = int(self.lines[i+2].split("=")[-1].strip())
+                    l = int(self.lines[i + 2].split("=")[-1].strip())
                 else:
                     iproj = m.group("iproj")
                     iproj = {"first": 0, "second": 1}[iproj]
@@ -430,17 +431,18 @@ class OncvParser(BaseParser):
                 k = None
                 if self.relativistic:
                     k = 1
-                    if (iproj, l) in iproj_l_seen: k= 2
+                    if (iproj, l) in iproj_l_seen:
+                        k = 2
                     iproj_l_seen.add((iproj, l))
 
                 # Use n index to store iprj index.
                 nlk = NlkState(n=iproj, l=l, k=k)
-                #print("nlk:", nlk)
+                # print("nlk:", nlk)
                 continue
 
             # Now parse the following section associated to nlk
 
-            #Energy error per electron        Cutoff
+            # Energy error per electron        Cutoff
             #     Ha          eV             Ha
             #     0.01000     0.27211       27.01
             #     0.00100     0.02721       52.82
@@ -450,9 +452,10 @@ class OncvParser(BaseParser):
             if line.startswith("Energy error per electron        Cutoff"):
                 values_ha, ecuts = [], []
                 for j in range(4):
-                    tokens = self.lines[i+2+j].split()
-                    #print("tokens:", tokens)
-                    if not tokens: break
+                    tokens = self.lines[i + 2 + j].split()
+                    # print("tokens:", tokens)
+                    if not tokens:
+                        break
                     err_ha, err_ev, ecut = map(float, tokens)
                     values_ha.append(err_ha)
                     ecuts.append(ecut)
@@ -482,7 +485,7 @@ class OncvParser(BaseParser):
         Dict with radial functions with the non-local and local potentials indexed by l.
         l = -1 corresponds to the local part (if present).
         """
-        #radii, charge, pseudopotentials (ll=0, 1, lmax)
+        # radii, charge, pseudopotentials (ll=0, 1, lmax)
         #!p   0.0099448   4.7237412  -7.4449470 -14.6551019
         vl_data = self._grep("!p").data
         lmax = len(vl_data[0]) - 3
@@ -491,7 +494,7 @@ class OncvParser(BaseParser):
         # From 0 up to lmax
         ionpots_l = {}
         for l in range(lmax + 1):
-            ionpots_l[l] = RadialFunction("Ion Pseudopotential, l=%d" % l, vl_data[:, 0], vl_data[:, 2+l])
+            ionpots_l[l] = RadialFunction("Ion Pseudopotential, l=%d" % l, vl_data[:, 0], vl_data[:, 2 + l])
 
         # Local part is stored with l == -1 if lloc=4, not present if lloc = l
         vloc = self._grep("!L").data
@@ -502,9 +505,7 @@ class OncvParser(BaseParser):
 
     @cached_property
     def densities(self) -> dict[str, RadialFunction]:
-        """
-        Dictionary with charge densities on the radial mesh.
-        """
+        """Dictionary with charge densities on the radial mesh."""
         # radii, charge, core charge, model core charge
         # !r   0.0100642   4.7238866  53.4149287   0.0000000
         rho_data = self._grep("!r").data
@@ -512,14 +513,12 @@ class OncvParser(BaseParser):
         return dict(
             rhoV=RadialFunction("Valence charge", rho_data[:, 0], rho_data[:, 1]),
             rhoC=RadialFunction("Core charge", rho_data[:, 0], rho_data[:, 2]),
-            rhoM=RadialFunction("Model charge", rho_data[:, 0], rho_data[:, 3])
+            rhoM=RadialFunction("Model charge", rho_data[:, 0], rho_data[:, 3]),
         )
 
     @cached_property
     def kin_densities(self) -> dict[str, RadialFunction]:
-        """
-        Dictionary with Kinetic energy densities on the radial mesh.
-        """
+        """Dictionary with Kinetic energy densities on the radial mesh."""
         if not self.is_metapsp:
             raise ValueError("kin_densities are only available in pseudos generated with metapsp")
 
@@ -534,9 +533,7 @@ class OncvParser(BaseParser):
 
     @cached_property
     def vtaus(self) -> dict[str, RadialFunction]:
-        """
-        Dictionary with Vtau ptotentials on the radial mesh.
-        """
+        """Dictionary with Vtau ptotentials on the radial mesh."""
         if not self.is_metapsp:
             raise ValueError("kin_densities are only available in pseudos generated with metapsp")
 
@@ -568,16 +565,12 @@ class OncvParser(BaseParser):
 
     @property
     def has_scattering_wfs(self) -> bool:
-        """
-        True if pp generation included scattering states.
-        """
+        """True if pp generation included scattering states."""
         return bool(self.scattering_wfs.ae)
 
     @cached_property
     def scattering_wfs(self) -> AePsNamedTuple:
-        """
-        Read and set the scattering wavefunctions.
-        """
+        """Read and set the scattering wavefunctions."""
         return self._get_radial_wavefunctions(what="scattering_states")
 
     def _get_radial_wavefunctions(self, what: str) -> AePsNamedTuple:
@@ -601,15 +594,16 @@ class OncvParser(BaseParser):
 
         ae_waves, ps_waves = {}, {}
 
-        #l_to_nlist = defaultdict(list)
-        #for level in self.atomic_levels:
+        # l_to_nlist = defaultdict(list)
+        # for level in self.atomic_levels:
         #    if not level.is_valence: continue
         #    l_to_nlist[level.nlk.l].append(level.nlk.n)
 
         beg = 0
         while True:
             g = self._grep("&", beg=beg)
-            if g.data is None: break
+            if g.data is None:
+                break
             beg = g.stop + 1
 
             # Get header two lines above.
@@ -624,7 +618,7 @@ class OncvParser(BaseParser):
                 header = header.replace("scattering,", "")
             else:
                 raise ValueError(f"Invalid value of {what=}")
-            #print("header:", header)
+            # print("header:", header)
 
             if not self.relativistic:
                 # n= 1,  l= 0, all-electron wave function, pseudo w-f
@@ -632,7 +626,7 @@ class OncvParser(BaseParser):
                 n = int(n.split("=")[1])
                 l = int(l.split("=")[1])
                 # TODO
-                #if what == "bound_states" and l_to_nlist[l]:
+                # if what == "bound_states" and l_to_nlist[l]:
                 #    print(f"for {l=} {l_to_nlist[l]=}")
                 #    n = l_to_nlist[l].pop(0)
                 kap = None
@@ -640,15 +634,15 @@ class OncvParser(BaseParser):
                 # n= 1,  l= 0,  kap=-1, all-electron wave function, pseudo w-f
                 if self.major_version <= 2:
                     header = header.replace("kap=", ", kap=")
-                #header = header.replace("kap=", ", kap=")
-                #print(f"{header=}")
+                # header = header.replace("kap=", ", kap=")
+                # print(f"{header=}")
                 n, l, kap = header.split(",")[0:3]
                 n = int(n.split("=")[1])
                 l = int(l.split("=")[1])
                 kap = int(kap.split("=")[1])
 
             nlk = NlkState.from_nlkap(n=n, l=l, kap=kap)
-            #print("Got nlk state:", nlk)
+            # print("Got nlk state:", nlk)
 
             rmesh = g.data[:, 1]
             ae_wf = g.data[:, 2]
@@ -663,14 +657,13 @@ class OncvParser(BaseParser):
 
     @cached_property
     def projectors(self) -> dict[NlkState, RadialFunction]:
-        """
-        Dict with projector wave functions indexed by nlk.
-        """
+        """Dict with projector wave functions indexed by nlk."""
         #
-        #@     0    0.009945    0.015274   -0.009284
+        # @     0    0.009945    0.015274   -0.009284
         beg = 0
         magic = "@"
-        if self.major_version > 3 or self.is_metapsp: magic = "!J"
+        if self.major_version > 3 or self.is_metapsp:
+            magic = "!J"
 
         # if(ikap==1) then
         #   write(6,'(a,i6,6(f12.6,1x))') '!J',-ll,rr(ii), &
@@ -682,7 +675,8 @@ class OncvParser(BaseParser):
         projectors_nlk = {}
         while True:
             g = self._grep(magic, beg=beg)
-            if g.data is None: break
+            if g.data is None:
+                break
             beg = g.stop + 1
 
             rmesh = g.data[:, 1]
@@ -691,11 +685,12 @@ class OncvParser(BaseParser):
             k = None
             if self.relativistic:
                 k = 2
-                if l <= 0: k = 1
+                if l <= 0:
+                    k = 1
 
             for n in range(len(g.data[0]) - 2):
                 nlk = NlkState(n=n + 1, l=abs(l), k=k)
-                #print("Got projector with: %s" % str(nlk))
+                # print("Got projector with: %s" % str(nlk))
 
                 if nlk in projectors_nlk:
                     raise self.Error("nlk state `{nlk}` is already in projectors_nlk")
@@ -706,18 +701,16 @@ class OncvParser(BaseParser):
 
     @cached_property
     def atan_logders(self) -> AePsNamedTuple:
-        """
-        Atan of the log derivatives for different l-values.
-        """
-        #log derivativve data for plotting, l= 0
-        #atan(r * ((d psi(r)/dr)/psi(r))), r=  1.60
-        #l, energy, all-electron, pseudopotential
+        """Atan of the log derivatives for different l-values."""
+        # log derivativve data for plotting, l= 0
+        # atan(r * ((d psi(r)/dr)/psi(r))), r=  1.60
+        # l, energy, all-electron, pseudopotential
         #
         #!      0    2.000000    0.706765    0.703758
         ae_atan_logder_l, ps_atan_logder_l = {}, {}
 
         lstop = self.lmax + 1
-        #if self.major_version > 3:
+        # if self.major_version > 3:
         if self.major_version > 3 or self.is_metapsp:
             lstop = min(self.lmax + 2, 4)
 
@@ -746,12 +739,10 @@ class OncvParser(BaseParser):
 
     @cached_property
     def kene_vs_ecut(self) -> dict[int, ConvData]:
-        """
-        Dict with the convergence of the kinetic energy versus ecut for different l-values.
-        """
-        #convergence profiles, (ll=0,lmax)
+        """Dict with the convergence of the kinetic energy versus ecut for different l-values."""
+        # convergence profiles, (ll=0,lmax)
         #!C     0    5.019345    0.010000
-        #...
+        # ...
         #!C     1   19.469226    0.010000
         # TODO: This does not take into account scattering states or n > 1
         conv_l = {}
@@ -764,14 +755,12 @@ class OncvParser(BaseParser):
 
     @cached_property
     def hints(self) -> dict:
-        """
-        Hints for the cutoff energy as provided by oncvpsp.
-        """
+        """Hints for the cutoff energy as provided by oncvpsp."""
         # Extract the hints
         hints = 3 * [-np.inf]
         for i in range(3):
             for l in range(self.lmax + 1):
-                hints[i] = max(hints[i], self.kene_vs_ecut[l].energies[-i-1])
+                hints[i] = max(hints[i], self.kene_vs_ecut[l].energies[-i - 1])
         hints.reverse()
 
         # Truncate to the nearest int
@@ -781,29 +770,27 @@ class OncvParser(BaseParser):
         return dict(
             low={"ecut": hints[0], "pawecutdg": hints[0]},
             normal={"ecut": hints[1], "pawecutdg": hints[1]},
-            high={"ecut": hints[2], "pawecutdg": hints[2]}
+            high={"ecut": hints[2], "pawecutdg": hints[2]},
         )
 
     def get_results(self) -> AttrDict:
-        """
-        Return the most important results extracted from the output file.
-        """
+        """Return the most important results extracted from the output file."""
         # Init return values
-        #d = AttrDict(
+        # d = AttrDict(
         #    max_ecut=None,
         #    max_atan_logder_l1err=None,
         #    max_psexc_abserr=None,
         #    herm_err=None,
         #    nwarns=len(self.warnings)
         #    nerrs=len(self.errors)
-        #)
+        # )
 
         # Get the max ecut estimated by oncvpsp.
         # TODO: Should take into account scattering states.
         max_ecut = max(self.kene_vs_ecut[l].energies[-1] for l in self.kene_vs_ecut)
 
         # Compute the l1 error in atag(logder) between AE and PS
-        try :
+        try:
             from scipy.integrate import cumulative_trapezoid as cumtrapz
         except ImportError:
             from scipy.integrate import cumtrapz
@@ -824,7 +811,7 @@ class OncvParser(BaseParser):
 
         for line in self.lines:
             i = line.find(herm_tag)
-            #print(line)
+            # print(line)
             if i != -1:
                 if self.is_metapsp and "Npairs" in line:
                     continue
@@ -859,7 +846,7 @@ class OncvParser(BaseParser):
             # oncvpsp 3.2.3
             i = self.find_string("<INPUT>")
             j = self.find_string("</INPUT>")
-            return "\n".join(self.lines[i+1:j]) + "\n"
+            return "\n".join(self.lines[i + 1 : j]) + "\n"
         except self.Error:
             # oncvpsp => 4
             i = self.find_string("Reference configufation results")
@@ -872,13 +859,15 @@ class OncvParser(BaseParser):
         """
         start, stop = None, None
         for i, line in enumerate(self.lines):
-            if "Begin PSPCODE8" in line: start = i
+            if "Begin PSPCODE8" in line:
+                start = i
             if start is not None and "END_PSP" in line:
                 stop = i
                 break
 
-        if start is None and stop is None: return None
-        ps_data = "\n".join(self.lines[start+1:stop])
+        if start is None and stop is None:
+            return None
+        ps_data = "\n".join(self.lines[start + 1 : stop])
 
         if "<INPUT>" not in ps_data:
             # oncvpsp <= 3.2.2 --> Append the input to ps_data (note XML markers)
@@ -894,24 +883,25 @@ class OncvParser(BaseParser):
         """
         start, stop = None, None
         for i, line in enumerate(self.lines):
-            if "Begin PSP_UPF" in line: start = i
+            if "Begin PSP_UPF" in line:
+                start = i
             if start is not None and "END_PSP" in line:
                 stop = i
                 break
 
-        if start is None and stop is None: return None
-        return "\n".join(self.lines[start+1:stop])
+        if start is None and stop is None:
+            return None
+        return "\n".join(self.lines[start + 1 : stop])
 
-    def get_plotter(self): # -> OncvPlotter | None:
-        """
-        Return an instance of OncvPlotter or None
-        """
+    def get_plotter(self):  # -> OncvPlotter | None:
+        """Return an instance of OncvPlotter or None."""
         from abipy.ppcodes.oncv_plotter import OncvPlotter
+
         try:
             return OncvPlotter(self)
         except Exception as exc:
             print(exc)
-            #raise exc
+            # raise exc
             return None
 
     def _grep(self, tag: str, beg: int = 0) -> GrepResults:
@@ -956,11 +946,20 @@ class OncvParser(BaseParser):
         from subprocess import check_call
 
         from monty.os import cd
+
         with cd(workdir):
-            check_call("awk 'BEGIN{out=0};/GNUSCRIPT/{out=0}; {if(out == 1) {print}}; \
-                                /DATA FOR PLOTTING/{out=1}' %s > %s" % (outfile, plotfile), shell=True)
-            check_call("awk 'BEGIN{out=0};/END_GNU/{out=0}; {if(out == 1) {print}}; \
-                                /GNUSCRIPT/{out=1}' %s > %s" % (outfile, temp), shell=True)
+            check_call(
+                "awk 'BEGIN{out=0};/GNUSCRIPT/{out=0}; {if(out == 1) {print}}; \
+                                /DATA FOR PLOTTING/{out=1}' %s > %s"
+                % (outfile, plotfile),
+                shell=True,
+            )
+            check_call(
+                "awk 'BEGIN{out=0};/END_GNU/{out=0}; {if(out == 1) {print}}; \
+                                /GNUSCRIPT/{out=1}' %s > %s"
+                % (outfile, temp),
+                shell=True,
+            )
             check_call('sed -e 1,1000s/t1/"%s"/ %s > %s' % (plotfile, temp, gnufile), shell=True)
 
             try:
@@ -971,11 +970,10 @@ class OncvParser(BaseParser):
         os.rmdir(workdir)
 
     def get_atomic_levels_df(self) -> pd.DataFrame:
-        """
-        Return pandas dataframe with the atomic levels. Columns: (n, l, k, eig, occ, is_valence)
-        """
+        """Return pandas dataframe with the atomic levels. Columns: (n, l, k, eig, occ, is_valence)"""
         d_list = []
         from dataclasses import asdict
+
         for level in self.atomic_levels:
             data = asdict(level)
             d = data.pop("nlk").get_dict4pandas()
@@ -985,9 +983,7 @@ class OncvParser(BaseParser):
         return pd.DataFrame(d_list)
 
     def get_peaks_df(self) -> pd.DataFrame:
-        """
-        Return pandas dataframe with the position of the last peak.
-        """
+        """Return pandas dataframe with the position of the last peak."""
         d_list = []
 
         def _push(typ, nkl, wf) -> None:

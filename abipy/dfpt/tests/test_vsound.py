@@ -1,4 +1,5 @@
 """Tests for phtk module."""
+
 import os
 
 import abipy.data as abidata
@@ -7,13 +8,12 @@ from abipy.dfpt.vsound import SoundVelocity
 
 
 class SoundVelocityTest(AbipyTest):
-
     def test_from_ddb(self):
 
         ddb_path = os.path.join(abidata.dirpath, "refs", "si_sound_vel", "Si_DDB")
         sv = SoundVelocity.from_ddb(ddb_path, num_points=5)
 
-        self.assertAlmostEqual(sv.sound_velocities[0,0], 5573.881381728927, places=2)
+        self.assertAlmostEqual(sv.sound_velocities[0, 0], 5573.881381728927, places=2)
         self.assertEqual(sv.labels[0], "X")
 
         df = sv.get_dataframe()

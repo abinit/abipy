@@ -1,4 +1,5 @@
-""""Panels for phonon-related objects."""
+"""Panels for phonon-related objects."""
+
 from __future__ import annotations
 
 import panel as pn
@@ -9,14 +10,19 @@ from abipy.panels.core import AbipyParameterized, depends_on_btn_click, dfc, mpl
 
 class PhononBandsPlotterPanel(AbipyParameterized):
     """
+    Panel for interacting with PhononBandsPlotter objects.
     """
 
     def __init__(self, plotter, **params):
-
-        self.phbands_plotter_mode = pnw.Select(name="Plot Mode", value="gridplot",
-                                               options=["gridplot", "combiplot", "boxplot", "combiboxplot"]) # "animate",
-        self.phbands_plotter_units = pnw.Select(name="Units", value="eV",
-                                                options=["eV", "meV", "Ha", "cm-1", "Thz"])
+        """
+        Args:
+            plotter: |PhononBandsPlotter| object.
+            params: Parameters passed to the parent class.
+        """
+        self.phbands_plotter_mode = pnw.Select(
+            name="Plot Mode", value="gridplot", options=["gridplot", "combiplot", "boxplot", "combiboxplot"]
+        )  # "animate",
+        self.phbands_plotter_units = pnw.Select(name="Units", value="eV", options=["eV", "meV", "Ha", "cm-1", "Thz"])
         self.phbands_plotter_btn = pnw.Button(name="Plot", button_type="primary")
 
         self.plotter = plotter
@@ -24,6 +30,7 @@ class PhononBandsPlotterPanel(AbipyParameterized):
 
     @depends_on_btn_click("phbands_blotter_btn")
     def on_phbands_plot_btn(self) -> pn.Row:
+        """Callback for phonon bands plot button click."""
         plot_mode = self.phbands_plotter_mode.value
         plotfunc = getattr(self.plotter, plot_mode, None)
         if plotfunc is None:
@@ -40,6 +47,7 @@ class PhononBandsPlotterPanel(AbipyParameterized):
         ws = pn.Column(self.phbands_plotter_mode, self.phbands_plotter_units, self.phbands_plotter_btn)
         d["PhbandsPlotter"] = pn.Row(ws, self.on_phbands_plot_btn, sizing_mode="scale_width")
 
-        if as_dict: return d
+        if as_dict:
+            return d
 
         return self.get_template_from_tabs(d, template=kwargs.get("template"))

@@ -1,4 +1,5 @@
 """Hirshfeld Charges."""
+
 from __future__ import annotations
 
 import os
@@ -16,10 +17,7 @@ from abipy.core.mixins import Has_Structure
 from abipy.core.structure import Structure
 from abipy.electrons.denpot import DensityFortranFile
 
-__all__ = [
-    "BaderCharges",
-    "HirshfeldCharges"
-]
+__all__ = ["BaderCharges", "HirshfeldCharges"]
 
 
 class Charges(Has_Structure):
@@ -69,6 +67,7 @@ class HirshfeldCharges(Charges):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: HirshfeldCharges
     """
+
     @classmethod
     def from_cut3d_outfile(cls, filepath, structure):
         """
@@ -82,12 +81,12 @@ class HirshfeldCharges(Charges):
         start_hirshfeld_i = None
         for i, l in enumerate(lines):
             if "Hirshfeld analysis" in l:
-                start_hirshfeld_i = i+3
+                start_hirshfeld_i = i + 3
                 break
         else:
             raise RuntimeError("The file does not contain Hirshfeld charges")
 
-        for i in range(start_hirshfeld_i, start_hirshfeld_i+len(structure)):
+        for i in range(start_hirshfeld_i, start_hirshfeld_i + len(structure)):
             l = lines[i]
             electron_charges.append(float(l.split()[2]))
             reference_charges.append(-float(l.split()[1]))
@@ -106,8 +105,9 @@ class BaderCharges(Charges):
     """
 
     @classmethod
-    @requires(which("bader") or which("bader.exe"),
-              "BaderCharges.from_files requires the executable bader to be in the path.")
+    @requires(
+        which("bader") or which("bader.exe"), "BaderCharges.from_files requires the executable bader to be in the path."
+    )
     def from_files(cls, density_path, pseudopotential_paths, with_core=True, workdir=None, **kwargs):
         """
         Uses the abinit density files and the bader_ executable from Henkelmann et al. to calculate
@@ -149,15 +149,17 @@ class BaderCharges(Charges):
             try:
                 from pseudo_dojo.ppcodes.oncvpsp import psp8_get_densities
             except ImportError as exc:
-                print("PseudoDojo package required to extract core densities. "
-                      "Please install it with `pip install pseudo_dojo`")
+                print(
+                    "PseudoDojo package required to extract core densities. "
+                    "Please install it with `pip install pseudo_dojo`"
+                )
                 raise exc
 
             # extract core charge from pseudopotentials on a radial grid in the correct units
             rhoc = {}
             for specie, ppath in pseudopotential_paths.items():
                 r = psp8_get_densities(ppath)
-                rhoc[specie] = [r.rmesh * bohr_to_angstrom, r.aecore / (4.0 * np.pi) / (bohr_to_angstrom ** 3)]
+                rhoc[specie] = [r.rmesh * bohr_to_angstrom, r.aecore / (4.0 * np.pi) / (bohr_to_angstrom**3)]
 
             workdir = get_workdir(workdir)
 

@@ -2,13 +2,14 @@
 This module defines convenience types for type hinting purposes.
 It extends the types provided by pymatgen with Abipy-specific ones.
 """
+
 from __future__ import annotations
 
 from collections.abc import Sequence
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Union
 
 import numpy as np
-from pathlib import Path
 
 if TYPE_CHECKING:
     # needed to avoid circular imports

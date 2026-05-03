@@ -1,4 +1,5 @@
 """Mixin classes"""
+
 from __future__ import annotations
 
 import abc
@@ -24,7 +25,7 @@ __all__ = [
     "Has_PhononBands",
     "Has_Structure",
     "NotebookWriter",
-    "SlotPickleMixin"
+    "SlotPickleMixin",
 ]
 
 
@@ -33,10 +34,12 @@ class BaseFile(metaclass=abc.ABCMeta):
     Abstract base class defining the methods that must be implemented
     by the concrete classes representing the different files produced by ABINIT.
     """
+
     @classmethod
     def from_file(cls, filepath: str):
         """Initialize the object from a string."""
-        if isinstance(filepath, cls): return filepath
+        if isinstance(filepath, cls):
+            return filepath
         return cls(filepath)
 
     def __init__(self, filepath: str):
@@ -77,11 +80,10 @@ class BaseFile(metaclass=abc.ABCMeta):
         return self.__class__.__name__
 
     def filestat(self, as_string: bool = False) -> dict:
-        """
-        Dictionary with file metadata, if ``as_string`` is True, a string is returned.
-        """
+        """Dictionary with file metadata, if ``as_string`` is True, a string is returned."""
         d = get_filestat(self.filepath)
-        if not as_string: return d
+        if not as_string:
+            return d
         return "\n".join("%s: %s" % (k, v) for k, v in d.items())
 
     @abc.abstractmethod
@@ -105,7 +107,6 @@ class BaseFile(metaclass=abc.ABCMeta):
 
 
 class TextFile(BaseFile):
-
     def __enter__(self):
         # Open the file
         self._file
@@ -136,23 +137,21 @@ class TextFile(BaseFile):
 
         root, ext = os.path.splitext(self.basename)
         text = open(self.filepath).read()
-        if not text: text = "This file is empty!"
+        if not text:
+            text = "This file is empty!"
 
         # Use Markdown for selected extensions else Ace editor.
-        if ext and len(ext) > 1: ext = ext[1:]
+        if ext and len(ext) > 1:
+            ext = ext[1:]
         ext2format = dict(sh="shell", py="python", stdin="shell", stdout="shell", stderr="shell")
 
         if ext in ext2format:
             fmt = ext2format[ext]
             obj = pn.pane.Markdown(f"```{fmt}\n{text}\n```", sizing_mode="stretch_both")
         else:
-            obj = pnw.Ace(value=text, language="text", readonly=True,
-                          sizing_mode="stretch_width", height=1200)
+            obj = pnw.Ace(value=text, language="text", readonly=True, sizing_mode="stretch_width", height=1200)
 
-        return pn.Column(f"## File: {self.filepath}",
-                         obj,
-                         pn.layout.Divider(),
-                         sizing_mode="stretch_width")
+        return pn.Column(f"## File: {self.filepath}", obj, pn.layout.Divider(), sizing_mode="stretch_width")
 
 
 class JsonFile(TextFile):
@@ -165,12 +164,13 @@ class JsonFile(TextFile):
         import json
 
         from abipy.panels.viewers import JSONViewer
+
         with self:
             return JSONViewer(json.load(self._file))
 
 
 class AbinitNcFile(BaseFile):
-#class AbinitNcFile(BaseFile, metaclass=abc.ABCMeta):
+    # class AbinitNcFile(BaseFile, metaclass=abc.ABCMeta):
     """
     Abstract class representing a Netcdf file with data saved
     according to the ETSF-IO specifications (when available).
@@ -189,16 +189,16 @@ class AbinitNcFile(BaseFile):
             fh.write(bstring)
             return cls.from_file(tmp_path)
 
-    #@abc.abstractproperty
-    #def r(self):
+    # @abc.abstractproperty
+    # def r(self):
     #    """Netcdf reader"""
 
-    #@property
-    #def reader(self):
+    # @property
+    # def reader(self):
     #    return self.r
 
-    #@r.setter(self):
-    #def r(self, reader):
+    # @r.setter(self):
+    # def r(self, reader):
     #    """Set the reader"""
     #    return self._r = reader
 
@@ -213,9 +213,7 @@ class AbinitNcFile(BaseFile):
 
     @abc.abstractproperty
     def params(self) -> dict:
-        """
-        Dictionary with the convergence parameters used to construct |pandas-DataFrames|.
-        """
+        """Dictionary with the convergence parameters used to construct |pandas-DataFrames|."""
 
     def get_dims_dataframe(self, as_dict=False, path="/") -> pd.DataFrame:
         """
@@ -225,7 +223,8 @@ class AbinitNcFile(BaseFile):
         grp = self.reader.rootgrp if path == "/" else self.path2group[path]
         d = {k: len(v) for k, v in grp.dimensions.items()}
 
-        if as_dict: return d
+        if as_dict:
+            return d
 
         # Since this is a Series but we want a dataframe to facilitate interoperability.
         # we have to call init with additional kwargs.
@@ -246,13 +245,13 @@ class AbinitNcFile(BaseFile):
         netcdf dimensions and variables.
         """
         from abipy.panels.core import NcFileViewer
+
         return NcFileViewer(self).get_ncfile_view(**kwargs)
 
 
 class AbinitFortranFile(BaseFile):
-    """
-    Abstract class representing a Fortran file containing output data from abinit.
-    """
+    """Abstract class representing a Fortran file containing output data from abinit."""
+
     def close(self) -> None:
         """nop, just to fulfill the abstract interface."""
 
@@ -271,34 +270,32 @@ class CubeFile(BaseFile):
 
         |numpy-array| of shape [nx, ny, nz] with numerical values on the real-space mesh.
     """
+
     def __init__(self, filepath: str):
         from abipy.iotools.cube import cube_read_structure_mesh_data
+
         super().__init__(filepath)
         self.structure, self.mesh, self.data = cube_read_structure_mesh_data(self.filepath)
 
     def close(self) -> None:
         """nop, just to fulfill the abstract interface."""
 
-    #@classmethod
-    #def write_structure_mesh_data(cls, path, structure, mesh, data):
+    # @classmethod
+    # def write_structure_mesh_data(cls, path, structure, mesh, data):
     #    with open(path, "wt") as fh:
     #        cube_write_structure_mesh(fh, structure, mesh)
     #        cube_write_data(fh, data, mesh):
 
 
 class Has_Structure(metaclass=abc.ABCMeta):
-    """
-    Mixin class for |AbinitNcFile| containing crystallographic data.
-    """
+    """Mixin class for |AbinitNcFile| containing crystallographic data."""
 
     @abc.abstractproperty
     def structure(self):
         """Returns the |Structure| object."""
 
     def plot_bz(self, **kwargs) -> Figure:
-        """
-        Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone.
-        """
+        """Gives the plot (as a matplotlib object) of the symmetry line path in the Brillouin Zone."""
         return self.structure.plot_bz(**kwargs)
 
     # To maintain backward compatibility
@@ -319,6 +316,7 @@ class Has_Structure(metaclass=abc.ABCMeta):
         See |Visualizer| for the list of applications and formats supported.
         """
         from abipy.iotools.visualizer import Visualizer
+
         visu = Visualizer.from_name(appname)
 
         for ext in visu.supported_extensions():
@@ -346,7 +344,8 @@ class Has_Structure(metaclass=abc.ABCMeta):
                 * site_labels: Labels for each site in `iatom_list` e.g Si2a
         """
         natom = len(self.structure)
-        if natom == 1: verbose = False
+        if natom == 1:
+            verbose = False
         if verbose:
             print("Calling spglib to find inequivalent sites. Magnetic symmetries (if any) are not taken into account.")
 
@@ -371,7 +370,9 @@ class Has_Structure(metaclass=abc.ABCMeta):
         wyck_labels = ea.wyck_labels[iatom_list]
         site_labels = ea.site_labels[iatom_list]
 
-        return dict2namedtuple(iatom_list=iatom_list, wyckoffs=wyckoffs, wyck_labels=wyck_labels, site_labels=site_labels)
+        return dict2namedtuple(
+            iatom_list=iatom_list, wyckoffs=wyckoffs, wyck_labels=wyck_labels, site_labels=site_labels
+        )
 
     def yield_structure_figs(self, **kwargs):
         """*Generates* a predefined list of matplotlib figures with minimal input from the user."""
@@ -431,6 +432,7 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
 
     @cached_property
     def tsmear(self):
+        """Smearing temperature in Hartree."""
         return self.ebands.smearing.tsmear_ev.to("Ha")
 
     def get_ebands_params(self) -> dict:
@@ -481,9 +483,7 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
             yield edos.plotly(show=False)
 
     def expose_ebands(self, slide_mode=False, slide_timeout=None, expose_web=False, **kwargs):
-        """
-        Shows a predefined list of matplotlib figures for electron bands with minimal input from the user.
-        """
+        """Shows a predefined list of matplotlib figures for electron bands with minimal input from the user."""
         from abipy.tools.plotting import MplExposer, PanelExposer
 
         if expose_web:
@@ -494,7 +494,7 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
         with e:
             e(self.yield_ebands_figs(**kwargs))
 
-    #def plotly_expose_ebands(self, **kwargs):
+    # def plotly_expose_ebands(self, **kwargs):
     #    """
     #    This function *generates* a predefined list of plotly figures with minimal input from the user.
     #    """
@@ -509,9 +509,7 @@ class Has_ElectronBands(metaclass=abc.ABCMeta):
 
 
 class Has_PhononBands(metaclass=abc.ABCMeta):
-    """
-    Mixin class for |AbinitNcFile| containing phonon data.
-    """
+    """Mixin class for |AbinitNcFile| containing phonon data."""
 
     @abc.abstractproperty
     def phbands(self):
@@ -524,12 +522,10 @@ class Has_PhononBands(metaclass=abc.ABCMeta):
         }
 
     def plot_phbands(self, **kwargs) -> Figure:
-        """
-        Plot the electron energy bands. See the :func:`PhononBands.plot` for the signature.""
-        """
+        """Plot the electron energy bands. See the :func:`PhononBands.plot` for the signature."""
         return self.phbands.plot(**kwargs)
 
-    #def plot_phbands_with_phdos(self, phdos, **kwargs):
+    # def plot_phbands_with_phdos(self, phdos, **kwargs):
     #    return self.phbands.plot_with_phdos(phdos, **kwargs)
 
     def yield_phbands_figs(self, **kwargs):  # pragma: no cover
@@ -553,18 +549,15 @@ class Has_PhononBands(metaclass=abc.ABCMeta):
         yield self.phbands.plot_colored_matched(units=units, show=False)
 
     def expose_phbands(self, slide_mode=False, slide_timeout=None, **kwargs):
-        """
-        Show a predefined list of matplotlib figures for phonon bands with minimal input from the user.
-        """
+        """Show a predefined list of matplotlib figures for phonon bands with minimal input from the user."""
         from abipy.tools.plotting import MplExposer
+
         with MplExposer(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
             e(self.yield_phbands_figs(**kwargs))
 
 
 class NcDumper:
-    """
-    Wrapper object for the ncdump tool.
-    """
+    """Wrapper object for the ncdump tool."""
 
     def __init__(self, *nc_args, **nc_kwargs):
         """
@@ -581,6 +574,7 @@ class NcDumper:
         if self.ncdump is None:
             return "Cannot find ncdump tool in $PATH"
         from subprocess import check_output
+
         return check_output(["ncdump", filepath])
 
 
@@ -615,19 +609,18 @@ def get_filestat(filepath: str) -> dict:
 
 
 class HasNotebookTools:
-
     def has_panel(self):
-        """
-        Return panel module (that evaluates to True) if panel is installed else False.
-        """
+        """Return panel module (that evaluates to True) if panel is installed else False."""
         try:
             import panel as pn
+
             return pn
         except ImportError:
             return False
 
-    def make_and_open_notebook(self, nbpath=None, foreground=False,
-                               classic_notebook=False, no_browser=False) -> int:  # pragma: no cover
+    def make_and_open_notebook(
+        self, nbpath=None, foreground=False, classic_notebook=False, no_browser=False
+    ) -> int:  # pragma: no cover
         """
         Generate a jupyter_ notebook and open it in the browser.
 
@@ -686,6 +679,7 @@ See also https://jupyter.readthedocs.io/en/latest/install.html
             cmd = "%s %s" % (app_path, nbpath)
             print("Executing:", cmd, "\nstdout and stderr redirected to %s" % tmpname)
             import subprocess
+
             process = subprocess.Popen(cmd.split(), shell=False, stdout=fd, stderr=fd)
             cprint("pid: %s" % str(process.pid), "yellow")
             return 0
@@ -698,6 +692,7 @@ See also https://jupyter.readthedocs.io/en/latest/install.html
         import socket
 
         from abipy.tools.notebooks import find_free_port
+
         username = os.getlogin()
         hostname = socket.gethostname()
         port = find_free_port()
@@ -730,6 +725,7 @@ http://localhost:{port}/notebooks/{notebook_name}
     def get_nbformat_nbv() -> tuple:
         """Return (nbformat module, notebook version module)"""
         import nbformat
+
         nbv = nbformat.v4
         return nbformat, nbv
 
@@ -744,8 +740,9 @@ http://localhost:{port}/notebooks/{notebook_name}
         if title is not None:
             nb.cells.append(nbv.new_markdown_cell("## %s" % title))
 
-        nb.cells.extend([
-            nbv.new_code_cell("""\
+        nb.cells.extend(
+            [
+                nbv.new_code_cell("""\
 import sys, os
 import numpy as np
 
@@ -770,7 +767,8 @@ from abipy import abilab
 # See https://seaborn.pydata.org/generated/seaborn.set.html#seaborn.set
 abilab.enable_notebook(with_seaborn=True)
 """)
-        ])
+            ]
+        )
 
         return nbformat, nbv, nb
 
@@ -782,11 +780,13 @@ abilab.enable_notebook(with_seaborn=True)
         """
         import os
         import tempfile
+
         if nbpath is None:
             _, nbpath = tempfile.mkstemp(prefix="abinb_", suffix=".ipynb", dir=os.getcwd(), text=True)
 
         # Write notebook
         import nbformat
+
         with open(nbpath, "w", encoding="utf8") as fh:
             nbformat.write(nb, fh)
             return nbpath
@@ -823,12 +823,10 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
 
     @classmethod
     def pickle_load(cls, filepath: str):
-        """
-        Loads the object from a pickle file.
-        """
+        """Loads the object from a pickle file."""
         with open(filepath, "rb") as fh:
             new = pickle.load(fh)
-            #assert cls is new.__class__
+            # assert cls is new.__class__
             return new
 
     def pickle_dump(self, filepath=None) -> str:
@@ -852,8 +850,8 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
         Used in abiopen.py or abiview.py to get a quick look at the results.
         """
 
-    #@abc.abstractmethod
-    #def yield_plotly_figs(self, **kwargs):  # pragma: no cover
+    # @abc.abstractmethod
+    # def yield_plotly_figs(self, **kwargs):  # pragma: no cover
     #    """
     #    This function *generates* a predefined list of matplotlib figures with minimal input from the user.
     #    Used in abiview.py to get a quick look at the results.
@@ -862,15 +860,18 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
     def _get_panel_and_template(self) -> tuple:
         # Create panel template with matplotlib figures and show them in the browser.
         import panel as pn
+
         pn.config.sizing_mode = "stretch_width"
         from abipy.panels.core import get_template_cls_from_name
+
         cls = get_template_cls_from_name("FastGridTemplate")
 
         title = self.__class__.__name__
-        if hasattr(self, "structure"): title = f"{title} <small>({self.structure.formula})</small>"
+        if hasattr(self, "structure"):
+            title = f"{title} <small>({self.structure.formula})</small>"
         template = cls(
             title=title,
-            header_background="#ff8c00 ", # Dark orange
+            header_background="#ff8c00 ",  # Dark orange
         )
 
         return pn, template
@@ -887,6 +888,7 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
         if not use_web:
             # Produce all matplotlib figures and show them with the X-server.
             from abipy.tools.plotting import MplExposer
+
             with MplExposer(slide_mode=slide_mode, slide_timeout=slide_mode, verbose=1) as e:
                 e(self.yield_figs(**kwargs))
 
@@ -895,19 +897,22 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
             pn, template = self._get_panel_and_template()
             pn.config.sizing_mode = "stretch_width"
             from abipy.panels.core import mpl
+
             for i, fig in enumerate(self.yield_figs()):
                 row, col = divmod(i, 2)
-                #if isinstance(fig, pd.DataFrame, pd.Series):
+                # if isinstance(fig, pd.DataFrame, pd.Series):
                 #    p = dfc(fig)
-                #elsse
+                # elsse
                 p = mpl(fig, with_divider=False, dpi=82)
                 if hasattr(template.main, "append"):
                     template.main.append(p)
                 else:
                     # Assume .main area acts like a GridSpec
                     row_slice = slice(3 * row, 3 * (row + 1))
-                    if col == 0: template.main[row_slice, :6] = p
-                    if col == 1: template.main[row_slice, 6:] = p
+                    if col == 0:
+                        template.main[row_slice, :6] = p
+                    if col == 1:
+                        template.main[row_slice, 6:] = p
 
             return template.show()
 
@@ -916,13 +921,14 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
         This function *generates* a predefined list of plotly figures with minimal input from the user.
         Relies on the yield_plotly_figs method implemented by the subclass in order to generate the figures.
         """
-        #print("in plotly expose")
+        # print("in plotly expose")
         pn, template = self._get_panel_and_template()
         pn.config.sizing_mode = "stretch_width"
         from abipy.panels.core import mpl, ply
 
         # Insert figure in template.main.
         from abipy.tools.plotting import is_mpl_figure, is_plotly_figure
+
         for i, fig in enumerate(self.yield_plotly_figs()):
             row, col = divmod(i, 2)
             # Handle both matplotlib and plotly figures since we don't support plotly everywhere.
@@ -938,16 +944,16 @@ class NotebookWriter(HasNotebookTools, metaclass=abc.ABCMeta):
             else:
                 # Assume main area acts like a panel GridSpec
                 row_slice = slice(3 * row, 3 * (row + 1))
-                if col == 0: template.main[row_slice, :6] = p
-                if col == 1: template.main[row_slice, 6:] = p
+                if col == 0:
+                    template.main[row_slice, :6] = p
+                if col == 1:
+                    template.main[row_slice, 6:] = p
 
         return template.show()
 
 
 class Has_Header:
-    """
-    Mixin class for netcdf files containing the Abinit header.
-    """
+    """Mixin class for netcdf files containing the Abinit header."""
 
     @cached_property
     def hdr(self):
@@ -956,13 +962,11 @@ class Has_Header:
             return self.reader.read_abinit_hdr()
         return self.r.read_abinit_hdr()
 
-    #def compare_hdr(self, other_hdr):
+    # def compare_hdr(self, other_hdr):
 
 
 class SlotPickleMixin:
-    """
-    This mixin makes it possible to pickle/unpickle objects with __slots__
-    """
+    """This mixin makes it possible to pickle/unpickle objects with __slots__."""
 
     def __getstate__(self) -> dict:
         return {slot: getattr(self, slot) for slot in self.__slots__ if hasattr(self, slot)}

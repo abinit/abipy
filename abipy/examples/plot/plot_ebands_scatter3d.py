@@ -7,6 +7,7 @@ This example shows how to plot a particular "band" in 3D
 with matplotlib scatter3D.
 The color of the point gives the energy of the state wrt to the Fermi level.
 """
+
 import abipy.data as abidata
 from abipy import abilab
 

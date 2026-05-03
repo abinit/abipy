@@ -5,6 +5,7 @@ Equation of state
 
 Flow to compute the equation of state by fitting E(V) at T = 0.
 """
+
 import os
 import sys
 
@@ -19,7 +20,7 @@ def build_flow(options):
 
     # Build GS input file.
     pseudos = abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
-    #silicon = abilab.Structure.zincblende(5.431, ["Si", "Si"], units="ang")
+    # silicon = abilab.Structure.zincblende(5.431, ["Si", "Si"], units="ang")
     silicon = abidata.cif_file("si.cif")
 
     scf_input = abilab.AbinitInput(silicon, pseudos)
@@ -37,6 +38,7 @@ def build_flow(options):
     scf_input.set_autokmesh(nksmall=4)
 
     from abipy.flowtk.gs_works import EosWork
+
     flow = flowtk.Flow(options.workdir, manager=options.manager)
 
     # Si is cubic and atomic positions are fixed by symmetry so we
@@ -54,6 +56,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

@@ -1,4 +1,5 @@
 """Tests for abiphonopy module"""
+
 import abipy.data as abidata
 import abipy.flowtk.abiphonopy as abiph
 from abipy import flowtk
@@ -18,7 +19,7 @@ class TestAbiPhonopy(AbipyTest):
 
         # TODO: Spin
         gsinp = gs_input(si_structure, pseudos=abidata.pseudos("14si.pspnc"), ecut=4, spin_mode="unpolarized")
-        #gsinp = gs_input(si_structure, pseudos=abidata.pseudos("14si.pspnc"), ecut=4, spin_mode="polarized")
+        # gsinp = gs_input(si_structure, pseudos=abidata.pseudos("14si.pspnc"), ecut=4, spin_mode="polarized")
         flow = flowtk.Flow.temporary_flow()
         scdims = [2, 2, 2]
         phpy_work = abiph.PhonopyWork.from_gs_input(gsinp, scdims=scdims, phonopy_kwargs=None, displ_kwargs=None)
@@ -31,8 +32,9 @@ class TestAbiPhonopy(AbipyTest):
         assert len(phpy_work.bec_tasks) == 0
 
         # Gruneisen with phonopy
-        grun_work = abiph.PhonopyGruneisenWork.from_gs_input(gsinp, voldelta=0.1, scdims=scdims,
-                                                             phonopy_kwargs=None, displ_kwargs=None)
+        grun_work = abiph.PhonopyGruneisenWork.from_gs_input(
+            gsinp, voldelta=0.1, scdims=scdims, phonopy_kwargs=None, displ_kwargs=None
+        )
         flow.register_work(grun_work)
 
         self.assert_equal(scdims, grun_work.scdims)

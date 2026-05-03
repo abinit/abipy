@@ -1,6 +1,7 @@
 """
 This module defines objects to facilitate the creation of ABINIT input files.
 """
+
 from __future__ import annotations
 
 import abc
@@ -54,8 +55,7 @@ CHKPARAL = None
 GEOVARS = {
     "acell",
     "rprim",
-    "rprimd"
-    "angdeg",
+    "rprimdangdeg",
     "xred",
     "xcart",
     "xangst",
@@ -102,7 +102,7 @@ _IRDVARS = {
     "irdwfk",
     "irdwfkfine",
     "irdwfq",
-    "ird1wf"
+    "ird1wf",
 }
 
 # variable and default values of the prefix used in abipy
@@ -114,7 +114,7 @@ _DATA_PREFIX = {
 
 # FIXME __mul__ operator in pymatgen should allow for grouping atoms by individual cells
 # The present version group by image.
-#def _repeat_array(name, values, from_natom, numcells):
+# def _repeat_array(name, values, from_natom, numcells):
 #    if name in {"spinat",}:
 #        # [:, natom]
 #        values = np.reshape(values, (-1, from_natom))
@@ -156,7 +156,8 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
         Write the input file to file ``filepath``.
         """
         dirname = os.path.dirname(os.path.abspath(filepath))
-        if not os.path.exists(dirname): os.makedirs(dirname)
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
 
         with open(filepath, "w") as fh:
             fh.write(self.to_string(files_file=files_file))
@@ -181,7 +182,7 @@ class AbstractInput(MutableMapping, metaclass=abc.ABCMeta):
                     tar.add(pseudo.filepath, arcname=pseudo.basename)
 
             for dirname in ("indata", "tmpdata", "outdata"):
-                #print("Adding dir:", dirname)
+                # print("Adding dir:", dirname)
                 os.mkdir(dirname)
                 p = os.path.join(dirname, "__empty__")
                 with open(p, "w") as fh:
@@ -391,9 +392,19 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
 
     Error = AbinitInputError
 
-    def __init__(self, structure, pseudos,
-                 pseudo_dir=None, comment=None, decorators=None, abi_args=None,
-                 abi_kwargs=None, tags=None, enforce_znucl=None, enforce_typat=None):
+    def __init__(
+        self,
+        structure,
+        pseudos,
+        pseudo_dir=None,
+        comment=None,
+        decorators=None,
+        abi_args=None,
+        abi_kwargs=None,
+        tags=None,
+        enforce_znucl=None,
+        enforce_typat=None,
+    ):
         """
         Args:
             structure: Parameters defining the crystalline structure. Accepts |Structure| object
@@ -451,7 +462,8 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
             except ValueError as exc:
                 raise self.Error(str(exc))
 
-        if comment is not None: self.set_comment(comment)
+        if comment is not None:
+            self.set_comment(comment)
 
         self._decorators = [] if not decorators else decorators[:]
         self.tags = set() if not tags else set(tags)
@@ -495,14 +507,17 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
         """
         self.enforce_znucl = znucl
         self.enforce_typat = typat
-        if znucl is None and typat is None: return
+        if znucl is None and typat is None:
+            return
 
         # Consistency check
         if len(typat) != len(self.structure):
-            raise ValueError("typat contains %d entries while it should be natom: %d" % (len(typat), len(self.structure)))
+            raise ValueError(
+                "typat contains %d entries while it should be natom: %d" % (len(typat), len(self.structure))
+            )
 
-        #ntypat = self.structure.n_elems
-        #if len(znucl) != ntypat:
+        # ntypat = self.structure.n_elems
+        # if len(znucl) != ntypat:
         #    raise ValueError("znucl contains %d entries while it should be ntypat: %d" % (len(znucl), ntypat))
 
     def variable_checksum(self) -> str:
@@ -513,6 +528,7 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
         # Use sha1 from hashlib because python builtin hash is not deterministic
         # (hash is version- and machine-dependent)
         import hashlib
+
         sha1 = hashlib.sha1()
 
         def tos(s):
@@ -523,15 +539,16 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
         # We may just compute the hash from the keys (hash equality does not necessarily imply __eq__!)
         for key in sorted(self.keys()):
             value = self[key]
-            if isinstance(value, np.ndarray): value = value.tolist()
+            if isinstance(value, np.ndarray):
+                value = value.tolist()
             sha1.update(tos(key))
             sha1.update(tos(value))
 
         # Use string representation to compute hash
         # Not perfect but it is supposed to be better than the version above
         # Use alphabetical sorting, don't write pseudos (treated below).
-        #s = self.to_string(sortmode="a", with_mnemonics=False, with_structure=True, with_pseudos=False)
-        #sha1.update(tos(s))
+        # s = self.to_string(sortmode="a", with_mnemonics=False, with_structure=True, with_pseudos=False)
+        # sha1.update(tos(s))
 
         sha1.update(tos(self.comment))
         # add pseudos (this is easy because we have md5)
@@ -548,7 +565,8 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
         """
         abi_args = []
         for key, value in self.items():
-            if isinstance(value, np.ndarray): value = value.tolist()
+            if isinstance(value, np.ndarray):
+                value = value.tolist()
             abi_args.append((key, value))
 
         pseudo_dicts = [p.as_dict() for p in self.pseudos]
@@ -556,18 +574,20 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
         # replace absolute machine dependent filepaths with REPO prefix + relative path
         # if we are using one of the "official" tables.
         from abipy.flowtk.psrepos import encode_pseudopath
+
         for d in pseudo_dicts:
             d["filepath"] = encode_pseudopath(d["filepath"])
 
-        return dict(structure=self.structure.as_dict(),
-                    pseudos=pseudo_dicts,
-                    comment=self.comment,
-                    decorators=[dec.as_dict() for dec in self.decorators],
-                    abi_args=abi_args,
-                    tags=list(self.tags),
-                    enforce_znucl=self.enforce_znucl,
-                    enforce_typat=self.enforce_typat,
-                    )
+        return dict(
+            structure=self.structure.as_dict(),
+            pseudos=pseudo_dicts,
+            comment=self.comment,
+            decorators=[dec.as_dict() for dec in self.decorators],
+            abi_args=abi_args,
+            tags=list(self.tags),
+            enforce_znucl=self.enforce_znucl,
+            enforce_typat=self.enforce_typat,
+        )
 
     @property
     def vars(self) -> dict[str, Any]:
@@ -599,40 +619,50 @@ class AbinitInput(AbiAbstractInput, MSONable, Has_Structure):
         # path on this machine. NB: I'm assuming the the PS REPO is already installed.
         # else from_file will fail.
         from abipy.flowtk.psrepos import decode_pseudopath
+
         for pseudo_dict in d["pseudos"]:
             pseudo_dict["filepath"] = decode_pseudopath(pseudo_dict["filepath"])
 
         pseudos = [Pseudo.from_file(p["filepath"]) for p in d["pseudos"]]
         dec = MontyDecoder()
 
-        return cls(d["structure"], pseudos, decorators=dec.process_decoded(d["decorators"]),
-                   comment=d["comment"], abi_args=d["abi_args"], tags=d["tags"],
-                   enforce_znucl=d.get("enforce_znucl"),
-                   enforce_typat=d.get("enforce_typat"),
-                   )
+        return cls(
+            d["structure"],
+            pseudos,
+            decorators=dec.process_decoded(d["decorators"]),
+            comment=d["comment"],
+            abi_args=d["abi_args"],
+            tags=d["tags"],
+            enforce_znucl=d.get("enforce_znucl"),
+            enforce_typat=d.get("enforce_typat"),
+        )
 
     def __setitem__(self, key: str, value: Any):
         """Implements: self[key] = value"""
         if key in _TOLVARS_SCF and hasattr(self, "_vars") and any(t in self._vars and t != key for t in _TOLVARS_SCF):
-            logger.info(f"Replacing previously set tolerance variable: {self.remove_vars(_TOLVARS_SCF, strict=False)}."
-                        )
+            logger.info(f"Replacing previously set tolerance variable: {self.remove_vars(_TOLVARS_SCF, strict=False)}.")
 
         return super().__setitem__(key, value)
 
     def _check_varname(self, key: str) -> None:
         """Check whether key is a valid (and allowed) variable name"""
         if key in GEOVARS:
-            raise self.Error("You cannot set the value of a variable associated to the crystalline structure.\n"
-                             "Use Structure objects to prepare the input file.")
+            raise self.Error(
+                "You cannot set the value of a variable associated to the crystalline structure.\n"
+                "Use Structure objects to prepare the input file."
+            )
 
         if self.spell_check and not is_abivar(key):
-            raise self.Error("""
+            raise self.Error(
+                """
 Cannot find variable `%s` in the internal database. If you believe this is not a typo, use:
 
     input.set_spell_check(False)
 
 to disable spell checking. Perhaps the internal database is not in synch
-with the Abinit version you are using? Please contact the AbiPy developers.""" % key)
+with the Abinit version you are using? Please contact the AbiPy developers."""
+                % key
+            )
 
     @property
     def runlevel(self):
@@ -748,9 +778,18 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         """True if spell checking is activated."""
         return self._spell_check
 
-    def to_string(self, sortmode="section", post=None, with_mnemonics=False, mode="text",
-                  with_structure=True, with_pseudos=True, exclude=None, verbose=0,
-                  files_file=False) -> str:
+    def to_string(
+        self,
+        sortmode="section",
+        post=None,
+        with_mnemonics=False,
+        mode="text",
+        with_structure=True,
+        with_pseudos=True,
+        exclude=None,
+        verbose=0,
+        files_file=False,
+    ) -> str:
         r"""
         String representation.
 
@@ -769,26 +808,31 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             with_structure: False if section with structure variables should not be printed.
             with_pseudos: False if JSON section with pseudo data should not be added.
             exclude: List of variable names that should be ignored.
+            verbose: Verbosity level.
             files_file: if True a string compatible with the presence of a files file
                 will be generated. Otherwise all the required variables will be added
                 to the string.
         """
         if mode == "html":
             import html
+
             def escape(text):
                 return html.escape(text, quote=True)
         else:
+
             def escape(text):
                 return text
 
         lines = []
         app = lines.append
 
-        if self.comment: app("# " + self.comment.replace("\n", "\n#"))
+        if self.comment:
+            app("# " + self.comment.replace("\n", "\n#"))
 
         post = post if post is not None else ""
         mnemonics = self.mnemonics
-        if with_mnemonics: mnemonics = with_mnemonics
+        if with_mnemonics:
+            mnemonics = with_mnemonics
         exclude = set(exclude) if exclude is not None else set()
 
         # If spell checking is deactivated, we cannot use mmemonics or sormode == "section"
@@ -802,7 +846,8 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         if sortmode in (None, "a"):
             # Default is no sorting else alphabetical order.
             keys = [k for k, v in self.items() if k not in exclude and v is not None]
-            if sortmode == "a": keys = sorted(keys)
+            if sortmode == "a":
+                keys = sorted(keys)
 
             # Extract the items from the dict and add the files file and geo variables at the end
             items = [(k, self[k]) for k in keys]
@@ -822,7 +867,8 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
                 # Build variable, convert to string and append it
                 vname = name + post
-                if mode == "html": vname = var_database[name].html_link(label=vname)
+                if mode == "html":
+                    vname = var_database[name].html_link(label=vname)
                 value = format_string_abivars(vname, value, "abinit")
                 app(str(InputVariable(vname, value)))
 
@@ -842,18 +888,19 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
             for sec, names in sec2names.items():
                 app(w * "#")
-                #app("####" + ("SECTION: %s" % sec).center(w - 1))
+                # app("####" + ("SECTION: %s" % sec).center(w - 1))
                 app("####" + ("SECTION: %s" % sec).center(w - 1).rstrip())
                 app(w * "#")
                 for name in names:
                     value = vars[name]
                     if mnemonics and value is not None:
-                        #print(f"{name=}")
+                        # print(f"{name=}")
                         app(escape("#### <" + var_database[name].mnemonics + ">"))
 
                     # Build variable, convert to string and append it
                     vname = name + post
-                    if mode == "html": vname = var_database[name].html_link(label=vname)
+                    if mode == "html":
+                        vname = var_database[name].html_link(label=vname)
                     value = format_string_abivars(vname, value, "abinit")
                     app(str(InputVariable(vname, value)))
 
@@ -861,13 +908,14 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
                 app(w * "#")
                 app("####" + "STRUCTURE".center(w - 1).rstrip())
                 app(w * "#")
-                #print("abivars keys:", self.structure_abivars.keys())
+                # print("abivars keys:", self.structure_abivars.keys())
                 for name, value in self.structure_abivars.items():
                     if mnemonics and value is not None:
                         app(escape("#### <" + var_database[name].mnemonics + ">"))
                     vname = name + post
-                    if mode == "html": vname = var_database[name].html_link(label=vname)
-                    #print(f"{vname=}, {value=}")
+                    if mode == "html":
+                        vname = var_database[name].html_link(label=vname)
+                    # print(f"{vname=}, {value=}")
                     app(str(InputVariable(vname, value)))
 
         else:
@@ -889,14 +937,16 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         ppinfo.append("</JSON>")
 
         s += escape("\n#".join(ppinfo))
-        if mode == "html": s = to_html(s)
+        if mode == "html":
+            s = to_html(s)
 
         return s
 
     def _repr_html_(self) -> str:
         """Integration with jupyter notebooks."""
-        return self.to_string(sortmode="section", with_mnemonics=False, mode="html",
-                              with_structure=True, with_pseudos=False)
+        return self.to_string(
+            sortmode="section", with_mnemonics=False, mode="html", with_structure=True, with_pseudos=False
+        )
 
     @property
     def structure_abivars(self) -> dict:
@@ -989,7 +1039,8 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
                 eapp(f"nsppol should be 1 or 2 when nspinor == 2 while it is: {nsppol}")
 
         elif nspinor == 2:
-            if nsppol != 1: eapp(f"nsppol must be 1 when nspinor == 1 while it is: {nsppol}")
+            if nsppol != 1:
+                eapp(f"nsppol must be 1 when nspinor == 1 while it is: {nsppol}")
             nspden = self.get("nspden", None)
             if nspden is not None and nspden not in (1, 4):
                 eapp(f"nspden should be either 1 or 4 when nspinor == 2 while it is: {nspden}")
@@ -1011,7 +1062,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         value of ecut using a scaling factor that depends on ``accuracy``.
 
         Args:
-            accuracy:
+            accuracy: String defining the accuracy level ("low", "normal", "high").
 
         Return: Dictionary with variables.
         """
@@ -1031,7 +1082,8 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             pawecutdg = fact * ecut
 
         d = dict(ecut=ecut)
-        if has_paw: d.update(pawecutdg=pawecutdg)
+        if has_paw:
+            d.update(pawecutdg=pawecutdg)
         return self.set_vars(**d)
 
     def set_scf_nband_semicond(self, nsppol=1, nspinor=1, nspden=1, charge=0.0, spinat=None) -> dict:
@@ -1040,11 +1092,13 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         assuming a semiconductor. See set_scf_nband.
         Return dict with variables.
         """
-        return self.set_scf_nband(nsppol=nsppol, nspinor=nspinor, nspden=nspden,
-                                  occopt=1, tsmear=0.0, charge=0.0, spinat=None)
+        return self.set_scf_nband(
+            nsppol=nsppol, nspinor=nspinor, nspden=nspden, occopt=1, tsmear=0.0, charge=0.0, spinat=None
+        )
 
-    def set_scf_nband(self, nsppol: int, nspinor: int, nspden: int,
-                      occopt: int, tsmear: float, charge: float, spinat) -> dict:
+    def set_scf_nband(
+        self, nsppol: int, nspinor: int, nspden: int, occopt: int, tsmear: float, charge: float, spinat
+    ) -> dict:
         """
         Set electronic pararameters, smearing options and compute ``nband`` for a GS-SCF run.
         Return dict with variables.
@@ -1062,18 +1116,27 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         spin_mode = aobj.SpinMode(mode="test", nsppol=nsppol, nspinor=nspinor, nspden=nsppol)
         smearing = aobj.Smearing(occopt, tsmear)
 
-        scf_electrons = aobj.Electrons(spin_mode=spin_mode, smearing=smearing, algorithm=None,
-                                       charge=charge, nband=None, fband=None)
+        scf_electrons = aobj.Electrons(
+            spin_mode=spin_mode, smearing=smearing, algorithm=None, charge=charge, nband=None, fband=None
+        )
 
         if nsppol == 2 and spinat is None:
             self.set_autospinat()
             spinat = self["spinat"]
 
         from abipy.abio.factories import _find_scf_nband
+
         nband = _find_scf_nband(self.structure, self.pseudos, scf_electrons, spinat=spinat)
-        return self.set_vars(nsppol=nsppol, nspinor=nspinor, nspden=nspden,
-                             occopt=occopt, tsmear=tsmear, charge=charge,
-                             nband=nband, spinat=spinat)
+        return self.set_vars(
+            nsppol=nsppol,
+            nspinor=nspinor,
+            nspden=nspden,
+            occopt=occopt,
+            tsmear=tsmear,
+            charge=charge,
+            nband=nband,
+            spinat=spinat,
+        )
 
     def set_kmesh(self, ngkpt, shiftk, kptopt: int = 1) -> dict:
         """
@@ -1089,7 +1152,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             nspden = self.get("nspden", 4)
             if nspden == 4 and kptopt != 4:
                 cprint("nspinor 2 with nspden 4 requires kptopt 4", color="red")
-                #raise ValueError("nspinor 2 with nspden 4 requires kptopt 4")
+                # raise ValueError("nspinor 2 with nspden 4 requires kptopt 4")
 
         shiftk = np.reshape(shiftk, (-1, 3))
         return self.set_vars(ngkpt=ngkpt, kptopt=kptopt, nshiftk=len(shiftk), shiftk=shiftk)
@@ -1107,8 +1170,9 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             kptopt: Option for the generation of the mesh.
         """
         shiftk = self.structure.calc_shiftk()
-        return self.set_vars(ngkpt=self.structure.calc_ngkpt(nksmall), kptopt=kptopt,
-                             nshiftk=len(shiftk), shiftk=shiftk)
+        return self.set_vars(
+            ngkpt=self.structure.calc_ngkpt(nksmall), kptopt=kptopt, nshiftk=len(shiftk), shiftk=shiftk
+        )
 
     def get_ngkpt_shiftk(self) -> tuple:
         """
@@ -1175,11 +1239,13 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
                 a very large number of wavevectors.
             kptbounds: k-points defining the path in k-space.
                 If None, we use the default high-symmetry k-path defined in the pymatgen database.
+            iscf: Abinit iscf variable. Default: -2.
         """
-        #self.pop_vars(["ngkpt", "shiftk"]) ??
+        # self.pop_vars(["ngkpt", "shiftk"]) ??
 
         if ndivsm > 0:
-            if kptbounds is None: kptbounds = self.structure.calc_kptbounds()
+            if kptbounds is None:
+                kptbounds = self.structure.calc_kptbounds()
             kptbounds = np.reshape(kptbounds, (-1, 3))
             return self.set_vars(kptbounds=kptbounds, kptopt=-(len(kptbounds) - 1), ndivsm=ndivsm, iscf=iscf)
         kpts = kpoints_from_line_density(self.structure, abs(ndivsm))
@@ -1195,7 +1261,8 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             qptbounds: q-points defining the path in q-space.
                 If None, we use the default high-symmetry q-path defined in the pymatgen database.
         """
-        if qptbounds is None: qptbounds = self.structure.calc_kptbounds()
+        if qptbounds is None:
+            qptbounds = self.structure.calc_kptbounds()
         qptbounds = np.reshape(qptbounds, (-1, 3))
 
         return self.set_vars(ph_ndivsm=ndivsm, ph_nqpath=len(qptbounds), ph_qpath=qptbounds)
@@ -1210,9 +1277,10 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
                 Accepts iterable that can be reshaped as (nkptgw, 2)
                 or a tuple of two integers if the extrema are the same for each k-point.
         """
-        kptgw = np.reshape(kptgw, (-1,3))
+        kptgw = np.reshape(kptgw, (-1, 3))
         nkptgw = len(kptgw)
-        if len(bdgw) == 2: bdgw = len(kptgw) * bdgw
+        if len(bdgw) == 2:
+            bdgw = len(kptgw) * bdgw
 
         return self.set_vars(kptgw=kptgw, nkptgw=nkptgw, bdgw=np.reshape(bdgw, (nkptgw, 2)))
 
@@ -1270,13 +1338,13 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         spinat = []
         for site in self.structure:
             if hasattr(site, "magmom"):
-                spinat.append((0., 0., site.magmom))
+                spinat.append((0.0, 0.0, site.magmom))
             elif hasattr(site.specie, "spin") and site.specie.spin:
-                spinat.append((0., 0., site.specie.spin))
+                spinat.append((0.0, 0.0, site.specie.spin))
             elif str(site.specie) in magmom_mp_conf:
-                spinat.append((0., 0., magmom_mp_conf.get(str(site.specie))))
+                spinat.append((0.0, 0.0, magmom_mp_conf.get(str(site.specie))))
             else:
-                spinat.append((0., 0., magmom_mp_conf.get(site.specie.symbol, default)))
+                spinat.append((0.0, 0.0, magmom_mp_conf.get(site.specie.symbol, default)))
 
         return self.set_vars(spinat=spinat)
 
@@ -1316,10 +1384,10 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             vec, count = item
             if count > 1:
                 assert np.all(vec == vec[0])
-                s += f"{count*len(vec)}*{vec[0]} "
+                s += f"{count * len(vec)}*{vec[0]} "
             else:
                 s += f"{vec[0]} {vec[1]} {vec[2]} "
-        #print(s)
+        # print(s)
 
         return self.set_vars(spinat=s)
 
@@ -1362,8 +1430,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
         return self.set_vars(usepawu=usepawu, lpawu=lpawu, upawu=upawu, jpawu=jpawu)
 
-    def set_kmesh_nband_and_occ(self, ngkpt, shiftk, nsppol, occ1k_spin,
-                                nspinor=1, kptopt=1, occopt=2) -> dict:
+    def set_kmesh_nband_and_occ(self, ngkpt, shiftk, nsppol, occ1k_spin, nspinor=1, kptopt=1, occopt=2) -> dict:
         """
         Helper function to set occupancies when occopt == 2
 
@@ -1373,16 +1440,16 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             nsppol: Spin polarization (Abinit input variable).
             occ1k_spin: List of `nppols` strings with the occupations for a single kpoint and
                 the spin_up, spin_down channels if nsppol is 2.
-            nspinor:
-            kptopt:
-            occopt:
+            nspinor: Number of spinor components.
+            kptopt: Option for the generation of the k-mesh.
+            occopt: Occupation option.
         """
         self._check_nsppol_nspinor(nsppol, nspinor)
 
         # Call Abinit to get the list of irreducible k-points.
-        #from abipy.core.kpoints import IrredZone
-        #ibz = IrredZone.from_ngkpt(self.structure, ngkpt, shiftk, kptopt=kptopt, spin_mode=spin_mode)
-        #nkpt = len(ibz)
+        # from abipy.core.kpoints import IrredZone
+        # ibz = IrredZone.from_ngkpt(self.structure, ngkpt, shiftk, kptopt=kptopt, spin_mode=spin_mode)
+        # nkpt = len(ibz)
 
         d = self.set_kmesh(ngkpt, shiftk, kptopt=kptopt)
         d.update(self.set_vars(nspinor=nspinor, nsppol=nsppol, occopt=occopt))
@@ -1390,7 +1457,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         nkpt = len(ibz.points)
 
         occ1k_spin = np.reshape(occ1k_spin, (nsppol,))
-        #print("occ1k_spin", occ1k_spin)
+        # print("occ1k_spin", occ1k_spin)
         occ_str = ""
         from abipy.abio.abivars import expand_star_syntax
 
@@ -1398,18 +1465,18 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         for spin in range(nsppol):
             s = occ1k_spin[spin]
             nband_k = len(expand_star_syntax(s).split())
-            #print("nband_k", nband_k)
+            # print("nband_k", nband_k)
             nband_spin.append(nband_k)
             occ_str += s * nkpt + "\n"
 
-        #print("nkpt:", nkpt, "\nnband_spin:", nband_spin, "\nocc_str:", occ_str)
+        # print("nkpt:", nkpt, "\nnband_spin:", nband_spin, "\nocc_str:", occ_str)
         if nsppol == 2 and nband_spin[0] != nband_spin[1]:
             raise ValueError("Different number of bands for the two spin channels: %s", str(nband_spin))
 
         nband = "*%d" % nband_spin[0]
 
         d.update(self.set_vars(nband=nband, occ=occ_str))
-        d["nkpt"] = nkpt # Return nkpt as well as it may be useful for generating workflows.
+        d["nkpt"] = nkpt  # Return nkpt as well as it may be useful for generating workflows.
 
         return d
 
@@ -1451,6 +1518,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             input_list = gs_template.linspace("ecut", start=10, stop=60)
 
         Args:
+            varname: Name of the Abinit variable.
             start: The starting value of the sequence.
             stop: The end value of the sequence, unless `endpoint` is set to False.
                 In this case, the sequence consists of all but the last of ``ndtset + 1``
@@ -1478,6 +1546,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         be consistent. It is better to use ``linspace`` for these cases.
 
         Args:
+            varname: Name of the Abinit variable.
             start:  Start of interval. The interval includes this value. The default start value is 0.
             stop: End of interval.  The interval does not include this value, except
                 in some cases where `step` is not an integer and floating point
@@ -1510,18 +1579,21 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         """
         # Split items into varnames and values
         for i, item in enumerate(items):
-            if not is_string(item): break
+            if not is_string(item):
+                break
 
         varnames, values = items[:i], items[i:]
         if len(varnames) != len(values):
-            raise self.Error("The number of variables must equal the number of lists\n"
-                             "varnames: %s\nvalues %s" % (str(varnames), str(values)))
+            raise self.Error(
+                "The number of variables must equal the number of lists\n"
+                "varnames: %s\nvalues %s" % (str(varnames), str(values))
+            )
 
         # TODO: group varnames and varvalues!
-        #varnames = [t[0] for t in items]
-        #values = [t[1] for t in items]
+        # varnames = [t[0] for t in items]
+        # values = [t[1] for t in items]
 
-        varnames = [ [varnames[i]] * len(values[i]) for i in range(len(values))]
+        varnames = [[varnames[i]] * len(values[i]) for i in range(len(values))]
         varnames = itertools.product(*varnames)
         values = itertools.product(*values)
 
@@ -1574,9 +1646,11 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         if scdims is None:
             # Assume same value of natom and typat
             if len(self.structure) != len(new_structure):
-                raise ValueError("Structures must have same value of natom."
-                                 f"new_structure has {len(new_structure)} atoms."
-                                 f"input.structure has {len(self.structure)}")
+                raise ValueError(
+                    "Structures must have same value of natom."
+                    f"new_structure has {len(new_structure)} atoms."
+                    f"input.structure has {len(self.structure)}"
+                )
             errors = []
             for i, (site1, site2) in enumerate(zip(self.structure, new_structure, strict=False)):
                 if site1.specie.symbol != site2.specie.symbol:
@@ -1592,7 +1666,10 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             numcells = np.prod(scdims)
             if len(new_structure) != numcells * len(self.structure):
                 errmsg = "Number of atoms in the input structure should be %d * %d but found %d" % (
-                    numcells, len(self.structure), len(new_structure))
+                    numcells,
+                    len(self.structure),
+                    len(new_structure),
+                )
                 raise ValueError(errmsg)
 
             expected_supercell = self.structure.copy()
@@ -1601,16 +1678,18 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             expected_symbols = [site.specie.symbol for site in expected_supercell]
             supcell_symbols = [site.specie.symbol for site in new_structure]
             if not np.array_equal(expected_symbols, supcell_symbols):
-                msg = ("Wrong supercell. The routine assumes the atoms in the other cells have the\n"
-                       "same ordering as the atoms in the original cell.\n"
-                       "expected_symbols: %s\nsupercell_symbols: %s" % (str(expected_symbols), str(supcell_symbols))
-                       )
+                msg = (
+                    "Wrong supercell. The routine assumes the atoms in the other cells have the\n"
+                    "same ordering as the atoms in the original cell.\n"
+                    "expected_symbols: %s\nsupercell_symbols: %s" % (str(expected_symbols), str(supcell_symbols))
+                )
                 raise ValueError(msg)
             # TODO Check angles and lengths
 
         # Build new input
-        new = AbinitInput(new_structure, self.pseudos, abi_args=list(self.items()),
-                          decorators=self.decorators, tags=self.tags)
+        new = AbinitInput(
+            new_structure, self.pseudos, abi_args=list(self.items()), decorators=self.decorators, tags=self.tags
+        )
 
         if scdims is not None:
             # This is the tricky part because variables whose shape depends on natom
@@ -1623,36 +1702,39 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             var_database = get_abinit_variables()
             for name in new:
                 var = var_database[name]
-                #if var.depends_on_dimension("ntypat"):
+                # if var.depends_on_dimension("ntypat"):
                 #    errors.append("Found variable %s with ntypat in dimensions %s" % (name, str(var.dimensions)))
 
                 if var.depends_on_dimension("natom"):
                     errors.append("Found variable %s with natom in dimensions %s" % (name, str(var.dimensions)))
-                    #new[name] = _repeat_array(name, new[name], len(self.structure), numcells)
+                    # new[name] = _repeat_array(name, new[name], len(self.structure), numcells)
 
             if errors:
-                errmsg = ("\n".join(errors) +
-                          "\nThe present version of new_with_structure is not able to handle this case.")
+                errmsg = (
+                    "\n".join(errors) + "\nThe present version of new_with_structure is not able to handle this case."
+                )
                 raise ValueError(errmsg)
 
             # Rescale nband and k-point sampling
             iscale = int(np.ceil(len(new.structure) / len(self.structure)))
             if "nband" in new:
                 # take care of nband in format "*xxx"
-                if str(self["nband"])[0] == "*": #, convert to a string if nband considered as a int
-                    new["nband"] = "*%d" % (int(self["nband"][1:])*iscale)
+                if str(self["nband"])[0] == "*":  # , convert to a string if nband considered as a int
+                    new["nband"] = "*%d" % (int(self["nband"][1:]) * iscale)
                 else:
                     new["nband"] = int(self["nband"] * iscale)
-                if verbose: print("self['nband']", self["nband"], "new['nband']", new["nband"])
+                if verbose:
+                    print("self['nband']", self["nband"], "new['nband']", new["nband"])
 
             if "ngkpt" in new:
                 new["ngkpt"] = (np.rint(np.array(new["ngkpt"]) / scdims)).astype(int)
-                if verbose: print("new ngkpt:", new["ngkpt"])
+                if verbose:
+                    print("new ngkpt:", new["ngkpt"])
 
             # TODO
             elif "kptrlatt" in new:
                 raise NotImplementedError("kptrlatt in new_with_structure")
-                #new["kptrlatt"] = (np.rint(np.array(new["kptrlatt"]) / iscale)).astype(int)
+                # new["kptrlatt"] = (np.rint(np.array(new["kptrlatt"]) / iscale)).astype(int)
             else:
                 # Single k-point
                 pass
@@ -1669,7 +1751,8 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         This function receives a list of :class:`AbinitInputDecorator` objects or just a single object,
         applies the decorators to the input and returns a new |AbinitInput| object. self is not changed.
         """
-        if not isinstance(decorators, (list, tuple)): decorators = [decorators]
+        if not isinstance(decorators, (list, tuple)):
+            decorators = [decorators]
 
         # Deepcopy only at the first step to improve performance.
         inp = self
@@ -1709,15 +1792,16 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         if duck.is_string(varname_values[0]):
             # varname_values = ("nband", [8, 12, 14])
             varname, values = varname_values
-            if len(values) == 1: values = [values]
+            if len(values) == 1:
+                values = [values]
             new_inputs = []
             for val in values:
                 new_inputs.append(self.new_with_vars(**{varname: val}))
             return new_inputs
-        #varname_values = [
+        # varname_values = [
         #    ("nband", [8, 12]),
         #    ("gwr_ntau", [6, 8]),
-        #]
+        # ]
         items = [t[0] for t in varname_values]
         items.extend(t[1] for t in varname_values)
         return self.product(*items)
@@ -1736,7 +1820,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         """
         return self.remove_vars(_IRDVARS, strict=False)
 
-    #def pop_relax_vars(self):
+    # def pop_relax_vars(self):
     #    """
     #    Remove all the relax variables present in the input.
     #    Return dictionary with the variables that have been removed.
@@ -1759,8 +1843,9 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
         return tolvar, value
 
-    def make_ebands_input(self, ndivsm=15, tolwfr=1e-20, nscf_nband=None, nb_extra=10,
-                          nbdbuf=None, nstep=100, **extra_abivars) -> AbinitInput:
+    def make_ebands_input(
+        self, ndivsm=15, tolwfr=1e-20, nscf_nband=None, nb_extra=10, nbdbuf=None, nstep=100, **extra_abivars
+    ) -> AbinitInput:
         """
         Generate an input file for a NSCF band structure calculation along k-path from a GS SCF input.
 
@@ -1789,7 +1874,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             kpts = kpoints_from_line_density(self.structure, abs(ndivsm))
             nscf_input.set_vars(kptopt=0, nkpt=len(kpts), kpt=kpts)
 
-        #nbdbuf = None
+        # nbdbuf = None
         if nscf_nband is None:
             # Get number of bands from input file taking into account *5 syntax
             nb = self["nband"]
@@ -1802,28 +1887,32 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
                 nb = int(nb)
 
             nscf_nband = nb + nb_extra
-            if has_star: nscf_nband = f"*{nscf_nband}"
+            if has_star:
+                nscf_nband = f"*{nscf_nband}"
 
             # Add buffer
             if nbdbuf is None:
                 nbdbuf = nb_extra - 4
-                if nbdbuf <= 0: nbdbuf = None
+                if nbdbuf <= 0:
+                    nbdbuf = None
 
-        nscf_input.set_vars(iscf=-2,
-                            nband=nscf_nband,
-                            tolwfr=tolwfr,
-                            nbdbuf=nbdbuf,
-                            nstep=nstep,
-                            prtwf=-1,
-                            comment="Input file for NSCF band structure calculation from a GS SCF input.",
-                            )
+        nscf_input.set_vars(
+            iscf=-2,
+            nband=nscf_nband,
+            tolwfr=tolwfr,
+            nbdbuf=nbdbuf,
+            nstep=nstep,
+            prtwf=-1,
+            comment="Input file for NSCF band structure calculation from a GS SCF input.",
+        )
 
         nscf_input.set_vars(**extra_abivars)
 
         return nscf_input
 
-    def make_edos_input(self, ngkpt, shiftk=(0, 0, 0), tolwfr=1e-20, nscf_nband=None,
-                        nb_extra=10, nstep=100, **extra_abivars) -> AbinitInput:
+    def make_edos_input(
+        self, ngkpt, shiftk=(0, 0, 0), tolwfr=1e-20, nscf_nband=None, nb_extra=10, nstep=100, **extra_abivars
+    ) -> AbinitInput:
         """
         Generate an input file for electron DOS calculation from a GS-SCF input.
 
@@ -1839,13 +1928,14 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         edos_input = self.deepcopy()
         edos_input.pop_tolerances()
         nscf_nband = self["nband"] + nb_extra if nscf_nband is None else nscf_nband
-        edos_input.set_vars(iscf=-2,
-                            nband=nscf_nband,
-                            tolwfr=tolwfr,
-                            nstep=nstep,
-                            prtwf=-1,
-                            comment="Input file for electron DOS calculation from a GS SCF input (NSCF on kmesh)",
-                            )
+        edos_input.set_vars(
+            iscf=-2,
+            nband=nscf_nband,
+            tolwfr=tolwfr,
+            nstep=nstep,
+            prtwf=-1,
+            comment="Input file for electron DOS calculation from a GS SCF input (NSCF on kmesh)",
+        )
 
         edos_input.set_kmesh(ngkpt, shiftk)
         edos_input.set_vars(**extra_abivars)
@@ -1860,6 +1950,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         Args:
             kpts: List of k-points in reduced coordinates.
             tolwfr: Tolerance on residuals.
+            iscf: Abinit iscf variable. Default: -2.
             extra_abivars: Extra input variables.
         """
         nscf_input = self.deepcopy()
@@ -1873,7 +1964,9 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
         return nscf_input
 
-    def make_relax_input(self, optcell=2, ionmov=2, tolvrs=1e-8, tolmxf=1e-6, ntime=100, **extra_abivars) -> AbinitInput:
+    def make_relax_input(
+        self, optcell=2, ionmov=2, tolvrs=1e-8, tolmxf=1e-6, ntime=100, **extra_abivars
+    ) -> AbinitInput:
         """
         Build an input for structural relaxations from a GS one.
         extra_abivars are added to the input at the end.
@@ -1886,18 +1979,18 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
         return relax_input
 
-    def make_dfpt_effmass_inputs(self, kpts, effmass_bands_f90, ngfft=None,
-                                 tolwfr=1e-20, iscf=-2) -> MultiDataset:
+    def make_dfpt_effmass_inputs(self, kpts, effmass_bands_f90, ngfft=None, tolwfr=1e-20, iscf=-2) -> MultiDataset:
         """
         Return a |MultiDataset| object with 2 inputs for the calculation of effective masses with DFPT
         The first input in a standard NSCF run, the second input computes the effective masses.
 
         Args:
             kpts: List of k-points in reduced coordinates where effective masses are wanted.
-            effmas_bands_f90: (nkpt, 2) array with band range for effmas computation.
+            effmass_bands_f90: (nkpt, 2) array with band range for effmas computation.
                 WARNING: Assumes Fortran convention with indices starting from 1.
             ngfft: FFT divisions (3 integers). Used to enforce the same FFT mesh in the NSCF run as the one used for GS.
             tolwfr: Tolerance on residuals.
+            iscf: Abinit iscf variable. Default: -2.
         """
         multi = MultiDataset.replicate_input(input=self, ndtset=3)
         multi.pop_vars(["ngkpt", "nshiftk", "shiftk", "iscf"])
@@ -1907,17 +2000,27 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         nkpt = len(kpts)
 
         # NSCF calculation (requires DEN)
-        multi[0].set_vars(tolwfr=tolwfr, kptopt=0, iscf=-2,
-                          nkpt=nkpt, kpt=kpts, prtwf=1, ngfft=ngfft,
-                          comment="NSCF input to prepare effective masses calculation")
+        multi[0].set_vars(
+            tolwfr=tolwfr,
+            kptopt=0,
+            iscf=-2,
+            nkpt=nkpt,
+            kpt=kpts,
+            prtwf=1,
+            ngfft=ngfft,
+            comment="NSCF input to prepare effective masses calculation",
+        )
 
         # Response function calculation: d/dk (requires DEN and GS WFK)
         multi[1].set_vars(
-            rfelfd=2,      # Activate d/dk perturbation (required for effective mass calc.)
-            efmas=1,       # Activate calculation of effective mass tensors
-            prtefmas=1,    # Print netcdf file (should be default)
+            rfelfd=2,  # Activate d/dk perturbation (required for effective mass calc.)
+            efmas=1,  # Activate calculation of effective mass tensors
+            prtefmas=1,  # Print netcdf file (should be default)
             prtwf=-1,
-            tolwfr=tolwfr, kptopt=0, nkpt=len(kpts), kpt=kpts,
+            tolwfr=tolwfr,
+            kptopt=0,
+            nkpt=len(kpts),
+            kpt=kpts,
             # The range of bands for which the effective mass tensors will be computed, for each k-point.
             efmas_bands=np.reshape(effmass_bands_f90, (nkpt, 2)),
             # And we request the scalar effective mass along directions in cartesian coordinates
@@ -1935,7 +2038,10 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             optdriver=7,
             eph_frohlichm=1,
             eph_task=6,
-            tolwfr=tolwfr, kptopt=0, nkpt=len(kpts), kpt=kpts,
+            tolwfr=tolwfr,
+            kptopt=0,
+            nkpt=len(kpts),
+            kpt=kpts,
             ddb_ngqpt=[1, 1, 1],
             asr=2,
             chneut=1,
@@ -1945,8 +2051,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
         return multi
 
-    def make_ph_inputs_qpoint(self, qpt, tolerance=None,
-                              prtwf=-1, prepgkk=0, manager=None) -> MultiDataset:
+    def make_ph_inputs_qpoint(self, qpt, tolerance=None, prtwf=-1, prepgkk=0, manager=None) -> MultiDataset:
         """
         Builds and returns a |MultiDataset| list of input files for the calculation of phonons
         at the given q-point `qpt`. This method should be called with an input the represents a GS run.
@@ -1958,6 +2063,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             prtwf: 1WFs are only needed for restarting 2nd order DFPT or non-linear response.
                 Since these files are huge, we use prtwf -1 so that the 1WF file is produced
                 only if the calculation is not converged so that AbiPy can restart it.
+            prepgkk: Abinit prepgkk variable.
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
 
         .. WARNING::
@@ -1966,7 +2072,8 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             so that the DFPT run can be started from the WFK file directly without having
             to generate intermediate WFQ files.
         """
-        if tolerance is None: tolerance = {"tolvrs": 1.0e-10}
+        if tolerance is None:
+            tolerance = {"tolvrs": 1.0e-10}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
             raise self.Error(f"Invalid {tolerance=}")
@@ -1992,23 +2099,24 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             rfdir[pert.idir - 1] = 1
 
             ph_input.set_vars(
-                rfphon=1,                           # Will consider phonon-type perturbation
-                nqpt=1,                             # One wavevector is to be considered
-                qpt=pert.qpt,                       # q-wavevector.
+                rfphon=1,  # Will consider phonon-type perturbation
+                nqpt=1,  # One wavevector is to be considered
+                qpt=pert.qpt,  # q-wavevector.
                 rfatpol=[pert.ipert, pert.ipert],
                 rfdir=rfdir,
                 kptopt=kptopt,
                 comment="Input file for PH calculation with DFPT.",
             )
 
-            #if "prtwf" not in ph_input: ph_input["prtwf"] = prtwf
+            # if "prtwf" not in ph_input: ph_input["prtwf"] = prtwf
             ph_input.pop_tolerances()
             ph_input.set_vars(tolerance)
 
         return ph_inputs
 
-    def make_ddkpert_input(self, perturbation, kptopt=2, only_vk=False,
-                           use_symmetries=False, tolerance=None, manager=None) -> AbinitInput:
+    def make_ddkpert_input(
+        self, perturbation, kptopt=2, only_vk=False, use_symmetries=False, tolerance=None, manager=None
+    ) -> AbinitInput:
         """
         Returns |AbinitInput| for the calculation of an electric field perturbation.
         This function should be called with an input that represents a GS run and
@@ -2042,22 +2150,22 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         rfdir[perturbation["idir"] - 1] = 1
 
         inp.set_vars(
-            rfelfd=2,             # Activate the calculation of the d/dk perturbation
-                                  # only the derivative of ground-state wavefunctions with respect to k
-            rfdir=rfdir,          # Direction of the ddk.
-            nqpt=1,               # One wavevector is to be considered
-            qpt=(0, 0, 0),        # q-wavevector.
-            kptopt=kptopt,        # 2 to take into account time-reversal symmetry.
-            iscf=-3,              # The d/dk perturbation must be treated in a non-self-consistent way
+            rfelfd=2,  # Activate the calculation of the d/dk perturbation
+            # only the derivative of ground-state wavefunctions with respect to k
+            rfdir=rfdir,  # Direction of the ddk.
+            nqpt=1,  # One wavevector is to be considered
+            qpt=(0, 0, 0),  # q-wavevector.
+            kptopt=kptopt,  # 2 to take into account time-reversal symmetry.
+            iscf=-3,  # The d/dk perturbation must be treated in a non-self-consistent way
         )
 
-        inp.pop_vars("dfpt_sciss") # TODO: to add?
+        inp.pop_vars("dfpt_sciss")  # TODO: to add?
 
         if only_vk:
             inp.set_vars(nstep=1, nline=1)
 
         # TODO: to implement
-        #if not use_symmetries:
+        # if not use_symmetries:
         #    inp.set_vars(
         #        comment="Input file for ddk calculation without symmetries.",
         #    )
@@ -2082,7 +2190,8 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
         Return: |MultiDataset| object for DFPT runs.
         """
-        if tolerance is None: tolerance = {"tolwfr": 1.0e-22}
+        if tolerance is None:
+            tolerance = {"tolwfr": 1.0e-22}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
             raise self.Error(f"Invalid {tolerance=}")
@@ -2091,7 +2200,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             raise self.Error("tolvrs should not be used in a DDK calculation")
 
         # Call Abinit to get the list of irred perts.
-        #perts = self.abiget_irred_phperts(qpt=qpt)
+        # perts = self.abiget_irred_phperts(qpt=qpt)
         # TODO Add symmetries when implemented.
         ddk_rfdirs = [(1, 0, 0), (0, 1, 0), (0, 0, 1)]
 
@@ -2101,13 +2210,13 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         # See tutorespfn/Input/trf1_5.in
         for rfdir, ddk_input in zip(ddk_rfdirs, ddk_inputs, strict=False):
             ddk_input.set_vars(
-                rfelfd=2,             # Activate the calculation of the d/dk perturbation
-                                      # only the derivative of ground-state wavefunctions with respect to k
-                rfdir=rfdir,          # Direction of the ddk.
-                nqpt=1,               # One wavevector is to be considered
-                qpt=(0, 0, 0),        # q-wavevector.
-                kptopt=kptopt,        # 2 to take into account time-reversal symmetry.
-                iscf=-3,              # The d/dk perturbation must be treated in a non-self-consistent way
+                rfelfd=2,  # Activate the calculation of the d/dk perturbation
+                # only the derivative of ground-state wavefunctions with respect to k
+                rfdir=rfdir,  # Direction of the ddk.
+                nqpt=1,  # One wavevector is to be considered
+                qpt=(0, 0, 0),  # q-wavevector.
+                kptopt=kptopt,  # 2 to take into account time-reversal symmetry.
+                iscf=-3,  # The d/dk perturbation must be treated in a non-self-consistent way
             )
             ddk_input.pop_vars("dfpt_sciss")
 
@@ -2133,7 +2242,8 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
         Return: |AbinitInput| object.
         """
-        if tolerance is None: tolerance = {"tolwfr": 1.0e-22}
+        if tolerance is None:
+            tolerance = {"tolwfr": 1.0e-22}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
             raise self.Error(f"Invalid {tolerance=}")
@@ -2143,9 +2253,9 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
         # See Dataset 3 of https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi
         dkdk_input = self.new_with_vars(
-            qpt=(0, 0, 0),        # q-wavevector.
-            kptopt=kptopt,        # 2 to take into account time-reversal symmetry.
-            iscf=-3,              # The d2/dk perturbation is treated in a non-self-consistent way
+            qpt=(0, 0, 0),  # q-wavevector.
+            kptopt=kptopt,  # 2 to take into account time-reversal symmetry.
+            iscf=-3,  # The d2/dk perturbation is treated in a non-self-consistent way
             rf2_dkdk=rf2_dkdk,
             useylm=1,
             comment="Input file for DKDK calculation.",
@@ -2186,12 +2296,12 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         inp.set_vars(
             rfdir=rfdir,  # Direction of the dde perturbation.
             comment="Input file for DDE calculation with symmetries.",
-            rfelfd=3,       # Activate the calculation of the electric field perturbation
-                            # Assuming the data on derivative of ground-state wavefunction with respect
-                            # to k (DDK) is available on disk and will be read with getddk/irddk
-            nqpt=1,         # One wavevector is to be considered
+            rfelfd=3,  # Activate the calculation of the electric field perturbation
+            # Assuming the data on derivative of ground-state wavefunction with respect
+            # to k (DDK) is available on disk and will be read with getddk/irddk
+            nqpt=1,  # One wavevector is to be considered
             qpt=(0, 0, 0),  # q-wavevector.
-            kptopt=2,       # Take into account time-reversal symmetry.
+            kptopt=2,  # Take into account time-reversal symmetry.
         )
 
         if not use_symmetries:
@@ -2237,7 +2347,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
                 inp.set_vars(
                     rfdir=rfdir,  # Direction of the dde perturbation.
-                    comment="Input file for DDE calculation with symmetries."
+                    comment="Input file for DDE calculation with symmetries.",
                 )
 
         else:
@@ -2251,17 +2361,17 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             for rfdir, inp in zip(dde_rfdirs, multi, strict=False):
                 inp.set_vars(
                     rfdir=rfdir,  # Direction of the per ddk.
-                    prepanl=1,    # Prepare Non-linear RF calculations.
-                    comment="Input file for DDE calculation without symmetries."
+                    prepanl=1,  # Prepare Non-linear RF calculations.
+                    comment="Input file for DDE calculation without symmetries.",
                 )
 
         multi.set_vars(
-            rfelfd=3,       # Activate the calculation of the electric field perturbation
-                            # Assuming the data on derivative of ground-state wavefunction with respect
-                            # to k (DDK) is available on disk and will be read with getddk/irddk
-            nqpt=1,         # One wavevector is to be considered
+            rfelfd=3,  # Activate the calculation of the electric field perturbation
+            # Assuming the data on derivative of ground-state wavefunction with respect
+            # to k (DDK) is available on disk and will be read with getddk/irddk
+            nqpt=1,  # One wavevector is to be considered
             qpt=(0, 0, 0),  # q-wavevector.
-            kptopt=2,       # Take into account time-reversal symmetry.
+            kptopt=2,  # Take into account time-reversal symmetry.
         )
 
         multi.pop_tolerances()
@@ -2318,17 +2428,16 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             d3e_pert2_phon=1 if perturbation["i2pert"] <= na else 0,
             d3e_pert3_phon=1 if perturbation["i3pert"] <= na else 0,
             d3e_pert1_atpol=atpol,
-            nqpt=1,         # One wavevector is to be considered
+            nqpt=1,  # One wavevector is to be considered
             qpt=(0, 0, 0),  # q-wavevector.
-            optdriver=5,    # non-linear response functions, using the 2n+1 theorem.
-            kptopt=2,       # Take into account time-reversal symmetry.
+            optdriver=5,  # non-linear response functions, using the 2n+1 theorem.
+            kptopt=2,  # Take into account time-reversal symmetry.
             comment="Input file for DTE calculation.",
         )
 
         inp.pop_tolerances()
 
         return inp
-
 
     def make_phpert_input(self, perturbation, tolerance=None, prtwf=-1, manager=None) -> AbinitInput:
         """
@@ -2346,7 +2455,8 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             manager: |TaskManager| of the task. If None, the manager is initialized from
                 the config file.
         """
-        if tolerance is None: tolerance = {"tolvrs": 1.0e-10}
+        if tolerance is None:
+            tolerance = {"tolvrs": 1.0e-10}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
             raise self.Error(f"Invalid {tolerance=}")
@@ -2362,9 +2472,9 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         rfdir[perturbation["idir"] - 1] = 1
 
         inp.set_vars(
-            rfphon=1,                           # Will consider phonon-type perturbation
-            nqpt=1,                             # One wavevector is to be considered
-            qpt=perturbation["qpt"],                       # q-wavevector.
+            rfphon=1,  # Will consider phonon-type perturbation
+            nqpt=1,  # One wavevector is to be considered
+            qpt=perturbation["qpt"],  # q-wavevector.
             rfatpol=[perturbation["ipert"], perturbation["ipert"]],
             rfdir=rfdir,
             kptopt=kptopt,
@@ -2376,7 +2486,6 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         inp.set_vars(tolerance)
 
         return inp
-
 
     def make_dte_inputs(self, phonon_pert=False, skip_permutations=False, ixc=None, manager=None) -> MultiDataset:
         """
@@ -2437,10 +2546,10 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
                 d3e_pert2_phon=1 if pert.i2pert <= na else 0,
                 d3e_pert3_phon=1 if pert.i3pert <= na else 0,
                 d3e_pert1_atpol=atpol,
-                nqpt=1,         # One wavevector is to be considered
+                nqpt=1,  # One wavevector is to be considered
                 qpt=(0, 0, 0),  # q-wavevector.
-                optdriver=5,    # non-linear response functions, using the 2n+1 theorem.
-                kptopt=2,       # Take into account time-reversal symmetry.
+                optdriver=5,  # non-linear response functions, using the 2n+1 theorem.
+                kptopt=2,  # Take into account time-reversal symmetry.
                 comment="Input file for DTE calculation.",
             )
 
@@ -2459,7 +2568,8 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             prepalw: Abinit input variable. See doc.
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
         """
-        if tolerance is None: tolerance = {"tolvrs": 1.0e-10}
+        if tolerance is None:
+            tolerance = {"tolvrs": 1.0e-10}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
             raise self.Error(f"Invalid {tolerance=}")
@@ -2471,11 +2581,13 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         multi = MultiDataset.replicate_input(input=self, ndtset=len(perts))
 
         # Important: this is needed to avoid Q* computations complaining about indkpt1
-        if prepalw != 0: multi.set_vars(prepalw=prepalw)
+        if prepalw != 0:
+            multi.set_vars(prepalw=prepalw)
 
         scf_kptopt = self.get("kptopt", 1)
         kptopt = 3
-        if scf_kptopt in (1, 2): kptopt = 2
+        if scf_kptopt in (1, 2):
+            kptopt = 2
 
         # See tutorespfn/Input/trf1_5.in dataset 3
         for pert, inp in zip(perts, multi, strict=False):
@@ -2483,13 +2595,13 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             rfdir[pert.idir - 1] = 1
 
             inp.set_vars(
-                rfphon=1,             # Activate the calculation of the atomic dispacement perturbations
+                rfphon=1,  # Activate the calculation of the atomic dispacement perturbations
                 rfatpol=[pert.ipert, pert.ipert],
                 rfdir=rfdir,
-                rfelfd=3,             # Activate the calculation of the electric field perturbation
-                nqpt=1,               # One wavevector is to be considered
-                qpt=(0, 0, 0),        # q-wavevector.
-                kptopt=kptopt,        # Take into account time-reversal symmetry if allowed.
+                rfelfd=3,  # Activate the calculation of the electric field perturbation
+                nqpt=1,  # One wavevector is to be considered
+                qpt=(0, 0, 0),  # q-wavevector.
+                kptopt=kptopt,  # Take into account time-reversal symmetry if allowed.
                 comment="Input file for BECs calculation.",
             )
 
@@ -2498,7 +2610,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
         return multi
 
-    #def supports_quad(self):
+    # def supports_quad(self):
     #    if (nspinor := self.get("nspinor", 1)) == 2:
     #        raise ValueError("dynamical quadrupoles with {nspinor=} are not supported")
     #    if any(pseudo.is_paw for pseudo in self.pseudos):
@@ -2518,8 +2630,10 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             kptopt: 2 to take into account time-reversal symmetry.
             nstep: Max number of SCF iterations. Since AbiPy is still not able to restart
             a Quadrupole calculation, we increase the value if not already provided by the user.
+            manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
         """
-        if tolerance is None: tolerance = {"tolvrs": 1.0e-10}
+        if tolerance is None:
+            tolerance = {"tolvrs": 1.0e-10}
 
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
             raise self.Error("Invalid {tolerance=}")
@@ -2529,7 +2643,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             optdriver=10,
             kptopt=2,
             lw_qdrpl=1,
-            useylm=1,          # Require Yml in nonlop.
+            useylm=1,  # Require Yml in nonlop.
             nqpt=1,
             qpt=(0, 0, 0),
             nstep=max(nstep, self.get("nstep", 0)),
@@ -2541,8 +2655,9 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
         return inp
 
-    def make_strain_perts_inputs(self, tolerance=None, phonon_pert=True, efield_pert=False,
-                                 kptopt=2, prepalw=0, manager=None) -> MultiDataset:
+    def make_strain_perts_inputs(
+        self, tolerance=None, phonon_pert=True, efield_pert=False, kptopt=2, prepalw=0, manager=None
+    ) -> MultiDataset:
         """
         Return |MultiDataset| inputs for strain perturbation calculation.
         This function should be called with an input that represents a GS run.
@@ -2562,9 +2677,10 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         if len(tolerance) != 1 or any(k not in _TOLVARS for k in tolerance):
             raise self.Error(f"Invalid {tolerance=}")
 
-        perts = self.abiget_irred_strainperts(kptopt=kptopt, phonon_pert=phonon_pert,
-                                              efield_pert=efield_pert, prepalw=prepalw, manager=manager)
-        #print("Stress perts:", perts)
+        perts = self.abiget_irred_strainperts(
+            kptopt=kptopt, phonon_pert=phonon_pert, efield_pert=efield_pert, prepalw=prepalw, manager=manager
+        )
+        # print("Stress perts:", perts)
 
         # Build list of datasets (one input per perturbation)
         multi = MultiDataset.replicate_input(input=self, ndtset=len(perts))
@@ -2574,50 +2690,53 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             rfdir[pert.idir - 1] = 1
 
             if pert.ipert <= len(self.structure):
-                inp.set_vars(rfphon=1,             # Activate the calculation of the atomic dispacement perturbations
-                             rfatpol=[pert.ipert, pert.ipert],
-                             rfdir=rfdir,
-                             nqpt=1,               # One wavevector is to be considered
-                             qpt=(0, 0, 0),        # q-wavevector.
-                             kptopt=kptopt,        # No symmetries
-                             #iscf=7,
-                             paral_kgb=0,
-                             comment="Input file for phonon calculation.",
-                             )
+                inp.set_vars(
+                    rfphon=1,  # Activate the calculation of the atomic dispacement perturbations
+                    rfatpol=[pert.ipert, pert.ipert],
+                    rfdir=rfdir,
+                    nqpt=1,  # One wavevector is to be considered
+                    qpt=(0, 0, 0),  # q-wavevector.
+                    kptopt=kptopt,  # No symmetries
+                    # iscf=7,
+                    paral_kgb=0,
+                    comment="Input file for phonon calculation.",
+                )
 
             elif pert.ipert == len(self.structure) + 2:
-                inp.set_vars(#rfphon=1,            # Activate the calculation of the electric field perturbation
-                             #rfatpol=[pert.ipert, pert.ipert],
-                             rfdir=rfdir,
-                             nqpt=1,               # One wavevector is to be considered
-                             qpt=(0, 0, 0),        # q-wavevector.
-                             kptopt=kptopt,        # No symmetries
-                             #iscf=7,
-                             paral_kgb=0,
-                             comment="Input file for electric field calculation.",
-                             )
+                inp.set_vars(  # rfphon=1,            # Activate the calculation of the electric field perturbation
+                    # rfatpol=[pert.ipert, pert.ipert],
+                    rfdir=rfdir,
+                    nqpt=1,  # One wavevector is to be considered
+                    qpt=(0, 0, 0),  # q-wavevector.
+                    kptopt=kptopt,  # No symmetries
+                    # iscf=7,
+                    paral_kgb=0,
+                    comment="Input file for electric field calculation.",
+                )
 
             elif pert.ipert == len(self.structure) + 3:
-                inp.set_vars(rfstrs=1,             # Activate the calculation of the strain perturbations (uniaxial)
-                             rfdir=rfdir,
-                             nqpt=1,               # One wavevector is to be considered
-                             qpt=(0, 0, 0),        # q-wavevector.
-                             kptopt=kptopt,        # No symmetries
-                             #iscf=7,
-                             paral_kgb=0,
-                             comment="Input file for uniaxial strain calculation.",
-                             )
+                inp.set_vars(
+                    rfstrs=1,  # Activate the calculation of the strain perturbations (uniaxial)
+                    rfdir=rfdir,
+                    nqpt=1,  # One wavevector is to be considered
+                    qpt=(0, 0, 0),  # q-wavevector.
+                    kptopt=kptopt,  # No symmetries
+                    # iscf=7,
+                    paral_kgb=0,
+                    comment="Input file for uniaxial strain calculation.",
+                )
 
             elif pert.ipert == len(self.structure) + 4:
-                inp.set_vars(rfstrs=2,             # Activate the calculation of the strain perturbations (shear)
-                             rfdir=rfdir,
-                             nqpt=1,               # One wavevector is to be considered
-                             qpt=(0, 0, 0),        # q-wavevector.
-                             kptopt=kptopt,        # No symmetries
-                             #iscf=7,
-                             paral_kgb=0,
-                             comment="Input file for shear strain calculation.",
-                             )
+                inp.set_vars(
+                    rfstrs=2,  # Activate the calculation of the strain perturbations (shear)
+                    rfdir=rfdir,
+                    nqpt=1,  # One wavevector is to be considered
+                    qpt=(0, 0, 0),  # q-wavevector.
+                    kptopt=kptopt,  # No symmetries
+                    # iscf=7,
+                    paral_kgb=0,
+                    comment="Input file for shear strain calculation.",
+                )
             else:
                 raise RuntimeError("Don't know how to handle perturbation:\n %s" % str(pert))
 
@@ -2629,8 +2748,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
         return multi
 
-    def make_wfk_kerange_inputs(self, sigma_kerange, sigma_ngkpt,
-                                kptopt=1, einterp=(1, 5, 0, 0)) -> MultiDataset:
+    def make_wfk_kerange_inputs(self, sigma_kerange, sigma_ngkpt, kptopt=1, einterp=(1, 5, 0, 0)) -> MultiDataset:
         """
         Return a |MultiDataset| with two inputs for performing a WFK calculation with the kerange trick.
         This method should be called with the input associated to the NSCF run that produces
@@ -2646,23 +2764,42 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         multi = MultiDataset.from_inputs([self, self])
 
         # Activate the options needed to calculates the kpts within the sigma interval (Kerange.nc file)
-        multi[0].set_vars(optdriver=8, wfk_task='"wfk_kpts_erange"', kptopt=kptopt,
-                          sigma_ngkpt=sigma_ngkpt, sigma_nshiftk=1, sigma_shiftk=[0, 0, 0],
-                          einterp=einterp, sigma_erange=sigma_kerange, prtwf=0,
-                          comment="Input file for wfk_kpts_erange calculation."
-                          )
+        multi[0].set_vars(
+            optdriver=8,
+            wfk_task='"wfk_kpts_erange"',
+            kptopt=kptopt,
+            sigma_ngkpt=sigma_ngkpt,
+            sigma_nshiftk=1,
+            sigma_shiftk=[0, 0, 0],
+            einterp=einterp,
+            sigma_erange=sigma_kerange,
+            prtwf=0,
+            comment="Input file for wfk_kpts_erange calculation.",
+        )
         multi[0].pop_vars(["iscf", "tolwfr", "prtden"])
 
         # Modify the second nscf input to get a task that adds the kpt from Kerange.nc to the input file
         # used to compute the WFK file.
-        multi[1].set_vars(optdriver=0, iscf=-2, kptopt=0, ngkpt=sigma_ngkpt,
-                         comment="Input file for NSCF run with kerange.")
+        multi[1].set_vars(
+            optdriver=0, iscf=-2, kptopt=0, ngkpt=sigma_ngkpt, comment="Input file for NSCF run with kerange."
+        )
 
         return multi
 
-    def make_eph_transport_input(self, ddb_ngqpt, sigma_erange, tmesh, eph_ngqpt_fine=None, kptopt=1,
-                                 mixprec=1, boxcutmin=1.1, ibte_prep=0, ibte_niter=200, ibte_abs_tol=0,
-                                 eph_restart=1) -> AbinitInput:
+    def make_eph_transport_input(
+        self,
+        ddb_ngqpt,
+        sigma_erange,
+        tmesh,
+        eph_ngqpt_fine=None,
+        kptopt=1,
+        mixprec=1,
+        boxcutmin=1.1,
+        ibte_prep=0,
+        ibte_niter=200,
+        ibte_abs_tol=0,
+        eph_restart=1,
+    ) -> AbinitInput:
         """
         Return an |AbinitInput| to perform phonon-limited transport calculations.
         This method is usually called with the input associated to the NSCF run that produces
@@ -2686,11 +2823,11 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         eph_ngqpt_fine = self.get("ngkpt") if eph_ngqpt_fine is None else eph_ngqpt_fine
         nbdbuf = 0 if self.get("nbdbuf") is None else self.get("nbdbuf")
         nband = self.get("nband") - nbdbuf  # If nbdbuf is used in the NSCF computation,
-                                            # it cannot be used in the EPH driver and should be removed
+        # it cannot be used in the EPH driver and should be removed
         new = self.new_with_vars(
-            optdriver=7,                    # Enter EPH driver.
-            eph_task=-4,                    # Compute imag part of sigma_eph.
-            ddb_ngqpt=ddb_ngqpt,            # Ab-initio coarse q-mesh used to produce the DDB/DVDB files.
+            optdriver=7,  # Enter EPH driver.
+            eph_task=-4,  # Compute imag part of sigma_eph.
+            ddb_ngqpt=ddb_ngqpt,  # Ab-initio coarse q-mesh used to produce the DDB/DVDB files.
             eph_ngqpt_fine=eph_ngqpt_fine,  # Interpolate DFPT potentials on this denser q-mesh.
             sigma_erange=sigma_erange,
             tmesh=tmesh,
@@ -2706,11 +2843,11 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         )
 
         new.pop_vars(["iscf", "prtwf", "tolwfr", "prtden", "nbdbuf"])
-        #new.add_phbbands_vars()
+        # new.add_phbbands_vars()
 
         return new
 
-    #def make_eph_zpr_input(self, ddb_ngqpt, tmesh, eph_ngqpt_fine=None,,
+    # def make_eph_zpr_input(self, ddb_ngqpt, tmesh, eph_ngqpt_fine=None,,
     #                       mixprec=1, boxcutmin=1.1):
     #    """
     #    Return an |AbinitInput| to perform phonon-limited transport calculations.
@@ -2739,7 +2876,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
     #    return new
 
-    #def make_eph_isotc_input(self, ddb_ngqpt, eph_fsewin, eph_ngqpt_fine=None,,
+    # def make_eph_isotc_input(self, ddb_ngqpt, eph_fsewin, eph_ngqpt_fine=None,,
     #                          mixprec=1, boxcutmin=1.1):
     #    """
     #    Return an |AbinitInput| to perform phonon-limited transport calculations.
@@ -2768,14 +2905,16 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
     #    return new
 
-    def make_gwr_qprange_input(self,
-                               gwr_ntau: int,
-                               nband: int,
-                               ecuteps: float,
-                               ecutwfn: float,
-                               gw_qprange: int = 0,
-                               gwr_task=GWR_TASK.G0W0,
-                               **kwargs) -> AbinitInput:
+    def make_gwr_qprange_input(
+        self,
+        gwr_ntau: int,
+        nband: int,
+        ecuteps: float,
+        ecutwfn: float,
+        gw_qprange: int = 0,
+        gwr_task=GWR_TASK.G0W0,
+        **kwargs,
+    ) -> AbinitInput:
         """
         Build and return an input file to compute QP corrections with the GWR code.
 
@@ -2785,7 +2924,9 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             ecuteps: Cutoff energy for chi0 in Ha.
             gw_qprange: 0 to compute the QP corrections only for the fundamental and the direct gap.
                 For other values see Abinit docs.
-            gwr_task: String defining the GWR task
+            ecutwfn: Cutoff energy for wavefunctions in Ha.
+            gwr_task: String defining the GWR task.
+            **kwargs: Extra arguments.
         """
         ecut = float(self["ecut"])
 
@@ -2798,11 +2939,11 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             gwr_ntau=gwr_ntau,
             nband=nband,
             ecuteps=ecuteps,
-            ecutsigx=4 * ecut, # Exact, perhaps a bit overkilling.
+            ecutsigx=4 * ecut,  # Exact, perhaps a bit overkilling.
             nkptgw=0,
-            #gwr_boxcutmin=1.0
+            # gwr_boxcutmin=1.0
             gw_qprange=gw_qprange,
-            gwr_sigma_algo=2,          # This algo is more efficient if 1-2 kpoints are computed in sigma_k
+            gwr_sigma_algo=2,  # This algo is more efficient if 1-2 kpoints are computed in sigma_k
             comment="Input file for GWR QP calculations generated by AbiPy",
         )
 
@@ -2830,8 +2971,13 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         """
         task = AbinitTask.temp_shell_task(inp=self, workdir=workdir, manager=manager)
         retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
-        return dict2namedtuple(retcode=retcode, output_file=task.output_file, log_file=task.log_file,
-                               stderr_file=task.stderr_file, task=task)
+        return dict2namedtuple(
+            retcode=retcode,
+            output_file=task.output_file,
+            log_file=task.log_file,
+            stderr_file=task.stderr_file,
+            task=task,
+        )
 
     def abiget_dryrun_task(self, workdir, manager, **extra_vars):
         """
@@ -2840,9 +2986,9 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         """
         # Avoid modifications in self.
         inp = self.new_with_vars(
-            chksymbreak=0,   # Bypass Abinit check as we always want to return results.
-            mem_test=0,      # Disable memory check.
-            chkparal=CHKPARAL,      # Disable check on autoparal, paral_kgb etc.
+            chksymbreak=0,  # Bypass Abinit check as we always want to return results.
+            mem_test=0,  # Disable memory check.
+            chkparal=CHKPARAL,  # Disable check on autoparal, paral_kgb etc.
         )
         if extra_vars:
             inp.set_vars(**extra_vars)
@@ -2870,7 +3016,8 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             {'bravais': 'Bravais cF (face-center cubic)', 'spg_number': 227, 'spg_symbol': 'Fd-3m'}.
         """
         extra_vars = {}
-        if tolsym is not None: extra_vars["tolsym"] = float(tolsym)
+        if tolsym is not None:
+            extra_vars["tolsym"] = float(tolsym)
         task = self.abiget_dryrun_task(workdir, manager, **extra_vars)
         try:
             with task.get_output_file() as out:
@@ -2913,18 +3060,20 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         """
         # Avoid modifications in self.
         inp = self.new_with_vars(
-            prtkpt=-2,          # The magic value that makes ABINIT print the IBZ and then stop.
-            chksymbreak=0,      # Bypass Abinit check as we always want to return results.
-            mem_test=0,         # Disable memory check.
-            chkparal=CHKPARAL,      # Disable check on autoparal, paral_kgb etc.
+            prtkpt=-2,  # The magic value that makes ABINIT print the IBZ and then stop.
+            chksymbreak=0,  # Bypass Abinit check as we always want to return results.
+            mem_test=0,  # Disable memory check.
+            chkparal=CHKPARAL,  # Disable check on autoparal, paral_kgb etc.
         )
 
-        if ngkpt is not None: inp["ngkpt"] = ngkpt
+        if ngkpt is not None:
+            inp["ngkpt"] = ngkpt
         if shiftk is not None:
             shiftk = np.reshape(shiftk, (-1, 3))
             inp.set_vars(shiftk=shiftk, nshiftk=len(shiftk))
 
-        if kptopt is not None: inp["kptopt"] = kptopt
+        if kptopt is not None:
+            inp["kptopt"] = kptopt
         if verbose:
             print("Computing ibz with input:\n", str(inp))
 
@@ -2936,8 +3085,9 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         try:
             with NetcdfReader(os.path.join(task.workdir, "kpts.nc")) as r:
                 ibz = collections.namedtuple("ibz", "points weights")
-                return ibz(points=r.read_value("reduced_coordinates_of_kpoints"),
-                           weights=r.read_value("kpoint_weights"))
+                return ibz(
+                    points=r.read_value("reduced_coordinates_of_kpoints"), weights=r.read_value("kpoint_weights")
+                )
 
         except Exception as exc:
             self._handle_task_exception(task, exc)
@@ -2963,18 +3113,20 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         """
         # Avoid modifications in self.
         inp = self.new_with_vars(
-            nqptdm=-1,          # The magic value that makes ABINIT print the q-points
-            chksymbreak=0,      # Bypass Abinit check as we always want to return results.
-            mem_test=0,         # Disable memory check.
-            chkparal=CHKPARAL,      # Disable check on autoparal, paral_kgb etc.
+            nqptdm=-1,  # The magic value that makes ABINIT print the q-points
+            chksymbreak=0,  # Bypass Abinit check as we always want to return results.
+            mem_test=0,  # Disable memory check.
+            chkparal=CHKPARAL,  # Disable check on autoparal, paral_kgb etc.
         )
 
-        if ngkpt is not None: inp["ngkpt"] = ngkpt
+        if ngkpt is not None:
+            inp["ngkpt"] = ngkpt
         if shiftk is not None:
             shiftk = np.reshape(shiftk, (-1, 3))
             inp.set_vars(shiftk=shiftk, nshiftk=len(shiftk))
 
-        if kptopt is not None: inp["kptopt"] = kptopt
+        if kptopt is not None:
+            inp["kptopt"] = kptopt
         if verbose:
             print("Computing qptdms with input:\n", str(inp))
 
@@ -2986,8 +3138,9 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         try:
             with NetcdfReader(os.path.join(task.workdir, "qptdms.nc")) as r:
                 scr_ibz = collections.namedtuple("scr_ibz", "points weights")
-                return scr_ibz(points=r.read_value("reduced_coordinates_of_kpoints"),
-                               weights=r.read_value("kpoint_weights"))
+                return scr_ibz(
+                    points=r.read_value("reduced_coordinates_of_kpoints"), weights=r.read_value("kpoint_weights")
+                )
 
         except Exception as exc:
             self._handle_task_exception(task, exc)
@@ -3015,8 +3168,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         # 1) Abinit cannot be executed or runtime errors due e.g to libraries not in LD_LIBRARY_PATH
         # 2) IO buffering (Abinit called MPI_ABORT but files are not flushed before aborting.
         # Try to return as much information as possible to facilitate debugging.
-        errors = ["Problem in temp Task executed in %s" % task.workdir,
-                  "Previous exception %s" % prev_exc]
+        errors = ["Problem in temp Task executed in %s" % task.workdir, "Previous exception %s" % prev_exc]
 
         try:
             errors.append("Last 50 line from %s:" % str(task.log_file.path))
@@ -3033,8 +3185,9 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         finally:
             raise self.Error(emsg)
 
-    def _abiget_irred_perts(self, perts_vars, qpt=None, ngkpt=None, shiftk=None, kptopt=None,
-                            workdir=None, manager=None):
+    def _abiget_irred_perts(
+        self, perts_vars, qpt=None, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None
+    ):
         """
         This function, computes the list of irreducible perturbations for DFPT.
         It should be called with an input file that contains all the mandatory variables required by ABINIT.
@@ -3066,25 +3219,27 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
         # Bypass Abinit check as we always want to return results.
         inp["chksymbreak"] = 0
 
-        if ngkpt is not None: inp["ngkpt"] = ngkpt
+        if ngkpt is not None:
+            inp["ngkpt"] = ngkpt
         if shiftk is not None:
             shiftk = np.reshape(shiftk, (-1, 3))
             inp.set_vars(shiftk=shiftk, nshiftk=len(inp["shiftk"]))
 
         inp.set_vars(
-            nqpt=1,       # One wavevector is to be considered
-            qpt=qpt,      # q-wavevector.
+            nqpt=1,  # One wavevector is to be considered
+            qpt=qpt,  # q-wavevector.
             paral_rf=-1,  # Magic value to get the list of irreducible perturbations for this q-point.
-            **perts_vars
+            **perts_vars,
         )
 
-        if kptopt is not None: inp["kptopt"] = kptopt
-        #print("Computing irred_perts with input:\n", str(inp))
+        if kptopt is not None:
+            inp["kptopt"] = kptopt
+        # print("Computing irred_perts with input:\n", str(inp))
 
         # Build a Task to run Abinit in a shell subprocess
         task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
         task.start_and_wait(autoparal=False)
-        #print("-- log_file path:", task.log_file.path)
+        # print("-- log_file path:", task.log_file.path)
 
         # Parse the file to get the perturbations.
         try:
@@ -3101,8 +3256,9 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             except Exception as exc:
                 self._handle_task_exception(task, exc)
 
-    def abiget_irred_phperts(self, qpt=None, ngkpt=None, shiftk=None, kptopt=None,
-                             prepgkk=0, prepalw=0, workdir=None, manager=None):
+    def abiget_irred_phperts(
+        self, qpt=None, ngkpt=None, shiftk=None, kptopt=None, prepgkk=0, prepalw=0, workdir=None, manager=None
+    ):
         """
         This function, computes the list of irreducible perturbations for DFPT.
         It should be called with an input file that contains all the mandatory variables required by ABINIT.
@@ -3125,17 +3281,19 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
                 [{'idir': 1, 'ipert': 1, 'qpt': [0.25, 0.0, 0.0]},
                  {'idir': 2, 'ipert': 1, 'qpt': [0.25, 0.0, 0.0]}]
         """
-        phperts_vars = dict(rfphon=1,                         # Will consider phonon-type perturbation
-                            rfatpol=[1, len(self.structure)], # Set of atoms to displace.
-                            rfdir=[1, 1, 1],                  # Along this set of reduced coordinate axis.
-                            prepgkk=prepgkk,
-                            prepalw=prepalw,
-                            )
-        #if prepalw == 2:
+        phperts_vars = dict(
+            rfphon=1,  # Will consider phonon-type perturbation
+            rfatpol=[1, len(self.structure)],  # Set of atoms to displace.
+            rfdir=[1, 1, 1],  # Along this set of reduced coordinate axis.
+            prepgkk=prepgkk,
+            prepalw=prepalw,
+        )
+        # if prepalw == 2:
         #    phperts_vars["rfelfd"] = 3
 
-        return self._abiget_irred_perts(phperts_vars, qpt=qpt, ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt,
-                                        workdir=workdir, manager=manager)
+        return self._abiget_irred_perts(
+            phperts_vars, qpt=qpt, ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt, workdir=workdir, manager=manager
+        )
 
     def abiget_irred_ddeperts(self, ngkpt=None, shiftk=None, kptopt=None, workdir=None, manager=None):
         """
@@ -3157,16 +3315,19 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
              {'idir': 2, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]}]
 
         """
-        ddeperts_vars = dict(rfphon=0,  # No phonon-type perturbation
-                             rfelfd=3,  # Electric field
-                             kptopt=2,  # kpt time reversal symmetry
-                             )
+        ddeperts_vars = dict(
+            rfphon=0,  # No phonon-type perturbation
+            rfelfd=3,  # Electric field
+            kptopt=2,  # kpt time reversal symmetry
+        )
 
-        return self._abiget_irred_perts(ddeperts_vars, qpt=(0, 0, 0), ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt,
-                                        workdir=workdir, manager=manager)
+        return self._abiget_irred_perts(
+            ddeperts_vars, qpt=(0, 0, 0), ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt, workdir=workdir, manager=manager
+        )
 
-    def abiget_irred_dteperts(self, ngkpt=None, shiftk=None, kptopt=None, ixc=None, workdir=None, manager=None,
-                              phonon_pert=False):
+    def abiget_irred_dteperts(
+        self, ngkpt=None, shiftk=None, kptopt=None, ixc=None, workdir=None, manager=None, phonon_pert=False
+    ):
         """
         This function, computes the list of irreducible perturbations for DFPT.
         It should be called with an input file that contains all the mandatory variables required by ABINIT.
@@ -3175,6 +3336,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             ngkpt: Number of divisions for the k-mesh (default None i.e. use ngkpt from self)
             shiftk: Shiftks (default None i.e. use shiftk from self)
             kptopt: Option for k-point generation. If None, the value in self is used.
+            ixc: Exchange-correlation functional.
             workdir: Working directory of the fake task used to compute the ibz. Use None for temporary dir.
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
             phonon_pert: if True also the phonon perturbations will be considered. Default False.
@@ -3186,27 +3348,39 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             [{'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]},
              {'idir': 2, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]}]
         """
-        dteperts_vars = dict(d3e_pert1_phon=1 if phonon_pert else 0,  # phonon-type perturbation
-                             d3e_pert2_phon=0,
-                             d3e_pert3_phon=0,
-                             d3e_pert1_atpol=[1, len(self.structure)] if phonon_pert else None,
-                             d3e_pert1_elfd=1,           # Electric field perturbation
-                             d3e_pert2_elfd=1,
-                             d3e_pert3_elfd=1,
-                             d3e_pert1_dir=[1,1,1],
-                             d3e_pert2_dir=[1,1,1],
-                             d3e_pert3_dir=[1,1,1],
-                             optdriver=5,                # non-linear response functions , using the 2n+1 theorem
-                             kptopt=2,                   # kpt time reversal symmetry
-                             )
+        dteperts_vars = dict(
+            d3e_pert1_phon=1 if phonon_pert else 0,  # phonon-type perturbation
+            d3e_pert2_phon=0,
+            d3e_pert3_phon=0,
+            d3e_pert1_atpol=[1, len(self.structure)] if phonon_pert else None,
+            d3e_pert1_elfd=1,  # Electric field perturbation
+            d3e_pert2_elfd=1,
+            d3e_pert3_elfd=1,
+            d3e_pert1_dir=[1, 1, 1],
+            d3e_pert2_dir=[1, 1, 1],
+            d3e_pert3_dir=[1, 1, 1],
+            optdriver=5,  # non-linear response functions , using the 2n+1 theorem
+            kptopt=2,  # kpt time reversal symmetry
+        )
 
-        if ixc is not None: dteperts_vars["ixc"] = ixc
+        if ixc is not None:
+            dteperts_vars["ixc"] = ixc
 
-        return self._abiget_irred_perts(dteperts_vars, qpt=(0, 0, 0), ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt,
-                                        workdir=workdir, manager=manager)
+        return self._abiget_irred_perts(
+            dteperts_vars, qpt=(0, 0, 0), ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt, workdir=workdir, manager=manager
+        )
 
-    def abiget_irred_strainperts(self, ngkpt=None, shiftk=None, kptopt=None, phonon_pert=True,
-                                 efield_pert=False, prepalw=0, workdir=None, manager=None):
+    def abiget_irred_strainperts(
+        self,
+        ngkpt=None,
+        shiftk=None,
+        kptopt=None,
+        phonon_pert=True,
+        efield_pert=False,
+        prepalw=0,
+        workdir=None,
+        manager=None,
+    ):
         """
         This function, computes the list of irreducible perturbations for strain perturbations in DFPT.
         It should be called with an input file that contains all the mandatory variables required by ABINIT.
@@ -3228,26 +3402,28 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             [{'idir': 1, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]},
              {'idir': 2, 'ipert': 4, 'qpt': [0.0, 0.0, 0.0]}]
         """
-        strainperts_vars = dict(rfstrs=3,            # Do all strain perturbations
-                                rfdir=(1, 1, 1),     # All directions
-                                # nqpt=1,            # One wavevector is to be considered
-                                # qpt=(0, 0, 0),     # q-wavevector.
-                                kptopt=kptopt,       # Take into account time-reversal symmetry.
-                                iscf=7,              # Just so that it works with PAW ... #TODO: check this
-                                prepalw=prepalw,
-                             )
+        strainperts_vars = dict(
+            rfstrs=3,  # Do all strain perturbations
+            rfdir=(1, 1, 1),  # All directions
+            # nqpt=1,            # One wavevector is to be considered
+            # qpt=(0, 0, 0),     # q-wavevector.
+            kptopt=kptopt,  # Take into account time-reversal symmetry.
+            iscf=7,  # Just so that it works with PAW ... #TODO: check this
+            prepalw=prepalw,
+        )
 
         if phonon_pert:
-            strainperts_vars["rfphon"] = 1                          # No phonon-type perturbation
+            strainperts_vars["rfphon"] = 1  # No phonon-type perturbation
             strainperts_vars["rfatpol"] = (1, len(self.structure))  # Perturbation of all atoms
 
         if efield_pert:
-            strainperts_vars["rfelfd"] = 3                          # Activate E-field. Requires DDK files.
+            strainperts_vars["rfelfd"] = 3  # Activate E-field. Requires DDK files.
 
-        perts = self._abiget_irred_perts(strainperts_vars, qpt=(0, 0, 0), ngkpt=ngkpt, shiftk=shiftk,
-                                         kptopt=kptopt, workdir=workdir, manager=manager)
+        perts = self._abiget_irred_perts(
+            strainperts_vars, qpt=(0, 0, 0), ngkpt=ngkpt, shiftk=shiftk, kptopt=kptopt, workdir=workdir, manager=manager
+        )
 
-        #for i, p in enumerate(perts):
+        # for i, p in enumerate(perts):
         #    if i == 0: print("abiget_irred_strainperts:")
         #    print(p)
 
@@ -3268,8 +3444,7 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
 
         return popped
 
-    def abiget_autoparal_pconfs(self, max_ncpus,
-                                autoparal=1, workdir=None, manager=None, verbose=0):
+    def abiget_autoparal_pconfs(self, max_ncpus, autoparal=1, workdir=None, manager=None, verbose=0):
         """
         Get all the possible configurations up to ``max_ncpus``.
         Return list of parallel configurations.
@@ -3278,14 +3453,15 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             autoparal=autoparal,
             max_ncpus=max_ncpus,
             chksymbreak=0,  # Bypass Abinit check as we always want to return results.
-            mem_test=0,     # Disable memory check.
+            mem_test=0,  # Disable memory check.
             chkparal=CHKPARAL,  # Disable check on autoparal, paral_kgb etc.
         )
 
         # Run the job in a shell subprocess with mpi_procs = 1
         # Return code is always != 0
         task = AbinitTask.temp_shell_task(inp, workdir=workdir, manager=manager)
-        if verbose: print("Running in:", task.workdir)
+        if verbose:
+            print("Running in:", task.workdir)
         task.start_and_wait(autoparal=False)
 
         ##############################################################
@@ -3335,7 +3511,8 @@ with the Abinit version you are using? Please contact the AbiPy developers.""" %
             an |AbinitTask| of the executed calculation.
         """
         task = AbinitTask.temp_shell_task(self, workdir=workdir, manager=manager)
-        if verbose: print("Running in:", task.workdir)
+        if verbose:
+            print("Running in:", task.workdir)
         task.start_and_wait(autoparal=False)
         return task
 
@@ -3376,6 +3553,7 @@ class MultiDataset:
         The inputs can have different crystalline structures (as long as the atom types are equal)
         but each input in MultiDataset must have the same set of pseudopotentials.
     """
+
     Error = AbinitInputError
 
     @classmethod
@@ -3457,7 +3635,7 @@ class MultiDataset:
             self._inputs = [AbinitInput(structure=s, pseudos=pseudos) for s in structure]
 
         # Check pseudos
-        #for i in range(self.ndtset):
+        # for i in range(self.ndtset):
         #    if any(p1 != p2 for p1, p2 in zip(self[0].pseudos, self[i].pseudos)):
         #        raise selfError("Pseudos must be consistent when from_inputs is invoked.")
 
@@ -3505,15 +3683,16 @@ class MultiDataset:
         _inputs = object.__getattribute__(self, "_inputs")
         m = getattr(_inputs[0], name)
         if m is None:
-            raise AttributeError("Cannot find attribute %s. Tried in %s and then in AbinitInput object"
-                                 % (self.__class__.__name__, name))
+            raise AttributeError(
+                "Cannot find attribute %s. Tried in %s and then in AbinitInput object" % (self.__class__.__name__, name)
+            )
         isattr = not callable(m)
 
         def on_all(*args, **kwargs):
             results = []
             for obj in self._inputs:
                 a = getattr(obj, name)
-                #print("name", name, ", type:", type(a), "callable: ",callable(a))
+                # print("name", name, ", type:", type(a), "callable: ",callable(a))
                 if callable(a):
                     results.append(a(*args, **kwargs))
                 else:
@@ -3521,7 +3700,8 @@ class MultiDataset:
 
             return results
 
-        if isattr: on_all = on_all()
+        if isattr:
+            on_all = on_all()
         return on_all
 
     def __add__(self, other: AbinitInput | MultiDataset) -> MultiDataset:
@@ -3581,16 +3761,15 @@ class MultiDataset:
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self,
-                  mode: str = "text",
-                  verbose: int = 0,
-                  with_pseudos: bool = True,
-                  files_file: bool = False) -> str:
+    def to_string(
+        self, mode: str = "text", verbose: int = 0, with_pseudos: bool = True, files_file: bool = False
+    ) -> str:
         """
         String representation i.e. the ABINIT input file.
 
         Args:
             mode: Either ``text`` or ``html`` if HTML output with links is wanted.
+            verbose: Verbosity level.
             with_pseudos: False if JSON section with pseudo data should not be added.
             files_file: if True a string compatible with the presence of a files file
                 will be generated. Otherwise all the required variables will be added
@@ -3605,7 +3784,8 @@ class MultiDataset:
 
             def has_same_variable(kref, vref, other_inp):
                 """True if variable kref is present in other_inp with the same value."""
-                if kref not in other_inp: return False
+                if kref not in other_inp:
+                    return False
                 otherv = other_inp[kref]
                 return np.array_equal(vref, otherv)
 
@@ -3620,7 +3800,7 @@ class MultiDataset:
                         break
                 if isame:
                     global_vars.append((k0, v0))
-            #print("global_vars vars", global_vars)
+            # print("global_vars vars", global_vars)
 
             if not files_file:
                 for k, v in _DATA_PREFIX.items():
@@ -3652,9 +3832,14 @@ class MultiDataset:
 
             for i, inp in enumerate(self):
                 header = "##### DATASET %d #####" % (i + 1)
-                is_last = (i == self.ndtset - 1)
-                s = inp.to_string(post=str(i + 1), with_pseudos=is_last and with_pseudos, mode=mode,
-                                  with_structure=not has_same_structures, exclude=global_vars_names)
+                is_last = i == self.ndtset - 1
+                s = inp.to_string(
+                    post=str(i + 1),
+                    with_pseudos=is_last and with_pseudos,
+                    mode=mode,
+                    with_structure=not has_same_structures,
+                    exclude=global_vars_names,
+                )
                 if s:
                     header = len(header) * "#" + "\n" + header + "\n" + len(header) * "#" + "\n"
                     s = "\n" + header + s + "\n"
@@ -3685,8 +3870,7 @@ class MultiDataset:
         """
         frames = []
         for i, inp in enumerate(self):
-            df = pd.DataFrame([{v: inp.get(v, None) for v in varnames}],
-                              index=["dataset %d" % i], columns=varnames)
+            df = pd.DataFrame([{v: inp.get(v, None) for v in varnames}], index=["dataset %d" % i], columns=varnames)
             frames.append(df)
         return pd.concat(frames)
 
@@ -3729,7 +3913,7 @@ class MultiDataset:
             tags: A single tag or list/tuple/set of tags
             dtindeces: a list of indices to which the tags will be added. None=all the inputs.
         """
-        for i in dtindeces if dtindeces else range(len(self)):
+        for i in dtindeces or range(len(self)):
             self[i].add_tags(tags)
 
     def remove_tags(self, tags, dtindeces=None) -> None:
@@ -3740,7 +3924,7 @@ class MultiDataset:
             tags: A single tag or list/tuple/set of tags
             dtindeces: a list of indices from which the tags will be removed. None=all the inputs.
         """
-        for i in dtindeces if dtindeces else range(len(self)):
+        for i in dtindeces or range(len(self)):
             self[i].remove_tags(tags)
 
     def filter_by_runlevel(self, runlevel) -> MultiDataset:
@@ -3786,7 +3970,7 @@ class MultiDataset:
             tar.add(filepath)
 
             for dirname in ("indata", "tmpdata", "outdata"):
-                #print("Adding dir:", dirname)
+                # print("Adding dir:", dirname)
                 os.mkdir(dirname)
                 p = os.path.join(dirname, "__empty__")
                 with open(p, "w") as fh:
@@ -3821,32 +4005,32 @@ class AnaddbInput(AbiAbstractInput, MSONable, Has_Structure):
         """
         anaddb_args = []
         for key, value in self.items():
-            if isinstance(value, np.ndarray): value = value.tolist()
+            if isinstance(value, np.ndarray):
+                value = value.tolist()
             anaddb_args.append((key, value))
 
-        return dict(structure=self.structure.as_dict(),
-                    comment=self.comment,
-                    anaddb_args=anaddb_args,
-                    spell_check=self.spell_check,
-                    )
+        return dict(
+            structure=self.structure.as_dict(),
+            comment=self.comment,
+            anaddb_args=anaddb_args,
+            spell_check=self.spell_check,
+        )
 
     @classmethod
     def from_dict(cls, d: dict) -> AnaddbInput:
         """
         JSON interface used in pymatgen for easier serialization.
         """
-        return cls(d["structure"],
-                   comment=d["comment"],
-                   anaddb_args=d["anaddb_args"],
-                   spell_check=d["spell_check"],
-                   )
+        return cls(
+            d["structure"],
+            comment=d["comment"],
+            anaddb_args=d["anaddb_args"],
+            spell_check=d["spell_check"],
+        )
 
-    def __init__(self,
-                 structure: Structure,
-                 comment: str = "",
-                 anaddb_args=None,
-                 anaddb_kwargs=None,
-                 spell_check: bool = True):
+    def __init__(
+        self, structure: Structure, comment: str = "", anaddb_args=None, anaddb_kwargs=None, spell_check: bool = True
+    ):
         """
         Args:
             structure: |Structure| object
@@ -3874,6 +4058,7 @@ class AnaddbInput(AbiAbstractInput, MSONable, Has_Structure):
 
     @property
     def vars(self) -> dict:
+        """Dictionary with Anaddb input variables."""
         return self._vars
 
     def set_spell_check(self, false_or_true: bool) -> None:
@@ -3885,32 +4070,51 @@ class AnaddbInput(AbiAbstractInput, MSONable, Has_Structure):
         """True if spell checking is activated."""
         try:
             return self._spell_check
-        except AttributeError: # This is to maintain compatibility with pickle
+        except AttributeError:  # This is to maintain compatibility with pickle
             return False
 
     def _check_varname(self, key: str) -> None:
         if self.spell_check and not is_anaddb_var(key):
-            raise self.Error("""
+            raise self.Error(
+                """
 Cannot find variable `%s` in the internal database. If you think this is not a typo, use:
 
     input.set_spell_check(False)
 
 to disable spell checking. Perhaps the internal database is not in synch
-with the Abinit version you are using. Please contact the AbiPy developers.""" % key)
+with the Abinit version you are using. Please contact the AbiPy developers."""
+                % key
+            )
 
     @classmethod
-    def modes_at_qpoint(cls, structure, qpoint, asr=2, chneut=1, dipdip=1, dipquad=1, quadquad=1,
-                        ifcflag=0, lo_to_splitting=False,
-                        directions=None, anaddb_args=None,
-                        anaddb_kwargs=None, spell_check=False) -> AnaddbInput:
+    def modes_at_qpoint(
+        cls,
+        structure,
+        qpoint,
+        asr=2,
+        chneut=1,
+        dipdip=1,
+        dipquad=1,
+        quadquad=1,
+        ifcflag=0,
+        lo_to_splitting=False,
+        directions=None,
+        anaddb_args=None,
+        anaddb_kwargs=None,
+        spell_check=False,
+    ) -> AnaddbInput:
         """
         Build an |AnaddbInput| for the calculation of the phonon frequencies at a given q-point.
 
         Args:
             structure: |Structure| object
             qpoint: Reduced coordinates of the q-point where phonon frequencies and modes are wanted
-            asr, chneut, dipdp, ifcflag: Anaddb input variable. See official documentation.
-            dipquad, quadquad: 1 to include DQ, QQ terms (provided DDB contains dynamical quadrupoles).
+            asr: Acoustic Sum Rule flag. See official documentation.
+            chneut: Charge neutrality requirement for effective charges.
+            dipdip: Dipole-dipole interaction treatment.
+            ifcflag: Interatomic force constant flag.
+            dipquad: 1 to include DQ terms (provided DDB contains dynamical quadrupoles).
+            quadquad: 1 to include QQ terms (provided DDB contains dynamical quadrupoles).
             lo_to_splitting: if True calculation of the LO-TO splitting will be included if qpoint==Gamma
             directions: list of 3D directions along which the LO-TO splitting will be calculated. If None the three
                 cartesian direction will be used
@@ -3924,24 +4128,53 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         if len(qpoint) != 3:
             raise ValueError(f"Wrong {qpoint=}")
 
-        return cls.modes_at_qpoints(structure=structure, qpoints=[qpoint], asr=asr, chneut=chneut, dipdip=dipdip,
-                                    dipquad=dipquad, quadquad=quadquad,
-                                    ifcflag=ifcflag, lo_to_splitting=lo_to_splitting, directions=directions,
-                                    anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
+        return cls.modes_at_qpoints(
+            structure=structure,
+            qpoints=[qpoint],
+            asr=asr,
+            chneut=chneut,
+            dipdip=dipdip,
+            dipquad=dipquad,
+            quadquad=quadquad,
+            ifcflag=ifcflag,
+            lo_to_splitting=lo_to_splitting,
+            directions=directions,
+            anaddb_args=anaddb_args,
+            anaddb_kwargs=anaddb_kwargs,
+            spell_check=spell_check,
+        )
 
     @classmethod
-    def modes_at_qpoints(cls, structure, qpoints, asr=2, chneut=1, dipdip=1, dipquad=1, quadquad=1,
-                         ifcflag=0, lo_to_splitting=False,
-                         directions=None, ngqpt=None, q1shft=(0, 0, 0), anaddb_args=None, anaddb_kwargs=None,
-                         spell_check=False) -> AnaddbInput:
+    def modes_at_qpoints(
+        cls,
+        structure,
+        qpoints,
+        asr=2,
+        chneut=1,
+        dipdip=1,
+        dipquad=1,
+        quadquad=1,
+        ifcflag=0,
+        lo_to_splitting=False,
+        directions=None,
+        ngqpt=None,
+        q1shft=(0, 0, 0),
+        anaddb_args=None,
+        anaddb_kwargs=None,
+        spell_check=False,
+    ) -> AnaddbInput:
         """
         Build an |AnaddbInput| for the calculation of the phonon frequencies at a given q-point.
 
         Args:
             structure: |Structure| object
             qpoints: List of reduced coordinates of the q-point where phonon frequencies and modes are wanted
-            asr, chneut, dipdp, ifcflag: Anaddb input variable. See official documentation.
-            dipquad, quadquad: 1 to include DQ, QQ terms (provided DDB contains dynamical quadrupoles).
+            asr: Acoustic Sum Rule flag. See official documentation.
+            chneut: Charge neutrality requirement for effective charges.
+            dipdip: Dipole-dipole interaction treatment.
+            ifcflag: Interatomic force constant flag.
+            dipquad: 1 to include DQ terms (provided DDB contains dynamical quadrupoles).
+            quadquad: 1 to include QQ terms (provided DDB contains dynamical quadrupoles).
             lo_to_splitting: if True calculation of the LO-TO splitting will be included if qpoint==Gamma
             directions: list of 3D directions along which the LO-TO splitting will be calculated. If None the three
                 cartesian direction will be used
@@ -3954,32 +4187,33 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         if ifcflag == 1 and ngqpt is None:
             raise ValueError("If ifcflag is activated ngqpt should be defined.")
 
-        new = cls(structure, comment="ANADDB input for phonon frequencies for a list of q-points generated by AbiPy.",
-                  anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
+        new = cls(
+            structure,
+            comment="ANADDB input for phonon frequencies for a list of q-points generated by AbiPy.",
+            anaddb_args=anaddb_args,
+            anaddb_kwargs=anaddb_kwargs,
+            spell_check=spell_check,
+        )
 
         # We need a numpy array.
         qpoints = np.array([qpoint.frac_coords if hasattr(qpoint, "frac_coords") else qpoint for qpoint in qpoints])
         n_qpoints = len(qpoints)
 
         new.set_vars(
-            ifcflag=ifcflag,        # Interatomic force constant flag
-            asr=asr,                # Acoustic Sum Rule
-            chneut=chneut,          # Charge neutrality requirement for effective charges.
-            dipdip=dipdip,          # Dipole-dipole interaction treatment
+            ifcflag=ifcflag,  # Interatomic force constant flag
+            asr=asr,  # Acoustic Sum Rule
+            chneut=chneut,  # Charge neutrality requirement for effective charges.
+            dipdip=dipdip,  # Dipole-dipole interaction treatment
             dipquad=dipquad,
             quadquad=quadquad,
             # This part is fixed
             nph1l=n_qpoints,
-            qph1l=np.append(qpoints, [[1]] * n_qpoints, axis=-1)
+            qph1l=np.append(qpoints, [[1]] * n_qpoints, axis=-1),
         )
 
         if ngqpt is not None:
             q1shft = np.reshape(q1shft, (-1, 3))
-            new.set_vars(
-                ngqpt=ngqpt,
-                q1shft=q1shft,
-                nqshft=len(q1shft)
-            )
+            new.set_vars(ngqpt=ngqpt, q1shft=q1shft, nqshft=len(q1shft))
 
         if lo_to_splitting and any(np.allclose(q, [0, 0, 0]) for q in qpoints):
             if directions is None:
@@ -3988,35 +4222,77 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             # append 0 to specify that these are directions,
             directions = np.c_[directions, np.zeros(len(directions))]
             # add variables.
-            new.set_vars(
-                nph2l=len(directions),
-                qph2l=directions
-            )
+            new.set_vars(nph2l=len(directions), qph2l=directions)
 
         return new
 
     @classmethod
-    def piezo_elastic(cls, structure, relaxed_ion=True, stress_correction=False,
-                      asr=2, chneut=1, dipdip=1, anaddb_args=None, anaddb_kwargs=None) -> AnaddbInput:
+    def piezo_elastic(
+        cls,
+        structure,
+        relaxed_ion=True,
+        stress_correction=False,
+        asr=2,
+        chneut=1,
+        dipdip=1,
+        anaddb_args=None,
+        anaddb_kwargs=None,
+    ) -> AnaddbInput:
         """
         Build an |AnaddbInput| for the calculation of piezoelectric and elastic tensor calculations.
 
-        Args:
-            asr, chneut, dipdp: Anaddb input variable. See official documentation.
+            structure: |Structure| object
+            relaxed_ion: True to activate computation of relaxed-ion elastic and piezoelectric tensors.
+            stress_correction: True to activate computation of stress correction in elastic tensor.
+            asr: Acoustic Sum Rule flag. See official documentation.
+            chneut: Charge neutrality requirement for effective charges.
+            dipdip: Dipole-dipole interaction treatment.
+            anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
+            anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
         """
         comment = "ANADDB input for piezoelectric and elastic tensor calculation"
 
-        new = cls.dfpt(structure, relaxed_ion=relaxed_ion, piezo=True, dde=False, strain=True, dte=False,
-                       stress_correction=stress_correction, asr=asr, chneut=chneut, dipdip=dipdip,
-                       anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs, comment=comment)
+        new = cls.dfpt(
+            structure,
+            relaxed_ion=relaxed_ion,
+            piezo=True,
+            dde=False,
+            strain=True,
+            dte=False,
+            stress_correction=stress_correction,
+            asr=asr,
+            chneut=chneut,
+            dipdip=dipdip,
+            anaddb_args=anaddb_args,
+            anaddb_kwargs=anaddb_kwargs,
+            comment=comment,
+        )
         return new
 
     @classmethod
-    def phbands_and_dos(cls, structure, ngqpt, nqsmall, qppa=None, ndivsm=20, line_density=None, q1shft=(0, 0, 0),
-                        qptbounds=None, asr=2, chneut=1, dipdip=1, dipquad=1, quadquad=1,
-                        dos_method="tetra", lo_to_splitting=False,
-                        with_ifc=False, anaddb_args=None, anaddb_kwargs=None,
-                        spell_check=False, comment=None) -> AnaddbInput:
+    def phbands_and_dos(
+        cls,
+        structure,
+        ngqpt,
+        nqsmall,
+        qppa=None,
+        ndivsm=20,
+        line_density=None,
+        q1shft=(0, 0, 0),
+        qptbounds=None,
+        asr=2,
+        chneut=1,
+        dipdip=1,
+        dipquad=1,
+        quadquad=1,
+        dos_method="tetra",
+        lo_to_splitting=False,
+        with_ifc=False,
+        anaddb_args=None,
+        anaddb_kwargs=None,
+        spell_check=False,
+        comment=None,
+    ) -> AnaddbInput:
         """
         Build an |AnaddbInput| for the computation of phonon bands and phonon DOS.
 
@@ -4034,9 +4310,11 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             q1shft: Shifts used for the coarse Q-mesh
             qptbounds Boundaries of the path. If None, the path is generated from an internal database
                 depending on the input structure.
-            asr, chneut: Anaddb input variable. See official documentation.
+            asr: Acoustic Sum Rule flag. See official documentation.
+            chneut: Charge neutrality requirement for effective charges.
             dipdip: 1 to activate the treatment of the dipole-dipole interaction (requires BECS and dielectric tensor).
-            dipquad, quadquad: 1 to include DQ, QQ terms (provided DDB contains dynamical quadrupoles).
+            dipquad: 1 to include DQ terms (provided DDB contains dynamical quadrupoles).
+            quadquad: 1 to include QQ terms (provided DDB contains dynamical quadrupoles).
             dos_method: Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
                 In the later case, the value 0.001 eV is used as gaussian broadening
             lo_to_splitting: if True calculation of the LO-TO splitting will be included
@@ -4055,7 +4333,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             i = dos_method.find(":")
             if i != -1:
                 try:
-                    value, eunit = dos_method[i+1:].split()
+                    value, eunit = dos_method[i + 1 :].split()
                 except Exception as exc:
                     raise ValueError(f"Invalid {dos_method=}") from exc
 
@@ -4063,8 +4341,13 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         else:
             raise NotImplementedError(f"Wrong value for {dos_method=}")
 
-        new = cls(structure, comment="ANADDB input for phonon bands and DOS generated by AbiPy" if not comment else comment,
-                  anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
+        new = cls(
+            structure,
+            comment="ANADDB input for phonon bands and DOS generated by AbiPy" if not comment else comment,
+            anaddb_args=anaddb_args,
+            anaddb_kwargs=anaddb_kwargs,
+            spell_check=spell_check,
+        )
 
         # Parameters for the DOS
         if qppa:
@@ -4081,7 +4364,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         if line_density:
             qph1l = kpoints_from_line_density(structure, line_density)
             # Set new variables
-            new["qph1l"] = [q.tolist()+[1] for q in qph1l]
+            new["qph1l"] = [q.tolist() + [1] for q in qph1l]
             new["nph1l"] = len(qph1l)
             qptbounds = structure.calc_kptbounds()
         else:
@@ -4108,51 +4391,42 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                 if np.array_equal(qpt, (0, 0, 0)):
                     # anaddb expects cartesian coordinates for the qph2l list
                     if i > 0:
-                        directions.extend(rl.get_cartesian_coords(qptbounds[i-1]))
+                        directions.extend(rl.get_cartesian_coords(qptbounds[i - 1]))
                         directions.append(0)
 
                     if i < len(qptbounds) - 1:
-                        directions.extend(rl.get_cartesian_coords(qptbounds[i+1]))
+                        directions.extend(rl.get_cartesian_coords(qptbounds[i + 1]))
                         directions.append(0)
 
             if directions:
                 directions = np.reshape(directions, (-1, 4))
-                new.set_vars(
-                    nph2l=len(directions),
-                    qph2l=directions
-                )
+                new.set_vars(nph2l=len(directions), qph2l=directions)
 
         if with_ifc:
             new.set_vars(
-                ifcout=10000000,
-                natifc=len(structure),
-                atifc=list(range(1, len(structure) + 1)),
-                ifcana=1,
-                prt_ifc=1
+                ifcout=10000000, natifc=len(structure), atifc=list(range(1, len(structure) + 1)), ifcana=1, prt_ifc=1
             )
 
         return new
 
     @classmethod
-    def modes(cls, structure,
-              enunit=2, asr=2, chneut=1, anaddb_args=None, anaddb_kwargs=None) -> AnaddbInput:
+    def modes(cls, structure, enunit=2, asr=2, chneut=1, anaddb_args=None, anaddb_kwargs=None) -> AnaddbInput:
         """
         Build an |AnaddbInput| for the computation of phonon modes.
 
-        Args:
-            Structure: |Structure| object
-            ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
-            nqsmall: Used to generate the (dense) mesh for the DOS.
-                It defines the number of q-points used to sample the smallest lattice vector.
-            q1shft: Shifts used for the coarse Q-mesh
-            qptbounds Boundaries of the path. If None, the path is generated from an internal database
-                depending on the input structure.
-            asr, chneut, dipdp: Anaddb input variable. See official documentation.
+            structure: |Structure| object
+            enunit: Energy unit flag.
+            asr: Acoustic Sum Rule flag.
+            chneut: Charge neutrality requirement.
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
         """
-        new = cls(structure, comment="ANADDB input for modes generated by AbiPy",
-                  anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
+        new = cls(
+            structure,
+            comment="ANADDB input for modes generated by AbiPy",
+            anaddb_args=anaddb_args,
+            anaddb_kwargs=anaddb_kwargs,
+        )
 
         new.set_vars(
             enunit=enunit,
@@ -4165,14 +4439,24 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             nph1l=1,
             qph1l=[0.0, 0.0, 0.0, 1.0],
             nph2l=3,
-            qph2l=[[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0]]
+            qph2l=[[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0]],
         )
 
         return new
 
     @classmethod
-    def ifc(cls, structure, ngqpt, ifcout=None, q1shft=(0, 0, 0), asr=2, chneut=1, dipdip=1, anaddb_args=None,
-            anaddb_kwargs=None) -> AnaddbInput:
+    def ifc(
+        cls,
+        structure,
+        ngqpt,
+        ifcout=None,
+        q1shft=(0, 0, 0),
+        asr=2,
+        chneut=1,
+        dipdip=1,
+        anaddb_args=None,
+        anaddb_kwargs=None,
+    ) -> AnaddbInput:
         """
         Build an |AnaddbInput| for the computation of interatomic force constants.
 
@@ -4181,16 +4465,22 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             ngqpt: Monkhorst-Pack divisions for the phonon Q-mesh (coarse one)
             ifcout: Number of neighbouring atoms for which the ifc's will be output. If None all the atoms in the big box.
             q1shft: Shifts used for the coarse Q-mesh
-            asr, chneut, dipdip: Anaddb input variable. See official documentation.
+            asr: Acoustic Sum Rule flag.
+            chneut: Charge neutrality requirement.
+            dipdip: Dipole-dipole interaction treatment.
             anaddb_args: List of tuples (key, value) with Anaddb input variables (default: empty)
             anaddb_kwargs: Dictionary with Anaddb input variables (default: empty)
         """
-        new = cls(structure, comment="ANADDB input for IFC generated by AbiPy.",
-                  anaddb_args=anaddb_args, anaddb_kwargs=anaddb_kwargs)
+        new = cls(
+            structure,
+            comment="ANADDB input for IFC generated by AbiPy.",
+            anaddb_args=anaddb_args,
+            anaddb_kwargs=anaddb_kwargs,
+        )
 
         q1shft = np.reshape(q1shft, (-1, 3))
 
-        #TODO add in anaddb an option to get all the atoms if ifcout<0
+        # TODO add in anaddb an option to get all the atoms if ifcout<0
         # Huge number abinit will limit to the big box
         ifcout = ifcout or 10000000
 
@@ -4204,18 +4494,42 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             dipdip=dipdip,
             ifcout=ifcout,
             natifc=len(structure),
-            atifc=list(range(1, len(structure)+1)),
+            atifc=list(range(1, len(structure) + 1)),
             ifcana=1,
-            prt_ifc=1
+            prt_ifc=1,
         )
 
         return new
 
     @classmethod
-    def dfpt(cls, structure, ngqpt=None, relaxed_ion=False, piezo=False, dde=False, strain=False, dte=False,
-             raman=False, stress_correction=False, nqsmall=None, qppa=None, ndivsm=20, line_density=None,
-             q1shft=(0, 0, 0), qptbounds=None, asr=2, chneut=1, dipdip=1, ramansr=1, alphon=1, dos_method="tetra",
-             directions=None, anaddb_args=None, anaddb_kwargs=None, comment=None) -> AnaddbInput:
+    def dfpt(
+        cls,
+        structure,
+        ngqpt=None,
+        relaxed_ion=False,
+        piezo=False,
+        dde=False,
+        strain=False,
+        dte=False,
+        raman=False,
+        stress_correction=False,
+        nqsmall=None,
+        qppa=None,
+        ndivsm=20,
+        line_density=None,
+        q1shft=(0, 0, 0),
+        qptbounds=None,
+        asr=2,
+        chneut=1,
+        dipdip=1,
+        ramansr=1,
+        alphon=1,
+        dos_method="tetra",
+        directions=None,
+        anaddb_args=None,
+        anaddb_kwargs=None,
+        comment=None,
+    ) -> AnaddbInput:
         """
         Builds an |AnaddbInput| to post-process a generic DFPT calculation.
 
@@ -4245,7 +4559,11 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             q1shft: Shifts used for the coarse Q-mesh
             qptbounds: Boundaries of the path. If None, the path is generated from an internal database
                 depending on the input structure.
-            asr, chneut, dipdp, ramansr, alphon: Anaddb input variable. See official documentation.
+            asr: Acoustic Sum Rule flag.
+            chneut: Charge neutrality requirement.
+            dipdip: Dipole-dipole interaction treatment.
+            ramansr: Raman sum rule flag.
+            alphon: Contribution of the atomic positions to the nonlinear optical properties.
             dos_method: Possible choices: "tetra", "gaussian" or "gaussian:0.001 eV".
                 In the later case, the value 0.001 eV is used as gaussian broadening
             directions: list of 3D directions along which the non analytical contribution will be calculated.
@@ -4256,10 +4574,22 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         """
         # use the phonon BS and DOS input as starting point is required, otherwise
         if ngqpt:
-            anaddb_input = cls.phbands_and_dos(structure=structure, ngqpt=ngqpt, ndivsm=ndivsm, nqsmall=nqsmall,
-                                               qppa=qppa, line_density=line_density, asr=asr, chneut=chneut,
-                                               dipdip=dipdip, qptbounds=qptbounds, dos_method=dos_method,
-                                               lo_to_splitting=dde, q1shft=q1shft, comment=comment)
+            anaddb_input = cls.phbands_and_dos(
+                structure=structure,
+                ngqpt=ngqpt,
+                ndivsm=ndivsm,
+                nqsmall=nqsmall,
+                qppa=qppa,
+                line_density=line_density,
+                asr=asr,
+                chneut=chneut,
+                dipdip=dipdip,
+                qptbounds=qptbounds,
+                dos_method=dos_method,
+                lo_to_splitting=dde,
+                q1shft=q1shft,
+                comment=comment,
+            )
         else:
             anaddb_input = AnaddbInput(structure, comment=comment)
             anaddb_input.set_vars(asr=asr, chneut=chneut)
@@ -4311,19 +4641,13 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
                     # append 0 to specify that these are directions,
                     directions = np.c_[directions, np.zeros(len(directions))]
 
-                anaddb_input.set_vars(
-                    nph2l=len(directions),
-                    qph2l=directions
-                )
+                anaddb_input.set_vars(nph2l=len(directions), qph2l=directions)
             else:
                 nlflag = 3
                 ramansr = 0
                 alphon = 0
 
-            anaddb_input.set_vars(nlflag=nlflag,
-                                  ramansr=ramansr,
-                                  alphon=alphon,
-                                  prtmbm=prtmbm)
+            anaddb_input.set_vars(nlflag=nlflag, ramansr=ramansr, alphon=alphon, prtmbm=prtmbm)
 
         anaddb_args = [] if anaddb_args is None else anaddb_args
         anaddb_kwargs = {} if anaddb_kwargs is None else anaddb_kwargs
@@ -4345,6 +4669,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         Args:
             sortmode: "a" for alphabetical order, None if no sorting is wanted
             mode: Either `text` or `html` if HTML output with links is wanted.
+            verbose: Verbosity level.
+            files_file: True if the file is a files file.
         """
         lines = []
         app = lines.append
@@ -4372,9 +4698,10 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             if files_file and any(p in vname for p in ("prefix", "file")):
                 continue
             value = self[vname]
-            #root = "https://docs.abinit.org/variables/anaddb/"
-            #if mode == "html": vname = root + "#%s" % vname
-            if mode == "html": vname = var_database[vname].html_link(label=vname)
+            # root = "https://docs.abinit.org/variables/anaddb/"
+            # if mode == "html": vname = root + "#%s" % vname
+            if mode == "html":
+                vname = var_database[vname].html_link(label=vname)
             value = format_string_abivars(vname, value, "anaddb")
 
             try:
@@ -4398,7 +4725,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
             qptbounds: q-points defining the path in k-space.
                 If None, we use the default high-symmetry k-path defined in the pymatgen database.
         """
-        if qptbounds is None: qptbounds = self.structure.calc_kptbounds()
+        if qptbounds is None:
+            qptbounds = self.structure.calc_kptbounds()
         qptbounds = np.reshape(qptbounds, (-1, 3))
 
         return self.set_vars(ndivsm=ndivsm, nqpath=len(qptbounds), qpath=qptbounds)
@@ -4431,16 +4759,19 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         """
         task = AnaddbTask.temp_shell_task(self, ddb_node="fake_DDB", workdir=workdir, manager=manager)
         # TODO: Anaddb does not support --dry-run
-        #retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
-        return dict2namedtuple(retcode=0, output_file=task.output_file, log_file=task.log_file,
-                               stderr_file=task.stderr_file, task=task)
+        # retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
+        return dict2namedtuple(
+            retcode=0, output_file=task.output_file, log_file=task.log_file, stderr_file=task.stderr_file, task=task
+        )
 
 
 class OpticVar(collections.namedtuple("OpticVar", "name default group help")):
-
+    """
+    This object stores information on a variable used by the `optic` code.
+    """
     def __str__(self):
         sval = str(self.default)
-        return (4*" ").join([sval, "!" + self.help])
+        return (4 * " ").join([sval, "!" + self.help])
 
     @property
     def url(self) -> str:
@@ -4461,51 +4792,68 @@ class OpticInput(AbiAbstractInput, MSONable):
     """
     Input file for optic executable
     """
+
     Error = OpticError
 
     # variable name --> default value.
     _VARIABLES = [
-        #OpticVar(name="ddkfile_x", default=None, help="Name of the first d/dk response wavefunction file"),
-        #OpticVar(name="ddkfile_y", default=None, help="Name of the second d/dk response wavefunction file"),
-        #OpticVar(name="ddkfile_z", default=None, help="Name of the third d/dk response wavefunction file"),
-        #OpticVar(name="wfkfile",   default=None, help="Name of the ground-state wavefunction file"),
-
+        # OpticVar(name="ddkfile_x", default=None, help="Name of the first d/dk response wavefunction file"),
+        # OpticVar(name="ddkfile_y", default=None, help="Name of the second d/dk response wavefunction file"),
+        # OpticVar(name="ddkfile_z", default=None, help="Name of the third d/dk response wavefunction file"),
+        # OpticVar(name="wfkfile",   default=None, help="Name of the ground-state wavefunction file"),
         # PARAMETERS section:
-        OpticVar(name="broadening", default=0.01, group="PARAMETERS",
-                 help="Value of the smearing factor, in Hartree"),
-        OpticVar(name="domega", default=0.010, group="PARAMETERS",
-                 help="Frequency step (Ha)"),
-        OpticVar(name="maxomega", default=1, group="PARAMETERS",
-                 help="Maximum frequency (Ha)"),
-        OpticVar(name="scissor", default=0.000, group="PARAMETERS",
-                 help="Scissor shift if needed, in Hartree"),
-        OpticVar(name="tolerance", default=0.001, group="PARAMETERS",
-                 help="Tolerance on closeness of singularities (in Hartree)"),
-        OpticVar(name="autoparal", default=0, group="PARAMETERS",
-                 help="Autoparal option"),
-        OpticVar(name="max_ncpus", default=0, group="PARAMETERS",
-                 help="Max number of CPUs considered in autoparal mode"),
-
+        OpticVar(name="broadening", default=0.01, group="PARAMETERS", help="Value of the smearing factor, in Hartree"),
+        OpticVar(name="domega", default=0.010, group="PARAMETERS", help="Frequency step (Ha)"),
+        OpticVar(name="maxomega", default=1, group="PARAMETERS", help="Maximum frequency (Ha)"),
+        OpticVar(name="scissor", default=0.000, group="PARAMETERS", help="Scissor shift if needed, in Hartree"),
+        OpticVar(
+            name="tolerance",
+            default=0.001,
+            group="PARAMETERS",
+            help="Tolerance on closeness of singularities (in Hartree)",
+        ),
+        OpticVar(name="autoparal", default=0, group="PARAMETERS", help="Autoparal option"),
+        OpticVar(
+            name="max_ncpus", default=0, group="PARAMETERS", help="Max number of CPUs considered in autoparal mode"
+        ),
         # COMPUTATIONS section:
-        OpticVar(name="num_lin_comp", default=0, group="COMPUTATIONS",
-                 help="Number of components of linear optic tensor to be computed"),
-        OpticVar(name="lin_comp", default=0, group="COMPUTATIONS",
-                 help="Linear coefficients to be computed (x=1, y=2, z=3)"),
-        OpticVar(name="num_nonlin_comp", default=0, group="COMPUTATIONS",
-                 help="Number of components of nonlinear optic tensor to be computed"),
-        OpticVar(name="nonlin_comp", default=0, group="COMPUTATIONS",
-                 help="Non-linear coefficients to be computed"),
-        OpticVar(name="num_linel_comp", default=0, group="COMPUTATIONS",
-                 help="Number of components of linear electro-optic tensor to be computed"),
-        OpticVar(name="linel_comp", default=0, group="COMPUTATIONS",
-                 help="Linear electro-optic coefficients to be computed"),
-        OpticVar(name="num_nonlin2_comp", default=0, group="COMPUTATIONS",
-                 help="Number of components of nonlinear optic tensor v2 to be computed"),
-        OpticVar(name="nonlin2_comp", default=0, group="COMPUTATIONS",
-                 help="Non-linear coefficients v2 to be computed"),
+        OpticVar(
+            name="num_lin_comp",
+            default=0,
+            group="COMPUTATIONS",
+            help="Number of components of linear optic tensor to be computed",
+        ),
+        OpticVar(
+            name="lin_comp", default=0, group="COMPUTATIONS", help="Linear coefficients to be computed (x=1, y=2, z=3)"
+        ),
+        OpticVar(
+            name="num_nonlin_comp",
+            default=0,
+            group="COMPUTATIONS",
+            help="Number of components of nonlinear optic tensor to be computed",
+        ),
+        OpticVar(name="nonlin_comp", default=0, group="COMPUTATIONS", help="Non-linear coefficients to be computed"),
+        OpticVar(
+            name="num_linel_comp",
+            default=0,
+            group="COMPUTATIONS",
+            help="Number of components of linear electro-optic tensor to be computed",
+        ),
+        OpticVar(
+            name="linel_comp", default=0, group="COMPUTATIONS", help="Linear electro-optic coefficients to be computed"
+        ),
+        OpticVar(
+            name="num_nonlin2_comp",
+            default=0,
+            group="COMPUTATIONS",
+            help="Number of components of nonlinear optic tensor v2 to be computed",
+        ),
+        OpticVar(
+            name="nonlin2_comp", default=0, group="COMPUTATIONS", help="Non-linear coefficients v2 to be computed"
+        ),
     ]
 
-    _GROUPS = ["PARAMETERS","COMPUTATIONS"]
+    _GROUPS = ["PARAMETERS", "COMPUTATIONS"]
 
     # Variable names supported
     _VARNAMES = [v.name for v in _VARIABLES]
@@ -4514,6 +4862,7 @@ class OpticInput(AbiAbstractInput, MSONable):
     _NAME2VAR = {v.name: v for v in _VARIABLES}
 
     def __init__(self, **kwargs):
+        """Initialize the object with the given variables."""
         # Initialize with default values.
         self._vars = collections.OrderedDict((v.name, v.default) for v in self._VARIABLES)
 
@@ -4528,18 +4877,21 @@ class OpticInput(AbiAbstractInput, MSONable):
 
     @property
     def vars(self) -> dict:
+        """Dictionary with Optic input variables."""
         return self._vars
 
     def _check_varname(self, key: str) -> None:
         if key not in self._VARNAMES:
-            raise self.Error("%s is not a valid optic variable.\n"
-                             "If you are sure the name is correct, please change the _VARIABLES list in:\n%s" %
-                             (key, __file__))
+            raise self.Error(
+                "%s is not a valid optic variable.\n"
+                "If you are sure the name is correct, please change the _VARIABLES list in:\n%s" % (key, __file__)
+            )
 
     def get_default(self, key: str):
         """Return the default value of variable `key`."""
         for var in self._VARIABLES:
-            if var.name == key: return var.default
+            if var.name == key:
+                return var.default
         raise self.Error("Cannot find %s in _VARIABLES" % str(key))
 
     @classmethod
@@ -4549,12 +4901,13 @@ class OpticInput(AbiAbstractInput, MSONable):
         """
         kwargs = {}
         for grp, section in d.items():
-            if grp in ("@module", "@class"): continue
+            if grp in ("@module", "@class"):
+                continue
             kwargs.update(**section)
         return cls(**kwargs)
 
     # TODO
-    #@pmg_serialize
+    # @pmg_serialize
     def as_dict(self) -> dict:
         """
         JSON interface used in pymatgen for easier serialization.
@@ -4565,7 +4918,8 @@ class OpticInput(AbiAbstractInput, MSONable):
 
         for name in self._VARNAMES:
             value = self.vars.get(name)
-            if value is None: value = self.get_default(name)
+            if value is None:
+                value = self.get_default(name)
             if value is None:
                 raise self.Error(f"Variable {name=} is missing")
 
@@ -4582,7 +4936,8 @@ class OpticInput(AbiAbstractInput, MSONable):
 
         for name in self._VARNAMES:
             value = self.vars.get(name)
-            if value is None: value = self.get_default(name)
+            if value is None:
+                value = self.get_default(name)
             if value is None:
                 raise self.Error(f"Variable {name=} is missing")
 
@@ -4599,8 +4954,9 @@ class OpticInput(AbiAbstractInput, MSONable):
 
         return "\n".join(lines)
 
-    def only_independent_chi_components(self, structure, assume_symmetric_tensor=False,
-                                        symprec=1e-3, angle_tolerance=5):
+    def only_independent_chi_components(
+        self, structure, assume_symmetric_tensor=False, symprec=1e-3, angle_tolerance=5
+    ):
         """
         Use the crystal system returned by spglib to find the independent components
         of the linear susceptibility tensor and set the appropriate variables.
@@ -4609,12 +4965,14 @@ class OpticInput(AbiAbstractInput, MSONable):
             structure: Crystalline structure
             assume_symmetric_tensor: True if tensor can be assumed symmetric.
                 Note that the tensor is symmetric only for a lossless and non-optically active material.
-            symprec, angle_tolerance: Parameters passed to spglib.
+            symprec: Symmetry precision passed to spglib.
+            angle_tolerance: Angle tolerance passed to spglib.
 
         Return:
             Set internal variables and return list of components to compute.
         """
         from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+
         spgan = SpacegroupAnalyzer(structure, symprec=symprec, angle_tolerance=angle_tolerance)
         system = spgan.get_crystal_system()
 
@@ -4664,10 +5022,9 @@ class OpticInput(AbiAbstractInput, MSONable):
                 task: Task object
         """
         # TODO: Optic does not support --dry-run
-        #task = OpticTask.temp_shell_task(inp=self, workdir=workdir, manager=manager)
-        #retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
-        return dict2namedtuple(retcode=0, output_file=None, log_file=None,
-                               stderr_file=None, task=None)
+        # task = OpticTask.temp_shell_task(inp=self, workdir=workdir, manager=manager)
+        # retcode = task.start_and_wait(autoparal=False, exec_args=["--dry-run"])
+        return dict2namedtuple(retcode=0, output_file=None, log_file=None, stderr_file=None, task=None)
 
 
 class Cut3DInput(MSONable):
@@ -4678,8 +5035,11 @@ class Cut3DInput(MSONable):
 
         Converters with nspden > 1 won't work since cut3d asks for the ispden index.
     """
+
     def __init__(self, infile_path=None, output_filepath=None, options=None):
         """
+        Initialize the object with infile_path, output_filepath and options.
+
         Args:
             infile_path: absolute or relative path to the input file produced by abinit (e.g. DEN, WFK, ...). Can be
                 None to be defined at a later time.
@@ -4874,8 +5234,7 @@ class Cut3DInput(MSONable):
         """
         JSON interface used in pymatgen for easier serialization.
         """
-        return cls(infile_path=d.get("infile_path"), output_filepath=d.get("output_filepath"),
-                   options=d.get("options"))
+        return cls(infile_path=d.get("infile_path"), output_filepath=d.get("output_filepath"), options=d.get("options"))
 
 
 class AtdepInputError(Exception):
@@ -4899,32 +5258,32 @@ class AtdepInput(AbiAbstractInput, MSONable, Has_Structure):
         """
         atdep_args = []
         for key, value in self.items():
-            if isinstance(value, np.ndarray): value = value.tolist()
+            if isinstance(value, np.ndarray):
+                value = value.tolist()
             atdep_args.append((key, value))
 
-        return dict(structure=self.structure.as_dict(),
-                    comment=self.comment,
-                    atdep_args=atdep_args,
-                    spell_check=self.spell_check,
-                    )
+        return dict(
+            structure=self.structure.as_dict(),
+            comment=self.comment,
+            atdep_args=atdep_args,
+            spell_check=self.spell_check,
+        )
 
     @classmethod
     def from_dict(cls, d: dict) -> AtdepInput:
         """
         JSON interface used in pymatgen for easier serialization.
         """
-        return cls(d["structure"],
-                   comment=d["comment"],
-                   atdep_args=d["atdep_args"],
-                   spell_check=d["spell_check"],
-                   )
+        return cls(
+            d["structure"],
+            comment=d["comment"],
+            atdep_args=d["atdep_args"],
+            spell_check=d["spell_check"],
+        )
 
-    def __init__(self,
-                 structure: Structure,
-                 comment: str = "",
-                 atdep_args=None,
-                 atdep_kwargs=None,
-                 spell_check: bool = False):
+    def __init__(
+        self, structure: Structure, comment: str = "", atdep_args=None, atdep_kwargs=None, spell_check: bool = False
+    ):
         """
         Args:
             structure: |Structure| object
@@ -4952,6 +5311,7 @@ class AtdepInput(AbiAbstractInput, MSONable, Has_Structure):
 
     @property
     def vars(self) -> dict:
+        """Dictionary with Atdep input variables."""
         return self._vars
 
     def set_spell_check(self, false_or_true: bool) -> None:
@@ -4963,19 +5323,22 @@ class AtdepInput(AbiAbstractInput, MSONable, Has_Structure):
         """True if spell checking is activated."""
         try:
             return self._spell_check
-        except AttributeError: # This is to maintain compatibility with pickle
+        except AttributeError:  # This is to maintain compatibility with pickle
             return False
 
     def _check_varname(self, key: str) -> None:
         if self.spell_check:
             if not is_atdep_var(key):
-                raise self.Error("""
+                raise self.Error(
+                    """
 Cannot find variable `%s` in the internal database. If you think this is not a typo, use:
 
     input.set_spell_check(False)
 
 to disable spell checking. Perhaps the internal database is not in synch
-with the Abinit version you are using. Please contact the AbiPy developers.""" % key)
+with the Abinit version you are using. Please contact the AbiPy developers."""
+                    % key
+                )
 
     @property
     def structure(self) -> Structure:
@@ -4989,6 +5352,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         according to the 'brav' variable from atdep.
         """
         from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
+
         spa = SpacegroupAnalyzer(structure)
         family = spa.get_crystal_system()
 
@@ -5001,7 +5365,7 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         elif n < 16:
             # monoclinic
             iholohedry = 2
-            #icentering = 0
+            # icentering = 0
         elif n < 75:
             # orthorhombic
             iholohedry = 3
@@ -5039,13 +5403,10 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
 
         return [iholohedry, icentering]
 
-    _unitcell_keys = ["brav", "natom_unitcell",
-                      "xred_unitcell", "typat_unitcell"]
+    _unitcell_keys = ["brav", "natom_unitcell", "xred_unitcell", "typat_unitcell"]
     _supercell_keys = ["multiplicity"]
-    _computational_details_keys = ["nstep_max", "nstep_min",
-                                   "rcut", "temperature"]
-    _mandatory_keys = (
-        _unitcell_keys + _supercell_keys + _computational_details_keys)
+    _computational_details_keys = ["nstep_max", "nstep_min", "rcut", "temperature"]
+    _mandatory_keys = _unitcell_keys + _supercell_keys + _computational_details_keys
 
     def has_mandatory_variables(self):
         """True if all mandatory variables been specified."""
@@ -5059,8 +5420,8 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         String representation.
 
         Args:
-            sortmode: "a" for alphabetical order, None if no sorting is wanted
             mode: Either `text` or `html` if HTML output with links is wanted.
+            verbose: Verbosity level.
         """
         lines = []
         app = lines.append
@@ -5117,7 +5478,10 @@ with the Abinit version you are using. Please contact the AbiPy developers.""" %
         return self.to_string(mode="html")
 
     def abivalidate(self, workdir=None, manager=None):
-        pass
+        """
+        Run ATDEP in dry-run mode to validate the input file.
+        Note: This method is a stub.
+        """
 
 
 def product_dict(d: dict):
@@ -5148,7 +5512,8 @@ def product_dict(d: dict):
     values = []
 
     for v in vals:
-        if not isinstance(v, collections.abc.Iterable): v = [v]
+        if not isinstance(v, collections.abc.Iterable):
+            v = [v]
         values.append(v)
 
     # Build list of dictionaries. Use ordered dicts so that
@@ -5167,6 +5532,7 @@ def kpoints_from_line_density(structure, line_density, symprec=1e-2):
     Compute an high-symmetry k-path using pymatgen conventions and line_density
 
     Args:
+        structure: |Structure| object.
         line_density: Number of points in each segment is computed as: int(ceil(distance * line_density))
             where distance is the length of the segment.
             This option is the recommended one if the k-path contains two consecutive high symmetry k-points

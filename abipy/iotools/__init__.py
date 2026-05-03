@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 from pymatgen.io.abinit.netcdf import as_etsfreader
+
 try:
     from pymatgen.io.abinit.netcdf import ETSF_Reader
 except ImportError:
@@ -15,7 +16,7 @@ from .xsf import *
 from .visualizer import *
 
 
-#as_etsfreader = ionc.as_etsfreader
+# as_etsfreader = ionc.as_etsfreader
 
 
 class ETSF_Reader(ETSF_Reader):
@@ -30,6 +31,7 @@ class ETSF_Reader(ETSF_Reader):
         an instance of AbiPy |Structure| object
         """
         from abipy.core.structure import Structure
+
         return Structure.from_file(self.path)
 
     def typeidx_from_symbol(self, symbol: str) -> int:
@@ -56,10 +58,11 @@ class ETSF_Reader(ETSF_Reader):
             varname: Name of the variable
         """
         b = self.rootgrp.variables[varname][:]
-        #print(type(b))
+        # print(type(b))
         import netCDF4
+
         try:
-            value = netCDF4.chartostring(b)[()].decode('utf-8')
+            value = netCDF4.chartostring(b)[()].decode("utf-8")
         except Exception:
             try:
                 value = netCDF4.chartostring(b)[()]
@@ -92,6 +95,7 @@ class ETSF_Reader(ETSF_Reader):
         atomic_numbers = self.read_value("atomic_numbers")
         amu_z = {at: a for at, a in zip(atomic_numbers, amu_list)}
         from pymatgen.core.periodic_table import Element
+
         amu_symbol = {Element.from_Z(n).symbol: v for n, v in amu_z.items()}
 
         return amu_symbol

@@ -1,6 +1,7 @@
 """
 Integration tests for flows/works/tasks that rely on external files e.g. DEN --> NscfTask.
 """
+
 from __future__ import annotations
 
 import os
@@ -12,8 +13,7 @@ from abipy.core.testing import AbipyTest
 
 def make_scf_nscf_inputs(paral_kgb=1):
     """Returns two input files: GS run and NSCF on a high symmetry k-mesh."""
-    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"),
-                                pseudos=abidata.pseudos("14si.pspnc"), ndtset=2)
+    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"), pseudos=abidata.pseudos("14si.pspnc"), ndtset=2)
 
     # Global variables
     ecut = 6
@@ -25,7 +25,7 @@ def make_scf_nscf_inputs(paral_kgb=1):
     )
 
     if multi.ispaw:
-        global_vars.update(pawecutdg=2*ecut)
+        global_vars.update(pawecutdg=2 * ecut)
 
     multi.set_vars(global_vars)
 
@@ -35,9 +35,9 @@ def make_scf_nscf_inputs(paral_kgb=1):
 
     # Dataset 2 (NSCF run)
     kptbounds = [
-        [0.5, 0.0, 0.0], # L point
-        [0.0, 0.0, 0.0], # Gamma point
-        [0.0, 0.5, 0.5], # X point
+        [0.5, 0.0, 0.0],  # L point
+        [0.0, 0.0, 0.0],  # Gamma point
+        [0.0, 0.5, 0.5],  # X point
     ]
 
     multi[1].set_kpath(ndivsm=6, kptbounds=kptbounds)
@@ -63,6 +63,7 @@ def itest_nscf_from_denfile(fwp, tvars):
     # there's a node who needs a file produced in the future.
     # Need to copy DEN.nc to temp dir to avoid problem with multiple extensions.
     import shutil
+
     tmp_directory = AbipyTest.mkdtemp()
     den_filepath = os.path.join(tmp_directory, "si_DEN.nc")
     shutil.copyfile(abidata.ref_file("si_DEN.nc"), den_filepath)
@@ -88,8 +89,9 @@ def itest_nscf_from_denfile(fwp, tvars):
     assert task.str_deps
     assert filenode.str_deps
     assert not task.get_children()
-    #assert filenode.set_manager(fwp.manager)
-    repr(filenode); str(filenode)
+    # assert filenode.set_manager(fwp.manager)
+    repr(filenode)
+    str(filenode)
     assert filenode.filepath == den_filepath
     assert filenode.status == filenode.S_OK
 

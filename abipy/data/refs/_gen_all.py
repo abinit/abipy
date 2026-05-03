@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-This script regenerate all the reference files located in this directory 
+This script regenerate all the reference files located in this directory
 """
 
 import argparse
@@ -24,19 +24,17 @@ def main():
             sys.stderr.write("Fatal Error\n" + err_msg + "\n")
         sys.exit(error_code)
 
-    parser = argparse.ArgumentParser(epilog=str_examples(),formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_argument("-m", "--mode", type=str, default="sequential",
-                        help="execution mode. Default is sequential.")
+    parser.add_argument("-m", "--mode", type=str, default="sequential", help="execution mode. Default is sequential.")
 
     parser.add_argument("-e", "--exclude", type=str, default="", help="Exclude scripts.")
 
-    parser.add_argument("--keep-dirs", action="store_true", default=False,
-                        help="Do not remove flowdirectories.")
+    parser.add_argument("--keep-dirs", action="store_true", default=False, help="Do not remove flowdirectories.")
 
     parser.add_argument("-b", "--bail-on-failure", default=False, help="Exit at the first error.")
 
-    #parser.add_argument("scripts", nargs="+",help="List of scripts to be executed")
+    # parser.add_argument("scripts", nargs="+",help="List of scripts to be executed")
 
     options = parser.parse_args()
 
@@ -48,14 +46,15 @@ def main():
     scripts = []
     for dirpath, dirnames, filenames in os.walk(os.path.dirname(__file__)):
         for fname in filenames:
-            if fname in options.exclude: continue
+            if fname in options.exclude:
+                continue
             if fname == "gendata.py":
                 path = os.path.join(os.path.abspath(dirpath), fname)
-                #if path != __file__:
+                # if path != __file__:
                 scripts.append(path)
 
-    #print(scripts)
-    #return 0
+    # print(scripts)
+    # return 0
 
     # Run scripts according to mode.
     dirpaths, retcode = [], 0
@@ -67,10 +66,11 @@ def main():
 
             if ret != 0:
                 print("retcode %d while running %s" % (ret, script))
-                if options.bail_on_failure: break
+                if options.bail_on_failure:
+                    break
 
         # Remove directories.
-        #if not options.keep_dirs:
+        # if not options.keep_dirs:
         #    for dirpath in dirpaths:
         #        try:
         #            shutil.rmtree(dirpath, ignore_errors=False)
@@ -82,6 +82,7 @@ def main():
 
     print("retcode %d" % retcode)
     return retcode
+
 
 if __name__ == "__main__":
     sys.exit(main())

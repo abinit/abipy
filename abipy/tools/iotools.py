@@ -1,4 +1,5 @@
 """IO related utilities."""
+
 from __future__ import annotations
 
 import codecs
@@ -22,7 +23,7 @@ from abipy.tools.typing import PathLike
 def make_executable(filepath: PathLike) -> None:
     """Make file executable"""
     mode = os.stat(filepath).st_mode
-    mode |= (mode & 0o444) >> 2    # copy R bits to X
+    mode |= (mode & 0o444) >> 2  # copy R bits to X
     os.chmod(filepath, mode)
 
 
@@ -33,7 +34,8 @@ def try_files(filepaths: list[PathLike]) -> Path:
     """
     for path in filepaths:
         path = Path(str(path))
-        if path.exists(): return path
+        if path.exists():
+            return path
 
     raise RuntimeError("Cannot find {filepaths=}")
 
@@ -45,7 +47,8 @@ def file_with_ext_indir(ext: str, directory: PathLike) -> Path:
     """
     directory = Path(str(directory))
     for path in directory.listdir():
-        if path.is_dir(): continue
+        if path.is_dir():
+            continue
         if path.suffix == ext:
             return path.absolute()
 
@@ -61,7 +64,7 @@ def yaml_dump(obj: Any):
     y.dump(obj, stream)
     stream.seek(0)
     s = stream.read()
-    #print(s)
+    # print(s)
     return s
 
 
@@ -82,13 +85,14 @@ def yaml_safe_load_path(filepath: str) -> Any:
 
 
 def dataframe_from_filepath(filepath: str, **kwargs) -> pd.DataFrame:
-    """
-    Try to read a dataframe from an external file according to the file extension.
-    """
+    """Try to read a dataframe from an external file according to the file extension."""
     _, ext = os.path.splitext(filepath)
-    if ext == "csv": return pd.read_csv(filepath, **kwargs)
-    if ext == "json": return pd.read_json(filepath, **kwargs)
-    if ext in ("xls", "xlsx"): return pd.read_excel(filepath, **kwargs)
+    if ext == "csv":
+        return pd.read_csv(filepath, **kwargs)
+    if ext == "json":
+        return pd.read_json(filepath, **kwargs)
+    if ext in ("xls", "xlsx"):
+        return pd.read_excel(filepath, **kwargs)
 
     raise ValueError(f"Don't know how to construct DataFrame from file {filepath} with extension: {ext}")
 
@@ -106,11 +110,14 @@ class ExitStackWithFiles(ExitStack):
         exit_stack.enter_context(phbst_file)
         return exit_stack
     """
+
     def __init__(self):
+        """Initialize the exit stack."""
         self.files = []
         super().__init__()
 
     def enter_context(self, myfile):
+        """Enter the context of `myfile` and return it."""
         # If my file is None, we add it to files but without registering the callback.
         self.files.append(myfile)
         if myfile is not None:
@@ -174,13 +181,14 @@ def ask_yes_no(prompt: str, default=None):  # pragma: no cover
     return answers[ans]
 
 
-def _user_wants_to_exit(): # pragma: no cover
+def _user_wants_to_exit():  # pragma: no cover
     try:
         answer = get_input("Do you want to continue [Y/n]")
     except EOFError:
         return True
 
-    if answer.lower().strip() in ["n", "no"]: return True
+    if answer.lower().strip() in ["n", "no"]:
+        return True
     return False
 
 
@@ -189,23 +197,30 @@ class EditorError(Exception):
 
 
 class Editor:  # pragma: no cover
+    """Helper class to open files in a system editor."""
     DEFAULT_EDITOR = "vi"
 
     Error = EditorError
 
     def __init__(self, editor=None):
+        """
+        Args:
+            editor: Name or path to the editor. If None, it is read from the EDITOR environment variable.
+        """
         if editor is None:
             self.editor = os.getenv("EDITOR", self.DEFAULT_EDITOR)
         else:
             self.editor = str(editor)
 
     def edit_file(self, filepath):
+        """Open the file at `filepath` with the system editor."""
         retcode = call([self.editor, filepath])
         if retcode != 0:
             cprint("Retcode %s while editing file: %s" % (retcode, filepath), "red")
         return retcode
 
     def edit_files(self, filepaths, ask_for_exit=True):
+        """Open multiple files with the system editor."""
         for idx, fname in enumerate(list_strings(filepaths)):
             exit_status = self.edit_file(fname)
 
@@ -223,6 +238,7 @@ def input_from_editor(message=None):  # pragma: no cover
         print(message, end="")
 
     from tempfile import mkstemp
+
     fd, fname = mkstemp(text=True)
 
     Editor().edit_file(fname)
@@ -233,9 +249,10 @@ def input_from_editor(message=None):  # pragma: no cover
 def ask_yesno(question: str, default=True):
     """
     Args:
-        question ():
-        default ():
+        question: The question to ask.
+        default: Default answer if input is empty or EOF occurs.
     Returns:
+        True if answer is yes/y, False otherwise.
     """
     try:
         answer = input(question)
@@ -246,6 +263,7 @@ def ask_yesno(question: str, default=True):
 
 umask = os.umask(0)
 os.umask(umask)
+
 
 def _maketemp(name: str, createmode=None) -> str:
     """
@@ -290,10 +308,10 @@ class AtomicFile:
     def __init__(self, name, mode="w+b", createmode=None, encoding=None):
         """
         Args:
-            name ():
-            mode ():
-            createmode ():
-            encoding ():
+            name: permanent name of the file.
+            mode: mode in which the file is opened.
+            createmode: permission bits to use if the file does not exist.
+            encoding: encoding to use for the file.
         """
         self.__name = name  # permanent name
         self._tempname = _maketemp(name, createmode=createmode)
@@ -315,9 +333,7 @@ class AtomicFile:
         self.close()
 
     def close(self) -> None:
-        """
-        Close the file.
-        """
+        """Close the file."""
         if not self._fp.closed:
             self._fp.close()
             # This to avoid:
@@ -329,9 +345,7 @@ class AtomicFile:
             os.rename(self._tempname, self.__name)
 
     def discard(self) -> None:
-        """
-        Discard the file.
-        """
+        """Discard the file."""
         if not self._fp.closed:
             try:
                 os.unlink(self._tempname)
@@ -360,6 +374,7 @@ def workdir_with_prefix(workdir, prefix, exist_ok=False) -> Path:
         os.makedirs(workdir, exist_ok=exist_ok)
 
     return Path(workdir).absolute()
+
 
 def filepath_extract_differences(filepaths: list) -> list:
     """
@@ -390,6 +405,7 @@ def filepath_extract_differences(filepaths: list) -> list:
             results.append(f"..{s[start:end]}..")
     return results
 
+
 def change_ext_from_top(top: PathLike, old_ext: str, new_ext: str) -> int:
     """
     Change the extension of all the files with extension old_ext with new_ext.
@@ -406,8 +422,9 @@ def change_ext_from_top(top: PathLike, old_ext: str, new_ext: str) -> int:
         root = Path(root)
         for filepath in files:
             filepath = root / Path(filepath)
-            if not filepath.name.endswith(old_ext): continue
-            new_name = filepath.name[:-len(old_ext)] + new_ext
+            if not filepath.name.endswith(old_ext):
+                continue
+            new_name = filepath.name[: -len(old_ext)] + new_ext
             filepath.rename(root / new_name)
             count += 1
 
@@ -415,9 +432,7 @@ def change_ext_from_top(top: PathLike, old_ext: str, new_ext: str) -> int:
 
 
 class _Script:
-    """
-    Base class for Script objects.
-    """
+    """Base class for Script objects."""
 
     def __init__(self, filepath: str):
         self.filepath = filepath
@@ -449,9 +464,7 @@ if False:
         return self
 
     def write(self):
-        """
-        Write python script and json file with the list of files in the Robot.
-        """
+        """Write python script and json file with the list of files in the Robot."""
         with open(self.filepath, "w") as fh:
             fh.write(self.text)
         make_executable(self.filepath)
@@ -469,6 +482,10 @@ class PythonScript(_Script):
     """
 
     def __init__(self, filepath: str):
+        """
+        Args:
+            filepath: Path to the script file.
+        """
         super().__init__(filepath)
 
         self.text = """\
@@ -487,14 +504,12 @@ if False:
 
     def add_main(self):
         """Add main section"""
-        self.text += \
-"""
+        self.text += """
 
 if __name__ == "__main__":
     main()
 """
         return self
-
 
 
 class ShellScript(_Script):
@@ -508,6 +523,10 @@ class ShellScript(_Script):
     """
 
     def __init__(self, filepath: str):
+        """
+        Args:
+            filepath: Path to the script file.
+        """
         super().__init__(filepath)
 
         self.text = """\

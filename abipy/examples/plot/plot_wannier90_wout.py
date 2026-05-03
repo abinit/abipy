@@ -8,6 +8,7 @@ of the wannierization cycle using the .wout file produced by wannier90.
 Use `abiopen FILE.wout` for a command line interface and
 the `--expose` option to generate matplotlib figures automatically.
 """
+
 import os
 
 import abipy.data as abidata

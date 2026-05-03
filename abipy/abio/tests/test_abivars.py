@@ -1,4 +1,5 @@
 """Tests for abivars module"""
+
 import os
 
 import numpy as np
@@ -17,7 +18,6 @@ from abipy.core.testing import AbipyTest
 
 
 class TestAbinitInputParser(AbipyTest):
-
     def test_helper_functions(self):
         assert expand_star_syntax("3*2") == "2 2 2"
         assert expand_star_syntax("2 *1") == "1 1"
@@ -27,30 +27,31 @@ class TestAbinitInputParser(AbipyTest):
         s = expand_star_syntax("64*1 6*1 0 1/3 1/3 1/3 17*0")
         values = s.split()
         assert len(values) == 91
-        #assert np.sum(values) == 71
+        # assert np.sum(values) == 71
 
     def test_static_methods(self):
         """Testing AbinitInputParser static methods."""
         p = AbinitInputParser()
-        repr(p); str(p)
+        repr(p)
+        str(p)
         assert p.varname_dtindex("acell1") == ("acell", 1)
         assert p.varname_dtindex("fa1k2") == ("fa1k", 2)
 
         from math import sqrt
-        assert p.eval_abinit_operators(["1/2"]) == [str(1/2)]
-        assert p.eval_abinit_operators(["sqrt(3.)"]) == [str(sqrt(3.))]
-        assert p.eval_abinit_operators(["+sqrt(3.)"]) == [str(sqrt(3.))]
-        assert p.eval_abinit_operators(["-sqrt(3.)"]) == [str(-sqrt(3.))]
+
+        assert p.eval_abinit_operators(["1/2"]) == [str(1 / 2)]
+        assert p.eval_abinit_operators(["sqrt(3.)"]) == [str(sqrt(3.0))]
+        assert p.eval_abinit_operators(["+sqrt(3.)"]) == [str(sqrt(3.0))]
+        assert p.eval_abinit_operators(["-sqrt(3.)"]) == [str(-sqrt(3.0))]
 
 
 class TestAbinitInputFile(AbipyTest):
-
     def test_simple_input(self):
         # Reference structure
-        s = ("acell 1 1 1 rprim 1 0 0 0 1 0 0 0 1 natom 1 "
-             "ntypat 1 typat 1 znucl 14 xred 0 0 0 ")
+        s = "acell 1 1 1 rprim 1 0 0 0 1 0 0 0 1 natom 1 ntypat 1 typat 1 znucl 14 xred 0 0 0 "
         inp = AbinitInputFile.from_string(s)
-        repr(inp); str(inp)
+        repr(inp)
+        str(inp)
         assert inp.to_string(verbose=1)
         assert inp._repr_html_()
         si1_structure = inp.structure
@@ -73,15 +74,14 @@ class TestAbinitInputFile(AbipyTest):
         assert inp.structure == si1_structure
 
         # acell and rprimd with unit.
-        s = ("acell 1 2*1 Bohr rprim 1 0 0 0 1 0 0 0 1 Bohr natom 1 "
-             "ntypat 1 typat *1 znucl 1*14 xred 0 0 0")
+        s = "acell 1 2*1 Bohr rprim 1 0 0 0 1 0 0 0 1 Bohr natom 1 ntypat 1 typat *1 znucl 1*14 xred 0 0 0"
         with AbinitInputFile.from_string(s) as inp:
             assert inp.structure == si1_structure
             if self.has_nbformat():
                 inp.write_notebook(nbpath=self.get_tmpname(text=True))
 
         # TODO Angdeg sqrt(4) sqrt(4/2)
-        #assert 0
+        # assert 0
 
     def test_input_with_datasets(self):
         # H2 molecule in a big box
@@ -95,13 +95,15 @@ class TestAbinitInputFile(AbipyTest):
         inp = AbinitInputFile.from_string(s)
         assert inp.ndtset == 2
         dt0 = inp.datasets[0]
-        repr(dt0); str(dt0)
+        repr(dt0)
+        str(dt0)
         assert dt0.to_string(verbose=2)
         assert dt0._repr_html_()
         s0, s1 = inp.datasets[0].structure, inp.datasets[1].structure
         assert s0 != s1
         assert s1.volume == 8 * s0.volume
-        repr(inp); str(inp)
+        repr(inp)
+        str(inp)
 
         # same input but with global acell
         s = """
@@ -114,7 +116,8 @@ class TestAbinitInputFile(AbipyTest):
         inp = AbinitInputFile.from_string(s)
         assert s0 == inp.datasets[0].structure
         assert s1 == inp.datasets[1].structure
-        repr(inp); str(inp)
+        repr(inp)
+        str(inp)
 
         d = inp.datasets[1].get_vars()
         assert "natom" not in d and len(d) == 0
@@ -145,7 +148,8 @@ class TestAbinitInputFile(AbipyTest):
         assert inp.ndtset == 3
         self.assert_equal([dt["ecut"] for dt in inp.datasets], [10, 15, 20])
         self.assert_equal([dt["pawecutdg"] for dt in inp.datasets], [2, 6, 18])
-        repr(inp); str(inp)
+        repr(inp)
+        str(inp)
 
         # Test arithmetic series with xcart.
         s = """
@@ -190,9 +194,9 @@ xred 3*0 3*1/4
         assert inp.ndtset == 1 and inp.structure is not None and len(inp.structure) == 2
         self.assert_equal(inp.structure[0].frac_coords, [0, 0, 0])
         self.assert_equal(inp.structure[0].specie.symbol, "Ga")
-        self.assert_equal(inp.structure[1].frac_coords, [1/4, 1/4, 1/4])
+        self.assert_equal(inp.structure[1].frac_coords, [1 / 4, 1 / 4, 1 / 4])
         self.assert_equal(inp.structure[1].specie.symbol, "As")
-        mat = 5.6533 * np.array([0, 1/2, 1/2, 1/2, 0, 1/2, 1/2, 1/2, 0])
+        mat = 5.6533 * np.array([0, 1 / 2, 1 / 2, 1 / 2, 0, 1 / 2, 1 / 2, 1 / 2, 0])
         mat.shape = (3, 3)
         self.assert_almost_equal(inp.structure[1].lattice.matrix, mat)
 
@@ -276,12 +280,13 @@ typat 1 1         # For the first dataset, both numbers will be read,
         """
         abi_homedir = os.environ.get("ABINIT_HOME_DIR")
         if abi_homedir is not None:
-            #raise self.SkipTest("Environment variable `ABINIT_HOME_DIR` is required for this test.")
+            # raise self.SkipTest("Environment variable `ABINIT_HOME_DIR` is required for this test.")
             abitests_dir = os.path.join(abi_homedir, "tests")
         else:
             abitests_dir = os.path.join(abidata.dirpath, "refs/si_bse")
 
         from abipy.abio.abivars import validate_input_parser
+
         assert os.path.exists(abitests_dir)
         retcode = validate_input_parser(abitests_dir=abitests_dir)
         assert retcode == 0
@@ -311,12 +316,11 @@ xred_symbols
         assert abivars["ntypat"] == 2
         self.assert_equal(abivars["typat"], [1, 2, 2])
         self.assert_equal(abivars["znucl"], [12, 5])
-        self.assert_equal(abivars["xred"].flatten(), [0.0, 0.0, 0.0,
-                                                      1/3, 2/3, 0.5,
-                                                      2/3, 1/3, 0.5])
+        self.assert_equal(abivars["xred"].flatten(), [0.0, 0.0, 0.0, 1 / 3, 2 / 3, 0.5, 2 / 3, 1 / 3, 0.5])
 
         # Test wrapper provided by AbiPy structure.
         from abipy.core.structure import Structure
+
         same_mgb2 = Structure.from_abistring(string)
         assert same_mgb2 == mgb2
 
@@ -370,14 +374,18 @@ xred_symbols
         inp4 = AbinitInputFile.from_string(s4)
         diffs = inp1.get_differences(inp2)
         assert len(diffs) == 1
-        assert diffs[0] == "The variable 'ngkpt' is different in the two files:\n" \
-                           " - this file:  '2 2 2'\n" \
-                           " - other file: '3 3 3'"
+        assert (
+            diffs[0] == "The variable 'ngkpt' is different in the two files:\n"
+            " - this file:  '2 2 2'\n"
+            " - other file: '3 3 3'"
+        )
         diffs = inp2.get_differences(inp1)
         assert len(diffs) == 1
-        assert diffs[0] == "The variable 'ngkpt' is different in the two files:\n" \
-                           " - this file:  '3 3 3'\n" \
-                           " - other file: '2 2 2'"
+        assert (
+            diffs[0] == "The variable 'ngkpt' is different in the two files:\n"
+            " - this file:  '3 3 3'\n"
+            " - other file: '2 2 2'"
+        )
         diffs = inp1.get_differences(inp2, ignore_vars=["ngkpt"])
         assert diffs == []
         diffs = inp1.get_differences(inp3)
@@ -391,19 +399,19 @@ xred_symbols
         diffs = inp2.get_differences(inp4)
         assert len(diffs) == 2
         assert "The following variables are in other file but not in this one: ecut" in diffs
-        assert "The variable 'ngkpt' is different in the two files:\n" \
-               " - this file:  '3 3 3'\n" \
-               " - other file: '2 2 2'" in diffs
-        diffs = inp2.get_differences(inp4, ignore_vars=["ecut"])
-        assert diffs == [
+        assert (
             "The variable 'ngkpt' is different in the two files:\n"
             " - this file:  '3 3 3'\n"
-            " - other file: '2 2 2'"
+            " - other file: '2 2 2'" in diffs
+        )
+        diffs = inp2.get_differences(inp4, ignore_vars=["ecut"])
+        assert diffs == [
+            "The variable 'ngkpt' is different in the two files:\n - this file:  '3 3 3'\n - other file: '2 2 2'"
         ]
         diffs = inp2.get_differences(inp4, ignore_vars=["ngkpt"])
         assert diffs == ["The following variables are in other file but not in this one: ecut"]
         diffs = inp2.get_differences(inp4, ignore_vars=["ngkpt", "ecut"])
         assert diffs == []
 
-        #inp1 = AbinitInputFile.from_string(s1)
-        #inp2 = AbinitInputFile.from_string(s2)
+        # inp1 = AbinitInputFile.from_string(s1)
+        # inp2 = AbinitInputFile.from_string(s2)

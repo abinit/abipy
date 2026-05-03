@@ -34,7 +34,7 @@ def make_ion_ioncell_inputs(paral_kgb=0):
         chksymtnons=0,
         paral_kgb=paral_kgb,
         iomode=3,
-        #prtwf=0,
+        # prtwf=0,
     )
 
     multi = abilab.MultiDataset(structure, pseudos=abidata.pseudos("14si.pspnc"), ndtset=2)
@@ -48,9 +48,9 @@ def make_ion_ioncell_inputs(paral_kgb=0):
         ionmov=2,
         tolrff=0.02,
         tolmxf=5.0e-5,
-        #ntime=50,
+        # ntime=50,
         ntime=3,  # To test the restart
-        #dilatmx=1.1, # FIXME: abinit crashes if I don't use this
+        # dilatmx=1.1, # FIXME: abinit crashes if I don't use this
     )
 
     # Dataset 2 (Atom + Cell Relaxation)
@@ -62,11 +62,11 @@ def make_ion_ioncell_inputs(paral_kgb=0):
         tolrff=0.02,
         tolmxf=5.0e-5,
         strfact=100,
-        #ntime=50,
+        # ntime=50,
         ntime=3,  # To test the restart
-        )
+    )
 
-    #print(multi)
+    # print(multi)
 
     ion_inp, ioncell_inp = multi.split_datasets()
     return ion_inp, ioncell_inp
@@ -94,6 +94,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

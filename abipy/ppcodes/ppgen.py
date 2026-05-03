@@ -1,4 +1,5 @@
 """Interface for pseudopotential generators."""
+
 from __future__ import annotations
 
 import abc
@@ -20,19 +21,20 @@ logger = logging.getLogger(__name__)
 
 # Possible status of the PseudoGenerator.
 
-_STATUS2STR = collections.OrderedDict([
-    (1, "Initialized"),    # PseudoGenerator has been initialized
-    (2, "Running"),        # PseudoGenerator is running.
-    (3, "Done"),           # Calculation done, This does not imply that results are OK
-    (4, "Error"),          # PP generator error.
-    (5, "Completed"),      # Execution completed successfully.
-])
+_STATUS2STR = collections.OrderedDict(
+    [
+        (1, "Initialized"),  # PseudoGenerator has been initialized
+        (2, "Running"),  # PseudoGenerator is running.
+        (3, "Done"),  # Calculation done, This does not imply that results are OK
+        (4, "Error"),  # PP generator error.
+        (5, "Completed"),  # Execution completed successfully.
+    ]
+)
 
 
 class Status(int):
-    """
-    An integer representing the status of the 'PseudoGenerator`.
-    """
+    """An integer representing the status of the 'PseudoGenerator`."""
+
     def __repr__(self) -> str:
         return "<%s: %s, at %s>" % (self.__class__.__name__, str(self), id(self))
 
@@ -155,8 +157,8 @@ class _PseudoGenerator(metaclass=abc.ABCMeta):
     def parser(self):
         return self._parser
 
-    #@property
-    #def pseudo(self) -> Pseudo | None:
+    # @property
+    # def pseudo(self) -> Pseudo | None:
     #    """Pseudo object or None if not available"""
     #    try:
     #        return self._pseudo
@@ -174,7 +176,7 @@ class _PseudoGenerator(metaclass=abc.ABCMeta):
         return self._input_str
 
     def start(self) -> int:
-        """"
+        """
         Run the calculation in a subprocess (non-blocking interface)
         Return 1 if calculation started, 0 otherwise.
         """
@@ -189,23 +191,20 @@ class _PseudoGenerator(metaclass=abc.ABCMeta):
         self.cmd_str = " ".join(args)
 
         from subprocess import PIPE, Popen
+
         self.process = Popen(self.cmd_str, shell=True, stdout=PIPE, stderr=PIPE, cwd=self.workdir)
         self.set_status(self.S_RUN, info_msg="Start on %s" % time.asctime)
 
         return 1
 
     def start_and_wait(self) -> int:
-        """
-        Run the calculation in a subprocess, wait for it and return exit status.
-        """
+        """Run the calculation in a subprocess, wait for it and return exit status."""
         self.start()
         retcode = self.wait()
         return retcode
 
     def poll(self) -> int:
-        """
-        Check if child process has terminated. Set and return returncode attribute.
-        """
+        """Check if child process has terminated. Set and return returncode attribute."""
         self._retcode = self.process.poll()
 
         if self._retcode is not None:
@@ -214,9 +213,7 @@ class _PseudoGenerator(metaclass=abc.ABCMeta):
         return self._retcode
 
     def wait(self) -> int:
-        """
-        Wait for child process to terminate. Set and return returncode attribute.
-        """
+        """Wait for child process to terminate. Set and return returncode attribute."""
         self._retcode = self.process.wait()
         self.set_status(self.S_DONE)
 
@@ -249,23 +246,17 @@ class _PseudoGenerator(metaclass=abc.ABCMeta):
         return self.input_str
 
     def get_stdout(self) -> str:
-        """
-        Returns a string with the stdout of the calculation.
-        """
+        """Returns a string with the stdout of the calculation."""
         with open(self.stdout_path) as out:
             return out.read()
 
     def get_stderr(self) -> str:
-        """
-        Return string with the stderr of the calculation.
-        """
+        """Return string with the stderr of the calculation."""
         with open(self.stderr_path) as err:
             return err.read()
 
     def rmtree(self) -> int:
-        """
-        Remove the temporary directory. Return exit status
-        """
+        """Remove the temporary directory. Return exit status."""
         try:
             shutil.rmtree(self.workdir)
             return 0
@@ -274,8 +265,8 @@ class _PseudoGenerator(metaclass=abc.ABCMeta):
 
     ### ABC PROTOCOL ###
 
-    #@abc.abstractproperty
-    #def parser(self):
+    # @abc.abstractproperty
+    # def parser(self):
     #    return _
 
     @abc.abstractmethod
@@ -285,8 +276,9 @@ class _PseudoGenerator(metaclass=abc.ABCMeta):
         error files produced by the application
         """
 
-#import enum
-#class CalcType(enum.Enum):
+
+# import enum
+# class CalcType(enum.Enum):
 #    nor = "non-relativistic"
 #    sr = "scalar-relativistic"
 #    fr = "fully-relativistic"
@@ -305,14 +297,19 @@ class OncvGenerator(_PseudoGenerator):
 
     @classmethod
     def from_file(cls, path: str, calc_type: str, use_mgga: bool, workdir: str | None = None) -> OncvGenerator:
-        """
-        Build the object from a file containing the input parameters.
-        """
+        """Build the object from a file containing the input parameters."""
         with open(path) as fh:
             input_str = fh.read()
             return cls(input_str, calc_type, use_mgga=use_mgga, workdir=workdir)
 
     def __init__(self, input_str: str, calc_type: str, use_mgga: bool, workdir: str | None = None):
+        """
+        Args:
+            input_str: Input string for ONCVPSP.
+            calc_type: Calculation type (non-relativistic, scalar-relativistic, or fully-relativistic).
+            use_mgga: True if meta-GGA should be used.
+            workdir: Optional working directory.
+        """
         super().__init__(workdir=workdir)
 
         self._input_str = input_str
@@ -338,9 +335,7 @@ class OncvGenerator(_PseudoGenerator):
             raise RuntimeError(msg)
 
     def check_status(self):
-        """
-        Check the status of the run, set and return self.status attribute.
-        """
+        """Check the status of the run, set and return self.status attribute."""
         if self._status == self.S_OK:
             return self._status
 

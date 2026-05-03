@@ -19,10 +19,10 @@ def special_positions(lattice, u):
     frac_coords = {}
 
     frac_coords["Si"] = [
-            [1/2 + u, 1/2 - u, 0],
-            [u,       -u,      u],
-   ]
-    frac_coords["O"] = [ [0, 0, u] ]
+        [1 / 2 + u, 1 / 2 - u, 0],
+        [u, -u, u],
+    ]
+    frac_coords["O"] = [[0, 0, u]]
 
     species, coords = [], []
     for symbol, positions in frac_coords.items():
@@ -68,7 +68,7 @@ def make_workflow(structure, pseudos, paral_kgb=1):
     multi.set_vars(
         ecut=15,
         paral_kgb=paral_kgb,
-        nband=nval//2 + 4,      # occupied + 4 empty
+        nband=nval // 2 + 4,  # occupied + 4 empty
     )
 
     # (GS run)
@@ -91,6 +91,7 @@ def make_workflow(structure, pseudos, paral_kgb=1):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).plot_networkx(tight_layout=True)
 

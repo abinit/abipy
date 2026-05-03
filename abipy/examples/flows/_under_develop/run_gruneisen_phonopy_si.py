@@ -29,7 +29,7 @@ def build_flow(options):
 
     # Build input for GS calculation.
     gsinp = abilab.AbinitInput(structure, pseudos)
-    gsinp.set_vars(ecut=8, nband=4, toldff=1.e-6)
+    gsinp.set_vars(ecut=8, nband=4, toldff=1.0e-6)
 
     # This gives ngkpt = 4x4x4 with 4 shifts for the initial unit cell.
     # The k-point sampling will be rescaled when we build the supercell in PhonopyWork.
@@ -49,6 +49,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

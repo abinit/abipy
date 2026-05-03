@@ -1,4 +1,5 @@
 """Tests for mesh3d module"""
+
 import numpy as np
 
 from abipy.core.mesh3d import *
@@ -10,7 +11,7 @@ class TestMesh3D(AbipyTest):
 
     def test_base(self):
         """Testing mesh3d methods"""
-        rprimd = np.reshape([1., 0, 0, 0, 1, 0, 0, 0, 1], (3, 3))
+        rprimd = np.reshape([1.0, 0, 0, 0, 1, 0, 0, 0, 1], (3, 3))
 
         mesh_443 = Mesh3D((4, 4, 3), rprimd)
         assert len(mesh_443) == 4 * 4 * 3
@@ -18,7 +19,8 @@ class TestMesh3D(AbipyTest):
         self.serialize_with_pickle(mesh_443)
 
         mesh_444 = Mesh3D((4, 4, 4), rprimd)
-        repr(mesh_444); str(mesh_444)
+        repr(mesh_444)
+        str(mesh_444)
 
         # Test __eq__
         assert mesh_443 == mesh_443
@@ -57,9 +59,9 @@ class TestMesh3D(AbipyTest):
 
         # Iteration
         # i = iz + iy * nz + ix * ny * nz
-        #ny, nz = mesh_443.ny, mesh_443.nz
-        #nyz = mesh_443.ny * nz
-        #for i, r in enumerate(mesh_443):
+        # ny, nz = mesh_443.ny, mesh_443.nz
+        # nyz = mesh_443.ny * nz
+        # for i, r in enumerate(mesh_443):
         #    #iyz, ix = divmod(i, nyz)
         #    ix, iyz = divmod(i, nyz)
         #    iy, iz = divmod(iyz, ny)
@@ -79,9 +81,9 @@ class TestMesh3D(AbipyTest):
 
     def test_fft(self):
         """Test FFT transforms with mesh3d"""
-        rprimd = np.array([1.,0,0, 0,1,0, 0,0,1])
+        rprimd = np.array([1.0, 0, 0, 0, 1, 0, 0, 0, 1])
         rprimd.shape = (3, 3)
-        mesh = Mesh3D( (12, 3, 5), rprimd)
+        mesh = Mesh3D((12, 3, 5), rprimd)
 
         extra_dims = [(), 1, (2,), (3, 1)]
         types = [float, complex]
@@ -98,7 +100,7 @@ class TestMesh3D(AbipyTest):
                 int_g = fg[..., 0, 0, 0]
                 self.assert_almost_equal(int_r, int_g)
 
-    #def test_trilinear_interp(self):
+    # def test_trilinear_interp(self):
     #    rprimd = np.array([1.,0,0, 0,1,0, 0,0,1])
     #    rprimd.shape = (3,3)
     #    mesh = Mesh3D( (12,3,5), rprimd)

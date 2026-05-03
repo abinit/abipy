@@ -1,4 +1,5 @@
 """Tests for test_testing module"""
+
 import os
 
 from abipy.core.testing import AbipyTest, input_equality_check
@@ -23,10 +24,12 @@ class TestTEstingTools(AbipyTest):
             input_equality_check(ref_file, input_bad)
         except Exception as ex:
             self.assertIsInstance(ex, AssertionError)
-            error_header = "Two inputs were found to be not equal:\n" \
-                            "   not the same input parameters:\n" \
-                            "     ['kptopt'] were found in ref but not in actual\n" \
-                            "     [] were found in actual but not in ref\n\n"
+            error_header = (
+                "Two inputs were found to be not equal:\n"
+                "   not the same input parameters:\n"
+                "     ['kptopt'] were found in ref but not in actual\n"
+                "     [] were found in actual but not in ref\n\n"
+            )
 
             s = str(ex).replace("[u'", "['")
             assert s.startswith(error_header)
@@ -36,5 +39,5 @@ class TestTEstingTools(AbipyTest):
                 "var ngkpt differs: [10, 10, 10] (reference) != [11, 10, 10] (actual)\n",
                 "var nshiftk differs: 1 (reference) != 5 (actual)\n",
                 "var charge differs: 0.0 (reference) != 0.01 (actual)\n",
-                ]:
+            ]:
                 assert l in s

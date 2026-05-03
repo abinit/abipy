@@ -2,6 +2,7 @@
 Tools for writing cube files.
 See http://paulbourke.net/dataformats/cube/ and http://www.gaussian.com/g_tech/g_ur/u_cubegen.htm
 """
+
 from __future__ import annotations
 
 import numpy as np
@@ -16,6 +17,14 @@ __all__ = [
 
 
 def cube_write_structure_mesh(file, structure, mesh) -> None:
+    """
+    Write structure and mesh information to a cube file.
+
+    Args:
+        file: File-like object.
+        structure: Structure object.
+        mesh: Mesh3D object.
+    """
     fwrite = file.write
     fwrite("Density generated from abipy\n")
     fwrite("in the cube file format\n")
@@ -32,8 +41,16 @@ def cube_write_structure_mesh(file, structure, mesh) -> None:
 
 
 def cube_write_data(file, data, mesh) -> None:
+    """
+    Write data to a cube file.
+
+    Args:
+        file: File-like object.
+        data: Numpy array with the data.
+        mesh: Mesh3D object.
+    """
     fwrite = file.write
-    data_bohrs = data * (bohr_to_angstrom ** 3)
+    data_bohrs = data * (bohr_to_angstrom**3)
     for ix in range(mesh.nx):
         for iy in range(mesh.ny):
             for iz in range(mesh.nz):
@@ -57,26 +74,29 @@ def cube_read_structure_mesh_data(filepath: str) -> tuple:
         sp = fh.readline().split()
         nz = int(sp[0])
         dvz = np.array([float(sp[ii]) for ii in range(1, 4)]) * bohr_to_angstrom
-        uc_matrix = np.array([nx*dvx, ny*dvy, nz*dvz])
+        uc_matrix = np.array([nx * dvx, ny * dvy, nz * dvz])
         sites = []
         lattice = Lattice(uc_matrix)
         for ii in range(natoms):
             sp = fh.readline().split()
             cc = np.array([float(sp[ii]) for ii in range(2, 5)]) * bohr_to_angstrom
-            sites.append(PeriodicSite(int(sp[0]), coords=cc, lattice=lattice, to_unit_cell=False,
-                                      coords_are_cartesian=True))
+            sites.append(
+                PeriodicSite(int(sp[0]), coords=cc, lattice=lattice, to_unit_cell=False, coords_are_cartesian=True)
+            )
         data = np.zeros((nx, ny, nz))
         ii = 0
         for line in fh:
             for val in line.split():
                 data[ii // (ny * nz), (ii // nz) % ny, ii % nz] = float(val)
                 ii += 1
-        data = data / (bohr_to_angstrom ** 3)
+        data = data / (bohr_to_angstrom**3)
         if ii != nx * ny * nz:
             raise ValueError("Wrong number of data points ...")
         from abipy.core.structure import Structure
+
         structure = Structure.from_sites(sites=sites)
         from abipy.core.mesh3d import Mesh3D
+
         mesh = Mesh3D(shape=[nx, ny, nz], vectors=uc_matrix)
 
         return structure, mesh, data

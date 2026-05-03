@@ -5,6 +5,7 @@ Bethe-Salpeter flow with factory functions
 
 Calculation of the BSE spectrum with the high-throuhput interface (factory functions).
 """
+
 import os
 import sys
 
@@ -36,13 +37,25 @@ def build_flow(options):
 
     # BSE calculation with model dielectric function.
     multi = abilab.bse_with_mdf_inputs(
-        structure, pseudos,
-        scf_kppa, nscf_nband, nscf_ngkpt, nscf_shiftk,
-        ecuteps, bs_loband, bs_nband, mbpt_sciss, mdf_epsinf,
-        ecut=ecut,# pawecutdg=None,
-        exc_type="TDA", bs_algo="haydock", accuracy="normal", spin_mode="unpolarized",
-        smearing=None)
-        #smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None)
+        structure,
+        pseudos,
+        scf_kppa,
+        nscf_nband,
+        nscf_ngkpt,
+        nscf_shiftk,
+        ecuteps,
+        bs_loband,
+        bs_nband,
+        mbpt_sciss,
+        mdf_epsinf,
+        ecut=ecut,  # pawecutdg=None,
+        exc_type="TDA",
+        bs_algo="haydock",
+        accuracy="normal",
+        spin_mode="unpolarized",
+        smearing=None,
+    )
+    # smearing="fermi_dirac:0.1 eV", charge=0.0, scf_algorithm=None)
 
     work = flowtk.BseMdfWork(scf_input=multi[0], nscf_input=multi[1], bse_inputs=multi[2:])
 
@@ -55,6 +68,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

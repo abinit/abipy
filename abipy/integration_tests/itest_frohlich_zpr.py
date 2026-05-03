@@ -1,4 +1,5 @@
 """Integration tests for phonon flows."""
+
 from __future__ import annotations
 
 import socket
@@ -16,8 +17,6 @@ skip_hosts = [
 ]
 
 
-
-
 def make_scf_input(usepaw=0):
     """Returns the GS input file"""
     # Here we use parameters similar to https://docs.abinit.org/tests/v8/Input/t57.in
@@ -25,13 +24,8 @@ def make_scf_input(usepaw=0):
 
     structure = dict(
         acell=3 * [9.136],
-        xred=[
-           0.0000000000, 0.0000000000, 0.0000000000,
-           0.5000000000, 0.5000000000, 0.5000000000],
-        rprim=[
-           0  , 0.5, 0.5,
-           0.5, 0  , 0.5,
-           0.5, 0.5, 0],
+        xred=[0.0000000000, 0.0000000000, 0.0000000000, 0.5000000000, 0.5000000000, 0.5000000000],
+        rprim=[0, 0.5, 0.5, 0.5, 0, 0.5, 0.5, 0.5, 0],
         typat=[1, 2],
         natom=2,
         ntypat=2,
@@ -44,28 +38,44 @@ def make_scf_input(usepaw=0):
         nband=10,
         nbdbuf=2,
         diemac=6,
-        #ecut=30,               # Underconverged ecut.
+        # ecut=30,               # Underconverged ecut.
         ecut=15,
         nstep=100,
         tolvrs=1e-6,
-        kptrlatt=[-2,  2,  2,  # In cartesian coordinates, this grid is simple cubic
-                   2, -2,  2,
-                   2,  2, -2],
+        kptrlatt=[
+            -2,
+            2,
+            2,  # In cartesian coordinates, this grid is simple cubic
+            2,
+            -2,
+            2,
+            2,
+            2,
+            -2,
+        ],
     )
 
     return scf_input
 
+
 @pytest.mark.skipif(hostname in skip_hosts, reason=f"Skipped on {hostname}")
 def itest_frohlich_zpr_flow(fwp, tvars):
-    """
-    """
+    """ """
     # Build the SCF input.
     scf_input = make_scf_input()
 
     # Build the flow.
     from abipy.flowtk.effmass_works import FrohlichZPRFlow
-    flow = FrohlichZPRFlow.from_scf_input(fwp.workdir, scf_input, ddb_node=None, ndivsm=2, tolwfr=1e-10,
-                                          manager=fwp.manager, metadata=dict(mp_id="mp-123"))
+
+    flow = FrohlichZPRFlow.from_scf_input(
+        fwp.workdir,
+        scf_input,
+        ddb_node=None,
+        ndivsm=2,
+        tolwfr=1e-10,
+        manager=fwp.manager,
+        metadata=dict(mp_id="mp-123"),
+    )
 
     scheduler = flow.make_scheduler()
     assert scheduler.start() == 0

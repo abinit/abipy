@@ -1,13 +1,14 @@
 """Tests for devtools module."""
+
 import abipy.data as abidata
 from abipy.core.testing import AbipyTest
 from abipy.tools.devtools import HtmlDiff, profile
 
 
 class DevtoolsTest(AbipyTest):
-
     def test_profile(self):
         """Testing profile function."""
+
         def statement():
             return 1
 
@@ -20,7 +21,9 @@ class DevtoolsTest(AbipyTest):
         diff = HtmlDiff(filepaths)
 
         # patch _launch_browser
-        def _launch_browser(*args, **kwargs): return "patched"
+        def _launch_browser(*args, **kwargs):
+            return "patched"
+
         diff._launch_browser = _launch_browser
         assert diff.open_browser() == "patched"
         # This requires pygmentize package.

@@ -1,6 +1,7 @@
 """
 Phonon Toolkit: This module gathers low-level tools to operate on phonons.
 """
+
 from __future__ import annotations
 
 import sys
@@ -48,6 +49,7 @@ def get_dyn_mat_eigenvec(phdispl, structure, amu=None, amu_symbol=None) -> np.nd
         raise ValueError("Only one between amu and amu_symbol should be provided!")
 
     from pymatgen.core.periodic_table import Element
+
     if amu is not None:
         amu_symbol = {Element.from_Z(n).symbol: v for n, v in amu.items()}
 
@@ -56,7 +58,9 @@ def get_dyn_mat_eigenvec(phdispl, structure, amu=None, amu_symbol=None) -> np.nd
         amu_symbol = {e.symbol: e.atomic_mass for e in structure.composition.elements}
 
     for j, a in enumerate(structure):
-        eigvec[...,3*j:3*(j+1)] = phdispl[...,3*j:3*(j+1)] * np.sqrt(amu_symbol[a.specie.symbol]*abu.amu_emass) / abu.Bohr_Ang
+        eigvec[..., 3 * j : 3 * (j + 1)] = (
+            phdispl[..., 3 * j : 3 * (j + 1)] * np.sqrt(amu_symbol[a.specie.symbol] * abu.amu_emass) / abu.Bohr_Ang
+        )
 
     return eigvec
 
@@ -108,6 +112,7 @@ class NonAnalyticalPh(Has_Structure):
         self.amu_symbol = None
 
         from pymatgen.core.periodic_table import Element
+
         if amu is not None:
             self.amu_symbol = {}
             for z, m in amu.items():
@@ -181,8 +186,10 @@ class NonAnalyticalPh(Has_Structure):
             if np.allclose(d, direction):
                 return i
 
-        raise ValueError("Cannot find direction: `%s` with cartesian: `%s` in non_analytical cartesian directions:\n%s" %
-                         (str(direction), cartesian, str(self.directions)))
+        raise ValueError(
+            "Cannot find direction: `%s` with cartesian: `%s` in non_analytical cartesian directions:\n%s"
+            % (str(direction), cartesian, str(self.directions))
+        )
 
     def has_direction(self, direction, cartesian=False) -> bool:
         """
@@ -200,11 +207,13 @@ class NonAnalyticalPh(Has_Structure):
             return False
 
 
-def open_file_phononwebsite(filename,
-                            port: int = 8000,
-                            website: str = "http://henriquemiranda.github.io/phononwebsite",
-                            host: str = "localhost",
-                            browser: str | None = None): # pragma: no cover
+def open_file_phononwebsite(
+    filename,
+    port: int = 8000,
+    website: str = "http://henriquemiranda.github.io/phononwebsite",
+    host: str = "localhost",
+    browser: str | None = None,
+):  # pragma: no cover
     """
     Take a file, detect the type and open it on the phonon website
     Based on a similar function implemented in <https://github.com/henriquemiranda/phononwebsite/phononweb.py>
@@ -228,7 +237,7 @@ def open_file_phononwebsite(filename,
     # Add CORS header to the website
     class CORSRequestHandler(SimpleHTTPRequestHandler):
         def end_headers(self):
-            #self.send_header('Access-Control-Allow-Origin', website)
+            # self.send_header('Access-Control-Allow-Origin', website)
             self.send_header("Access-Control-Allow-Origin", "http://henriquemiranda.github.io")
             SimpleHTTPRequestHandler.end_headers(self)
 
@@ -241,7 +250,7 @@ def open_file_phononwebsite(filename,
     while trial < max_ntrial:
         try:
             server = HTTPServer(("", port), CORSRequestHandler)
-            #print("got port:", port)
+            # print("got port:", port)
             break
         except OSError:
             trial += 1
@@ -253,6 +262,7 @@ def open_file_phononwebsite(filename,
     # Create threads python
     server.url = f"http://{host}:{server.server_port}"
     from threading import Thread
+
     t = Thread(target=server.serve_forever, daemon=True)
     t.start()
 
@@ -265,11 +275,14 @@ def open_file_phononwebsite(filename,
     url_filename = f"http://{host}:{server.server_port}/{quote(filename)}"
     url = "%s/phonon.html?%s=%s" % (website, filetype, url_filename)
     print("\nOpening URL:", url)
-    print("Using default browser, if the webpage is not displayed correctly",
-          "\ntry to change browser either via command line options or directly in the shell with e.g:\n\n"
-          "     export BROWSER=firefox\n")
+    print(
+        "Using default browser, if the webpage is not displayed correctly",
+        "\ntry to change browser either via command line options or directly in the shell with e.g:\n\n"
+        "     export BROWSER=firefox\n",
+    )
     print("Press Ctrl+C to terminate the HTTP server")
     import webbrowser
+
     webbrowser.get(browser).open_new_tab(url)
 
     def signal_handler(signal, frame):
@@ -277,5 +290,6 @@ def open_file_phononwebsite(filename,
         sys.exit(0)
 
     import signal
+
     signal.signal(signal.SIGINT, signal_handler)
     signal.pause()

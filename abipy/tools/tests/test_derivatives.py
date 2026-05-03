@@ -1,4 +1,5 @@
 """Tests for derivatives module."""
+
 import numpy as np
 
 from abipy.core.testing import AbipyTest
@@ -6,7 +7,6 @@ from abipy.tools.derivatives import check_num_points_for_order, finite_diff
 
 
 class FiniteDiffTest(AbipyTest):
-
     def test_check_num_points_for_order(self):
         check_num_points_for_order(num_points=3, order=1, kind="=")
         check_num_points_for_order(num_points=3, order=2, kind=">")
@@ -16,16 +16,16 @@ class FiniteDiffTest(AbipyTest):
 
     def test_complex(self):
         """Complex functions are not supported"""
-        x, h = np.linspace(0, 1,  800, retstep=True)
-        cf = 1j*x
+        x, h = np.linspace(0, 1, 800, retstep=True)
+        cf = 1j * x
         with self.assertRaises(ValueError):
             return finite_diff(cf, h)
 
     def test_poly(self):
         """Test derivatives of polynomials."""
-        x, h = np.linspace(0, 1,  800, retstep=True)
-        orders = [1,2,3,4]
-        accuracies = [2,4,6]
+        x, h = np.linspace(0, 1, 800, retstep=True)
+        orders = [1, 2, 3, 4]
+        accuracies = [2, 4, 6]
 
         f = x**4
         dpolys = {
@@ -44,17 +44,18 @@ class FiniteDiffTest(AbipyTest):
 
         for order in orders:
             for acc in accuracies:
-                if order == 4 and acc == 6: continue
-                #print("order %s, acc %s" % (order, acc))
+                if order == 4 and acc == 6:
+                    continue
+                # print("order %s, acc %s" % (order, acc))
                 yder = finite_diff(f, h, order=order, acc=acc)
-                #print(np.max(np.abs(yder - dpolys[order])))
+                # print(np.max(np.abs(yder - dpolys[order])))
                 self.assert_almost_equal(yder, dpolys[order], decimal=decs[order])
 
     def test_exp(self):
         """Test derivatives of exp(x)."""
         x, h = np.linspace(0, 2, 800, retstep=True)
-        orders = [1,2,3,4]
-        accuracies = [2,4,6]
+        orders = [1, 2, 3, 4]
+        accuracies = [2, 4, 6]
         exp = np.exp(x)
 
         decs = {
@@ -66,10 +67,11 @@ class FiniteDiffTest(AbipyTest):
 
         for order in orders:
             for acc in accuracies:
-                if order == 4 and acc == 6: continue
-                #print("order %s, acc %s" % (order, acc))
+                if order == 4 and acc == 6:
+                    continue
+                # print("order %s, acc %s" % (order, acc))
                 yder = finite_diff(exp, h, order=order, acc=acc)
-                #print(np.max(np.abs(yder - exp)))
+                # print(np.max(np.abs(yder - exp)))
                 self.assert_almost_equal(yder, exp, decs[order])
 
                 d = finite_diff(exp, h, order=order, acc=acc, index=100)

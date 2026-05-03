@@ -5,6 +5,7 @@ The preferred way of importing this module is:
 
     import qutils as qu
 """
+
 from __future__ import annotations
 
 import os
@@ -67,7 +68,7 @@ def slurm_parse_timestr(s: str) -> Time:
     else:
         raise ValueError("More than 2 ':' in string!")
 
-    return Time((days*24 + hours)*3600 + minutes*60 + seconds, "s")
+    return Time((days * 24 + hours) * 3600 + minutes * 60 + seconds, "s")
 
 
 def time2slurm(timeval: float, unit="s") -> str:
@@ -78,7 +79,7 @@ def time2slurm(timeval: float, unit="s") -> str:
     >>> assert time2slurm(61) == '0-0:1:1' and time2slurm(60*60+1) == '0-1:0:1'
     >>> assert time2slurm(0.5, unit="h") == '0-0:30:0'
     """
-    d, h, m, s = 24*3600, 3600, 60, 1
+    d, h, m, s = 24 * 3600, 3600, 60, 1
 
     timeval = Time(timeval, unit).to("s")
     days, hours = divmod(timeval, d)
@@ -151,15 +152,14 @@ def slurm_get_jobs() -> dict[int, dict]:
     Invoke squeue, parse output and return list of dictionaries with job info indexed by job id.
     """
     # Based on https://gist.github.com/stevekm/7831fac98473ea17d781330baa0dd7aa
-    process = Popen(["squeue", "--me", "-o", "%all"],
-                     stdout=PIPE, stderr=PIPE, shell=False, universal_newlines=True)
+    process = Popen(["squeue", "--me", "-o", "%all"], stdout=PIPE, stderr=PIPE, shell=False, universal_newlines=True)
     proc_stdout, proc_stderr = process.communicate()
 
     lines = proc_stdout.split("\n")
     header_line = lines.pop(0)
     header_cols = header_line.split("|")
     entries = []
-    error_lines = [] # do something with this later
+    error_lines = []  # do something with this later
     for line in lines:
         parts = line.split("|")
         if len(parts) != len(header_cols):
@@ -202,8 +202,15 @@ class SlurmJobArray:
     """
 
     def __init__(self, header: str, command: str, arr_options: list[str]):
+        """
+        Args:
+            header: String with the SLURM header.
+            command: String with the command to execute.
+            arr_options: List of strings with the options for the job array.
+        """
         self.command = command
-        if not self.command.endswith(" "): self.command += " "
+        if not self.command.endswith(" "):
+            self.command += " "
         self.header = header
         self.arr_options = arr_options
         self.arr_options_str = rm_multiple_spaces("\n".join(arr_options))
@@ -217,7 +224,7 @@ class SlurmJobArray:
         else:
             raise ValueError("Cannot find line starting with #SBATCH")
 
-        lines.insert(il, f"#SBATCH --array=0-{len(self.arr_options)-1}")
+        lines.insert(il, f"#SBATCH --array=0-{len(self.arr_options) - 1}")
         header = "\n".join(lines)
 
         select_opts = r"""
@@ -259,9 +266,11 @@ rm ${{me}}.qid
         if os.path.exists(path_qid):
             with open(path_qid) as fh:
                 queue_id = int(fh.read().split("#"))
-                err_msg = f"Found slurm job ID {queue_id} in {path_qid}" \
-                          "This usually indicates that a similar array job is already running\n" \
-                          f"If this not the case, please remove {path_qid} and rerun the script."
+                err_msg = (
+                    f"Found slurm job ID {queue_id} in {path_qid}"
+                    "This usually indicates that a similar array job is already running\n"
+                    f"If this not the case, please remove {path_qid} and rerun the script."
+                )
                 raise RuntimeError(err_msg)
 
         with open(slurm_filepath, "w") as fh:
@@ -285,7 +294,7 @@ def slurm_sbatch(slurm_filepath: PathLike) -> int:
     Submit a job script to the queue with Slurm sbatch. Return Slurm JOB ID.
     """
     dirpath = os.path.dirname(str(slurm_filepath))
-    #print("dirpath", dirpath)
+    # print("dirpath", dirpath)
 
     with cd(dirpath):
         # need string not bytes so must use universal_newlines
@@ -318,8 +327,13 @@ def get_sacct_info():
     Run the sacct command to get the job information
     """
     try:
-        result = run(["sacct", "--format=JobID,JobName,Partition,Account,AllocCPUS,State,ExitCode", "--noheader"],
-                      stdout=PIPE, stderr=PIPE, text=True, check=False)
+        result = run(
+            ["sacct", "--format=JobID,JobName,Partition,Account,AllocCPUS,State,ExitCode", "--noheader"],
+            stdout=PIPE,
+            stderr=PIPE,
+            text=True,
+            check=False,
+        )
 
         # Check if the command was successful
         if result.returncode != 0:
@@ -328,8 +342,16 @@ def get_sacct_info():
 
         # Process the output
         jobs_info = result.stdout.strip().split("\n")
-        jobs = [dict(zip(["JobID", "JobName", "Partition", "Account", "AllocCPUS", "State", "ExitCode"], job.split(), strict=False))
-                for job in jobs_info]
+        jobs = [
+            dict(
+                zip(
+                    ["JobID", "JobName", "Partition", "Account", "AllocCPUS", "State", "ExitCode"],
+                    job.split(),
+                    strict=False,
+                )
+            )
+            for job in jobs_info
+        ]
         return jobs
 
     except Exception as e:
@@ -345,7 +367,10 @@ def get_completed_job_info(job_id: int | str):
         # Run the sacct command with the specified fields for the given job ID
         result = run(
             ["sacct", "--jobs", str(job_id), "--format", fields, "--noheader", "--parsable2"],
-            stdout=PIPE, stderr=PIPE, text=True, check=False
+            stdout=PIPE,
+            stderr=PIPE,
+            text=True,
+            check=False,
         )
 
         # Check if the command was successful

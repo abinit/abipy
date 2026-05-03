@@ -1,10 +1,11 @@
 """This module contains lookup table with the name of the ABINIT variables."""
+
 from __future__ import annotations
 
 import os
 import warnings
 from functools import cached_property
-from pprint import pformat  #, pprint
+from pprint import pformat  # , pprint
 
 import numpy as np
 from monty.string import boxed, is_string
@@ -45,14 +46,34 @@ def is_abivar(varname: str) -> bool:
 
 
 # TODO: Move to new directory
-ABI_OPERATORS = set(["sqrt", ])
+ABI_OPERATORS = set(
+    [
+        "sqrt",
+    ]
+)
 
 ABI_UNIT_NAMES = {
-    s.lower() for s in (
-        "au", "nm",
-        "Angstr", "Angstrom", "Angstroms", "Bohr", "Bohrs",
-        "eV", "meV", "Ha", "Hartree", "Hartrees", "K", "Ry", "Rydberg", "Rydbergs",
-        "T", "Tesla",)
+    s.lower()
+    for s in (
+        "au",
+        "nm",
+        "Angstr",
+        "Angstrom",
+        "Angstroms",
+        "Bohr",
+        "Bohrs",
+        "eV",
+        "meV",
+        "Ha",
+        "Hartree",
+        "Hartrees",
+        "K",
+        "Ry",
+        "Rydberg",
+        "Rydbergs",
+        "T",
+        "Tesla",
+    )
 }
 
 
@@ -60,7 +81,8 @@ def is_abiunit(s: str) -> bool:
     """
     True if string is one of the units supported by the ABINIT parser
     """
-    if not is_string(s): return False
+    if not is_string(s):
+        return False
     return s.lower() in ABI_UNIT_NAMES
 
 
@@ -79,18 +101,19 @@ def expand_star_syntax(s: str) -> str:
     if "*" not in s:
         return s
     # Handle e.g `pawecutdg*`
-    if s[0].isalpha() and s[-1] == "*": return s
+    if s[0].isalpha() and s[-1] == "*":
+        return s
 
     s = s.replace("*", " * ").strip()
     tokens = s.split()
-    #tokens = [c.rstrip().lstrip() for c in s.split()]
+    # tokens = [c.rstrip().lstrip() for c in s.split()]
 
     # Handle "*2" case i.e. return "*2"
     if len(tokens) == 2 and tokens[0] == "*":
         assert tokens[1] != "*"
         return "".join(tokens)
 
-    #print(s, tokens)
+    # print(s, tokens)
     l = []
     while tokens:
         c = tokens.pop(0)
@@ -127,7 +150,8 @@ def str2array_bohr(obj):
 
 
 def str2array(obj, dtype=float) -> np.ndarray:
-    if not is_string(obj): return np.asarray(obj)
+    if not is_string(obj):
+        return np.asarray(obj)
     if obj.startswith("*"):
         raise ValueError("This case should be treated by the caller: %s" % str(obj))
     s = expand_star_syntax(obj)
@@ -147,6 +171,7 @@ def eval_abinit_operators(tokens: list[str]) -> list[str]:
     """
     import math  # noqa: F401
     import re
+
     re_sqrt = re.compile(r"[+|-]?sqrt\((.+)\)")
 
     values = []
@@ -196,9 +221,9 @@ def abi_tokenize(string: str) -> list[str]:
         if stop == -1:
             raise ValueError("Found unclosed quotation mark in: %s" % string)
         if start > 0:
-            tokens.extend(string[base:start-1].strip().split())
+            tokens.extend(string[base : start - 1].strip().split())
             base = stop + 1
-        tokens.append(string[start:stop + 1])
+        tokens.append(string[start : stop + 1])
 
     if base < len(string):
         tokens.append(string[base:])
@@ -207,7 +232,6 @@ def abi_tokenize(string: str) -> list[str]:
 
 
 class Dataset(dict, Has_Structure):
-
     @cached_property
     def structure(self) -> Structure:
         """
@@ -217,8 +241,9 @@ class Dataset(dict, Has_Structure):
         if "structure" in self:
             s = self["structure"].replace('"', "")
             filetype, path = s.split(":")
-            #print("filetype:", filetype)
+            # print("filetype:", filetype)
             from abipy import abilab
+
             if filetype == "poscar":
                 return abilab.Structure.from_file(path)
 
@@ -241,7 +266,7 @@ class Dataset(dict, Has_Structure):
             if "rprim" in self:
                 raise ValueError("rprim and angdeg cannot be used together!")
             angdeg = str2array(self["angdeg"])
-            angdeg.shape = (3)
+            angdeg.shape = 3
             kwargs["angdeg"] = angdeg
         else:
             # Handle structure specified with rprim.
@@ -259,7 +284,7 @@ class Dataset(dict, Has_Structure):
         if znucl.startswith("*"):
             i = znucl.find("*")
             znucl_size = natom if "npsp" not in self else int(self["npsp"])
-            znucl = znucl_size * [float(znucl[i+1:])]
+            znucl = znucl_size * [float(znucl[i + 1 :])]
         else:
             znucl = str2array(self["znucl"])
 
@@ -267,7 +292,7 @@ class Dataset(dict, Has_Structure):
         typat = self["typat"]
         if typat.startswith("*"):
             i = typat.find("*")
-            typat = np.array(natom * [int(typat[i+1:])], dtype=int)
+            typat = np.array(natom * [int(typat[i + 1 :])], dtype=int)
         else:
             typat = str2array(self["typat"], dtype=int)
 
@@ -302,10 +327,7 @@ class Dataset(dict, Has_Structure):
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self,
-                  post: str | None = None,
-                  mode: str = "text",
-                  verbose: int = 0) -> str:
+    def to_string(self, post: str | None = None, mode: str = "text", verbose: int = 0) -> str:
         """
         String representation.
 
@@ -317,13 +339,15 @@ class Dataset(dict, Has_Structure):
         post = post if post is not None else ""
         if mode == "html":
             from abipy.abio.abivars_db import get_abinit_variables
+
             var_database = get_abinit_variables()
 
         lines = []
         app = lines.append
         for k in sorted(list(self.keys())):
             vname = k + post
-            if mode == "html": vname = var_database[k].html_link(label=vname)
+            if mode == "html":
+                vname = var_database[k].html_link(label=vname)
             app("%s %s" % (vname, str(self[k])))
 
         return "\n".join(lines) if mode == "text" else "\n".join(lines).replace("\n", "<br>")
@@ -345,12 +369,14 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
     def from_string(cls, string: str) -> AbinitInputFile:
         """Build the object from string."""
         import tempfile
+
         _, filename = tempfile.mkstemp(suffix=".abi", text=True)
         with open(filename, "w") as fh:
             fh.write(string)
         return cls(filename)
 
     def __init__(self, filepath: str):
+        """Initialize the object from a file path."""
         super().__init__(filepath)
 
         with open(filepath) as fh:
@@ -378,11 +404,11 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
             structures = [dt.structure for dt in self.datasets]
             app("Input file contains %d structures:" % len(structures))
             for i, structure in enumerate(structures):
-                app(boxed("Dataset: %d" % (i+1)))
+                app(boxed("Dataset: %d" % (i + 1)))
                 app(structure.spget_summary())
                 app("")
 
-            dfs = dataframes_from_structures(structures, index=[i+1 for i in range(self.ndtset)])
+            dfs = dataframes_from_structures(structures, index=[i + 1 for i in range(self.ndtset)])
             app(boxed("Tabular view (each row corresponds to a dataset structure)"))
             app("")
             app("Lattice parameters:")
@@ -401,8 +427,9 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
     def _repr_html_(self) -> str:
         """Integration with jupyter notebooks."""
         from abipy.abio.abivars_db import repr_html_from_abinit_string
+
         return repr_html_from_abinit_string(self.string)
-        #return self.to_string(mode="html"))
+        # return self.to_string(mode="html"))
 
     def close(self) -> None:
         """NOP, required by ABC."""
@@ -447,30 +474,34 @@ class AbinitInputFile(TextFile, Has_Structure, NotebookWriter):
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        nb.cells.extend([
-            nbv.new_code_cell("abinp = abilab.abiopen('%s')" % self.filepath),
-            nbv.new_code_cell("print(abinp)"),
-        ])
+        nb.cells.extend(
+            [
+                nbv.new_code_cell("abinp = abilab.abiopen('%s')" % self.filepath),
+                nbv.new_code_cell("print(abinp)"),
+            ]
+        )
 
         if self.has_multi_structures:
-            nb.cells.extend([
-                nbv.new_code_cell("""\
+            nb.cells.extend(
+                [
+                    nbv.new_code_cell("""\
 for dataset in inp.datasets:
     print(dataset.structure)"""),
-            ])
+                ]
+            )
 
         if self.ndtset > 1:
-            nb.cells.extend([
-                nbv.new_code_cell("""\
+            nb.cells.extend(
+                [
+                    nbv.new_code_cell("""\
 for dataset in abinp.datasets:
     print(dataset)"""),
-            ])
+                ]
+            )
 
         return self._write_nb_nbpath(nb, nbpath)
 
-    def get_differences(self, other,
-                        ignore_vars: list | None = None,
-                        decimal: int = 7) -> list[str]:
+    def get_differences(self, other, ignore_vars: list | None = None, decimal: int = 7) -> list[str]:
         """
         Get the differences between this Dataset and another.
 
@@ -480,6 +511,7 @@ for dataset in abinp.datasets:
             decimal: Number of decimal places to check for equality. Default is 7.
         """
         from numpy.testing import assert_almost_equal
+
         abivars_database = get_codevars()["abinit"]
 
         diffs = []
@@ -487,8 +519,9 @@ for dataset in abinp.datasets:
         if ignore_vars is not None:
             to_ignore.update(ignore_vars)
         if self.ndtset != other.ndtset:
-            diffs.append(f"Number of datasets in this file is {self.ndtset} "
-                         f"while other file has {other.ndtset} datasets.")
+            diffs.append(
+                f"Number of datasets in this file is {self.ndtset} while other file has {other.ndtset} datasets."
+            )
             return diffs
 
         for idataset, self_dataset in enumerate(self.datasets):
@@ -507,11 +540,15 @@ for dataset in abinp.datasets:
             other_only_keys = set(other_dataset_dict.keys()).difference(self_dataset_dict.keys())
 
             if self_only_keys:
-                diffs.append(f"The following variables are in this file but not in other: "
-                             f"{', '.join([str(k) for k in self_only_keys])}")
+                diffs.append(
+                    f"The following variables are in this file but not in other: "
+                    f"{', '.join([str(k) for k in self_only_keys])}"
+                )
             if other_only_keys:
-                diffs.append(f"The following variables are in other file but not in this one: "
-                             f"{', '.join([str(k) for k in other_only_keys])}")
+                diffs.append(
+                    f"The following variables are in other file but not in this one: "
+                    f"{', '.join([str(k) for k in other_only_keys])}"
+                )
 
             for k in common_keys:
                 v1, v2 = self_dataset_dict[k], other_dataset_dict[k]
@@ -526,13 +563,17 @@ for dataset in abinp.datasets:
                         # v1 is a string representing a number/vector with/without units.
                         tokens_1, tokens_2 = v1.split(), v2.split()
                         if is_abiunit(tokens_1[-1]):
-                            assert_almost_equal(np.array(tokens_1[:-1], dtype=float),
-                                                np.array(tokens_2[:-1], dtype=float), decimal=decimal)
+                            assert_almost_equal(
+                                np.array(tokens_1[:-1], dtype=float),
+                                np.array(tokens_2[:-1], dtype=float),
+                                decimal=decimal,
+                            )
                             # Check units string as well
                             ok = tokens_1[-1] == tokens_2[-1]
                         else:
-                            assert_almost_equal(np.array(tokens_1, dtype=float),
-                                                np.array(tokens_2, dtype=float), decimal=decimal)
+                            assert_almost_equal(
+                                np.array(tokens_1, dtype=float), np.array(tokens_2, dtype=float), decimal=decimal
+                            )
                     else:
                         # Assume v1 and v2 are numpy arrays, list, tuple.
                         assert_almost_equal(v1, v2, decimal)
@@ -542,10 +583,12 @@ for dataset in abinp.datasets:
                     exc_msg = str(exc)
 
                 if not ok:
-                    diffs.append(f"The variable '{k}' is different in the two files:\n"
-                                 f" - this file:  '{v1}'\n"
-                                 f" - other file: '{v2}'")
-                    #if exc_msg:
+                    diffs.append(
+                        f"The variable '{k}' is different in the two files:\n"
+                        f" - this file:  '{v1}'\n"
+                        f" - other file: '{v2}'"
+                    )
+                    # if exc_msg:
                     #    diffs[-1] += f"\npython exception: {exc_msg}"
 
                     print(diffs[-1])
@@ -554,6 +597,9 @@ for dataset in abinp.datasets:
 
 
 class AbinitInputParser:
+    """
+    Parser for Abinit input files.
+    """
 
     verbose = 0
 
@@ -568,10 +614,13 @@ class AbinitInputParser:
         for line in s.splitlines():
             line.strip()
             i = line.find("#")
-            if i != -1: line = line[:i]
+            if i != -1:
+                line = line[:i]
             i = line.find("!")
-            if i != -1: line = line[:i]
-            if line: lines.append(line)
+            if i != -1:
+                line = line[:i]
+            if line:
+                lines.append(line)
 
         # 1) Build string of the form `var1 value1 var2 value2`
         # 2) Split string in tokens.
@@ -581,11 +630,12 @@ class AbinitInputParser:
         # NB: Step 3 is needed because we are gonna use python to evaluate the operators and
         #     in abinit `2*sqrt(0.75)` means `sqrt(0.75) sqrt(0.75)` and not math multiplication!
         #
-        #tokens = " ".join(lines).split()
-        #print("tokens:\n", pformat(tokens))
+        # tokens = " ".join(lines).split()
+        # print("tokens:\n", pformat(tokens))
 
-        tokens = abi_tokenize(" ".join(lines))  #print("new tokens:\n", pformat(tokens))
-        if self.verbose: print("tokens", tokens)
+        tokens = abi_tokenize(" ".join(lines))  # print("new tokens:\n", pformat(tokens))
+        if self.verbose:
+            print("tokens", tokens)
 
         # Step 3-4
         new_tokens = []
@@ -593,40 +643,42 @@ class AbinitInputParser:
             if t.startswith("'") or t.startswith('"'):
                 new_tokens.append(t)
             else:
-                l = expand_star_syntax(t).split() # ;print(l)
+                l = expand_star_syntax(t).split()  # ;print(l)
                 new_tokens.extend(l)
 
         tokens = new_tokens
-        if self.verbose: print("new_tokens", new_tokens)
+        if self.verbose:
+            print("new_tokens", new_tokens)
 
-        tokens = self.eval_abinit_operators(tokens) # ; print(tokens)
+        tokens = self.eval_abinit_operators(tokens)  # ; print(tokens)
 
         varpos = []
         for pos, tok in enumerate(tokens):
-            #if not isnewvar(ok): continue
-            #print("token:", tok)
+            # if not isnewvar(ok): continue
+            # print("token:", tok)
 
             if tok[0].isalpha():
-                #print("tok[0]", tok[0])
+                # print("tok[0]", tok[0])
                 # Either new variable or string defining the unit or operator e.g. sqrt
                 if is_abiunit(tok) or tok in ABI_OPERATORS or "?" in tok:
                     continue
 
                 # Got new variable
-                if tok[-1].isdigit(): # and "?" not in tok:
+                if tok[-1].isdigit():  # and "?" not in tok:
                     # Handle dataset index.
                     l = []
                     for i, c in enumerate(tok[::-1]):
-                        if c.isalpha(): break
+                        if c.isalpha():
+                            break
                         l.append(c)
                     else:
                         raise ValueError("Cannot find dataset index in token: %s" % tok)
                     l.reverse()
-                    #if not is_abivar(tok):
-                        #continue
-                        #raise ValueError("Expecting variable but got: %s" % tok)
+                    # if not is_abivar(tok):
+                    # continue
+                    # raise ValueError("Expecting variable but got: %s" % tok)
 
-                #print("new varname `", tok, "` at positions", pos)
+                # print("new varname `", tok, "` at positions", pos)
                 varpos.append(pos)
 
         varpos.append(len(tokens))
@@ -638,7 +690,7 @@ class AbinitInputParser:
             if pos + 2 == len(tokens):
                 dvars[varname] = tokens[-1]
             else:
-                dvars[varname] = " ".join(tokens[pos+1: varpos[i+1]])
+                dvars[varname] = " ".join(tokens[pos + 1 : varpos[i + 1]])
         # print("dvars:\n", pformat(dvars))
 
         err_lines = []
@@ -661,27 +713,33 @@ class AbinitInputParser:
         # Treat all variables without a dataset index
         kv_list = list(dvars.items())
         for k, v in kv_list:
-            if k[-1].isdigit() or any(c in k for c in ("?", ":", "+", "*")): continue
-            for d in datasets: d[k] = v
+            if k[-1].isdigit() or any(c in k for c in ("?", ":", "+", "*")):
+                continue
+            for d in datasets:
+                d[k] = v
             dvars.pop(k)
 
         # Treat all variables with a dataset index except those with "?", ":", "+"
         kv_list = list(dvars.items())
         for k, v in kv_list:
-            if any(c in k for c in ("?", ":", "+", "*")): continue
+            if any(c in k for c in ("?", ":", "+", "*")):
+                continue
             varname, idt = self.varname_dtindex(k)
             dvars.pop(k)
-            #if varname == "angdeg": raise ValueError("got angdeg")
+            # if varname == "angdeg": raise ValueError("got angdeg")
             if idt > ndtset:
-                if self.verbose: print("Ignoring key: %s because ndtset: %d" % (k, ndtset))
+                if self.verbose:
+                    print("Ignoring key: %s because ndtset: %d" % (k, ndtset))
                 continue
-            datasets[idt-1][varname] = v
+            datasets[idt - 1][varname] = v
 
         # Now treat series e.g. ecut: 10 ecut+ 5 (NB: ? is not treated here)
         kv_list = list(dvars.items())
         for k, v in kv_list:
-            if "?" in k: continue
-            if ":" not in k: continue
+            if "?" in k:
+                continue
+            if ":" not in k:
+                continue
             # TODO units
             vname = k[:-1]
             start = str2array(dvars.pop(k))
@@ -713,23 +771,29 @@ class AbinitInputParser:
             if wlist:
                 wrong.extend(("dataset %d" % i, wlist))
         if wrong:
-            raise ValueError("Found variables that are not registered in the abipy database:\n%s" % pformat(wrong, indent=4))
+            raise ValueError(
+                "Found variables that are not registered in the abipy database:\n%s" % pformat(wrong, indent=4)
+            )
 
         # 3) We don't support spg builder: dataset.structure will fail or, even worse,
         #    spglib will segfault so it's better to raise here!
         for dt in datasets:
             if "spgroup" in dt or "nobj" in dt:
                 raise NotImplementedError(
-                    "Abinit spgroup builder is not supported. Structure must be given explicitly!")
+                    "Abinit spgroup builder is not supported. Structure must be given explicitly!"
+                )
 
         if jdtset is not None:
             # Return the datasets selected by jdtset.
-            datasets = [datasets[i-1] for i in np.fromstring(jdtset, sep=" ", dtype=int)]
+            datasets = [datasets[i - 1] for i in np.fromstring(jdtset, sep=" ", dtype=int)]
 
         return datasets
 
     @staticmethod
     def eval_abinit_operators(tokens):
+        """
+        Evaluate Abinit operators in a list of tokens.
+        """
         return eval_abinit_operators(tokens)
 
     @staticmethod
@@ -741,7 +805,8 @@ class AbinitInputParser:
         """
         l = []
         for i, c in enumerate(tok[::-1]):
-            if c.isalpha(): break
+            if c.isalpha():
+                break
             l.append(c)
         else:
             raise ValueError(f"Cannot find dataset index in {tok=}")
@@ -749,7 +814,7 @@ class AbinitInputParser:
         assert i > 0
         l.reverse()
         dtidx = int("".join(l))
-        varname = tok[:len(tok)-i]
+        varname = tok[: len(tok) - i]
 
         return varname, dtidx
 
@@ -834,7 +899,7 @@ def structure_from_abistruct_fmt(string: str) -> Structure:
         if not found:
             head.append(line)
         if found and line:
-            tokens = line.split() #; print(line)
+            tokens = line.split()  # ; print(line)
             xred.append([float(t) for t in eval_abinit_operators(tokens[:3])])
             symbols.append(tokens[3])
 
@@ -864,6 +929,7 @@ def structure_from_abistruct_fmt(string: str) -> Structure:
             typat.append(found)
 
     from pymatgen.core.periodic_table import Element
+
     znucl = np.empty(ntypat)
     for iatom in range(natom):
         itypat = typat[iatom]
@@ -883,7 +949,7 @@ def structure_from_abistruct_fmt(string: str) -> Structure:
         v = xred[iatom]
         lines.append("%.16f %.16f %.16f" % (v[0], v[1], v[2]))
 
-    s = "\n".join(head) + "\n" + "\n".join(lines) #; print(s)
+    s = "\n".join(head) + "\n" + "\n".join(lines)  # ; print(s)
 
     return AbinitInputFile.from_string(s).structure
 
@@ -898,16 +964,20 @@ def validate_input_parser(abitests_dir=None, input_files=None) -> int:
 
     Return: Exit code.
     """
+
     def is_abinit_input(path):
         """
         True if path is one of the input files used in the Abinit Test suite.
         """
-        if path.endswith(".abi"): return True
-        if not path.endswith(".in"): return False
+        if path.endswith(".abi"):
+            return True
+        if not path.endswith(".in"):
+            return False
 
         with open(path) as fh:
             for line in fh:
-                if "executable" in line and "abinit" in line: return True
+                if "executable" in line and "abinit" in line:
+                    return True
             return False
 
     # Files are collected in paths.
@@ -919,11 +989,12 @@ def validate_input_parser(abitests_dir=None, input_files=None) -> int:
         for dirpath, dirnames, filenames in os.walk(abitests_dir):
             for fname in filenames:
                 path = os.path.join(dirpath, fname)
-                if is_abinit_input(path): paths.append(path)
+                if is_abinit_input(path):
+                    paths.append(path)
 
-            #import ast
-            #init_path = os.path.join(dirpath, "__init__.py")
-            #with open(init_path, "rt") as f:
+            # import ast
+            # init_path = os.path.join(dirpath, "__init__.py")
+            # with open(init_path, "rt") as f:
             #    source = f.read()
             #    start = source.find("inp_files = [")
             #    if start == -1:
@@ -939,7 +1010,8 @@ def validate_input_parser(abitests_dir=None, input_files=None) -> int:
     if input_files is not None:
         print("Analyzing files ", str(input_files))
         for arg in input_files:
-            if is_abinit_input(arg): paths.append(arg)
+            if is_abinit_input(arg):
+                paths.append(arg)
 
     nfiles = len(paths)
     if nfiles == 0:
@@ -959,9 +1031,10 @@ def validate_input_parser(abitests_dir=None, input_files=None) -> int:
                 cprint("FAILED", "red")
                 errpaths.append(path)
                 import traceback
+
                 print(traceback.format_exc())
-                #print("[%s]: Exception:\n%s" % (path, str(exc)))
-                #with open(path, "rt") as fh:
+                # print("[%s]: Exception:\n%s" % (path, str(exc)))
+                # with open(path, "rt") as fh:
                 #    print(10*"=" + "Input File" + 10*"=")
                 #    print(fh.read())
                 #    print()
@@ -969,7 +1042,7 @@ def validate_input_parser(abitests_dir=None, input_files=None) -> int:
                 cprint("NOTIMPLEMENTED", "magenta")
 
     if errpaths:
-        cprint("failed: %d/%d [%.1f%%]" % (len(errpaths), nfiles, 100 * len(errpaths)/nfiles), "red")
+        cprint("failed: %d/%d [%.1f%%]" % (len(errpaths), nfiles, 100 * len(errpaths) / nfiles), "red")
         for i, epath in enumerate(errpaths):
             cprint("[%d] %s" % (i, epath), "red")
     else:

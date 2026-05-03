@@ -2,6 +2,7 @@
 """
 This benchmark compares GS calculations at the Gamma point done with istwfk in [1,2]
 """
+
 import sys
 
 import abipy.data as abidata
@@ -17,13 +18,13 @@ def make_input(paw=False):
     structure = abidata.structure_from_ucell("Si")
 
     inp = abilab.AbinitInput(structure, pseudos)
-    inp.set_kmesh(ngkpt=[1,1,1], shiftk=[0,0,0])
+    inp.set_kmesh(ngkpt=[1, 1, 1], shiftk=[0, 0, 0])
 
     # Global variables
     ecut = 20
     inp.set_vars(
         ecut=ecut,
-        pawecutdg=ecut*4 if paw else None,
+        pawecutdg=ecut * 4 if paw else None,
         nsppol=1,
         nband=20,
         paral_kgb=1,
@@ -44,10 +45,11 @@ def build_flow(options):
 
     # Get the list of possible parallel configurations from abinit autoparal.
     max_ncpus, min_eff = options.max_ncpus, options.min_eff
-    print("Getting all autoparal confs up to max_ncpus: ",max_ncpus," with efficiency >= ",min_eff)
+    print("Getting all autoparal confs up to max_ncpus: ", max_ncpus, " with efficiency >= ", min_eff)
 
     pconfs = template.abiget_autoparal_pconfs(max_ncpus, autoparal=1, verbose=options.verbose)
-    if options.verbose: print(pconfs)
+    if options.verbose:
+        print(pconfs)
 
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
 
@@ -56,7 +58,8 @@ def build_flow(options):
         work = flowtk.Work()
         for conf in pconfs:
             mpi_procs = conf.mpi_ncpus
-            if not options.accept_conf(conf, omp_threads): continue
+            if not options.accept_conf(conf, omp_threads):
+                continue
 
             manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
             inp = template.new_with_vars(conf.vars, istwfk=istwfk)

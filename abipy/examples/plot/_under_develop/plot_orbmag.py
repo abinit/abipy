@@ -6,8 +6,9 @@ Orbital magnetism
 This example shows how to plot ...
 See ...
 """
-#import abipy.data as abidata
-#%%
+
+# import abipy.data as abidata
+# %%
 # We start by defining a list with the paths to the PHDOS.nc files
 # In this case, for simplicity, we use the same file but we must
 # use different labels when adding them to the plotter with the add_phdos method.
@@ -21,9 +22,9 @@ filepaths = [os.path.join(root, s) for s in ["gso_DS12_ORBMAG.nc", "gso_DS22_ORB
 orban = OrbmagAnalyzer(filepaths)
 print(orban)
 
-choices = ["S","T","B","TB"]
+choices = ["S", "T", "B", "TB"]
 orban.report_eigvals(report_type="S")
 
-#%%
+# %%
 # Plot the phonon frequencies. Note that the labels for the q-points
 orban.plot_fatbands(os.path.join(root, "bandso_DS1_GSR.nc"))

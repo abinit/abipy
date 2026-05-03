@@ -6,6 +6,7 @@ e-ph matrix elements along a q-path
 This example shows how to compute the e-ph matrix elements in AlAs along a q-path with AbiPy flows.
 The final results are stored in the GKQ.nc file (one file for q-point) in the outdata of each task.
 """
+
 import os
 import sys
 
@@ -51,13 +52,13 @@ def build_flow(options):
     # Create flow to compute all the independent atomic perturbations
     # Use ndivsm = 0 to pass an explicit list of q-points.
     # If ndivsm > 0, qpath_list is interpreted as a list of boundaries for the q-path
-    qpath_list = [[0.0, 0.0, 0.0], [0.01, 0, 0], [0.1, 0, 0],
-                  [0.24, 0, 0], [0.3, 0, 0], [0.45, 0, 0], [0.5, 0.0, 0.0]]
+    qpath_list = [[0.0, 0.0, 0.0], [0.01, 0, 0], [0.1, 0, 0], [0.24, 0, 0], [0.3, 0, 0], [0.45, 0, 0], [0.5, 0.0, 0.0]]
 
     from abipy.flowtk.eph_flows import GkqPathFlow
-    flow = GkqPathFlow.from_scf_input(options.workdir, scf_input,
-                                      ngqpt, qpath_list, ndivsm=0, with_becs=True,
-                                      ddk_tolerance={"tolwfr": 1e-8})
+
+    flow = GkqPathFlow.from_scf_input(
+        options.workdir, scf_input, ngqpt, qpath_list, ndivsm=0, with_becs=True, ddk_tolerance={"tolwfr": 1e-8}
+    )
 
     return flow
 
@@ -67,6 +68,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

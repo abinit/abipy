@@ -1,9 +1,10 @@
 """Tests for core.site_symmetries module"""
+
 import os
 
 import numpy as np
 
-#from abipy.core.site_symmetries import SiteSymmetries
+# from abipy.core.site_symmetries import SiteSymmetries
 import abipy.data as abidata
 from abipy.core.structure import Structure
 from abipy.core.testing import AbipyTest
@@ -16,14 +17,15 @@ class TestSiteSymmetries(AbipyTest):
         """Testing wyckoff positions for Si2"""
         si = Structure.from_file(abidata.cif_file("si.cif"))
         ss = si.site_symmetries
-        repr(ss); str(ss)
+        repr(ss)
+        str(ss)
         assert ss.to_string(verbose=2)
         df = ss.get_wyckoff_dataframe(verbose=2)
         self.assert_array_equal(np.array(df["xfrac"].values, dtype=float), [0, 0.25])
         self.assert_array_equal(np.array(df["yfrac"].values, dtype=float), [0, 0.25])
         self.assert_array_equal(np.array(df["zfrac"].values, dtype=float), [0, 0.25])
-        #0  -43m (#31) nsym:24                  0                  0                  0
-        #1  -43m (#31) nsym:24  0.250000000000000  0.250000000000000  0.250000000000000
+        # 0  -43m (#31) nsym:24                  0                  0                  0
+        # 1  -43m (#31) nsym:24  0.250000000000000  0.250000000000000  0.250000000000000
 
         df = ss.get_tensor_rank2_dataframe(verbose=2)
         ref = ["Tzz", "Tzz"]

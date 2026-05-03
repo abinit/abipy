@@ -1,6 +1,7 @@
 """
 Useful functions used in embedding_ifc
 """
+
 from __future__ import annotations
 
 import os
@@ -51,10 +52,9 @@ def center_wrt_defect(structure: Structure, defect_coord) -> Structure:
     """
     new_stru = structure.copy()
     # site = structure[index_in_structure]
-    new_stru.translate_sites(indices=np.arange(0, len(structure)),
-                             vector=-defect_coord,
-                             frac_coords=False,
-                             to_unit_cell=False)
+    new_stru.translate_sites(
+        indices=np.arange(0, len(structure)), vector=-defect_coord, frac_coords=False, to_unit_cell=False
+    )
     return new_stru
 
 
@@ -65,7 +65,7 @@ def clean_structure(structure: Structure, defect_coord) -> Structure:
     Useful to match structures after clean_structure()
     """
     stru = structure.copy()
-    stru = center_wrt_defect(stru,defect_coord)
+    stru = center_wrt_defect(stru, defect_coord)
     stru = stru_0_1_to_minus_05_05(stru)
     stru = frac_coords_05_to_minus05(stru)
     return stru
@@ -109,7 +109,7 @@ def inverse_participation_ratio(eigenvectors):
     for iband in range(len(eigenvectors)):
         sum_atoms = 0
         for iatom in range(len(eigenvectors[iband])):
-            sum_atoms += np.dot(eigenvectors[iband,iatom],eigenvectors[iband,iatom])**2
+            sum_atoms += np.dot(eigenvectors[iband, iatom], eigenvectors[iband, iatom]) ** 2
         ipr.append(1 / sum_atoms)
     return np.array(ipr).real
 
@@ -123,15 +123,17 @@ def localization_ratio(eigenvectors):
     return len(eigenvectors[0]) / ipr
 
 
-def vesta_phonon(eigenvectors,
-                in_path,
-                ibands=None,
-                scale_vector=20,
-                width_vector=0.3,
-                color_vector=[255,0,0],
-                centered=True,
-                factor_keep_vectors=0.1,
-                out_path="VESTA_FILES") -> None:
+def vesta_phonon(
+    eigenvectors,
+    in_path,
+    ibands=None,
+    scale_vector=20,
+    width_vector=0.3,
+    color_vector=[255, 0, 0],
+    centered=True,
+    factor_keep_vectors=0.1,
+    out_path="VESTA_FILES",
+) -> None:
     """
     Draw the phonons eigenvectors on a vesta file.
     Inspired from https://github.com/AdityaRoy-1996/Phonopy_VESTA/tree/master
@@ -169,7 +171,13 @@ def vesta_phonon(eigenvectors,
 
         magnitudes = []
         for iatom in range(natoms):
-            magnitudes.append(np.sqrt(eigenvectors[iband][iatom][0]**2+eigenvectors[iband][iatom][1]**2+eigenvectors[iband][iatom][2]**2))
+            magnitudes.append(
+                np.sqrt(
+                    eigenvectors[iband][iatom][0] ** 2
+                    + eigenvectors[iband][iatom][1] ** 2
+                    + eigenvectors[iband][iatom][2] ** 2
+                )
+            )
         for iatom in range(natoms):
             if magnitudes[iatom] > factor_keep_vectors * max(np.real(magnitudes)):
                 towrite += "%5d" % (iatom + 1)
@@ -200,7 +208,9 @@ def vesta_phonon(eigenvectors,
             with open(filename) as file:
                 file_contents = file.read()
                 search_word = "BOUND\n       0        1         0        1         0        1\n  0   0   0   0  0"
-                replace_word = "BOUND\n       -0.5        0.5         -0.5        0.5         -0.5        0.5\n  0   0   0   0  0"
+                replace_word = (
+                    "BOUND\n       -0.5        0.5         -0.5        0.5         -0.5        0.5\n  0   0   0   0  0"
+                )
 
                 updated_contents = file_contents.replace(search_word, replace_word)
 

@@ -5,7 +5,6 @@ from abipy.iotools.visualizer import Avogadro, Ovito, V_Sim, Vesta, Visualizer, 
 
 
 class TestVisualizer(AbipyTest):
-
     def test_visualizers(self):
         print("Available visualizers:")
         for vclass in Visualizer.get_available():
@@ -15,7 +14,7 @@ class TestVisualizer(AbipyTest):
 
         assert Vesta is Visualizer.from_name("vesta")
         assert Vesta.support_ext("xsf") and "xsf" in Vesta.supported_extensions()
-        #assert Vesta.from_file("foo.xsf")
+        # assert Vesta.from_file("foo.xsf")
         with self.assertRaises(Visualizer.Error):
             Visualizer.from_name("foobar")
 
@@ -26,7 +25,8 @@ class TestVisualizer(AbipyTest):
         for cls in [Xcrysden, V_Sim, Vesta, Ovito, Avogadro]:
             visu = cls("foo.xsf")
             assert callable(visu)
-            repr(visu); str(visu)
+            repr(visu)
+            str(visu)
             # cmdarg is a string?
             assert visu.cmdarg + " "
             assert visu.is_available in (True, False)

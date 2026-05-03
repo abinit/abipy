@@ -1,4 +1,5 @@
 """Tests for textools module."""
+
 from abipy.core.testing import AbipyTest
 from abipy.tools.text import *
 

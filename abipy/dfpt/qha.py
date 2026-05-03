@@ -49,8 +49,8 @@ class AbstractQHA(metaclass=abc.ABCMeta):
         self.lattice_c = np.array([s.lattice.abc[2] for s in structures])
 
         self.angles_alpha = np.array([s.lattice.angles[0] for s in structures])
-        self.angles_beta  = np.array([s.lattice.angles[1] for s in structures])
-        self.angles_gama  = np.array([s.lattice.angles[2] for s in structures])
+        self.angles_beta = np.array([s.lattice.angles[1] for s in structures])
+        self.angles_gama = np.array([s.lattice.angles[2] for s in structures])
 
     def fit_energies(self, tstart=0, tstop=800, num=100):
         """
@@ -76,10 +76,12 @@ class AbstractQHA(metaclass=abc.ABCMeta):
         # array with phonon energies and shape (n_vol, n_temp)
         ph_energies = self.get_vib_free_energies(tstart, tstop, num)
 
-        tot_en = self.energies[np.newaxis, :].T + ph_energies + self.volumes[np.newaxis, :].T * self.pressure / abu.eVA3_GPa
+        tot_en = (
+            self.energies[np.newaxis, :].T + ph_energies + self.volumes[np.newaxis, :].T * self.pressure / abu.eVA3_GPa
+        )
 
         # list of fits objects, one for each temperature
-        #fits = [self.eos.fit(self.volumes, e) for e in tot_en.T]
+        # fits = [self.eos.fit(self.volumes, e) for e in tot_en.T]
 
         fits = []
         for kt, e in zip(tmesh, tot_en.T, strict=False):
@@ -100,9 +102,9 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
         # list of minimum volumes and energies, one for each temperature
         min_volumes = np.array([fit.v0 for fit in fits])
         min_energies = np.array([fit.e0 for fit in fits])
-        F2D=  np.array([fit.b0 for fit in fits]) /min_volumes
+        F2D = np.array([fit.b0 for fit in fits]) / min_volumes
 
-        return dict2namedtuple(tot_en=tot_en, fits=fits, min_en=min_energies, min_vol=min_volumes, temp=tmesh , F2D=F2D)
+        return dict2namedtuple(tot_en=tot_en, fits=fits, min_en=min_energies, min_vol=min_volumes, temp=tmesh, F2D=F2D)
 
     @abc.abstractmethod
     def get_vib_free_energies(self, tstart=0, tstop=800, num=100):
@@ -184,7 +186,7 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
 
         ax.set_xlabel(r"V (${\AA}^3$)")
         ax.set_ylabel("F (eV)")
-        #ax.grid(True)
+        # ax.grid(True)
 
         return fig
 
@@ -206,35 +208,35 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
         f = self.fit_energies(tstart, tstop, num)
         if tref is not None:
             f0 = self.fit_energies(tref, tref, 1)
-        eos_list = [ "taylor", "murnaghan", "birch", "birch_murnaghan","pourier_tarantola", "vinet", "antonschmidt"]
+        eos_list = ["taylor", "murnaghan", "birch", "birch_murnaghan", "pourier_tarantola", "vinet", "antonschmidt"]
 
         dt = f.temp[1] - f.temp[0]
-        if (method=="finite_difference"):
+        if method == "finite_difference":
             alpha = (f.min_vol[2:] - f.min_vol[:-2]) / (2 * dt) / f.min_vol[1:-1]
-        elif (self.eos_name in eos_list) :
+        elif self.eos_name in eos_list:
             thermo = self.get_thermodynamic_properties(tstart=tstart, tstop=tstop, num=num)
-            entropy = thermo.entropy.T #* abu.e_Cb * abu.Avogadro
-            df_t = np.zeros((num,self.nvols))
-            df_t = - entropy
-            param = np.zeros((num,4))
-            param2 = np.zeros((num,3))
+            entropy = thermo.entropy.T  # * abu.e_Cb * abu.Avogadro
+            df_t = np.zeros((num, self.nvols))
+            df_t = -entropy
+            param = np.zeros((num, 4))
+            param2 = np.zeros((num, 3))
             d2f_t_v = np.zeros(num)
             gamma = np.zeros(num)
 
-            for j in range (1,num-1):
-                param[j]=np.polyfit(self.volumes,df_t[j] , 3)
-                param2[j] = np.array([3*param[j][0],2*param[j][1],param[j][2]])
+            for j in range(1, num - 1):
+                param[j] = np.polyfit(self.volumes, df_t[j], 3)
+                param2[j] = np.array([3 * param[j][0], 2 * param[j][1], param[j][2]])
 
                 p = np.poly1d(param2[j])
-                d2f_t_v[j]= p(f.min_vol[j])
+                d2f_t_v[j] = p(f.min_vol[j])
 
             if tref is None:
-                alpha= - 1/f.min_vol[1:-1] *d2f_t_v[1:-1] / f.F2D[1:-1]
-            else :
-                alpha= - 1/f0.min_vol * d2f_t_v[1:-1] / f.F2D[1:-1]
+                alpha = -1 / f.min_vol[1:-1] * d2f_t_v[1:-1] / f.F2D[1:-1]
+            else:
+                alpha = -1 / f0.min_vol * d2f_t_v[1:-1] / f.F2D[1:-1]
         elif tref is None:
             alpha = (f.min_vol[2:] - f.min_vol[:-2]) / (2 * dt) / f.min_vol[1:-1]
-        else :
+        else:
             alpha = (f.min_vol[2:] - f.min_vol[:-2]) / (2 * dt) / f0.min_vol
         return Function1D(f.temp[1:-1], alpha)
 
@@ -303,7 +305,7 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
 
         return fig
 
-    def get_abc(self, tstart=0, tstop=800 , num=100):
+    def get_abc(self, tstart=0, tstop=800, num=100):
         """
         Plots the thermal expansion coefficient as a function of the temperature.
 
@@ -315,29 +317,29 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
             num: int, optional Number of samples to generate. Default is 100.
             ax: |matplotlib-Axes| or None if a new figure should be created.
         """
-        f =  self.fit_energies(tstart, tstop, num)
-        param=np.polyfit(self.volumes, self.lattice_a , 3)
-        param0=[3*param[0],2*param[1],param[2]]
+        f = self.fit_energies(tstart, tstop, num)
+        param = np.polyfit(self.volumes, self.lattice_a, 3)
+        param0 = [3 * param[0], 2 * param[1], param[2]]
         pa = np.poly1d(param)
-        dpa=np.poly1d(param0)
-        aa_qha=pa(f.min_vol)
-        daa_dv_qha=dpa(f.min_vol)
-        param=np.polyfit(self.volumes, self.lattice_b , 3)
-        param0=[3*param[0],2*param[1],param[2]]
+        dpa = np.poly1d(param0)
+        aa_qha = pa(f.min_vol)
+        daa_dv_qha = dpa(f.min_vol)
+        param = np.polyfit(self.volumes, self.lattice_b, 3)
+        param0 = [3 * param[0], 2 * param[1], param[2]]
         pb = np.poly1d(param)
         dpb = np.poly1d(param0)
-        bb_qha=pb(f.min_vol)
-        dbb_dv_qha=dpb(f.min_vol)
-        param=np.polyfit(self.volumes, self.lattice_c , 3)
-        param0=[3*param[0],2*param[1],param[2]]
+        bb_qha = pb(f.min_vol)
+        dbb_dv_qha = dpb(f.min_vol)
+        param = np.polyfit(self.volumes, self.lattice_c, 3)
+        param0 = [3 * param[0], 2 * param[1], param[2]]
         pc = np.poly1d(param)
         dpc = np.poly1d(param0)
-        cc_qha=pc(f.min_vol)
-        dcc_dv_qha=dpc(f.min_vol)
+        cc_qha = pc(f.min_vol)
+        dcc_dv_qha = dpc(f.min_vol)
 
-        return aa_qha,bb_qha,cc_qha, daa_dv_qha,dbb_dv_qha,dcc_dv_qha
+        return aa_qha, bb_qha, cc_qha, daa_dv_qha, dbb_dv_qha, dcc_dv_qha
 
-    def get_angles(self, tstart=0, tstop=800 , num=100):
+    def get_angles(self, tstart=0, tstop=800, num=100):
         """
         Plots the thermal expansion coefficient as a function of the temperature.
 
@@ -351,14 +353,14 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
 
         Returns: |matplotlib-Figure|
         """
-        f =  self.fit_energies(tstart, tstop, num)
-        param=np.polyfit(self.volumes, self.angles_alpha, 3)
+        f = self.fit_energies(tstart, tstop, num)
+        param = np.polyfit(self.volumes, self.angles_alpha, 3)
         pa = np.poly1d(param)
-        alpha=pa(f.min_vol)
-        param=np.polyfit(self.volumes, self.angles_beta , 3)
+        alpha = pa(f.min_vol)
+        param = np.polyfit(self.volumes, self.angles_beta, 3)
         pb = np.poly1d(param)
-        beta= pb(f.min_vol)
-        param = np.polyfit(self.volumes, self.angles_gama , 3)
+        beta = pb(f.min_vol)
+        param = np.polyfit(self.volumes, self.angles_gama, 3)
         pc = np.poly1d(param)
         gamma = pc(f.min_vol)
 
@@ -384,28 +386,28 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
         tmesh = np.linspace(tstart, tstop, num)
 
         alpha_v = self.get_thermal_expansion_coeff(tstart, tstop, num, tref)
-        aa,bb,cc, daa_dv,dbb_dv,dcc_dv = self.get_abc(tstart, tstop, num)
+        aa, bb, cc, daa_dv, dbb_dv, dcc_dv = self.get_abc(tstart, tstop, num)
 
         if tref is None:
             f = self.fit_energies(tstart, tstop, num)
-            dv_dt = alpha_v*f.min_vol[1:-1]
-            alpha_qha_a =  dv_dt*daa_dv[1:-1]/ aa[1:-1]
-            alpha_qha_b =  dv_dt*dbb_dv[1:-1]/ bb[1:-1]
-            alpha_qha_c =  dv_dt*dcc_dv[1:-1]/ cc[1:-1]
+            dv_dt = alpha_v * f.min_vol[1:-1]
+            alpha_qha_a = dv_dt * daa_dv[1:-1] / aa[1:-1]
+            alpha_qha_b = dv_dt * dbb_dv[1:-1] / bb[1:-1]
+            alpha_qha_c = dv_dt * dcc_dv[1:-1] / cc[1:-1]
         else:
             f0 = self.fit_energies(tref, tref, num)
-            dv_dt = alpha_v*f0.min_vol[1:-1]
-            aa_tref, bb_tref, cc_tref , daa_dv_tref,dbb_dv_tref,dcc_dv_tref = self.get_abc(tref, tref, 1)
-            alpha_qha_a = dv_dt*daa_dv[1:-1]/ aa_tref
-            alpha_qha_b = dv_dt*dbb_dv[1:-1]/ bb_tref
-            alpha_qha_c = dv_dt*dcc_dv[1:-1]/ cc_tref
+            dv_dt = alpha_v * f0.min_vol[1:-1]
+            aa_tref, bb_tref, cc_tref, daa_dv_tref, dbb_dv_tref, dcc_dv_tref = self.get_abc(tref, tref, 1)
+            alpha_qha_a = dv_dt * daa_dv[1:-1] / aa_tref
+            alpha_qha_b = dv_dt * dbb_dv[1:-1] / bb_tref
+            alpha_qha_c = dv_dt * dcc_dv[1:-1] / cc_tref
 
         ax.plot(tmesh[1:-1], alpha_qha_a, color="r", lw=2)
         ax.plot(tmesh[1:-1], alpha_qha_b, color="b", lw=2)
         ax.plot(tmesh[1:-1], alpha_qha_c, color="m", lw=2)
         ax.set_xlabel(r"T (K)")
         ax.set_ylabel(r"$\alpha$ (K$^{-1}$)")
-        ax.legend([r"$\alpha_a$",r"$\alpha_b$",r"$\alpha_c$"])
+        ax.legend([r"$\alpha_a$", r"$\alpha_b$", r"$\alpha_c$"])
         ax.grid(True)
 
         ax.set_xlim(tstart, tstop)
@@ -414,7 +416,7 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
         return fig
 
     @add_fig_kwargs
-    def plot_abc_vs_t(self, tstart=0 , tstop=800, num=100, tref=None, ax=None, **kwargs) -> Figure:
+    def plot_abc_vs_t(self, tstart=0, tstop=800, num=100, tref=None, ax=None, **kwargs) -> Figure:
         """
         Plots the thermal expansion coefficient as a function of the temperature.
 
@@ -430,15 +432,15 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
-        #alpha  = self.get_thermal_expansion_coeff(tstart, tstop, num, tref)
+        # alpha  = self.get_thermal_expansion_coeff(tstart, tstop, num, tref)
         tmesh = np.linspace(tstart, tstop, num)
-        aa,bb,cc, daa_dv,dbb_dv,dcc_dv = self.get_abc(tstart, tstop, num)
+        aa, bb, cc, daa_dv, dbb_dv, dcc_dv = self.get_abc(tstart, tstop, num)
 
         ax.plot(tmesh, aa, color="r", lw=2)
         ax.plot(tmesh, bb, color="b", lw=2)
         ax.plot(tmesh, cc, color="m", lw=2)
         ax.set_xlabel(r"T (K)")
-        ax.legend(["a(V(T))","b(V(T))","c(V(T))"])
+        ax.legend(["a(V(T))", "b(V(T))", "c(V(T))"])
         ax.grid(True)
 
         ax.set_xlim(tstart, tstop)
@@ -447,7 +449,7 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
         return fig
 
     @add_fig_kwargs
-    def plot_angle_vs_t(self, tstart=0, tstop=800, num=100, tref=None, ax=None, **kwargs)-> Figure:
+    def plot_angle_vs_t(self, tstart=0, tstop=800, num=100, tref=None, ax=None, **kwargs) -> Figure:
         """
         Plots the thermal expansion coefficient as a function of the temperature.
 
@@ -463,7 +465,7 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
         """
         ax, fig, plt = get_ax_fig_plt(ax)
 
-        #alpha  = self.get_thermal_expansion_coeff(tstart, tstop, num, tref)
+        # alpha  = self.get_thermal_expansion_coeff(tstart, tstop, num, tref)
         tmesh = np.linspace(tstart, tstop, num)
         alpha, beta, gamma = self.get_angles(tstart, tstop, num)
 
@@ -471,7 +473,7 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
         ax.plot(tmesh, beta, color="b", lw=2)
         ax.plot(tmesh, gamma, color="m", lw=2)
         ax.set_xlabel(r"T (K)")
-        ax.legend([r"$\alpha$(V(T))",r"$\beta$(V(T))",r"$\gamma$(V(T))"])
+        ax.legend([r"$\alpha$(V(T))", r"$\beta$(V(T))", r"$\gamma$(V(T))"])
         ax.grid(True)
 
         ax.set_xlim(tstart, tstop)
@@ -501,13 +503,16 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
             temperatures = []
             for b, t in zip(phbands, tv, strict=False):
                 if len(t) != 1:
-                    raise ValueError("Couldn't find a single temperature for structure with "
-                                     f"volume {b.structure.volume}. Found {len(t)}: {list(t)}")
+                    raise ValueError(
+                        "Couldn't find a single temperature for structure with "
+                        f"volume {b.structure.volume}. Found {len(t)}: {list(t)}"
+                    )
                 temperatures.append(t[0])
 
         temperatures_str = [f"{t:.0f} K" for t in temperatures]
 
         import matplotlib.pyplot as plt
+
         cmap = plt.get_cmap(colormap)
         colors = [cmap(t / max(temperatures)) for t in temperatures]
         labels_phbs = zip(temperatures_str, phbands, strict=False)
@@ -551,7 +556,7 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
         if not isinstance(vols, (list, tuple, np.ndarray)):
             vols = [vols]
 
-        f = self.fit_energies(0, t_max, t_max+1)
+        f = self.fit_energies(0, t_max, t_max + 1)
 
         temps = []
         for v in vols:
@@ -598,7 +603,7 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
 
             lines.append("")
             lines.append("zero_point_energy: %15.7f" % (thermo.zpe[j] * abu.e_Cb * abu.Avogadro))
-            lines.append("high_T_entropy:    %15.7f" % 0) # high_T_entropy is not used in QHA
+            lines.append("high_T_entropy:    %15.7f" % 0)  # high_T_entropy is not used in QHA
             lines.append("")
             lines.append("thermal_properties:")
             fe = thermo.free_energy[j] * abu.e_Cb * abu.Avogadro
@@ -614,16 +619,16 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
                     lines.append("  heat_capacity: %15.7f" % 0)
                 else:
                     lines.append("  heat_capacity: %15.7f" % cv[i])
-                lines.append("  energy:        %15.7f" %
-                             (fe[i] / 1000 + entropy[i] * t / 1000))
+                lines.append("  energy:        %15.7f" % (fe[i] / 1000 + entropy[i] * t / 1000))
 
                 lines.append("")
 
             with open(os.path.join(path, f"thermal_properties-{j}.yaml"), "w") as f:
                 f.write("\n".join(lines))
 
-    def get_phonopy_qha(self, tstart=0, tstop=2100, num=211, eos="vinet", t_max=None,
-                        energy_plot_factor=None, pressure=None):
+    def get_phonopy_qha(
+        self, tstart=0, tstop=2100, num=211, eos="vinet", t_max=None, energy_plot_factor=None, pressure=None
+    ):
         """
         Creates an instance of phonopy.qha.core.QHA that can be used generate further plots and output data.
         The object is returned right after the construction. The "run()" method should be executed
@@ -668,7 +673,7 @@ Try to change the temperature range with the `tstart`, `tstop` optional argument
             pressure=pressure,
             eos=eos,
             t_max=t_max,
-            energy_plot_factor=energy_plot_factor
+            energy_plot_factor=energy_plot_factor,
         )
 
         return qha_p
@@ -704,7 +709,7 @@ class QHA(AbstractQHA):
                 energies.append(g.energy)
                 structures.append(g.structure)
 
-        #pndoses = [PhononDos.as_phdos(dp) for dp in phdos_paths]
+        # pndoses = [PhononDos.as_phdos(dp) for dp in phdos_paths]
 
         phdoses = []
         structures_from_phdos = []
@@ -1041,7 +1046,7 @@ class QHA3P(AbstractQHA):
         w2 = w[:, 2, :]
         d1 = (w2 - w0) / (2 * dv)
         w1 = w[:, 1, :]
-        d2 = (w0 - 2 * w1 + w2) / dv ** 2
+        d2 = (w0 - 2 * w1 + w2) / dv**2
         v0 = self.volumes[self.ind_grun[1]]
 
         w_full = np.zeros((self.nvols, w.shape[0], w.shape[2]))
@@ -1051,7 +1056,7 @@ class QHA3P(AbstractQHA):
 
         for i in self._ind_energy_only:
             dv = self.volumes[i] - v0
-            w_full[i] = w1 + d1 * dv + d2 * dv ** 2 / 2
+            w_full[i] = w1 + d1 * dv + d2 * dv**2 / 2
 
         return w_full
 
@@ -1110,7 +1115,7 @@ def get_cv(w, weights, t):
     wdkt = w / (abu.kb_eVK * t)
 
     # if w=0 set cv=0
-    cv = np.choose(w > 0, (0, abu.kb_eVK * wdkt ** 2 * np.exp(wdkt) / (np.exp(wdkt) - 1) ** 2))
+    cv = np.choose(w > 0, (0, abu.kb_eVK * wdkt**2 * np.exp(wdkt) / (np.exp(wdkt) - 1) ** 2))
     ind = np.where(w >= 0)
 
     return np.dot(weights[ind[0]], cv[ind]).sum()
@@ -1142,7 +1147,7 @@ def get_entropy(w, weights, t):
     wd2kt = w / (2 * abu.kb_eVK * t)
     coth = lambda x: 1.0 / np.tanh(x)
 
-    s = np.choose(w > 0, (0, w*coth(wd2kt) / 2 / t - abu.kb_eVK * np.log(2 * np.sinh(wd2kt))))
+    s = np.choose(w > 0, (0, w * coth(wd2kt) / 2 / t - abu.kb_eVK * np.log(2 * np.sinh(wd2kt))))
     ind = np.where(w >= 0)
 
     return np.dot(weights[ind[0]], s[ind]).sum()
@@ -1180,8 +1185,9 @@ class AbstractQmeshAnalyzer(metaclass=abc.ABCMeta):
         """
         self._consistency_check()
         # Build grid of plots.
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=self.num_qmeshes, ncols=1,
-                                                sharex=True, sharey=True, squeeze=False)
+        ax_list, fig, plt = get_axarray_fig_plt(
+            None, nrows=self.num_qmeshes, ncols=1, sharex=True, sharey=True, squeeze=False
+        )
         ax_list = ax_list.ravel()
 
         for qha, ngqpt, ax in zip(self.qha_list, self.ngqpt_list, ax_list, strict=False):
@@ -1200,9 +1206,9 @@ class AbstractQmeshAnalyzer(metaclass=abc.ABCMeta):
         ax, fig, plt = get_ax_fig_plt(None)
         cmap = plt.get_cmap(self.colormap)
         for iq, (qha, ngqpt) in enumerate(zip(self.qha_list, self.ngqpt_list, strict=False)):
-            qha.plot_thermal_expansion_coeff(ax=ax,
-                                             color=cmap(float(iq) / self.num_qmeshes),
-                                             label="ngqpt: %s" % str(ngqpt), show=False, **kwargs)
+            qha.plot_thermal_expansion_coeff(
+                ax=ax, color=cmap(float(iq) / self.num_qmeshes), label="ngqpt: %s" % str(ngqpt), show=False, **kwargs
+            )
         ax.legend(loc="best", fontsize=self.fontsize, shadow=True)
         return fig
 
@@ -1216,15 +1222,15 @@ class AbstractQmeshAnalyzer(metaclass=abc.ABCMeta):
         ax, fig, plt = get_ax_fig_plt(None)
         cmap = plt.get_cmap(self.colormap)
         for iq, (qha, ngqpt) in enumerate(zip(self.qha_list, self.ngqpt_list, strict=False)):
-            qha.plot_vol_vs_t(ax=ax,
-                              color=cmap(float(iq) / self.num_qmeshes),
-                              label="ngqpt: %s" % str(ngqpt), show=False, **kwargs)
+            qha.plot_vol_vs_t(
+                ax=ax, color=cmap(float(iq) / self.num_qmeshes), label="ngqpt: %s" % str(ngqpt), show=False, **kwargs
+            )
         ax.legend(loc="best", fontsize=self.fontsize, shadow=True)
         return fig
 
 
 class QHAQmeshAnalyzer(AbstractQmeshAnalyzer):
-
+    """Class to analyze the convergence of QHA results with respect to the q-mesh."""
     def __init__(self, gsr_paths, ddb_paths):
         """
         Creates an instance of QHA from a list of GSR files and a list of PHDOS.nc files.
@@ -1238,8 +1244,7 @@ class QHAQmeshAnalyzer(AbstractQmeshAnalyzer):
         self.ddb_paths = ddb_paths
 
     def run_qlist(self, nqsmall_list, **kwargs):
-        """
-        """
+        """ """
         self.qha_list = []
         self.ngqpt_list = []
 
@@ -1249,10 +1254,24 @@ class QHAQmeshAnalyzer(AbstractQmeshAnalyzer):
 
             for i, ddb in enumerate(ddb_list):
                 phbst_file, phdos_file = ddb.anaget_phbst_and_phdos_files(
-                    nqsmall=nqsmall, qppa=None, ndivsm=1, line_density=None, asr=2, chneut=1, dipdip=1,
-                    dos_method="tetra", lo_to_splitting="automatic", ngqpt=None, qptbounds=None,
-                    anaddb_kwargs=None, verbose=0, spell_check=True,
-                    mpi_procs=1, workdir=None, manager=None)
+                    nqsmall=nqsmall,
+                    qppa=None,
+                    ndivsm=1,
+                    line_density=None,
+                    asr=2,
+                    chneut=1,
+                    dipdip=1,
+                    dos_method="tetra",
+                    lo_to_splitting="automatic",
+                    ngqpt=None,
+                    qptbounds=None,
+                    anaddb_kwargs=None,
+                    verbose=0,
+                    spell_check=True,
+                    mpi_procs=1,
+                    workdir=None,
+                    manager=None,
+                )
 
                 phdos_paths.append(phdos_file.filepath)
                 if i == 0:
@@ -1260,7 +1279,7 @@ class QHAQmeshAnalyzer(AbstractQmeshAnalyzer):
                     ngqpt = 3 * [nqsmall]
                     if "qptrlatt" in phdos_file.reader.rootgrp.variables:
                         ngqpt = np.diagonal(phdos_file.reader.read_value("qptrlatt").T)
-                        #shiftq = phdos_file.reader.read_value("shiftq")
+                        # shiftq = phdos_file.reader.read_value("shiftq")
                     self.ngqpt_list.append(ngqpt)
 
                 phbst_file.close()

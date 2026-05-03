@@ -1,6 +1,7 @@
 """
 This module defines the Node base class inherited by Task, Work and Flow objects.
 """
+
 from __future__ import annotations
 
 import abc
@@ -26,12 +27,12 @@ from pydispatch import dispatcher
 from abipy.tools.iotools import AtomicFile
 from abipy.tools.serialization import json_pretty_dump, pmg_serialize
 
-#from abipy.tools.typing import TYPE_CHECKING
+# from abipy.tools.typing import TYPE_CHECKING
 from .utils import Directory, Dirviz, File, abi_extensions, irdvars_for_ext
 
 logger = logging.getLogger(__name__)
 
-#if TYPE_CHECKING:  # needed to avoid circular imports
+# if TYPE_CHECKING:  # needed to avoid circular imports
 #    from .tasks import Task
 #    from .works import Work
 #    from .flows import Flow
@@ -72,7 +73,9 @@ class Status(int):
     ]
 
     _STATUS2STR = OrderedDict([(t[0], t[1]) for t in _STATUS_INFO])
-    _STATUS2COLOR_OPTS = OrderedDict([(t[0], {"color": t[2], "on_color": t[3], "attrs": _2attrs(t[4])}) for t in _STATUS_INFO])
+    _STATUS2COLOR_OPTS = OrderedDict(
+        [(t[0], {"color": t[2], "on_color": t[3], "attrs": _2attrs(t[4])}) for t in _STATUS_INFO]
+    )
 
     def __repr__(self):
         return "<%s: %s, at %s>" % (self.__class__.__name__, str(self), id(self))
@@ -84,7 +87,8 @@ class Status(int):
     @classmethod
     def as_status(cls, obj: Any) -> Status:
         """Convert obj into Status."""
-        if obj is None: return None
+        if obj is None:
+            return None
         return obj if isinstance(obj, cls) else cls.from_string(obj)
 
     @classmethod
@@ -107,6 +111,7 @@ class Status(int):
 
     @property
     def color_opts(self) -> dict:
+        """Returns the color options for the status."""
         return self._STATUS2COLOR_OPTS[self]
 
     @property
@@ -130,6 +135,7 @@ class Dependency:
         # Register the NSCF calculation and its dependency on the SCF run via deps.
         nscf_task = work.register(nscf_strategy, deps={scf_task: "DEN"})
     """
+
     def __init__(self, node, exts=None):
         """
         Args:
@@ -138,14 +144,15 @@ class Dependency:
         """
         self._node = Node.as_node(node)
 
-        if exts and is_string(exts): exts = exts.split()
+        if exts and is_string(exts):
+            exts = exts.split()
 
         # Extract extensions.
         self.exts = [e for e in exts if not e.startswith("@")]
 
         # Save getters
         self.getters = [e for e in exts if e.startswith("@")]
-        #if self.getters: print(self.getters)
+        # if self.getters: print(self.getters)
 
     def __hash__(self):
         return hash(self._node)
@@ -158,6 +165,7 @@ class Dependency:
 
     @property
     def info(self) -> str:
+        """Returns a string with information about the dependency."""
         return str(self.node)
 
     @property
@@ -192,7 +200,8 @@ class Dependency:
 
             - @structure
         """
-        if not self.getters: return
+        if not self.getters:
+            return
 
         for getter in self.getters:
             if getter == "@structure":
@@ -226,6 +235,7 @@ class Product:
     A product represents an output file produced by ABINIT instance.
     This file is needed to start another `Task` or another `Work`.
     """
+
     def __init__(self, ext: str, path: str):
         """
         Args:
@@ -271,6 +281,12 @@ class GridFsFile(AttrDict):
     """Information on a file that will stored in the MongoDb gridfs collection."""
 
     def __init__(self, path, fs_id=None, mode="b"):
+        """
+        Args:
+            path: Path to the file.
+            fs_id: GridFS ID.
+            mode: Open mode.
+        """
         super().__init__(path=path, fs_id=fs_id, mode=mode)
 
 
@@ -308,16 +324,26 @@ class NodeResults(dict, MSONable):
         return node.Results(node, **kwargs)
 
     def __init__(self, node, **kwargs):
+        """
+        Args:
+            node: The |Node| instance.
+            kwargs: Extra arguments.
+        """
         super().__init__(**kwargs)
         self.node = node
 
-        if "in" not in self: self["in"] = Namespace()
-        if "out" not in self: self["out"] = Namespace()
-        if "exceptions" not in self: self["exceptions"] = []
-        if "files" not in self: self["files"] = Namespace()
+        if "in" not in self:
+            self["in"] = Namespace()
+        if "out" not in self:
+            self["out"] = Namespace()
+        if "exceptions" not in self:
+            self["exceptions"] = []
+        if "files" not in self:
+            self["files"] = Namespace()
 
     @property
     def exceptions(self):
+        """List of exceptions raised by the node."""
         return self["exceptions"]
 
     @property
@@ -341,31 +367,39 @@ class NodeResults(dict, MSONable):
         d = {}
         for k, v in kwargs.items():
             mode = "b"
-            if isinstance(v, (list, tuple)): v, mode = v
+            if isinstance(v, (list, tuple)):
+                v, mode = v
             d[k] = GridFsFile(path=v, mode=mode)
 
         self["files"].update(d)
         return self
 
     def push_exceptions(self, *exceptions):
+        """Adds exceptions to the internal list."""
         for exc in exceptions:
             newstr = str(exc)
             if newstr not in self.exceptions:
-                self["exceptions"] += [newstr,]
+                self["exceptions"] += [
+                    newstr,
+                ]
 
     @pmg_serialize
     def as_dict(self):
+        """Returns a MSONable dict representation of the object."""
         return self.copy()
 
     @classmethod
     def from_dict(cls, d):
+        """Reconstructs the object from a dict."""
         return cls({k: v for k, v in d.items() if k not in ("@module", "@class")})
 
     def json_dump(self, filename):
+        """Dumps the object to a JSON file."""
         json_pretty_dump(self.as_dict(), filename)
 
     @classmethod
     def json_load(cls, filename):
+        """Loads the object from a JSON file."""
         return cls.from_dict(loadfn(filename))
 
     def update_collection(self, collection):
@@ -387,6 +421,7 @@ class NodeResults(dict, MSONable):
         # Save files with GridFs first in order to get the ID.
         if self.gridfs_files:
             import gridfs
+
             fs = gridfs.GridFS(db)
             for ext, gridfile in self.gridfs_files.items():
                 logger.info("gridfs: about to put file:", str(gridfile))
@@ -409,7 +444,7 @@ class NodeResults(dict, MSONable):
         doc[key] = self.as_dict()
 
         collection.save(doc)
-        #collection.update({'_id':mongo_id}, {"$set": doc}, upsert=False)
+        # collection.update({'_id':mongo_id}, {"$set": doc}, upsert=False)
 
 
 def check_spectator(node_method):
@@ -422,8 +457,9 @@ def check_spectator(node_method):
     def wrapper(*args, **kwargs):
         node = args[0]
         if node.in_spectator_mode:
-            #raise node.SpectatorError("You should not call this method when the node in spectator_mode")
+            # raise node.SpectatorError("You should not call this method when the node in spectator_mode")
             import warnings
+
             warnings.warn("You should not call %s when the node in spectator_mode" % str(node_method))
 
         return node_method(*args, **kwargs)
@@ -449,6 +485,7 @@ class Node(metaclass=abc.ABCMeta):
 
     Nodes are hashable and can be tested for equality
     """
+
     Results = NodeResults
 
     Error = NodeError
@@ -464,7 +501,7 @@ class Node(metaclass=abc.ABCMeta):
     S_ABICRITICAL = Status.from_string("AbiCritical")
     S_QCRITICAL = Status.from_string("QCritical")
     S_UNCONVERGED = Status.from_string("Unconverged")
-    #S_CANCELLED = Status.from_string("Cancelled")
+    # S_CANCELLED = Status.from_string("Cancelled")
     S_ERROR = Status.from_string("Error")
     S_OK = Status.from_string("Completed")
 
@@ -478,7 +515,7 @@ class Node(metaclass=abc.ABCMeta):
         S_ABICRITICAL,
         S_QCRITICAL,
         S_UNCONVERGED,
-        #S_CANCELLED,
+        # S_CANCELLED,
         S_ERROR,
         S_OK,
     ]
@@ -487,6 +524,7 @@ class Node(metaclass=abc.ABCMeta):
     color_rgb = np.array((105, 105, 105)) / 255
 
     def __init__(self):
+        """Initialize the Node."""
         self._in_spectator_mode = False
 
         # Node identifier.
@@ -524,7 +562,8 @@ class Node(metaclass=abc.ABCMeta):
         self._status = self.S_INIT
 
     def __eq__(self, other):
-        if not isinstance(other, Node): return False
+        if not isinstance(other, Node):
+            return False
         return self.node_id == other.node_id
 
     def __ne__(self, other):
@@ -535,13 +574,12 @@ class Node(metaclass=abc.ABCMeta):
 
     def __repr__(self):
         try:
-            return "<%s, node_id=%s, workdir=%s>" % (
-                self.__class__.__name__, self.node_id, self.relworkdir)
+            return "<%s, node_id=%s, workdir=%s>" % (self.__class__.__name__, self.node_id, self.relworkdir)
         except AttributeError:
             # this usually happens when workdir has not been initialized
             return "<%s, node_id=%s, workdir=None>" % (self.__class__.__name__, self.node_id)
 
-    #def __setattr__(self, name, value):
+    # def __setattr__(self, name, value):
     #    if self.in_spectator_mode:
     #        raise RuntimeError("You should not call __setattr__ in spectator_mode")
     #    return super().__setattr__(name,value)
@@ -549,6 +587,7 @@ class Node(metaclass=abc.ABCMeta):
     @cached_property
     def color_hex(self) -> str:
         """Node color as Hex Triplet https://en.wikipedia.org/wiki/Web_colors#Hex_triplet"""
+
         def clamp(x):
             return max(0, min(int(x), 255))
 
@@ -569,6 +608,7 @@ class Node(metaclass=abc.ABCMeta):
         if class_or_string is None:
             return False
         import inspect
+
         if inspect.isclass(class_or_string):
             return isinstance(self, class_or_string)
         return self.__class__.__name__.lower() == class_or_string.lower()
@@ -652,6 +692,7 @@ class Node(metaclass=abc.ABCMeta):
 
     @property
     def user_message(self) -> str:
+        """User message associated with the node."""
         return self._user_message
 
     @check_spectator
@@ -678,7 +719,7 @@ class Node(metaclass=abc.ABCMeta):
     def in_spectator_mode(self, mode: bool) -> None:
         """Set the value of in_spectator_mode"""
         self._in_spectator_mode = bool(mode)
-        #self.history.info("in_spectator_mode set to %s" % mode)
+        # self.history.info("in_spectator_mode set to %s" % mode)
 
     @property
     def corrections(self) -> list[dict]:
@@ -707,10 +748,12 @@ class Node(metaclass=abc.ABCMeta):
         action = str(action)
         self.history.info(action)
 
-        self._corrections.append(dict(
-            event=event.as_dict(),
-            action=action,
-        ))
+        self._corrections.append(
+            dict(
+                event=event.as_dict(),
+                action=action,
+            )
+        )
 
     @property
     def is_file(self) -> bool:
@@ -721,18 +764,21 @@ class Node(metaclass=abc.ABCMeta):
     def is_task(self) -> bool:
         """True if this node is a Task"""
         from .tasks import Task
+
         return isinstance(self, Task)
 
     @property
     def is_work(self) -> bool:
         """True if this node is a Work"""
         from .works import Work
+
         return isinstance(self, Work)
 
     @property
     def is_flow(self) -> bool:
         """True if this node is a Flow"""
         from .flows import Flow
+
         return isinstance(self, Flow)
 
     @property
@@ -784,6 +830,7 @@ class Node(metaclass=abc.ABCMeta):
         in self.deps. See e.g. ``add_deps``.
         """
         from collections import defaultdict
+
         node2exts = defaultdict(list)
         for dep in self.deps:
             node2exts[dep.node].extend(dep.exts)
@@ -857,9 +904,11 @@ class Node(metaclass=abc.ABCMeta):
         # Inspect the entire flow to get children.
         children = []
         for work in self.flow:
-            if work.depends_on(self): children.append(work)
+            if work.depends_on(self):
+                children.append(work)
             for task in work:
-                if task.depends_on(self): children.append(task)
+                if task.depends_on(self):
+                    children.append(task)
         return children
 
     def str_deps(self) -> str:
@@ -897,7 +946,7 @@ class Node(metaclass=abc.ABCMeta):
             frames = [work.get_vars_dataframe(*varnames) for work in self]
             return pd.concat(frames)
 
-        #print("Ignoring node of type: `%s`" % type(self))
+        # print("Ignoring node of type: `%s`" % type(self))
         return pd.DataFrame(index=[self.name])
 
     def get_graphviz_dirtree(self, engine="automatic", **kwargs):
@@ -928,7 +977,7 @@ class Node(metaclass=abc.ABCMeta):
         try:
             return self._gc
         except AttributeError:
-            #if not self.is_flow and self.flow.gc: return self.flow.gc
+            # if not self.is_flow and self.flow.gc: return self.flow.gc
             return None
 
     @property
@@ -970,6 +1019,7 @@ class Node(metaclass=abc.ABCMeta):
             raise ValueError("categories and handlers are mutually exclusive!")
 
         from .events import get_event_handler_classes
+
         if categories:
             raise NotImplementedError
             handlers = [cls() for cls in get_event_handler_classes(categories=categories)]
@@ -1002,7 +1052,8 @@ class Node(metaclass=abc.ABCMeta):
         through send, terminating the dispatch loop, so it is quite
         possible to not have all receivers called if a raises an error.
         """
-        if self.in_spectator_mode: return
+        if self.in_spectator_mode:
+            return
         self.history.debug("Node %s broadcasts signal %s" % (self, signal))
         dispatcher.send(signal=signal, sender=self)
 
@@ -1048,9 +1099,14 @@ class FileNode(Node):
 
     Mainly used to connect |Task| objects to external files produced in previous runs.
     """
+
     color_rgb = np.array((102, 51, 255)) / 255
 
     def __init__(self, filename: str):
+        """
+        Args:
+            filename: Path to the file.
+        """
         super().__init__()
         self.filepath = os.path.abspath(filename)
 
@@ -1066,7 +1122,10 @@ class FileNode(Node):
     def __repr__(self) -> str:
         try:
             return "<%s, node_id=%s, rpath=%s>" % (
-                self.__class__.__name__, self.node_id, os.path.relpath(self.filepath))
+                self.__class__.__name__,
+                self.node_id,
+                os.path.relpath(self.filepath),
+            )
         except AttributeError:
             # this usually happens when workdir has not been initialized
             return "<%s, node_id=%s, path=%s>" % (self.__class__.__name__, self.node_id, self.filepath)
@@ -1078,19 +1137,24 @@ class FileNode(Node):
 
     @property
     def products(self) -> list[Product]:
+        """List of products produced by the node."""
         return [Product.from_file(self.filepath)]
 
     def opath_from_ext(self, ext: str) -> str:
+        """Return the path of the file produced by the node."""
         return self.filepath
 
     @property
     def status(self) -> Status:
+        """The status of the node."""
         return self.S_OK if os.path.exists(self.filepath) else self.S_ERROR
 
     def check_status(self) -> Status:
+        """Check the status of the node."""
         return self.status
 
     def get_results(self, **kwargs):
+        """Return a |NodeResults| object."""
         results = super().get_results(**kwargs)
         return results
 
@@ -1108,16 +1172,20 @@ class FileNode(Node):
     # a NscfTask will change the FFT grid to match the one used in the GsTask.
 
     def abiopen(self):
+        """Open the file with |abiopen|."""
         from abipy import abilab
+
         return abilab.abiopen(self.filepath)
 
     def open_gsr(self):
+        """Open the GSR file."""
         return self._abiopen_abiext("_GSR.nc")
 
     def _abiopen_abiext(self, abiext):
         import glob
 
         from abipy import abilab
+
         if not self.filepath.endswith(abiext):
             msg = """\n
 File type does not match the abinit file extension.
@@ -1126,10 +1194,11 @@ Continuing anyway assuming that the netcdf file provides the API/dims/vars neede
 """ % (abiext, self.filepath)
             self.history.warning(msg)
 
-        #try to find file in the same path
+        # try to find file in the same path
         filepath = os.path.dirname(self.filepath)
         glob_result = glob.glob(os.path.join(filepath, "*%s" % abiext))
-        if len(glob_result): return abilab.abiopen(glob_result[0])
+        if len(glob_result):
+            return abilab.abiopen(glob_result[0])
         return self.abiopen()
 
 
@@ -1183,6 +1252,7 @@ class HistoryRecord:
     .. attribute:: message
         The result of record.getMessage(), computed just as the record is emitted
     """
+
     def __init__(self, level, pathname, lineno, msg, args, exc_info, func=None):
         """
         Initialize a logging record with interesting information.
@@ -1206,7 +1276,7 @@ class HistoryRecord:
         self.pathname = pathname
         self.msg = msg
 
-        self.levelname = "FOOBAR" #getLevelName(level)
+        self.levelname = "FOOBAR"  # getLevelName(level)
 
         try:
             self.filename = os.path.basename(pathname)
@@ -1216,14 +1286,15 @@ class HistoryRecord:
             self.module = "Unknown module"
 
         self.exc_info = exc_info
-        self.exc_text = None      # used to cache the traceback text
+        self.exc_text = None  # used to cache the traceback text
         self.lineno = lineno
         self.func_name = func
         self.created = time.time()
         self.asctime = time.asctime()
         # Remove milliseconds
         i = self.asctime.find(".")
-        if i != -1: self.asctime = self.asctime[:i]
+        if i != -1:
+            self.asctime = self.asctime[:i]
 
     def __repr__(self) -> str:
         return '<%s, %s, %s, %s,\n"%s">' % (self.__class__.__name__, self.levelno, self.pathname, self.lineno, self.msg)
@@ -1246,7 +1317,8 @@ class HistoryRecord:
             except Exception:
                 msg += str(self.args)
 
-        if asctime: msg = "[" + self.asctime + "] " + msg
+        if asctime:
+            msg = "[" + self.asctime + "] " + msg
 
         # Add metadata
         if metadata:
@@ -1256,13 +1328,29 @@ class HistoryRecord:
 
     @pmg_serialize
     def as_dict(self) -> dict:
-        return {"level": self.levelno, "pathname": self.pathname, "lineno": self.lineno, "msg": self.msg,
-                "args": self.args, "exc_info": self.exc_info, "func": self.func_name}
+        """Return a MSONable dictionary representation of the object."""
+        return {
+            "level": self.levelno,
+            "pathname": self.pathname,
+            "lineno": self.lineno,
+            "msg": self.msg,
+            "args": self.args,
+            "exc_info": self.exc_info,
+            "func": self.func_name,
+        }
 
     @classmethod
     def from_dict(cls, d: dict) -> HistoryRecord:
-        return cls(level=d["level"], pathname=d["pathname"], lineno=int(d["lineno"]), msg=d["msg"], args=d["args"],
-                   exc_info=d["exc_info"], func=d["func"])
+        """Build an instance from a dictionary."""
+        return cls(
+            level=d["level"],
+            pathname=d["pathname"],
+            lineno=int(d["lineno"]),
+            msg=d["msg"],
+            args=d["args"],
+            exc_info=d["exc_info"],
+            func=d["func"],
+        )
 
 
 class NodeHistory(collections.deque):
@@ -1301,23 +1389,30 @@ class NodeHistory(collections.deque):
 
 class NodeCorrections(list):
     """Iterable storing the correctinos performed by the :class:`EventHandler`"""
-    #TODO
+
+    # TODO
     # Correction should have a human-readable message
     # and a list of operations in JSON format (Modder?) so that
     # we can read them and re-apply the corrections to another task if needed.
 
-    #def count_event_class(self, event_class):
+    # def count_event_class(self, event_class):
     #    """
     #    Return the number of times the event class has been already fixed.
     #    """
     #    #return len([c for c in self if c["event"]["@class"] == str(event_class)])
 
-    #def _find(self, event_class)
+    # def _find(self, event_class)
 
 
 class GarbageCollector:
     """This object stores information on the"""
+
     def __init__(self, exts, policy):
+        """
+        Args:
+            exts: List of extensions.
+            policy: Policy for garbage collection.
+        """
         self.exts, self.policy = set(exts), policy
 
 
@@ -1343,7 +1438,8 @@ def init_counter() -> None:
     if _COUNTER is None:
         with open(_COUNTER_FILE) as fh:
             s = fh.read().strip()
-            if not s: s = "-1"
+            if not s:
+                s = "-1"
             _COUNTER = int(s)
 
 
@@ -1356,8 +1452,8 @@ def get_newnode_id() -> int:
         The id is unique inside the same python process so be careful when
         Works and Tasks are constructed at run-time or when threads are used.
     """
-    #import uuid
-    #return uuid.uuid4()
+    # import uuid
+    # return uuid.uuid4()
     init_counter()
 
     global _COUNTER
@@ -1369,9 +1465,8 @@ def save_lastnode_id() -> None:
     """Save the id of the last node created."""
     init_counter()
 
-    with FileLock(_COUNTER_FILE):
-        with AtomicFile(_COUNTER_FILE, mode="w") as fh:
-            fh.write("%d\n" % _COUNTER)
+    with FileLock(_COUNTER_FILE), AtomicFile(_COUNTER_FILE, mode="w") as fh:
+        fh.write("%d\n" % _COUNTER)
 
 
 # IMPORTANT: Register function atexit

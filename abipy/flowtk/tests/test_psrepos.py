@@ -1,6 +1,7 @@
 """
 Tests for psrepos.py module
 """
+
 import os
 
 from abipy.core.testing import AbipyTest
@@ -16,24 +17,23 @@ from abipy.flowtk.psrepos import (
 
 
 class TestPsRepos(AbipyTest):
-
     def test_encode_decode_filepath(self):
         repo = get_repo_from_name("ONCVPSP-PBEsol-SR-PDv0.4")
         if not repo.is_installed():
             raise self.SkipTest("ONCVPSP-PBEsol-SR-PDv0.4 should be installed")
 
-        #self.assert_msonable(repo, test_is_subclass=True)
-        #print(repo.as_dict())
-        #raise ValueError()
+        # self.assert_msonable(repo, test_is_subclass=True)
+        # print(repo.as_dict())
+        # raise ValueError()
 
         filepath = os.path.join(repo.dirpath, "Ni/Ni-sp.psp8")
         encoded = encode_pseudopath(filepath)
         assert encoded == "@ONCVPSP-PBEsol-SR-PDv0.4/Ni/Ni-sp.psp8"
         assert decode_pseudopath(encoded) == filepath
 
-        #filepath_with_tilde = "~/.abinit/pseudos/ONCVPSP-PBEsol-SR-PDv0.4/Ni/Ni-sp.psp8"
-        #encoded = encode_pseudopath(filepath_with_tilde)
-        #assert encoded == "@ONCVPSP-PBEsol-SR-PDv0.4/Ni/Ni-sp.psp8"
+        # filepath_with_tilde = "~/.abinit/pseudos/ONCVPSP-PBEsol-SR-PDv0.4/Ni/Ni-sp.psp8"
+        # encoded = encode_pseudopath(filepath_with_tilde)
+        # assert encoded == "@ONCVPSP-PBEsol-SR-PDv0.4/Ni/Ni-sp.psp8"
 
         # Path of pseudos in directories that are not known to AbiPy should be left unchanged.
         filepath = "/Users/gmatteo/MyTables/ONCVPSP-PBEsol-SR-PDv0.4/Ni/Ni-sp.psp8"
@@ -42,7 +42,7 @@ class TestPsRepos(AbipyTest):
         assert decode_pseudopath(encoded) == filepath
 
     # FIXME: Disable because very unstable.
-    #def test_download_repo(self):
+    # def test_download_repo(self):
     #    """Testing download_repo_from_url"""
     #    with tempfile.TemporaryDirectory() as tmp_dir:
     #        url = "https://file-examples-com.github.io/uploads/2017/02/zip_2MB.zip"
@@ -50,8 +50,14 @@ class TestPsRepos(AbipyTest):
 
     def test_base_api(self):
         """Testing base API."""
-        repo = OncvpspRepo(ps_generator="ONCVPSP", xc_name="PBE", relativity_type="SR",
-                           project_name="PD", version="0.1", url="http://example.org")
+        repo = OncvpspRepo(
+            ps_generator="ONCVPSP",
+            xc_name="PBE",
+            relativity_type="SR",
+            project_name="PD",
+            version="0.1",
+            url="http://example.org",
+        )
 
         assert repo.xc_name == "PBE" and repo.version == "0.1"
         assert repo.ps_type == "NC"
@@ -67,16 +73,23 @@ class TestPsRepos(AbipyTest):
         assert d["version"] == "0.1"
 
         # For the time being, we don't test the installation procedure.
-        #repo.install()
+        # repo.install()
 
         with self.assertRaises(ValueError):
-            OncvpspRepo(ps_generator="ONCVPSP", xc_name="PBE", relativity_type="Foo",
-                        project_name="PD", version="0.1", url="http://example.org")
+            OncvpspRepo(
+                ps_generator="ONCVPSP",
+                xc_name="PBE",
+                relativity_type="Foo",
+                project_name="PD",
+                version="0.1",
+                url="http://example.org",
+            )
 
     def test_high_level_api(self):
 
         def check_url(url):
             import requests
+
             response = requests.head(url)
             # 301 requested resource has permanently moved to a new URL
             # 302 corresponds to redirection and it's returned by github.

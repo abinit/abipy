@@ -1,4 +1,5 @@
 """Context managers"""
+
 from __future__ import annotations
 
 import signal
@@ -21,7 +22,14 @@ class Timer:
         with Timer(header=f"Begin ABINIT", footer="ABINIT GS") as timer:
             do_stuff()
     """
+
     def __init__(self, footer=None, header=None, file=sys.stdout):
+        """
+        Args:
+            footer: String to be printed at the end of the context.
+            header: String to be printed at the beginning of the context.
+            file: File-like object where strings are printed.
+        """
         self.header = header
         self.footer = footer
         self.file = file
@@ -75,17 +83,21 @@ def temporary_change_attributes(something, **kwargs):
 
 
 class Timeout:
-    """
-    Taken from https://stackoverflow.com/questions/2281850/timeout-function-if-it-takes-too-long-to-finish/22348885#22348885
-    """
+    """Taken from https://stackoverflow.com/questions/2281850/timeout-function-if-it-takes-too-long-to-finish/22348885#22348885"""
 
     def __init__(self, seconds: int, message: str = "Timeout"):
+        """
+        Args:
+            seconds: Number of seconds before timeout.
+            message: Error message.
+        """
         self.seconds = int(seconds)
         if self.seconds <= 0:
             raise ValueError(f"seconds should be > 0 while it is: {self.seconds}")
         self.message = message
 
     def handle_timeout(self, signum, frame):
+        """Raise TimeoutError when the timeout is reached."""
         raise TimeoutError(self.message)
 
     def __enter__(self):

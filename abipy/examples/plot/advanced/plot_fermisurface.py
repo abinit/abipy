@@ -5,6 +5,7 @@ MgB2 Fermi surface
 
 This example shows how to plot the Fermi surface with matplotlib
 """
+
 import abipy.data as abidata
 from abipy import abilab
 
@@ -20,7 +21,7 @@ eb3d.plot_isosurfaces()
 
 # Alternatively, it's possible to export the data in xcrysden format
 # and then use `xcrysden --bxsf mgb2.bxsf`
-#eb3d.to_bxsf("mgb2.bxsf")
+# eb3d.to_bxsf("mgb2.bxsf")
 
 # If you have mayavi installed, try:
-#eb3d.mvplot_isosurfaces()
+# eb3d.mvplot_isosurfaces()

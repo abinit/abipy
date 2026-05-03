@@ -11,6 +11,7 @@ class LujForSpecie(collections.namedtuple("LdauForSpecie", "l u j unit")):
     """
     This object stores the value of l, u, j used for a single atomic specie.
     """
+
     def __new__(cls, l, u, j, unit):
         """
         Args:
@@ -43,6 +44,7 @@ class LdauParams:
 
         print(luj_params.to_abivars())
     """
+
     def __init__(self, usepawu, structure):
         """
         Arg:
@@ -96,7 +98,8 @@ class LdauParams:
             usepawu=self.usepawu,
             lpawu=" ".join(map(str, lpawu)),
             upawu=" ".join(map(str, upawu)) + " eV",
-            jpawu=" ".join(map(str, jpawu)) + " eV")
+            jpawu=" ".join(map(str, jpawu)) + " eV",
+        )
 
 
 class LexxParams:
@@ -116,6 +119,7 @@ class LexxParams:
 
         print(lexc_params.to_abivars())
     """
+
     def __init__(self, structure):
         """
         Arg:

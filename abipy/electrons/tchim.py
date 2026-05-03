@@ -1,23 +1,24 @@
 """
 Objects to analyze the TCHIM file produced by the GWR code.
 """
+
 from __future__ import annotations
 
 import itertools
 
-#from typing import Any
+# from typing import Any
 from functools import cached_property
 
 import numpy as np
-from monty.string import marquee  #, list_strings
+from monty.string import marquee  # , list_strings
 
-#import pandas as pd
+# import pandas as pd
 import abipy.core.abinit_units as abu
 
-#from abipy.core.kpoints import Kpoint, KpointList
+# from abipy.core.kpoints import Kpoint, KpointList
 from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Structure  # , NotebookWriter
 
-#from monty.termcolor import cprint
+# from monty.termcolor import cprint
 from abipy.core.structure import Structure
 from abipy.electrons.ebands import ElectronBands, ElectronsReader
 from abipy.tools import duck
@@ -40,7 +41,8 @@ __all__ = [
 def _find_g(gg, gvecs) -> int:
     """Return the index of gg vector in gvecs."""
     for ig, g_sus in enumerate(gvecs):
-        if all(gg == g_sus): return ig
+        if all(gg == g_sus):
+            return ig
     raise ValueError(f"Cannot find g-vector: {gg}")
 
 
@@ -54,7 +56,9 @@ class TchimFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: TchimFile
     """
+
     def __init__(self, filepath: PathLike):
+        """Initialize the object from a file path."""
         super().__init__(filepath)
         self.r = TchimReader(filepath)
 
@@ -77,7 +81,8 @@ class TchimFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
     def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosiy level ``verbose``."""
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
 
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
@@ -89,8 +94,8 @@ class TchimFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
             app("")
             app(self.hdr.to_string(verbose=verbose, title="Abinit Header"))
 
-        #app(f"nsppol: {self.r.nsppol}")
-        #app(f"nqibz: {self.r.nqibz}")
+        # app(f"nsppol: {self.r.nsppol}")
+        # app(f"nqibz: {self.r.nqibz}")
 
         return "\n".join(lines)
 
@@ -103,24 +108,26 @@ class TchimFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
         return dict(
             gwr_ntau=r.read_dimvalue("ntau"),
             nband=self.ebands.nband,
-            #ecuteps=r.read_value("ecuteps"),
-            #ecutsigx=r.read_value("ecutsigx"),
-            #ecut=r.read_value("ecut"),
-            #gwr_boxcutmin=r.read_value("gwr_boxcutmin"),
-            #nkpt=self.ebands.nkpt,
-            #symchi=r.read_value("symchi"),
-            #symsigma=r.read_value("symsigma"),
+            # ecuteps=r.read_value("ecuteps"),
+            # ecutsigx=r.read_value("ecutsigx"),
+            # ecut=r.read_value("ecut"),
+            # gwr_boxcutmin=r.read_value("gwr_boxcutmin"),
+            # nkpt=self.ebands.nkpt,
+            # symchi=r.read_value("symchi"),
+            # symsigma=r.read_value("symsigma"),
         )
 
     @add_fig_kwargs
-    def plot_mats_ggp(self,
-                      g1: GvecSelect,
-                      g2: GvecSelect,
-                      spin: int = 0,
-                      wt_space: str = "omega",
-                      verbose: int = 0,
-                      fontsize: int = 6,
-                      **kwargs) -> Figure:
+    def plot_mats_ggp(
+        self,
+        g1: GvecSelect,
+        g2: GvecSelect,
+        spin: int = 0,
+        wt_space: str = "omega",
+        verbose: int = 0,
+        fontsize: int = 6,
+        **kwargs,
+    ) -> Figure:
         """
         Plot the matrix elements for the given (g1, g2) and all the q-points in the IBZ along the imaginary axis.
 
@@ -136,8 +143,7 @@ class TchimFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
         # ncols 2 for Re/Im
         nrows, ncols = nqibz, 2
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=False, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols, sharex=True, sharey=False, squeeze=False)
 
         style = dict(markersize=4, ls="--", marker="o")
         fit_style = dict(markersize=4, ls="-.", marker="x")
@@ -162,7 +168,7 @@ class TchimFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
             im_ax.plot(fit_xs, fit_ys.imag, label="Fit Im", **fit_style)
             set_grid_legend(im_ax, fontsize, title=title)
 
-            if iq_ibz == len(qibz) -1:
+            if iq_ibz == len(qibz) - 1:
                 xlabel = r"$i\omega$ (eV)" if wt_space == "omega" else r"$i\tau$ (a.u.)"
                 re_ax.set_xlabel(xlabel)
                 im_ax.set_xlabel(xlabel)
@@ -170,13 +176,15 @@ class TchimFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
         return fig
 
     @add_fig_kwargs
-    def plot_mats_all_ggp(self,
-                          spin: int = 0,
-                          take_every: int = 10,
-                          wt_space: str = "omega",
-                          verbose: int = 0,
-                          fontsize: int = 6,
-                          **kwargs) -> Figure:
+    def plot_mats_all_ggp(
+        self,
+        spin: int = 0,
+        take_every: int = 10,
+        wt_space: str = "omega",
+        verbose: int = 0,
+        fontsize: int = 6,
+        **kwargs,
+    ) -> Figure:
         """
         Plot the matrix elements for the given (g1, g2) and all the q-points
         in the IBZ  along the imaginary axis.
@@ -193,8 +201,7 @@ class TchimFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
 
         # ncols 2 for Re/Im
         nrows, ncols = nqibz, 2
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=False, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols, sharex=True, sharey=False, squeeze=False)
 
         def get_error(x_ref, y, mode, epsilon=1e-10):
             """Compute "distance" between x and y according to mode."""
@@ -202,7 +209,7 @@ class TchimFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
                 # Compute relative difference based on reference value with a small constant epsilon.
                 diff = np.abs(x_ref - y)
                 return 100 * diff / np.maximum(np.abs(x_ref), epsilon)
-                #return 100 * diff / np.maximum((np.abs(x_ref) + np.abs(y) / 2), epsilon)
+                # return 100 * diff / np.maximum((np.abs(x_ref) + np.abs(y) / 2), epsilon)
 
             if mode == "diff":
                 return x_ref - y
@@ -242,7 +249,7 @@ class TchimFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
             set_grid_legend(re_ax, fontsize, title=f"Real part qpt={qpoint=}, {spin=}")
             set_grid_legend(im_ax, fontsize, title=f"Imag part qpt={qpoint=}, {spin=}")
 
-            if iq_ibz == len(qibz) -1:
+            if iq_ibz == len(qibz) - 1:
                 xlabel = r"$i\omega$ (eV)" if wt_space == "omega" else r"$i\tau$ (a.u.)"
                 re_ax.set_xlabel(xlabel)
                 im_ax.set_xlabel(xlabel)
@@ -298,7 +305,7 @@ class ChiFit:
         losses = []
         for second_index in range(1, len(self.xs)):
             ys_fit, aa, bb = fit_with_second_index(second_index, self.xs)
-            losses.append((second_index, np.sum(weights * np.abs(ys_fit - self.ys)**2), aa, bb))
+            losses.append((second_index, np.sum(weights * np.abs(ys_fit - self.ys) ** 2), aa, bb))
 
         # Find min of losses.
         return min(losses, key=lambda t: t[1])
@@ -307,6 +314,7 @@ class ChiFit:
         """
         Fit values in imaginary time using A exp^{-b t} with A complex and b real and > 0.
         """
+
         def fit_with_second_index(second_index, xs):
             w0, f0 = self.xs[0], self.ys[0]
             wn, fn = self.xs[second_index], self.ys[second_index]
@@ -328,6 +336,7 @@ class ChiFit:
         """
         Fit values in imaginary frequency using A/(B^2 + omega^2) with B^2 real and A complex.
         """
+
         def fit_with_second_index(second_index, xs):
             # First and second_index data points
             w0, f0 = self.xs[0], self.ys[0]
@@ -353,7 +362,9 @@ class TchimReader(ElectronsReader):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: TchimReader
     """
+
     def __init__(self, filepath: PathLike):
+        """Initialize the reader from a file path."""
         super().__init__(filepath)
 
         # Read important dimensions.
@@ -395,12 +406,7 @@ class TchimReader(ElectronsReader):
         ig = _find_g(gg, gvecs)
         return ig, gvecs[ig]
 
-    def read_mat_ggp_at_qpt(self,
-                            qpoint: KptSelect,
-                            g1: GvecSelect,
-                            g2: GvecSelect,
-                            spin: int,
-                            wt_space: str):
+    def read_mat_ggp_at_qpt(self, qpoint: KptSelect, g1: GvecSelect, g2: GvecSelect, spin: int, wt_space: str):
         """
         Args:
             qpoint: q-point or q-point index.
@@ -424,15 +430,16 @@ class TchimReader(ElectronsReader):
             raise ValueError(f"Cannot find {varname=} in rootgrp.variables")
 
         mat = self.read_variable(varname)[spin, iq_ibz, :, ig2, ig1]  # Note exchange of g1,g2
-        mat = mat[..., 0] + 1j*mat[..., 1]
+        mat = mat[..., 0] + 1j * mat[..., 1]
 
         return g1, g2, qpoint, mat
 
-    def read_mat_all_ggp_at_qpt(self,
-                                qpoint: KptSelect,
-                                spin: int,
-                                wt_space: str,
-                                ):
+    def read_mat_all_ggp_at_qpt(
+        self,
+        qpoint: KptSelect,
+        spin: int,
+        wt_space: str,
+    ):
         """
         Args:
             qpoint: q-point or q-point index.
@@ -448,7 +455,7 @@ class TchimReader(ElectronsReader):
             raise ValueError(f"Cannot find {varname=} in rootgrp.variables")
 
         mat = self.read_variable(varname)[spin, iq_ibz]
-        mat = mat[..., 0] + 1j*mat[..., 1]
+        mat = mat[..., 0] + 1j * mat[..., 1]
         # (ntau, g2, g1) --> (g1, g2, ntau)
         mat = mat.transpose((2, 1, 0)).copy()
 
@@ -473,13 +480,17 @@ class TchimVsSus:
         with TchimVsSus("runo_DS3_TCHIM.nc", "AW_CD/runo_DS3_SUS.nc") as o:
             o.expose_qpoints_gpairs(qpoint_list, gpairs, exposer="mpl")
     """
+
     def __init__(self, tchim_filepath: str, sus_filepath: str):
         """
+        Initialize the object with file paths.
+
         Args:
             tchim_filepath: TCHIM filename.
             sus_filepath: SUS filename.
         """
         from abipy.electrons.scr import SusFile
+
         self.sus_file = SusFile(sus_filepath)
         self.tchi_reader = ETSF_Reader(tchim_filepath)
 
@@ -510,13 +521,9 @@ class TchimVsSus:
         raise ValueError(f"Cannot find {qpoint=} in TCHIM file")
 
     @add_fig_kwargs
-    def plot_qpoint_gpairs(self,
-                           qpoint: KptSelect,
-                           gpairs,
-                           fontsize=8,
-                           spins=(0, 0),
-                           with_title: bool = True,
-                           **kwargs) -> Figure:
+    def plot_qpoint_gpairs(
+        self, qpoint: KptSelect, gpairs, fontsize=8, spins=(0, 0), with_title: bool = True, **kwargs
+    ) -> Figure:
         """
         Plot the Fourier components of the polarizability for given q-point and list of (g, g') pairs.
 
@@ -556,10 +563,11 @@ class TchimVsSus:
             ncols = 2
             nrows = (num_plots // ncols) + (num_plots % ncols)
 
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=False, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols, sharex=True, sharey=False, squeeze=False)
 
-        for i, ((g1, g2), (sus_ig1, sus_ig2), (chi_ig1, chi_ig2)) in enumerate(zip(gpairs, sus_inds, chi_inds, strict=False)):
+        for i, ((g1, g2), (sus_ig1, sus_ig2), (chi_ig1, chi_ig2)) in enumerate(
+            zip(gpairs, sus_inds, chi_inds, strict=False)
+        ):
             re_ax, im_ax = ax_mat[i]
 
             # number_of_qpoints_dielectric_function, number_of_frequencies_dielectric_function,
@@ -588,7 +596,7 @@ class TchimVsSus:
             re_ax.legend(loc="best", fontsize=fontsize, shadow=True)
             im_ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
-            #if i == 0:
+            # if i == 0:
             re_ax.set_ylabel(r"$\Re{\chi^0_{\bf{G}_1 \bf{G}_2}(i\omega)}$")
             im_ax.set_ylabel(r"$\Im{\chi^0_{\bf{G}_1 \bf{G}_2}(i\omega)}$")
 
@@ -608,8 +616,10 @@ class TchimVsSus:
         if with_title:
             tex1 = r"$\chi^0(i\omega)$"
             tex2 = r"$\chi^0(i\tau) \rightarrow\chi^0(i\omega)$"
-            fig.suptitle(f"Comparison between Adler-Wiser {tex1} and minimax {tex2}\nLeft: real part. Right: imag part",
-                         fontsize=fontsize)
+            fig.suptitle(
+                f"Comparison between Adler-Wiser {tex1} and minimax {tex2}\nLeft: real part. Right: imag part",
+                fontsize=fontsize,
+            )
 
         return fig
 
@@ -629,15 +639,9 @@ class TchimVsSus:
             return e
 
     @add_fig_kwargs
-    def plot_mat_diff(self,
-                      qpoint,
-                      iw_index: int,
-                      npwq: int = 101,
-                      with_susmat=False,
-                      cmap="jet",
-                      fontsize=8,
-                      spins=(0, 0),
-                      **kwargs) -> Figure:
+    def plot_mat_diff(
+        self, qpoint, iw_index: int, npwq: int = 101, with_susmat=False, cmap="jet", fontsize=8, spins=(0, 0), **kwargs
+    ) -> Figure:
         """
         Plot G-G' matrix with the absolute value of chi_AW and chi_GWR for given q-point and omega index.
 
@@ -658,9 +662,9 @@ class TchimVsSus:
         tchi_iq, qibz = self.find_tchim_qpoint(qpoint)
         tchi_iwmesh = self.tchi_reader.read_value("iw_mesh")
         tchi_gvecs = self.tchi_reader.read_variable("gvecs")[tchi_iq]
-        #FIXME: Requires new format
+        # FIXME: Requires new format
         npwq = self.tchi_reader.read_variable("chinpw_qibz")[tchi_iq]
-        #npwq = min(npwq, len(tchi_gvecs))
+        # npwq = min(npwq, len(tchi_gvecs))
         tchi_gvecs = tchi_gvecs[:npwq]
 
         # Find indices of tchi_gvecs in susc_gvecs to remap matrix
@@ -679,7 +683,7 @@ class TchimVsSus:
         # number_of_spins, number_of_spins, number_of_coefficients_dielectric_function,
         # number_of_coefficients_dielectric_function, complex)
         sus_data = sus_reader.read_variable(sus_var_name)[sus_iq, iw_index, 0, 0]
-        sus_data = (sus_data[:,:, 0] + 1j * sus_data[:,:,1]).T.copy()
+        sus_data = (sus_data[:, :, 0] + 1j * sus_data[:, :, 1]).T.copy()
 
         # TODO: Very inefficient for large npwq.
         sus_mat = np.zeros((npwq, npwq), dtype=complex)
@@ -687,20 +691,20 @@ class TchimVsSus:
             ig2_sus = ig_tchi2sus[ig2]
             for ig1 in range(npwq):
                 ig1_sus = ig_tchi2sus[ig1]
-                sus_mat[ig1,ig2] = sus_data[ig1_sus,ig2_sus]
+                sus_mat[ig1, ig2] = sus_data[ig1_sus, ig2_sus]
         sus_data = sus_mat
 
         # nctkarr_t("mats_w", "dp", "two, mpw, mpw, ntau, nqibz, nsppol")
         tchi_data = self.tchi_reader.read_variable("mats_w")[0, tchi_iq, iw_index]
-        tchi_data = (tchi_data[:,:,0] + 1j * tchi_data[:,:,1]).T.copy()
-        tchi_data = tchi_data[:npwq,:npwq]
+        tchi_data = (tchi_data[:, :, 0] + 1j * tchi_data[:, :, 1]).T.copy()
+        tchi_data = tchi_data[:npwq, :npwq]
 
         # compute and visualize diff mat
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=1, ncols=2 if with_susmat else 1,
-                                                squeeze=False)
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=1, ncols=2 if with_susmat else 1, squeeze=False)
         ax_list = ax_list.ravel()
 
         from matplotlib import colors
+
         mat = data_from_cplx_mode("abs", tchi_data - sus_data)
         ax = ax_list[0]
         im = ax.matshow(mat, cmap=cmap, norm=colors.LogNorm(vmin=mat.min(), vmax=mat.max()))

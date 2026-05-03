@@ -4,6 +4,7 @@
 Most features of this module has been moved to monty.
 Please refer to monty.json and monty.serialization documentation.
 """
+
 from __future__ import annotations
 
 import functools
@@ -19,12 +20,11 @@ from abipy.tools.typing import PathLike
 
 
 class Serializable:
-    """
-    Mixin to support both pickle and JSON I/O.
-    """
+    """Mixin to support both pickle and JSON I/O."""
 
     @classmethod
     def pickle_load(cls, filepath: PathLike):
+        """Load an object from a pickle file."""
         with open(filepath, "rb") as f:
             obj = pickle.load(f)
 
@@ -34,15 +34,18 @@ class Serializable:
 
     @classmethod
     def json_load(cls, filepath: PathLike, **kwargs):
+        """Load an object from a JSON file."""
         obj = mjson_load(filepath, **kwargs)
         if obj.__class__ != cls:
             raise TypeError(f"{obj.__class__=} != {cls=}")
         return obj
 
     def json_write(self, filepath: PathLike, **kwargs) -> None:
+        """Write the object to a JSON file."""
         mjson_write(self, filepath, **kwargs)
 
     def pickle_dump(self, filepath: PathLike) -> None:
+        """Dump the object to a pickle file."""
         with open(filepath, "wb") as f:
             pickle.dump(self, f)
 
@@ -68,9 +71,7 @@ def pmg_serialize(method):
 
 
 def json_pretty_dump(obj: Any, filename: PathLike) -> None:
-    """
-    Serialize obj as a JSON formatted stream to the given filename (pretty printing version)
-    """
+    """Serialize obj as a JSON formatted stream to the given filename (pretty printing version)."""
     with open(filename, "w") as fh:
         json.dump(obj, fh, indent=4, sort_keys=4)
 
@@ -84,6 +85,7 @@ class PmgPickler(pickle.Pickler):
     def persistent_id(self, obj: Any):
         """Instead of pickling as a regular class instance, we emit a persistent ID."""
         from pymatgen.core.periodic_table import Element
+
         if isinstance(obj, Element):
             # Here, our persistent ID is simply a tuple, containing a tag and a key
             return type(obj).__name__, obj.symbol
@@ -103,6 +105,7 @@ class PmgUnpickler(pickle.Unpickler):
         Here, pid is the tuple returned by PmgPickler.
         """
         from pymatgen.core.periodic_table import Element
+
         try:
             type_tag, key_id = pid
         except Exception:
@@ -110,6 +113,7 @@ class PmgUnpickler(pickle.Unpickler):
             # of a real tuple. Use ast to evaluate the expression (much safer
             # than eval).
             import ast
+
             type_tag, key_id = ast.literal_eval(pid)
 
         if type_tag == "Element":
@@ -147,45 +151,41 @@ def pmg_pickle_dump(obj: Any, filobj, **kwargs):
 
 
 def mjson_load(filepath: PathLike, **kwargs) -> Any:
-    """
-    Read JSON file in MSONable format with MontyDecoder.
-    """
+    """Read JSON file in MSONable format with MontyDecoder."""
     with open(filepath) as fh:
         return json.load(fh, cls=MontyDecoder, **kwargs)
 
 
 def mjson_loads(string: PathLike, **kwargs) -> Any:
-    """
-    Read JSON string in MSONable format with MontyDecoder.
-    """
+    """Read JSON string in MSONable format with MontyDecoder."""
     return json.loads(string, cls=MontyDecoder, **kwargs)
 
 
 def mjson_write(obj: Any, filepath: PathLike, **kwargs) -> None:
-    """
-    Write object to filepath in JSON format using MontyDecoder.
-    """
+    """Write object to filepath in JSON format using MontyDecoder."""
     with open(filepath, "w") as fh:
         json.dump(obj, fh, cls=MontyEncoder, **kwargs)
 
 
 class HasPickleIO:
-    """
-    Mixin class providing pickle IO methods.
-    """
+    """Mixin class providing pickle IO methods."""
 
     @classmethod
     def pickle_load(cls, workdir: PathLike, basename: str | None = None):
-        """
-        Reconstruct the object from a pickle file located in workdir.
-        """
+        """Reconstruct the object from a pickle file located in workdir."""
         filepath = Path(workdir) / f"{cls.__name__}.pickle" if basename is None else Path(workdir) / basename
-        with open(filepath, "rb") as fh, Timer(header=f"Reconstructing {cls.__name__} instance from file: {filepath!s}", footer="") as timer:
+        with (
+            open(filepath, "rb") as fh,
+            Timer(header=f"Reconstructing {cls.__name__} instance from file: {filepath!s}", footer="") as timer,
+        ):
             return pickle.load(fh)
 
     def pickle_dump(self, workdir: PathLike, basename: str | None = None) -> Path:
         """Write pickle file. Return path to file"""
         filepath = Path(workdir) / f"{self.__class__.__name__}.pickle" if basename is None else Path(workdir) / basename
-        with open(filepath, "wb") as fh, Timer(header=f"Saving {self.__class__.__name__} instance to file: {filepath!s}", footer="") as timer:
+        with (
+            open(filepath, "wb") as fh,
+            Timer(header=f"Saving {self.__class__.__name__} instance to file: {filepath!s}", footer="") as timer,
+        ):
             pickle.dump(self, fh)
         return filepath

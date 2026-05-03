@@ -1,4 +1,5 @@
 """Test abilab module."""
+
 import json
 
 import abipy.data as abidata
@@ -7,7 +8,6 @@ from abipy.core.testing import AbipyTest
 
 
 class AbilabTest(AbipyTest):
-
     def test_abilab(self):
         """Testing abilab"""
         abilab.abiopen_ext2class_table()
@@ -22,6 +22,7 @@ class AbilabTest(AbipyTest):
         assert not abilab.isabifile("foobar")
 
         import pandas
+
         df = pandas.DataFrame({"a": [1, 2], "b": [3, 4]})
         abilab.print_dataframe(df, title="foo")
 

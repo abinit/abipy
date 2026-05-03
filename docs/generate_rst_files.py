@@ -3,10 +3,12 @@
 This script generates RST files to be included in the AbiPy website.
 It is automatically executed by make
 """
+
 import sys
 import os
 
 ABIPY_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "abipy")
+
 
 def generate_manager_examples():
     rst_path = os.path.join("workflows", "manager_examples.rst")
@@ -16,7 +18,8 @@ def generate_manager_examples():
     manager_files = sorted([os.path.join(dirpath, f) for f in os.listdir(dirpath) if f.endswith("_manager.yml")])
     assert manager_files
 
-    lines = []; app = lines.append
+    lines = []
+    app = lines.append
     for f in manager_files:
         print("file:", f)
         machine_name = os.path.basename(f).replace("_manager.yml", "").capitalize()

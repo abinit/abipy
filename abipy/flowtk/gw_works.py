@@ -1,11 +1,12 @@
 """
 Works and Flows for GW calculations with the quartic-scaling implementation.
 """
+
 from __future__ import annotations
 
 import os
 
-#import numpy as np
+# import numpy as np
 from . import wrappers
 from .nodes import Node
 from .tasks import NscfTask
@@ -47,8 +48,7 @@ class ScreeningWork(Work):
 
         # Now we can register the task for the different q-points
         for qpoint in scr_ibz.points:
-            new.register_scr_task(scr_input.new_with_vars(nqptdm=1, qptdm=qpoint),
-                                  deps={nscf_task: "WFK"})
+            new.register_scr_task(scr_input.new_with_vars(nqptdm=1, qptdm=qpoint), deps={nscf_task: "WFK"})
 
         return new
 
@@ -74,8 +74,7 @@ class ScreeningWork(Work):
 
         # Now we can register the task for the different q-points
         for qpoint in scr_ibz.points:
-            new.register_scr_task(scr_input.new_with_vars(nqptdm=1, qptdm=qpoint),
-                                  deps={wfk_node: "WFK"})
+            new.register_scr_task(scr_input.new_with_vars(nqptdm=1, qptdm=qpoint), deps={wfk_node: "WFK"})
 
         return new
 
@@ -103,7 +102,7 @@ class ScreeningWork(Work):
 
         return final_scr
 
-    def on_all_ok(self): # pragma: no cover
+    def on_all_ok(self):  # pragma: no cover
         """
         This method is called when all the q-points have been computed.
         It runs `mrgscr` in sequential on the local machine to produce

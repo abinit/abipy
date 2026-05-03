@@ -1,4 +1,5 @@
 """This module provides functions and classes related to Task objects."""
+
 from __future__ import annotations
 
 import abc
@@ -37,7 +38,7 @@ from .abitimer import AbinitTimerParser
 from .nodes import FileNode, Node, NodeError, NodeResults, Status
 from .qadapters import QueueAdapter, QueueAdapterError, make_qadapter
 
-#from abipy.abio.enums import GWR_TASK
+# from abipy.abio.enums import GWR_TASK
 from .utils import Condition, Directory, File, FilepathFixer, SparseHistogram, abi_splitext, irdvars_for_ext
 
 logger = logging.getLogger(__name__)
@@ -85,6 +86,7 @@ __all__ = [
 def straceback() -> str:
     """Returns a string with the traceback."""
     import traceback
+
     return traceback.format_exc()
 
 
@@ -110,7 +112,6 @@ def nmltostring(nml: dict) -> str:
 
 
 class TaskResults(NodeResults):
-
     JSON_SCHEMA = NodeResults.JSON_SCHEMA.copy()
 
     JSON_SCHEMA["properties"] = {
@@ -124,10 +125,10 @@ class TaskResults(NodeResults):
 
         new.update(
             executable=task.executable,
-            #executable_version:
-            #task_events=
+            # executable_version:
+            # task_events=
             pseudos=[p.as_dict() for p in task.input.pseudos],
-            #input=task.input
+            # input=task.input
         )
 
         new.register_gridfs_files(
@@ -171,13 +172,11 @@ class ParalConf(AttrDict):
         96       1         1        24         4         1        1.50
         84       1         1        12         7         2        0.25
     """
-    _DEFAULTS = {
-        "omp_ncpus": 1,
-        "mem_per_cpu": 0.0,
-        "vars": {}
-    }
+
+    _DEFAULTS = {"omp_ncpus": 1, "mem_per_cpu": 0.0, "vars": {}}
 
     def __init__(self, *args, **kwargs):
+        """Initialize the build object."""
         super().__init__(*args, **kwargs)
 
         # Add default values if k not already in self.
@@ -192,18 +191,22 @@ class ParalConf(AttrDict):
 
     @property
     def num_cores(self) -> int:
+        """Total number of cores (MPI * OMP)."""
         return self.mpi_procs * self.omp_threads
 
     @property
     def mem_per_proc(self) -> float:
+        """Estimated memory requirement per MPI processor in Megabytes."""
         return self.mem_per_cpu
 
     @property
     def mpi_procs(self) -> int:
+        """Number of MPI processes."""
         return self.mpi_ncpus
 
     @property
     def omp_threads(self) -> int:
+        """Number of OMP threads."""
         return self.omp_ncpus
 
     @property
@@ -222,14 +225,19 @@ class ParalHintsError(Exception):
 
 
 class ParalHintsParser:
+    """
+    Parser for the `AutoParal` section (YAML format) produced by ABINIT.
+    """
 
     Error = ParalHintsError
 
     def __init__(self):
+        """Initialize the parser."""
         # Used to push error strings.
         self._errors = collections.deque(maxlen=100)
 
     def add_error(self, errmsg: str) -> None:
+        """Adds an error message to the deque."""
         self._errors.append(errmsg)
 
     def parse(self, filename: str) -> ParalHints:
@@ -244,6 +252,7 @@ class ParalHintsParser:
                 return ParalHints(info=d["info"], confs=d["configurations"])
             except Exception:
                 import traceback
+
                 sexc = traceback.format_exc()
                 err_msg = "Wrong YAML doc:\n%s\n\nException:\n%s" % (doc.text, sexc)
                 self.add_error(err_msg)
@@ -258,6 +267,11 @@ class ParalHints(collections.abc.Iterable):
     Error = ParalHintsError
 
     def __init__(self, info: dict, confs: list[dict]):
+        """
+        Args:
+            info: Dictionary with general information.
+            confs: List of parallel configurations.
+        """
         self.info = info
         self._confs = [ParalConf(**d) for d in confs]
 
@@ -271,8 +285,7 @@ class ParalHints(collections.abc.Iterable):
         Mainly used for preparing benchmarks.
         """
         info = {}
-        confs = [ParalConf(mpi_ncpus=p, omp_ncpus=p, efficiency=1.0)
-                 for p, t in product(mpi_procs, omp_threads)]
+        confs = [ParalConf(mpi_ncpus=p, omp_ncpus=p, efficiency=1.0) for p, t in product(mpi_procs, omp_threads)]
 
         return cls(info, confs)
 
@@ -313,10 +326,12 @@ class ParalHints(collections.abc.Iterable):
 
     @pmg_serialize
     def as_dict(self, **kwargs) -> dict:
+        """Returns a MSONable dict representation of the object."""
         return {"info": self.info, "confs": self._confs}
 
     @classmethod
     def from_dict(cls, d: dict) -> ParalHints:
+        """Reconstructs the object from a dict."""
         return cls(info=d["info"], confs=d["confs"])
 
     def copy(self) -> ParalHints:
@@ -324,6 +339,7 @@ class ParalHints(collections.abc.Iterable):
         return copy.copy(self)
 
     def get_dataframe(self) -> pd.DataFrame:
+        """Returns a pandas DataFrame with the configurations."""
         rows = []
         for conf in self:
             d = conf.copy()
@@ -349,8 +365,9 @@ class ParalHints(collections.abc.Iterable):
             # Select the object on which condition is applied
             obj = conf if key is None else AttrDict(conf[key])
             add_it = condition(obj=obj)
-            #if key is "vars": print("conf", conf, "added:", add_it)
-            if add_it: new_confs.append(conf)
+            # if key is "vars": print("conf", conf, "added:", add_it)
+            if add_it:
+                new_confs.append(conf)
 
         self._confs = new_confs
 
@@ -372,9 +389,10 @@ class ParalHints(collections.abc.Iterable):
         return self
 
     def multidimensional_optimization(self, priorities=("speedup", "efficiency")):
+        """Selects optimal configurations based on multiple criteria."""
         # Mapping property --> options passed to sparse_histogram
         opts = dict(speedup=dict(step=1.0), efficiency=dict(step=0.1), mem_per_proc=dict(memory=1024))
-        #opts = dict(zip(priorities, bin_widths))
+        # opts = dict(zip(priorities, bin_widths))
 
         opt_confs = self._confs
         for priority in priorities:
@@ -382,22 +400,22 @@ class ParalHints(collections.abc.Iterable):
             pos = 0 if priority == "mem_per_proc" else -1
             opt_confs = histogram.values[pos]
 
-        #histogram.plot(show=True, savefig="hello.pdf")
+        # histogram.plot(show=True, savefig="hello.pdf")
         return self.__class__(info=self.info, confs=opt_confs)
 
-    #def histogram_efficiency(self, step=0.1):
+    # def histogram_efficiency(self, step=0.1):
     #    """Returns a :class:`SparseHistogram` with configuration grouped by parallel efficiency."""
     #    return SparseHistogram(self._confs, key=lambda c: c.efficiency, step=step)
 
-    #def histogram_speedup(self, step=1.0):
+    # def histogram_speedup(self, step=1.0):
     #    """Returns a :class:`SparseHistogram` with configuration grouped by parallel speedup."""
     #    return SparseHistogram(self._confs, key=lambda c: c.speedup, step=step)
 
-    #def histogram_memory(self, step=1024):
+    # def histogram_memory(self, step=1024):
     #    """Returns a :class:`SparseHistogram` with configuration grouped by memory."""
     #    return SparseHistogram(self._confs, key=lambda c: c.speedup, step=step)
 
-    #def filter(self, qadapter):
+    # def filter(self, qadapter):
     #    """Return a new list of configurations that can be executed on the `QueueAdapter` qadapter."""
     #    new_confs = [pconf for pconf in self if qadapter.can_run_pconf(pconf)]
     #    return self.__class__(info=self.info, confs=new_confs)
@@ -442,10 +460,11 @@ class ParalHints(collections.abc.Iterable):
                     hints.sort_by_speedup()
         else:
             hints = hints.multidimensional_optimization(priorities=policy.autoparal_priorities)
-            if len(hints) == 0: raise ValueError("len(hints) == 0")
+            if len(hints) == 0:
+                raise ValueError("len(hints) == 0")
 
-        #TODO: make sure that num_cores == 1 is never selected when we have more than one configuration
-        #if len(hints) > 1:
+        # TODO: make sure that num_cores == 1 is never selected when we have more than one configuration
+        # if len(hints) > 1:
         #    hints.select_with_condition(dict(num_cores={"$eq": 1)))
 
         # Return final (orderded ) list of configurations (best first).
@@ -460,6 +479,7 @@ class TaskPolicy:
     a set of variables that specify the launcher, as well as the options
     and the conditions used to select the optimal configuration for the parallel run
     """
+
     @classmethod
     def as_policy(cls, obj: Any) -> TaskPolicy:
         """
@@ -502,7 +522,7 @@ class TaskPolicy:
         self.vars_condition = Condition(kwargs.pop("vars_condition", {}))
         self.precedence = kwargs.pop("precedence", "autoparal_conf")
         self.autoparal_priorities = kwargs.pop("autoparal_priorities", ["speedup"])
-        #self.autoparal_priorities = kwargs.pop("autoparal_priorities", ["speedup", "efficiecy", "memory"]
+        # self.autoparal_priorities = kwargs.pop("autoparal_priorities", ["speedup", "efficiecy", "memory"]
         # TODO frozen_timeout could be computed as a fraction of the timelimit of the qadapter!
         self.frozen_timeout = qu.slurm_parse_timestr(kwargs.pop("frozen_timeout", "0-1:00:00"))
 
@@ -517,7 +537,8 @@ class TaskPolicy:
         lines = []
         app = lines.append
         for k, v in self.__dict__.items():
-            if k.startswith("_"): continue
+            if k.startswith("_"):
+                continue
             app("%s: %s" % (k, v))
         return "\n".join(lines)
 
@@ -564,7 +585,6 @@ def set_user_config_taskmanager_attrs(**kwargs) -> None:
     set_user_config_taskmanager(manager)
 
 
-
 class TaskManager(MSONable):
     """
     A `TaskManager` is responsible for the generation of the job script,
@@ -576,6 +596,7 @@ class TaskManager(MSONable):
     Ideally, the TaskManager should be the **main entry point** used by the task
     to deal with job submission/optimization
     """
+
     YAML_FILE = "manager.yml"
 
     USER_CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".abinit", "abipy")
@@ -584,6 +605,7 @@ class TaskManager(MSONable):
 
     @classmethod
     def autodoc(cls) -> str:
+        """Return the documentation for the |TaskManager|."""
         s = """
 # TaskManager configuration file (YAML Format)
 
@@ -607,7 +629,7 @@ qadapters:
 
     @classmethod
     def get_simple_manager(cls) -> str:
-
+        """Return a simple manager configuration in YAML format."""
         return """
 qadapters:
     # List of qadapters objects
@@ -646,8 +668,8 @@ qadapters:
         if _USER_CONFIG_TASKMANAGER is not None:
             return _USER_CONFIG_TASKMANAGER
 
-        #manager_path = os.getenv("ABIPY_TASK_MANAGER_PATH")
-        #if manager_path is not None:
+        # manager_path = os.getenv("ABIPY_TASK_MANAGER_PATH")
+        # if manager_path is not None:
         #    _USER_CONFIG_TASKMANAGER = TaskManager.from_file(manager_path)
         #    return _USER_CONFIG_TASKMANAGER
 
@@ -666,7 +688,9 @@ qadapters:
             path = os.path.join(cls.USER_CONFIG_DIR, cls.YAML_FILE)
 
         if not os.path.exists(path):
-            raise RuntimeError(colored(f"""
+            raise RuntimeError(
+                colored(
+                    f"""
 
 Cannot locate `{cls.YAML_FILE}` neither in current directory nor in `{path}`
 
@@ -683,7 +707,10 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
 
 {cls.get_simple_manager()}
 
-""", color="red"))
+""",
+                    color="red",
+                )
+            )
 
         _USER_CONFIG_TASKMANAGER = cls.from_file(path)
         return _USER_CONFIG_TASKMANAGER
@@ -710,8 +737,10 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         Convert obj into TaskManager instance. Accepts string, filepath, dictionary, `TaskManager` object.
         If obj is None, the manager is initialized from the user config file.
         """
-        if isinstance(obj, cls): return obj
-        if obj is None: return cls.from_user_config()
+        if isinstance(obj, cls):
+            return obj
+        if obj is None:
+            return cls.from_user_config()
 
         if is_string(obj):
             if os.path.exists(obj):
@@ -729,6 +758,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
 
     @pmg_serialize
     def as_dict(self) -> dict:
+        """Return a MSONable dictionary representation of the object."""
         return copy.deepcopy(self._kwargs)
 
     def __init__(self, **kwargs):
@@ -743,12 +773,13 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         self.policy = TaskPolicy.as_policy(kwargs.pop("policy", None))
 
         # Initialize database connector (if specified)
-        #self.db_connector = DBConnector(**kwargs.pop("db_connector", {}))
+        # self.db_connector = DBConnector(**kwargs.pop("db_connector", {}))
 
         # Build list of QAdapters. Neglect entry if priority == 0 or `enabled: no"
         qads = []
         for d in kwargs.pop("qadapters"):
-            if d.get("enabled", False): continue
+            if d.get("enabled", False):
+                continue
             qad = make_qadapter(**d)
             if qad.priority > 0:
                 qads.append(qad)
@@ -757,7 +788,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
 
         if not qads:
             raise ValueError("Received empty list of qadapters")
-        #if len(qads) != 1:
+        # if len(qads) != 1:
         #    raise NotImplementedError("For the time being multiple qadapters are not supported! Please use one adapter")
 
         # Order qdapters according to priority.
@@ -794,7 +825,8 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         # when we build the new Manager.
         has_shell_qad = False
         for d in my_kwargs["qadapters"]:
-            if d["queue"]["qtype"] == "shell": has_shell_qad = True
+            if d["queue"]["qtype"] == "shell":
+                has_shell_qad = True
         if has_shell_qad:
             my_kwargs["qadapters"] = [d for d in my_kwargs["qadapters"] if d["queue"]["qtype"] == "shell"]
 
@@ -810,12 +842,13 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
             # or with `exec` when running in sequential on the frontend.
             if "job" in d and "shell_runner" in d["job"]:
                 shell_runner = d["job"]["shell_runner"]
-                #print("shell_runner:", shell_runner, type(shell_runner))
-                if not shell_runner or shell_runner == "None": shell_runner = ""
+                # print("shell_runner:", shell_runner, type(shell_runner))
+                if not shell_runner or shell_runner == "None":
+                    shell_runner = ""
                 d["job"]["mpi_runner"] = shell_runner
-                #print("shell_runner:", shell_runner)
+                # print("shell_runner:", shell_runner)
 
-        #print(my_kwargs)
+        # print(my_kwargs)
         new = self.__class__(**my_kwargs)
         new.set_mpi_procs(mpi_procs)
 
@@ -871,13 +904,12 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         pconfs = pconfs.get_ordered_with_policy(policy, max_ncpus)
 
         if policy.precedence == "qadapter":
-
             # Try to run on the qadapter with the highest priority.
             for qadpos, qad in enumerate(self.qads):
                 possible_pconfs = [pc for pc in pconfs if qad.can_run_pconf(pc)]
 
                 if qad.allocation == "nodes":
-                    #if qad.allocation in ["nodes", "force_nodes"]:
+                    # if qad.allocation in ["nodes", "force_nodes"]:
                     # Select the configuration divisible by nodes if possible.
                     for pconf in possible_pconfs:
                         if pconf.num_cores % qad.hw.cores_per_node == 0:
@@ -891,9 +923,8 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
             # Try to run on the first pconf irrespectively of the priority of the qadapter.
             for pconf in pconfs:
                 for qadpos, qad in enumerate(self.qads):
-
                     if qad.allocation == "nodes" and not pconf.num_cores % qad.hw.cores_per_node == 0:
-                        continue # Ignore it. not very clean
+                        continue  # Ignore it. not very clean
 
                     if qad.can_run_pconf(pconf):
                         return self._use_qadpos_pconf(qadpos, pconf)
@@ -913,18 +944,19 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
 
         # Change the number of MPI/OMP cores.
         self.set_mpi_procs(pconf.mpi_procs)
-        if self.has_omp: self.set_omp_threads(pconf.omp_threads)
+        if self.has_omp:
+            self.set_omp_threads(pconf.omp_threads)
 
         # Set memory per proc.
-        #FIXME: Fixer may have changed the memory per proc and should not be reset by ParalConf
-        #self.set_mem_per_proc(pconf.mem_per_proc)
+        # FIXME: Fixer may have changed the memory per proc and should not be reset by ParalConf
+        # self.set_mem_per_proc(pconf.mem_per_proc)
         return pconf
 
     def __str__(self) -> str:
         """String representation."""
         lines = []
         app = lines.append
-        #app("[Task policy]\n%s" % str(self.policy))
+        # app("[Task policy]\n%s" % str(self.policy))
 
         for i, qad in enumerate(self.qads):
             app("[Qadapter %d]\n%s" % (i, str(qad)))
@@ -1043,7 +1075,8 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         # Pass information on the time limit to Abinit (we always assume ndtset == 1)
         if isinstance(task, AbinitTask):
             args = kwargs.get("exec_args", [])
-            if args is None: args = []
+            if args is None:
+                args = []
             args = args[:]
             args.append("--timelimit %s" % qu.time2slurm(self.qadapter.timelimit))
             kwargs["exec_args"] = args
@@ -1068,6 +1101,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
             raise
 
     def increase_mem(self):
+        """Increase the memory per CPU."""
         # OLD
         # with GW calculations in mind with GW mem = 10,
         # the response function is in memory and not distributed
@@ -1091,6 +1125,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
             raise ManagerIncreaseError("manager failed to increase ncpu")
 
     def increase_resources(self):
+        """Increase the resources (CPUs or memory) used by the task."""
         try:
             self.qadapter.more_cores()
             return
@@ -1104,6 +1139,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
             raise ManagerIncreaseError("manager failed to increase resources")
 
     def exclude_nodes(self, nodes):
+        """Exclude nodes from the submission."""
         try:
             self.qadapter.exclude_nodes(nodes=nodes)
         except QueueAdapterError:
@@ -1111,6 +1147,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
             raise ManagerIncreaseError("manager failed to exclude nodes")
 
     def increase_time(self):
+        """Increase the time limit of the job."""
         try:
             self.qadapter.more_time()
         except QueueAdapterError:
@@ -1143,7 +1180,13 @@ class AbinitBuild:
         .. attribute:: has_mpiio
             True if MPI-IO is supported.
     """
+
     def __init__(self, workdir=None, manager=None):
+        """
+        Args:
+            workdir: Working directory.
+            manager: |TaskManager| object.
+        """
         manager = TaskManager.as_manager(manager).to_shell_manager(mpi_procs=1)
 
         # Build a simple manager to run the job in a shell subprocess
@@ -1158,7 +1201,7 @@ class AbinitBuild:
             executable="abinit",
             qout_path=os.path.join(workdir, "queue.qout"),
             qerr_path=os.path.join(workdir, "queue.qerr"),
-            #stdin=stdin,
+            # stdin=stdin,
             stdout=stdout,
             stderr=os.path.join(workdir, "run.err"),
             exec_args=["-b"],
@@ -1174,7 +1217,7 @@ class AbinitBuild:
         if process.returncode != 0:
             logger.critical("Error while executing %s" % script_file)
             print("stderr:\n", process.stderr.read())
-            #print("stdout:", process.stdout.read())
+            # print("stdout:", process.stdout.read())
 
         # To avoid: ResourceWarning: unclosed file <_io.BufferedReader name=87> in py3k
         process.stderr.close()
@@ -1273,8 +1316,8 @@ class AbinitBuild:
                 self.has_mpiio = yesno2bool(line)
 
         # Temporary hack for abinit v9
-        #from abipy.core.testing import cmp_version
-        #if cmp_version(self.version, "9.0.0", op=">="):
+        # from abipy.core.testing import cmp_version
+        # if cmp_version(self.version, "9.0.0", op=">="):
         self.has_netcdf = True
 
     def __str__(self):
@@ -1294,6 +1337,7 @@ class AbinitBuild:
         """Compare Abinit version to `version_string` with operator `op`"""
         from monty.operator import operator_from_str
         from packaging.version import parse as parse_version
+
         op = operator_from_str(op)
         return op(parse_version(self.version), parse_version(version_string))
 
@@ -1304,6 +1348,7 @@ class FakeProcess:
     This trick allows us to simulate a process that is still running so that
     we can safely poll task.process.
     """
+
     def poll(self):
         return None
 
@@ -1323,6 +1368,7 @@ class FakeProcess:
 
 class MyTimedelta(datetime.timedelta):
     """A customized version of timedelta whose __str__ method doesn't print microseconds."""
+
     def __new__(cls, days, seconds, microseconds):
         return datetime.timedelta.__new__(cls, days, seconds, microseconds)
 
@@ -1330,14 +1376,16 @@ class MyTimedelta(datetime.timedelta):
         """Remove microseconds from timedelta default __str__"""
         s = super().__str__()
         microsec = s.find(".")
-        if microsec != -1: s = s[:microsec]
+        if microsec != -1:
+            s = s[:microsec]
         return s
 
     @classmethod
     def as_timedelta(cls, delta):
         """Convert delta into a MyTimedelta object."""
         # Cannot monkey patch the __class__ and must pass through __new__ as the object is immutable.
-        if isinstance(delta, cls): return delta
+        if isinstance(delta, cls):
+            return delta
         return cls(delta.days, delta.seconds, delta.microseconds)
 
 
@@ -1352,6 +1400,7 @@ class TaskDateTimes:
         start: Begin of execution.
         end: End of execution.
     """
+
     def __init__(self):
         self.init = datetime.datetime.now()
         self.submission, self.start, self.end = None, None, None
@@ -1361,9 +1410,12 @@ class TaskDateTimes:
         app = lines.append
 
         app("Initialization done on: %s" % self.init)
-        if self.submission is not None: app("Submitted on: %s" % self.submission)
-        if self.start is not None: app("Started on: %s" % self.start)
-        if self.end is not None: app("Completed on: %s" % self.end)
+        if self.submission is not None:
+            app("Submitted on: %s" % self.submission)
+        if self.start is not None:
+            app("Started on: %s" % self.start)
+        if self.end is not None:
+            app("Completed on: %s" % self.end)
 
         return "\n".join(lines)
 
@@ -1373,7 +1425,8 @@ class TaskDateTimes:
 
     def get_runtime(self):
         """:class:`timedelta` with the run-time, None if the Task is not running"""
-        if self.start is None: return None
+        if self.start is None:
+            return None
 
         if self.end is None:
             delta = datetime.datetime.now() - self.start
@@ -1391,14 +1444,16 @@ class TaskDateTimes:
             This value is always greater than the real value computed by the resource manager
             as we start to count only when check_status sets the `Task` status to S_RUN.
         """
-        if self.submission is None: return None
+        if self.submission is None:
+            return None
 
         if self.start is None:
             delta = datetime.datetime.now() - self.submission
         else:
             delta = self.start - self.submission
             # This happens when we read the exact start datetime from the ABINIT log file.
-            if delta.total_seconds() < 0: delta = datetime.timedelta(seconds=0)
+            if delta.total_seconds() < 0:
+                delta = datetime.timedelta(seconds=0)
 
         return MyTimedelta.as_timedelta(delta)
 
@@ -1416,6 +1471,7 @@ class Task(Node, metaclass=abc.ABCMeta):
     A Task is a node that performs some kind of calculation.
     This is base class providing low-level methods.
     """
+
     # Use class attributes for TaskErrors so that we don't have to import them.
     Error = TaskError
     RestartError = TaskRestartError
@@ -1431,8 +1487,7 @@ class Task(Node, metaclass=abc.ABCMeta):
     prefix = Prefix(pj("indata", "in"), pj("outdata", "out"), pj("tmpdata", "tmp"))
     del Prefix, pj
 
-    def __init__(self, input: AbinitInput,
-                 workdir=None, manager=None, deps=None):
+    def __init__(self, input: AbinitInput, workdir=None, manager=None, deps=None):
         """
         Args:
             input: |AbinitInput| object.
@@ -1495,7 +1550,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         Set the working directory. Cannot be set more than once unless chroot is True
         """
         if not chroot and hasattr(self, "workdir") and self.workdir != workdir:
-            raise ValueError("self.workdir != workdir: %s, %s" % (self.workdir,  workdir))
+            raise ValueError("self.workdir != workdir: %s, %s" % (self.workdir, workdir))
 
         self.workdir = os.path.abspath(workdir)
 
@@ -1580,6 +1635,7 @@ class Task(Node, metaclass=abc.ABCMeta):
     def set_input(self, abi_input: AbinitInput) -> None:
         """Set the input of the task."""
         from abipy.abio.inputs import AbinitInput, OpticInput
+
         if not isinstance(abi_input, (AbinitInput, OpticInput)):
             raise TypeError(f"Excepcting AbinitInput instance but got {type(abi_input)}")
 
@@ -1611,7 +1667,8 @@ class Task(Node, metaclass=abc.ABCMeta):
     def make_input(self, with_header=False) -> str:
         """Return string the input file of the calculation."""
         s = str(self.input)
-        if with_header: s = str(self) + "\n" + s
+        if with_header:
+            s = str(self) + "\n" + s
         return s
 
     def ipath_from_ext(self, ext: str) -> str:
@@ -1675,8 +1732,10 @@ class Task(Node, metaclass=abc.ABCMeta):
 
     def cancel(self) -> int:
         """Cancel the job. Returns 1 if job was cancelled."""
-        if self.queue_id is None: return 0
-        if self.status >= self.S_DONE: return 0
+        if self.queue_id is None:
+            return 0
+        if self.status >= self.S_DONE:
+            return 0
 
         exit_status = self.manager.cancel(self.queue_id)
         if exit_status != 0:
@@ -1697,7 +1756,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         manager = self.manager if hasattr(self, "manager") else self.flow.manager
         self.manager = manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
 
-    #def set_max_ncores(self, max_ncores, om_threads):
+    # def set_max_ncores(self, max_ncores, om_threads):
     #    """
     #    """
     #    new_manager = self.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
@@ -1735,7 +1794,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         is preserved e.g. out_1WF14 --> out_1WF
         """
         filepaths = self.outdir.list_filepaths()
-        #self.history.info("in fix_ofiles with filepaths %s" % list(filepaths))
+        # self.history.info("in fix_ofiles with filepaths %s" % list(filepaths))
 
         old2new = FilepathFixer().fix_paths(filepaths)
 
@@ -1764,7 +1823,8 @@ class Task(Node, metaclass=abc.ABCMeta):
         if submit:
             # Relaunch the task.
             fired = self.start()
-            if not fired: self.history.warning("Restart failed")
+            if not fired:
+                self.history.warning("Restart failed")
         else:
             fired = False
 
@@ -1845,7 +1905,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         # Can only reset tasks that are done.
         # One should be able to reset 'Submitted' tasks (sometimes, they are not in the queue
         # and we want to restart them)
-        #if self.status != self.S_SUB and self.status < self.S_DONE: return 1
+        # if self.status != self.S_SUB and self.status < self.S_DONE: return 1
 
         # Remove output files otherwise the EventParser will think the job is still running
         self.output_file.remove()
@@ -1939,7 +1999,8 @@ class Task(Node, metaclass=abc.ABCMeta):
             raise RuntimeError("Trying to unlock a task with status %s" % self.status)
 
         self._status = self.S_READY
-        if check_status: self.check_status()
+        if check_status:
+            self.check_status()
         self.history.info("Unlocked by %s", source_node)
 
     def set_status(self, status: Status, msg: str) -> Status:
@@ -1958,15 +2019,16 @@ class Task(Node, metaclass=abc.ABCMeta):
         # Locked files must be explicitly unlocked
         if self.status == self.S_LOCKED or status == self.S_LOCKED:
             err_msg = (
-                 "Locked files must be explicitly unlocked before calling set_status but\n"
-                 "task.status = %s, input status = %s" % (self.status, status))
+                "Locked files must be explicitly unlocked before calling set_status but\n"
+                "task.status = %s, input status = %s" % (self.status, status)
+            )
             raise RuntimeError(err_msg)
 
         status = Status.as_status(status)
 
         changed = True
         if hasattr(self, "_status"):
-            changed = (status != self._status)
+            changed = status != self._status
 
         self._status = status
 
@@ -1980,11 +2042,15 @@ class Task(Node, metaclass=abc.ABCMeta):
             if status == self.S_SUB:
                 self.datetimes.submission = datetime.datetime.now()
                 try:
-                    self.history.info("Submitted with MPI=%s, Omp=%s, Memproc=%.1f [GB] %s " % (
-                        self.mpi_procs, self.omp_threads, self.mem_per_proc.to("GB"), msg))
+                    self.history.info(
+                        "Submitted with MPI=%s, Omp=%s, Memproc=%.1f [GB] %s "
+                        % (self.mpi_procs, self.omp_threads, self.mem_per_proc.to("GB"), msg)
+                    )
                 except (KeyError, UnitError):
-                    self.history.info("Submitted with MPI=%s, Omp=%s, Memproc=%.1f [Gb] %s " % (
-                        self.mpi_procs, self.omp_threads, self.mem_per_proc.to("Gb"), msg))
+                    self.history.info(
+                        "Submitted with MPI=%s, Omp=%s, Memproc=%.1f [Gb] %s "
+                        % (self.mpi_procs, self.omp_threads, self.mem_per_proc.to("Gb"), msg)
+                    )
 
             elif status == self.S_OK:
                 self.history.info("Task completed %s", msg)
@@ -2004,8 +2070,8 @@ class Task(Node, metaclass=abc.ABCMeta):
             self._on_done()
 
         if status == self.S_OK:
-
-            if not self.finalized: self._on_ok()
+            if not self.finalized:
+                self._on_ok()
 
             # Note that _on_ok might have changed the status.
             if self.status == self.S_OK:
@@ -2035,7 +2101,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         # 1) A locked task can only be unlocked by calling set_status explicitly.
         # an errored task, should not end up here but just to be sure
         black_list = (self.S_LOCKED, self.S_ERROR)
-        #if self.status in black_list: return self.status
+        # if self.status in black_list: return self.status
 
         # 2) Check the returncode of the job script
         if self.returncode != 0:
@@ -2044,7 +2110,9 @@ class Task(Node, metaclass=abc.ABCMeta):
 
         # If we have an abort file produced by Abinit
         if self.mpiabort_file.exists:
-            return self.set_status(self.S_ABICRITICAL, msg="Found ABINIT MPI abort file. This means Abinit run aborted!")
+            return self.set_status(
+                self.S_ABICRITICAL, msg="Found ABINIT MPI abort file. This means Abinit run aborted!"
+            )
 
         # Analyze the stderr file for Fortran runtime errors.
         # getsize is 0 if the file is empty or it does not exist.
@@ -2064,7 +2132,7 @@ class Task(Node, metaclass=abc.ABCMeta):
             qout_info = self.qout_file.read()
 
         # Start to check ABINIT status if the output file has been created.
-        #if self.output_file.getsize() != 0:
+        # if self.output_file.getsize() != 0:
         if self.output_file.exists:
             try:
                 report = self.get_event_report()
@@ -2107,11 +2175,13 @@ class Task(Node, metaclass=abc.ABCMeta):
                 if self.qerr_file.exists and not qerr_info:
                     # there is output and no errors
                     # The job still seems to be running
-                    return self.set_status(self.S_RUN, msg="there is output and no errors: job still seems to be running")
+                    return self.set_status(
+                        self.S_RUN, msg="there is output and no errors: job still seems to be running"
+                    )
 
         # 6)
         if not self.output_file.exists:
-            #self.history.debug("output_file does not exists")
+            # self.history.debug("output_file does not exists")
             if not self.stderr_file.exists and not self.qerr_file.exists:
                 # No output at all. The job is still in the queue.
                 return self.status
@@ -2163,20 +2233,21 @@ class Task(Node, metaclass=abc.ABCMeta):
         if err_msg:
             msg = "Found error message:\n %s" % str(err_msg)
             self.history.warning(msg)
-            #return self.set_status(self.S_QCRITICAL, msg=msg)
+            # return self.set_status(self.S_QCRITICAL, msg=msg)
 
         # 9) if we still haven't returned there is no indication of any error and the job can only still be running
         # but we should actually never land here, or we have delays in the file system ....
         # print('the job still seems to be running maybe it is hanging without producing output... ')
 
         # Check time of last modification.
-        if self.output_file.exists and \
-           (time.time() - self.output_file.get_stat().st_mtime > self.manager.policy.frozen_timeout):
+        if self.output_file.exists and (
+            time.time() - self.output_file.get_stat().st_mtime > self.manager.policy.frozen_timeout
+        ):
             msg = "Task seems to be frozen, last change more than %s [s] ago" % self.manager.policy.frozen_timeout
             return self.set_status(self.S_ERROR, msg=msg)
 
         # Handle weird case in which either run.abo, or run.log have not been produced
-        #if self.status not in (self.S_INIT, self.S_READY) and (not self.output.file.exists or not self.log_file.exits):
+        # if self.status not in (self.S_INIT, self.S_READY) and (not self.output.file.exists or not self.log_file.exits):
         #    msg = "Task have been submitted but cannot find the log file or the output file"
         #    return self.set_status(self.S_ERROR, msg)
 
@@ -2258,12 +2329,13 @@ class Task(Node, metaclass=abc.ABCMeta):
                     # Try netcdf file.
                     # TODO: this case should be treated in a cleaner way.
                     path += ".nc"
-                    if os.path.exists(path): dest += ".nc"
+                    if os.path.exists(path):
+                        dest += ".nc"
 
                 if not os.path.exists(path):
                     raise self.Error("\n%s: path `%s`\n is needed by this task but it does not exist" % (self, path))
 
-                if path.endswith(".nc") and not dest.endswith(".nc"): # NC --> NC file
+                if path.endswith(".nc") and not dest.endswith(".nc"):  # NC --> NC file
                     dest += ".nc"
 
                 # Link path to dest if dest link does not exist
@@ -2302,9 +2374,7 @@ class Task(Node, metaclass=abc.ABCMeta):
             :class:`EventReport` instance or None if the source file file does not exist.
         """
         # By default, we inspect the main log file.
-        ofile = {
-            "output": self.output_file,
-            "log": self.log_file}[source]
+        ofile = {"output": self.output_file, "log": self.log_file}[source]
 
         parser = events.EventsParser()
 
@@ -2327,7 +2397,7 @@ class Task(Node, metaclass=abc.ABCMeta):
 
                 # Weird case: empty abort file, let's skip the part
                 # below and hope that the log file contains the error message.
-                #if not len(abort_report): return report
+                # if not len(abort_report): return report
 
                 # Add it to the initial report only if it differs
                 # from the last one found in the main log file.
@@ -2339,7 +2409,7 @@ class Task(Node, metaclass=abc.ABCMeta):
 
             return report
 
-        #except parser.Error as exc:
+        # except parser.Error as exc:
         except Exception as exc:
             # Return a report with an error entry with info on the exception.
             msg = "%s: Exception while parsing ABINIT events:\n %s" % (ofile, str(exc))
@@ -2423,7 +2493,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         self.input_file.write(self.make_input())
 
         # Write input in JSON format so that we can read it if we need to change it
-        #with open(self.path_in_workdir("run.abi.json"), "wt") as fh:
+        # with open(self.path_in_workdir("run.abi.json"), "wt") as fh:
         #    d = self.input.as_dict()
         #    json.write(d, fh, indent=4)
 
@@ -2437,7 +2507,8 @@ class Task(Node, metaclass=abc.ABCMeta):
 
         # Add abipy_meta.json file if set
         data = getattr(self, "abipy_meta_json", None)
-        if data is None: data = {}
+        if data is None:
+            data = {}
         if hasattr(self.input, "as_dict"):
             data["_input"] = self.input.as_dict()
         else:
@@ -2499,25 +2570,27 @@ class Task(Node, metaclass=abc.ABCMeta):
         # needed by the children who haven't reached S_OK
         except_exts = set()
         for child in self.get_children():
-            if child.status == self.S_OK: continue
+            if child.status == self.S_OK:
+                continue
             # Find the position of self in child.deps and add the extensions.
             i = [dep.node for dep in child.deps].index(self)
             except_exts.update(child.deps[i].exts)
 
         # Remove the files in the outdir of the task but keep except_exts.
         exts = self.gc.exts.difference(except_exts)
-        #print("Will remove its extensions: ", exts)
+        # print("Will remove its extensions: ", exts)
         paths += self.outdir.remove_exts(exts)
-        if not follow_parents: return paths
+        if not follow_parents:
+            return paths
 
         # Remove the files in the outdir of my parents if all the possible dependencies have been fulfilled.
         for parent in self.get_parents():
-
             # Here we build a dictionary file extension --> list of child nodes requiring this file from parent
             # e.g {"WFK": [node1, node2]}
             ext2nodes = collections.defaultdict(list)
             for child in parent.get_children():
-                if child.status == child.S_OK: continue
+                if child.status == child.S_OK:
+                    continue
                 i = [d.node for d in child.deps].index(parent)
                 for ext in child.deps[i].exts:
                     ext2nodes[ext].append(child)
@@ -2525,7 +2598,7 @@ class Task(Node, metaclass=abc.ABCMeta):
             # Remove extension only if no node depends on it!
             except_exts = [k for k, lst in ext2nodes.items() if lst]
             exts = self.gc.exts.difference(except_exts)
-            #print("%s removes extensions %s from parent node %s" % (self, exts, parent))
+            # print("%s removes extensions %s from parent node %s" % (self, exts, parent))
             paths += parent.outdir.remove_exts(exts)
 
         self.history.info("Removed files: %s" % paths)
@@ -2579,7 +2652,7 @@ class Task(Node, metaclass=abc.ABCMeta):
         if kwargs.pop("autoparal", True) and hasattr(self, "autoparal_run"):
             try:
                 self.autoparal_run()
-            #except QueueAdapterError as exc:
+            # except QueueAdapterError as exc:
             #    # If autoparal cannot find a qadapter to run the calculation raises an Exception
             #    self.history.critical(exc)
             #    msg = "Error while trying to run autoparal in task:%s\n%s" % (repr(task), straceback())
@@ -2603,7 +2676,7 @@ class Task(Node, metaclass=abc.ABCMeta):
                 try:
                     self.autoparal_run()
                     self.history.info("Second call to autoparal succeeded!")
-                    #cprint("Second call to autoparal succeeded!", "green")
+                    # cprint("Second call to autoparal succeeded!", "green")
 
                 except Exception as exc:
                     self.history.critical("Second call to autoparal failed with %s. Cannot recover!", exc)
@@ -2640,15 +2713,18 @@ class Task(Node, metaclass=abc.ABCMeta):
         """
         # https://www.graphviz.org/doc/info/
         from graphviz import Digraph
-        fg = Digraph("task", # filename="task_%s.gv" % os.path.basename(self.workdir),
-            engine="dot" if engine == "automatic" else engine)
+
+        fg = Digraph(
+            "task",  # filename="task_%s.gv" % os.path.basename(self.workdir),
+            engine="dot" if engine == "automatic" else engine,
+        )
 
         # Set graph attributes.
-        #fg.attr(label="%s@%s" % (self.__class__.__name__, self.relworkdir))
+        # fg.attr(label="%s@%s" % (self.__class__.__name__, self.relworkdir))
         fg.attr(label=repr(self))
-        #fg.attr(fontcolor="white", bgcolor='purple:pink')
-        #fg.attr(rankdir="LR", pagedir="BL")
-        #fg.attr(constraint="false", pack="true", packMode="clust")
+        # fg.attr(fontcolor="white", bgcolor='purple:pink')
+        # fg.attr(rankdir="LR", pagedir="BL")
+        # fg.attr(constraint="false", pack="true", packMode="clust")
         fg.node_attr.update(color="lightblue2", style="filled")
 
         # Add input attributes.
@@ -2661,10 +2737,9 @@ class Task(Node, metaclass=abc.ABCMeta):
 
         def node_kwargs(node):
             return dict(
-                #shape="circle",
+                # shape="circle",
                 color=node.color_hex,
-                label=(str(node) if not hasattr(node, "pos_str") else
-                    node.pos_str + "\n" + node.__class__.__name__),
+                label=(str(node) if not hasattr(node, "pos_str") else node.pos_str + "\n" + node.__class__.__name__),
             )
 
         edge_kwargs = dict(arrowType="vee", style="solid")
@@ -2685,8 +2760,7 @@ class Task(Node, metaclass=abc.ABCMeta):
                 # Find file extensions required by this task
                 i = [dep.node for dep in child.deps].index(self)
                 edge_label = "+".join(child.deps[i].exts)
-                myg.edge(self.name, child.name, label=edge_label, color=self.color_hex,
-                         **edge_kwargs)
+                myg.edge(self.name, child.name, label=edge_label, color=self.color_hex, **edge_kwargs)
 
             # Connect task to parents
             for parent in self.get_parents():
@@ -2696,11 +2770,10 @@ class Task(Node, metaclass=abc.ABCMeta):
                 # Find file extensions required by self (task)
                 i = [dep.node for dep in self.deps].index(parent)
                 edge_label = "+".join(self.deps[i].exts)
-                myg.edge(parent.name, self.name, label=edge_label, color=parent.color_hex,
-                         **edge_kwargs)
+                myg.edge(parent.name, self.name, label=edge_label, color=parent.color_hex, **edge_kwargs)
 
         # Treat the case in which we have a work producing output for other tasks.
-        #for work in self:
+        # for work in self:
         #    children = work.get_children()
         #    if not children: continue
         #    cluster_name = "cluster%s" % work.name
@@ -2727,17 +2800,27 @@ class Task(Node, metaclass=abc.ABCMeta):
         This function should be called after task.get_status to update the status.
         """
         from abipy.tools.duck import getattrd
+
         task_attrs = [
-            "node_id", "name", "status", "task_class",
-            "mpi_procs", "omp_threads",
-            "num_launches", "num_restarts", "num_corrections",
-            "queue_id", "qname",
+            "node_id",
+            "name",
+            "status",
+            "task_class",
+            "mpi_procs",
+            "omp_threads",
+            "num_launches",
+            "num_restarts",
+            "num_corrections",
+            "queue_id",
+            "qname",
         ]
 
         def _getattr(task, aname):
-            if aname == "task_class": return getattrd(task, "__class__.__name__")
+            if aname == "task_class":
+                return getattrd(task, "__class__.__name__")
             attr = getattr(task, aname)
-            if aname == "status": return str(attr)
+            if aname == "status":
+                return str(attr)
             return attr
 
         d = {aname: _getattr(self, aname) for aname in task_attrs}
@@ -2753,7 +2836,8 @@ class Task(Node, metaclass=abc.ABCMeta):
         d["work_idx"] = self.pos[0]
         d["task_widx"] = self.pos[1]
 
-        if as_dict: return d
+        if as_dict:
+            return d
 
         return pd.DataFrame(d, index=[0])
 
@@ -2768,6 +2852,7 @@ class AbinitTask(Task):
     """
     Base class for ABINIT Tasks.
     """
+
     Results = TaskResults
 
     @classmethod
@@ -2783,11 +2868,7 @@ class AbinitTask(Task):
         return cls(input, workdir=workdir, manager=manager)
 
     @classmethod
-    def temp_shell_task(cls,
-                        inp: AbinitInput,
-                        mpi_procs: int = 1,
-                        workdir=None,
-                        manager=None) -> AbinitTask:
+    def temp_shell_task(cls, inp: AbinitInput, mpi_procs: int = 1, workdir=None, manager=None) -> AbinitTask:
         """
         Build a Task with a temporary workdir. The task is executed via the shell with 1 MPI proc.
         Mainly used for invoking Abinit to get important parameters needed to prepare the real task.
@@ -2797,7 +2878,8 @@ class AbinitTask(Task):
         """
         # Build a simple manager to run the job in a shell subprocess
         workdir = get_workdir(workdir)
-        if manager is None: manager = TaskManager.from_user_config()
+        if manager is None:
+            manager = TaskManager.from_user_config()
 
         # Construct the task and run it
         task = cls.from_input(inp, workdir=workdir, manager=manager.to_shell_manager(mpi_procs=mpi_procs))
@@ -2811,6 +2893,7 @@ class AbinitTask(Task):
         Here we fix this issue by renaming run.abo to run.abo_[number] if the output file "run.abo" already
         exists. A few lines of code in python, a lot of problems if you try to implement this trick in Fortran90.
         """
+
         def rename_file(file_obj):
             """Helper function to rename :class:`File` objects. Return string for logging purpose."""
             # Find the index of the last file (if any).
@@ -2818,15 +2901,18 @@ class AbinitTask(Task):
             fnames = [f for f in os.listdir(self.workdir) if f.startswith(file_obj.basename)]
             nums = [int(f) for f in [f.split("_")[-1] for f in fnames] if f.isdigit()]
             last = max(nums) if nums else 0
-            new_path = file_obj.path + "_" + str(last+1)
+            new_path = file_obj.path + "_" + str(last + 1)
 
             os.rename(file_obj.path, new_path)
             return "Will rename %s to %s" % (file_obj.path, new_path)
 
         logs = []
-        if self.output_file.exists: logs.append(rename_file(self.output_file))
-        if self.log_file.exists: logs.append(rename_file(self.log_file))
-        if self.stderr_file.exists: logs.append(rename_file(self.stderr_file))
+        if self.output_file.exists:
+            logs.append(rename_file(self.output_file))
+        if self.log_file.exists:
+            logs.append(rename_file(self.log_file))
+        if self.stderr_file.exists:
+            logs.append(rename_file(self.stderr_file))
 
         if logs:
             self.history.info("\n".join(logs))
@@ -2870,9 +2956,12 @@ class AbinitTask(Task):
         Return the subclass of ScfCycle associated to the task or
         None if no SCF algorithm if associated to the task.
         """
-        if isinstance(self, RelaxTask): return abiinspect.Relaxation
-        if isinstance(self, GsTask): return abiinspect.GroundStateScfCycle
-        if self.is_dfpt_task: return abiinspect.D2DEScfCycle
+        if isinstance(self, RelaxTask):
+            return abiinspect.Relaxation
+        if isinstance(self, GsTask):
+            return abiinspect.GroundStateScfCycle
+        if self.is_dfpt_task:
+            return abiinspect.D2DEScfCycle
 
         return None
 
@@ -2883,8 +2972,8 @@ class AbinitTask(Task):
         app = lines.append
         pj = os.path.join
 
-        app(self.input_file.path)                 # Path to the input file
-        app(self.output_file.path)                # Path to the output file
+        app(self.input_file.path)  # Path to the input file
+        app(self.output_file.path)  # Path to the output file
         app(pj(self.workdir, self.prefix.idata))  # Prefix for input data
         app(pj(self.workdir, self.prefix.odata))  # Prefix for output data
         app(pj(self.workdir, self.prefix.tdata))  # Prefix for temporary data
@@ -2934,6 +3023,7 @@ class AbinitTask(Task):
         Subclasses may provide specialized implementations.
         """
         from abipy.panels.tasks import TaskPanel
+
         return TaskPanel(task=self).get_panel(**kwargs)
 
     def _change_structure(self, new_structure: Structure) -> None:
@@ -2958,8 +3048,10 @@ class AbinitTask(Task):
 
         if np.any(np.abs(displs) > tol_length):
             min_pos, max_pos = displs.argmin(), displs.argmax()
-            recs.append("Mean displ: %.2E, Max_displ: %.2E (site %d), min_displ: %.2E (site %d)" %
-                (displs.mean(), displs[max_pos], max_pos, displs[min_pos], min_pos))
+            recs.append(
+                "Mean displ: %.2E, Max_displ: %.2E (site %d), min_displ: %.2E (site %d)"
+                % (displs.mean(), displs[max_pos], max_pos, displs[min_pos], min_pos)
+            )
 
         self.history.info("Changing structure (only significant diffs are shown):")
         if not recs:
@@ -2969,7 +3061,7 @@ class AbinitTask(Task):
                 self.history.info(rec)
 
         self.input.set_structure(new_structure)
-        #assert self.input.structure == new_structure
+        # assert self.input.structure == new_structure
 
     def autoparal_run(self) -> int:
         """
@@ -2984,7 +3076,7 @@ class AbinitTask(Task):
         """
         policy = self.manager.policy
 
-        if policy.autoparal == 0: # or policy.max_ncpus in [None, 1]:
+        if policy.autoparal == 0:  # or policy.max_ncpus in [None, 1]:
             self.history.info("Nothing to do in autoparal, returning (None, None)")
             return 0
 
@@ -2999,7 +3091,8 @@ class AbinitTask(Task):
         # Will get all the possible configurations up to max_ncpus
         # Return immediately if max_ncpus == 1
         max_ncpus = self.manager.max_cores
-        if max_ncpus == 1: return 0
+        if max_ncpus == 1:
+            return 0
 
         autoparal_vars = dict(autoparal=policy.autoparal, max_ncpus=max_ncpus, mem_test=0, chkparal=0)
         self.set_vars(autoparal_vars)
@@ -3012,7 +3105,7 @@ class AbinitTask(Task):
         retcode = process.wait()
         # To avoid: ResourceWarning: unclosed file <_io.BufferedReader name=87> in py3k
         process.stderr.close()
-        #process.stdout.close()
+        # process.stdout.close()
 
         # Remove the variables added for the automatic parallelization
         self.input.remove_vars(list(autoparal_vars.keys()))
@@ -3050,7 +3143,7 @@ class AbinitTask(Task):
         # Write autoparal configurations to JSON file.
         d = pconfs.as_dict()
         d["optimal_conf"] = optconf
-        #json_pretty_dump(d, os.path.join(self.workdir, "autoparal.json"))
+        # json_pretty_dump(d, os.path.join(self.workdir, "autoparal.json"))
 
         ##############
         # Finalization
@@ -3091,15 +3184,17 @@ class AbinitTask(Task):
                   q ==> qout_file,
                   all ==> all files.
         """
-        choices = collections.OrderedDict([
-            ("i", self.input_file),
-            ("o", self.output_file),
-            ("f", self.files_file),
-            ("j", self.job_file),
-            ("l", self.log_file),
-            ("e", self.stderr_file),
-            ("q", self.qout_file),
-        ])
+        choices = collections.OrderedDict(
+            [
+                ("i", self.input_file),
+                ("o", self.output_file),
+                ("f", self.files_file),
+                ("j", self.job_file),
+                ("l", self.log_file),
+                ("e", self.stderr_file),
+                ("q", self.qout_file),
+            ]
+        )
 
         if what == "all":
             return [v.path for v in choices.values()]
@@ -3138,7 +3233,8 @@ class AbinitTask(Task):
 
         # Move files to reset and append digit with reset index.
         def move_file(f):
-            if not f.exists: return
+            if not f.exists:
+                return
             try:
                 f.move(os.path.join(reset_dir, f.basename + "_" + str(num_reset)))
             except OSError as exc:
@@ -3181,7 +3277,6 @@ class AbinitTask(Task):
         # (ideally only for CriticalWarnings but this is not done yet)
         for event in report:
             for i, handler in enumerate(self.event_handlers):
-
                 if handler.can_handle(event) and not done[i]:
                     self.history.info("handler %s will try to fix event %s" % (handler, event))
                     try:
@@ -3211,7 +3306,7 @@ class AbinitTask(Task):
             1 if task has been fixed else 0.
         """
         from abipy.flowtk.scheduler_error_parsers import MemoryCancelError, NodeFailureError, TimeCancelError
-        #assert isinstance(self.manager, TaskManager)
+        # assert isinstance(self.manager, TaskManager)
 
         self.history.info("fixing queue critical")
         ret = "task.fix_queue_critical: "
@@ -3220,7 +3315,7 @@ class AbinitTask(Task):
             # TODO
             # paral_kgb = 1 leads to nasty sigegv that are seen as Qcritical errors!
             # Try to fallback to the conjugate gradient.
-            #if self.uses_paral_kgb(1):
+            # if self.uses_paral_kgb(1):
             #    self.history.critical("QCRITICAL with PARAL_KGB==1. Will try CG!")
             #    self.set_vars(paral_kgb=0)
             #    self.reset_from_scratch()
@@ -3291,8 +3386,10 @@ class AbinitTask(Task):
                     except DecreaseDemandsError:
                         self.history.warning("decreasing demands failed")
 
-                    msg = ("Memory error detected but the memory could not be increased neither could the\n"
-                           "memory demand be decreased. Unrecoverable error.")
+                    msg = (
+                        "Memory error detected but the memory could not be increased neither could the\n"
+                        "memory demand be decreased. Unrecoverable error."
+                    )
                     self.set_status(self.S_ERROR, msg)
                     raise FixQueueCriticalError
 
@@ -3315,7 +3412,9 @@ class AbinitTask(Task):
                             self.set_status(self.S_READY, msg="increased number of cpus")
                             return None
                         except ManagerIncreaseError:
-                            self.history.warning("increase ncpus to speed up the calculation to stay in the walltime failed")
+                            self.history.warning(
+                                "increase ncpus to speed up the calculation to stay in the walltime failed"
+                            )
 
                     # if this failed ask the task to provide a method to speed up the task
                     try:
@@ -3326,9 +3425,11 @@ class AbinitTask(Task):
                     except DecreaseDemandsError:
                         self.history.warning("decreasing demands failed")
 
-                    msg = ("Time cancel error detected but the time could not be increased neither could\n"
-                           "the time demand be decreased by speedup of increasing the number of cpus.\n"
-                           "Unrecoverable error.")
+                    msg = (
+                        "Time cancel error detected but the time could not be increased neither could\n"
+                        "the time demand be decreased by speedup of increasing the number of cpus.\n"
+                        "Unrecoverable error."
+                    )
                     self.set_status(self.S_ERROR, msg)
 
                 else:
@@ -3359,6 +3460,7 @@ class AbinitTask(Task):
                 dims_dataset, spginfo_dataset = abo.get_dims_spginfo_dataset(verbose=0)
         """
         from abipy.abio.outputs import AbinitOutputFile
+
         return AbinitOutputFile(self.output_file.path)
 
     # This to maintain Backward compatibility
@@ -3370,6 +3472,7 @@ class ProduceHist:
     Mixin class for a |Task| producing HIST files.
     Provide the method `open_hist` that reads and return a HIST file.
     """
+
     @property
     def hist_path(self) -> str:
         """Absolute path of the HIST file. Empty string if file is not present."""
@@ -3378,7 +3481,8 @@ class ProduceHist:
             return self._hist_path
         except AttributeError:
             path = self.outdir.has_abiext("HIST")
-            if path: self._hist_path = path
+            if path:
+                self._hist_path = path
             return path
 
     def open_hist(self):
@@ -3393,6 +3497,7 @@ class ProduceHist:
 
         # Open the HIST file
         from abipy.dynamics.hist import HistFile
+
         try:
             return HistFile(self.hist_path)
         except Exception as exc:
@@ -3414,7 +3519,8 @@ class GsTask(AbinitTask):
             return self._gsr_path
         except AttributeError:
             path = self.outdir.has_abiext("GSR")
-            if path: self._gsr_path = path
+            if path:
+                self._gsr_path = path
             return path
 
     def open_gsr(self):
@@ -3430,6 +3536,7 @@ class GsTask(AbinitTask):
 
         # Open the GSR file.
         from abipy.electrons.gsr import GsrFile
+
         try:
             return GsrFile(gsr_path)
         except Exception as exc:
@@ -3485,13 +3592,13 @@ class GsTask(AbinitTask):
             fundamental_gap_ev = min(gap.energy for gap in gsr.ebands.fundamental_gaps)
             direct_gap_ev = min(gap.energy for gap in gsr.ebands.direct_gaps)
 
-        #if is_scf_cycle:
+        # if is_scf_cycle:
         #    # Try to understand if system has energy gap and change the value of diemac accordingly
         #    diemac = self.input.get("diemac", 1e6)
         #    if not gsr.ebands.is_metal:
         #       new_diemac = diemac_from_gap(gap)
         #       self.set_vars(diemac=diemac)
-        #else:
+        # else:
         #    # NSCF case. Perhaps the problem is due to nbdbuf that is too small
         #    nbdbuf = self.input.get("nbdbuf", 0)
         #    if nbdbuf <= 8
@@ -3504,6 +3611,7 @@ class ScfTask(GsTask):
     Task for self-consistent GS calculations.
     Provide support for in-place restart via (WFK|DEN) files.
     """
+
     CRITICAL_EVENTS = [
         events.ScfConvergenceWarning,
     ]
@@ -3516,7 +3624,8 @@ class ScfTask(GsTask):
         for ext in ("WFK", "DEN"):
             restart_file = self.outdir.has_abiext(ext)
             irdvars = irdvars_for_ext(ext)
-            if restart_file: break
+            if restart_file:
+                break
         else:
             raise self.RestartError("%s: Cannot find WFK or DEN file to restart from." % self)
 
@@ -3528,7 +3637,7 @@ class ScfTask(GsTask):
 
         # Now we can resubmit the job.
         self.history.info("Will restart from %s", restart_file)
-        #self.change_ks_solver_params_if_needed(self, is_scf_cycle=True)
+        # self.change_ks_solver_params_if_needed(self, is_scf_cycle=True)
 
         return self._restart()
 
@@ -3544,7 +3653,8 @@ class ScfTask(GsTask):
             return None
 
         if scf_cycle is not None:
-            if "title" not in kwargs: kwargs["title"] = str(self)
+            if "title" not in kwargs:
+                kwargs["title"] = str(self)
             return scf_cycle.plot(**kwargs)
 
         return None
@@ -3565,8 +3675,9 @@ class ScfTask(GsTask):
 
         return: NscfTask object.
         """
-        ebands_inp = self.input.make_ebands_input(ndivsm=ndivsm, tolwfr=tolwfr,
-                                                  nscf_nband=nscf_nband, nb_extra=nb_extra)
+        ebands_inp = self.input.make_ebands_input(
+            ndivsm=ndivsm, tolwfr=tolwfr, nscf_nband=nscf_nband, nb_extra=nb_extra
+        )
 
         return work.register_nscf_task(ebands_inp, deps={self: "DEN"})
 
@@ -3577,6 +3688,7 @@ class CollinearThenNonCollinearScfTask(ScfTask):
     The spin polarized WFK file is then used to start a non-collinear SCF run with nspinor == 2
     that starts from the previous WFK file.
     """
+
     def __init__(self, abinit_input, workdir=None, manager=None, deps=None):
         super().__init__(abinit_input, workdir=workdir, manager=manager, deps=deps)
         # Enforce nspinor = 1, nsppol = 2 and prtwf = 1.
@@ -3602,6 +3714,7 @@ class NscfTask(GsTask):
     Provides in-place restart via the WFK file and a specialized setup method
     that enforces the same ngfft FFT-mesh as the one used in the previous GS task.
     """
+
     CRITICAL_EVENTS = [
         events.NscfConvergenceWarning,
     ]
@@ -3662,7 +3775,7 @@ To avoid this problem specify nbdbuf in the input file and adjust nband accordin
         # Now we can resubmit the job.
         self.history.info("Will restart from %s", restart_file)
 
-        #self.change_ks_solver_params_if_needed(self, is_scf_cycle=False)
+        # self.change_ks_solver_params_if_needed(self, is_scf_cycle=False)
 
         return self._restart()
 
@@ -3671,6 +3784,7 @@ class RelaxTask(GsTask, ProduceHist):
     """
     Task for structural optimizations.
     """
+
     # TODO possible ScfConvergenceWarning?
     CRITICAL_EVENTS = [
         events.RelaxConvergenceWarning,
@@ -3743,7 +3857,7 @@ class RelaxTask(GsTask, ProduceHist):
             self.history.info("Will restart from %s", restart_file)
 
         # FIXME Here we should read the HIST file but restartxf if broken!
-        #self.set_vars({"restartxf": -1})
+        # self.set_vars({"restartxf": -1})
 
         # Read the relaxed structure from the GSR file and change the input.
         self._change_structure(self.get_final_structure())
@@ -3774,13 +3888,14 @@ class RelaxTask(GsTask, ProduceHist):
         elif what == "scf":
             # Get info on the different SCF cycles
             relaxation = abiinspect.Relaxation.from_file(self.output_file.path)
-            if "title" not in kwargs: kwargs["title"] = str(self)
+            if "title" not in kwargs:
+                kwargs["title"] = str(self)
             return relaxation.plot(**kwargs) if relaxation is not None else None
 
         else:
             raise ValueError("Wrong value for what %s" % what)
 
-    #def reduce_dilatmx(self, target: float = 1.01) -> None:
+    # def reduce_dilatmx(self, target: float = 1.01) -> None:
     #    actual_dilatmx = self.get_inpvar("dilatmx", 1.0)
     #    new_dilatmx = actual_dilatmx - min((actual_dilatmx - target), actual_dilatmx * 0.05)
     #    self.set_vars(dilatmx=new_dilatmx)
@@ -3803,7 +3918,8 @@ class RelaxTask(GsTask, ProduceHist):
 
         # Rename last TIMDEN with out_DEN.
         ofile = self.outdir.path_in("out_DEN")
-        if last_timden.path.endswith(".nc"): ofile += ".nc"
+        if last_timden.path.endswith(".nc"):
+            ofile += ".nc"
         self.history.info("Renaming last_denfile %s --> %s" % (last_timden.path, ofile))
         os.rename(last_timden.path, ofile)
 
@@ -3827,6 +3943,7 @@ class MultiRelaxTask(RelaxTask):
     If you are not in search of an accurate estimation of the lattice parameters anyhow,
     then run with [[chkdilatmx]] = 0 only once.
     """
+
     def _post_init_(self) -> None:
 
         # Keep a copy of the original input.
@@ -3891,6 +4008,7 @@ class DfptTask(AbinitTask):
 
         This class is not supposed to be instantiated directly.
     """
+
     # TODO:
     # for the time being we don't discern between GS and PhononCalculations.
     CRITICAL_EVENTS = [
@@ -3905,7 +4023,8 @@ class DfptTask(AbinitTask):
             return self._ddb_path
         except AttributeError:
             path = self.outdir.has_abiext("DDB")
-            if path: self._ddb_path = path
+            if path:
+                self._ddb_path = path
             return path
 
     def open_ddb(self):
@@ -3921,6 +4040,7 @@ class DfptTask(AbinitTask):
 
         # Open the DDB file.
         from abipy.dfpt.ddb import DdbFile
+
         try:
             return DdbFile(ddb_path)
         except Exception as exc:
@@ -3944,6 +4064,7 @@ class DfptTask(AbinitTask):
 
         def output_paths_from_regex(task, reg_string):
             import re
+
             reg = re.compile(reg_string)
             out_filepaths = []
             for path in task.outdir.list_filepaths():
@@ -3952,16 +4073,16 @@ class DfptTask(AbinitTask):
             return out_filepaths
 
         def my_symlink(src, dst):
-            if debug: print("linking", dst, " to ", src)
+            if debug:
+                print("linking", dst, " to ", src)
             if os.path.exists(dst):
-                #if os.path.realpath(dst) != src:
+                # if os.path.realpath(dst) != src:
                 #    raise RuntimeError(f"{src} does not point to {dst}")
                 return
             os.symlink(src, dst)
 
         for dep in self.deps:
             for d in dep.exts:
-
                 if d == "DDK":
                     ddk_task = dep.node
                     out_ddk = ddk_task.outdir.has_abiext("DDK")
@@ -3977,7 +4098,8 @@ class DfptTask(AbinitTask):
                     ddk_case = idir + 3 * len(ddk_task.input.structure)
 
                     infile = self.indir.path_in("in_1WF%d" % ddk_case)
-                    if out_ddk.endswith(".nc"): infile = infile + ".nc"
+                    if out_ddk.endswith(".nc"):
+                        infile = infile + ".nc"
 
                     my_symlink(out_ddk, infile)
 
@@ -3997,7 +4119,8 @@ class DfptTask(AbinitTask):
                     dkdk_filepaths = []
                     for ext in ext_list:
                         p = dkdk_task.outdir.has_abiext(ext)
-                        if p: dkdk_filepaths.append(p)
+                        if p:
+                            dkdk_filepaths.append(p)
 
                     if not dkdk_filepaths:
                         raise RuntimeError("%s didn't produce any DKDK file:" % dkdk_task)
@@ -4021,7 +4144,8 @@ class DfptTask(AbinitTask):
                         raise ValueError("Don't know how to handle `%s`" % d)
 
                     # Ensure link has .nc extension if iomode 3
-                    if out_wfk.endswith(".nc"): bname = bname + ".nc"
+                    if out_wfk.endswith(".nc"):
+                        bname = bname + ".nc"
                     if not os.path.exists(self.indir.path_in(bname)):
                         infile = self.indir.path_in(bname)
                         my_symlink(out_wfk, infile)
@@ -4032,7 +4156,8 @@ class DfptTask(AbinitTask):
                     if not out_wfk:
                         raise RuntimeError("%s didn't produce the DEN file" % gs_task)
                     infile = self.indir.path_in("in_DEN")
-                    if out_wfk.endswith(".nc"): infile = infile + ".nc"
+                    if out_wfk.endswith(".nc"):
+                        infile = infile + ".nc"
                     if not os.path.exists(infile):
                         my_symlink(out_wfk, infile)
 
@@ -4214,7 +4339,8 @@ class PhononTask(DfptTask):
         """
         scf_cycle = abiinspect.PhononScfCycle.from_file(self.output_file.path)
         if scf_cycle is not None:
-            if "title" not in kwargs: kwargs["title"] = str(self)
+            if "title" not in kwargs:
+                kwargs["title"] = str(self)
             return scf_cycle.plot(**kwargs)
 
 
@@ -4287,7 +4413,8 @@ class ScrTask(ManyBodyTask):
             return self._scr_path
         except AttributeError:
             path = self.outdir.has_abiext("SCR.nc")
-            if path: self._scr_path = path
+            if path:
+                self._scr_path = path
             return path
 
     def open_scr(self):
@@ -4303,6 +4430,7 @@ class ScrTask(ManyBodyTask):
 
         # Open the GSR file and add its data to results.out
         from abipy.electrons.scr import ScrFile
+
         try:
             return ScrFile(scr_path)
         except Exception as exc:
@@ -4315,6 +4443,7 @@ class SigmaTask(ManyBodyTask):
     Self-energy calculations with the quartic GW code.
     Provides support for in-place restart via QPS files.
     """
+
     CRITICAL_EVENTS = [
         events.QPSConvergenceWarning,
     ]
@@ -4322,6 +4451,7 @@ class SigmaTask(ManyBodyTask):
     color_rgb = np.array((0, 255, 0)) / 255
 
     def restart(self):
+        """Restart the Sigma calculation from the QPS file."""
         # Sigma calculations can be restarted only if we have the QPS file
         # from which we can read the results of the previous step.
         ext = "QPS"
@@ -4347,7 +4477,8 @@ class SigmaTask(ManyBodyTask):
             return self._sigres_path
         except AttributeError:
             path = self.outdir.has_abiext("SIGRES")
-            if path: self._sigres_path = path
+            if path:
+                self._sigres_path = path
             return path
 
     def open_sigres(self):
@@ -4363,6 +4494,7 @@ class SigmaTask(ManyBodyTask):
 
         # Open the SIGRES file and add its data to results.out
         from abipy.electrons.gw import SigresFile
+
         try:
             return SigresFile(sigres_path)
         except Exception as exc:
@@ -4377,6 +4509,7 @@ class SigmaTask(ManyBodyTask):
             `RuntimeError` if SIGRES file is not found.
         """
         from abipy.electrons.scissors import ScissorsBuilder
+
         if self.sigres_path:
             return ScissorsBuilder.from_file(self.sigres_path)
         raise RuntimeError("Cannot find SIGRES file!")
@@ -4391,9 +4524,10 @@ class BseTask(ManyBodyTask):
         The BSE codes provides both iterative and direct schemes for the computation of the dielectric function.
         The direct diagonalization cannot be restarted whereas Haydock and CG support restarting.
     """
+
     CRITICAL_EVENTS = [
         events.HaydockConvergenceWarning,
-        #events.BseIterativeDiagoConvergenceWarning,
+        # events.BseIterativeDiagoConvergenceWarning,
     ]
 
     color_rgb = np.array((128, 0, 255)) / 255
@@ -4449,10 +4583,10 @@ class BseTask(ManyBodyTask):
         self.set_vars(irdvars)
 
         # Now we can resubmit the job.
-        #self.history.info("Will restart from %s", restart_file)
+        # self.history.info("Will restart from %s", restart_file)
         return self._restart()
 
-    #def inspect(self, **kwargs):
+    # def inspect(self, **kwargs):
     #    """
     #    Plot the Haydock iterations with matplotlib.
     #
@@ -4471,7 +4605,8 @@ class BseTask(ManyBodyTask):
             return self._mdf_path
         except AttributeError:
             path = self.outdir.has_abiext("MDF.nc")
-            if path: self._mdf_path = path
+            if path:
+                self._mdf_path = path
             return path
 
     def open_mdf(self):
@@ -4486,6 +4621,7 @@ class BseTask(ManyBodyTask):
 
         # Open the DFF file and add its data to results.out
         from abipy.electrons.bse import MdfFile
+
         try:
             return MdfFile(mdf_path)
         except Exception as exc:
@@ -4502,8 +4638,8 @@ class GwrTask(AbinitTask):
     color_rgb = np.array((255, 128, 0)) / 255
 
     def setup(self):
-
-        #if self["gwr_task"] in (GWR_TASK.HDIAGO_FULL, ):
+        """Method called before submitting the task."""
+        # if self["gwr_task"] in (GWR_TASK.HDIAGO_FULL, ):
         #    print("To perform full diago, need to know mpw...")
         #    parent_scf_task = self.get_parents()
         #    dims, _ = parent_scf_task.abiget_dims_spginfo()
@@ -4519,7 +4655,8 @@ class GwrTask(AbinitTask):
             return self._gwr_path
         except AttributeError:
             path = self.outdir.has_abiext("GWR.nc")
-            if path: self._gwr_path = path
+            if path:
+                self._gwr_path = path
             return path
 
     def open_gwr(self):
@@ -4535,6 +4672,7 @@ class GwrTask(AbinitTask):
 
         # Open the GWR file
         from abipy.electrons.gwr import GwrFile
+
         try:
             return GwrFile(gwr_path)
         except Exception as exc:
@@ -4550,8 +4688,15 @@ class OpticTask(Task):
 
     color_rgb = np.array((255, 204, 102)) / 255
 
-    def __init__(self, optic_input: OpticInput, nscf_node: Node, ddk_nodes: list[Node],
-                 use_ddknc=False, workdir=None, manager=None):
+    def __init__(
+        self,
+        optic_input: OpticInput,
+        nscf_node: Node,
+        ddk_nodes: list[Node],
+        use_ddknc=False,
+        workdir=None,
+        manager=None,
+    ):
         """
         Create an instance of :class:`OpticTask` from n string containing the input.
 
@@ -4567,7 +4712,7 @@ class OpticTask(Task):
         self.nscf_node = Node.as_node(nscf_node)
         self.ddk_nodes = [Node.as_node(n) for n in ddk_nodes]
         assert len(ddk_nodes) == 3
-        #print(self.nscf_node, self.ddk_nodes)
+        # print(self.nscf_node, self.ddk_nodes)
 
         # Use DDK extension instead of 1WF
         if use_ddknc:
@@ -4593,8 +4738,10 @@ class OpticTask(Task):
         kwargs.update(dict(*args))
         self.history.info("OpticTask intercepted set_vars with args %s" % kwargs)
 
-        if "autoparal" in kwargs: self.input.set_vars(autoparal=kwargs["autoparal"])
-        if "max_ncpus" in kwargs: self.input.set_vars(max_ncpus=kwargs["max_ncpus"])
+        if "autoparal" in kwargs:
+            self.input.set_vars(autoparal=kwargs["autoparal"])
+        if "max_ncpus" in kwargs:
+            self.input.set_vars(max_ncpus=kwargs["max_ncpus"])
 
     @property
     def executable(self) -> str:
@@ -4612,8 +4759,8 @@ class OpticTask(Task):
         lines = []
         app = lines.append
 
-        app(self.input_file.path)                           # Path to the input file
-        app(os.path.join(self.workdir, "unused"))           # Path to the output file
+        app(self.input_file.path)  # Path to the input file
+        app(os.path.join(self.workdir, "unused"))  # Path to the output file
         app(os.path.join(self.workdir, self.prefix.odata))  # Prefix for output data
 
         return "\n".join(lines)
@@ -4683,7 +4830,8 @@ class OpticTask(Task):
 
         # Move files to reset and append digit with reset index.
         def move_file(f):
-            if not f.exists: return
+            if not f.exists:
+                return
             try:
                 f.move(os.path.join(reset_dir, f.basename + "_" + str(num_reset)))
             except OSError as exc:
@@ -4775,8 +4923,10 @@ class OpticTask(Task):
                     except DecreaseDemandsError:
                         self.history.warning("decreasing demands failed")
 
-                    msg = ("Memory error detected but the memory could not be increased neither could the\n"
-                           "memory demand be decreased. Unrecoverable error.")
+                    msg = (
+                        "Memory error detected but the memory could not be increased neither could the\n"
+                        "memory demand be decreased. Unrecoverable error."
+                    )
                     self.set_status(self.S_ERROR, msg)
                     raise FixQueueCriticalError
 
@@ -4798,7 +4948,9 @@ class OpticTask(Task):
                             self.set_status(self.S_READY, msg="increased number of cpus")
                             return None
                         except ManagerIncreaseError:
-                            self.history.warning("increase ncpus to speed up the calculation to stay in the walltime failed")
+                            self.history.warning(
+                                "increase ncpus to speed up the calculation to stay in the walltime failed"
+                            )
 
                     # if this failed ask the task to provide a method to speed up the task
                     try:
@@ -4809,9 +4961,11 @@ class OpticTask(Task):
                     except DecreaseDemandsError:
                         self.history.warning("decreasing demands failed")
 
-                    msg = ("Time cancel error detected but the time could not be increased neither could\n"
-                           "the time demand be decreased by speedup of increasing the number of cpus.\n"
-                           "Unrecoverable error.")
+                    msg = (
+                        "Time cancel error detected but the time could not be increased neither could\n"
+                        "the time demand be decreased by speedup of increasing the number of cpus.\n"
+                        "Unrecoverable error."
+                    )
                     self.set_status(self.S_ERROR, msg)
 
                 else:
@@ -4829,7 +4983,7 @@ class OpticTask(Task):
         """
         policy = self.manager.policy
 
-        if policy.autoparal == 0: # or policy.max_ncpus in [None, 1]:
+        if policy.autoparal == 0:  # or policy.max_ncpus in [None, 1]:
             self.history.info("Nothing to do in autoparal, returning (None, None)")
             return 0
 
@@ -4844,7 +4998,8 @@ class OpticTask(Task):
         # Will get all the possible configurations up to max_ncpus
         # Return immediately if max_ncpus == 1
         max_ncpus = self.manager.max_cores
-        if max_ncpus == 1: return 0
+        if max_ncpus == 1:
+            return 0
 
         autoparal_vars = dict(autoparal=policy.autoparal, max_ncpus=max_ncpus)
         self.set_vars(autoparal_vars)
@@ -4857,7 +5012,7 @@ class OpticTask(Task):
         retcode = process.wait()
         # To avoid: ResourceWarning: unclosed file <_io.BufferedReader name=87> in py3k
         process.stderr.close()
-        #process.stdout.close()
+        # process.stdout.close()
 
         # Remove the variables added for the automatic parallelization
         self.input.remove_vars(list(autoparal_vars.keys()))
@@ -4882,7 +5037,7 @@ class OpticTask(Task):
         ######################################################
         # Select the optimal configuration according to policy
         ######################################################
-        #optconf = self.find_optconf(pconfs)
+        # optconf = self.find_optconf(pconfs)
         # Select the partition on which we'll be running and set MPI/OMP cores.
         optconf = self.manager.select_qadapter(pconfs)
 
@@ -4905,7 +5060,7 @@ class OpticTask(Task):
         # Remove the output file since Abinit likes to create new files
         # with extension .outA, .outB if the file already exists.
         os.remove(self.output_file.path)
-        #os.remove(self.log_file.path)
+        # os.remove(self.log_file.path)
         os.remove(self.stderr_file.path)
 
         return 0
@@ -4918,8 +5073,7 @@ class AnaddbTask(Task):
 
     color_rgb = np.array((204, 102, 255)) / 255
 
-    def __init__(self, anaddb_input, ddb_node,
-                 gkk_node=None, md_node=None, ddk_node=None, workdir=None, manager=None):
+    def __init__(self, anaddb_input, ddb_node, gkk_node=None, md_node=None, ddk_node=None, workdir=None, manager=None):
         """
         Create an instance of AnaddbTask from a string containing the input.
 
@@ -4952,9 +5106,9 @@ class AnaddbTask(Task):
         super().__init__(input=anaddb_input, workdir=workdir, manager=manager, deps=deps)
 
     @classmethod
-    def temp_shell_task(cls, inp, ddb_node, mpi_procs=1,
-                        gkk_node=None, md_node=None, ddk_node=None,
-                        workdir=None, manager=None) -> AnaddbTask:
+    def temp_shell_task(
+        cls, inp, ddb_node, mpi_procs=1, gkk_node=None, md_node=None, ddk_node=None, workdir=None, manager=None
+    ) -> AnaddbTask:
         """
         Build a |AnaddbTask| with a temporary workdir. The task is executed via
         the shell with 1 MPI proc. Mainly used for post-processing the DDB files.
@@ -4968,12 +5122,19 @@ class AnaddbTask(Task):
         """
         # Build a simple manager to run the job in a shell subprocess
         workdir = get_workdir(workdir)
-        if manager is None: manager = TaskManager.from_user_config()
+        if manager is None:
+            manager = TaskManager.from_user_config()
 
         # Construct the task and run it
-        return cls(inp, ddb_node,
-                   gkk_node=gkk_node, md_node=md_node, ddk_node=ddk_node,
-                   workdir=workdir, manager=manager.to_shell_manager(mpi_procs=mpi_procs))
+        return cls(
+            inp,
+            ddb_node,
+            gkk_node=gkk_node,
+            md_node=md_node,
+            ddk_node=ddk_node,
+            workdir=workdir,
+            manager=manager.to_shell_manager(mpi_procs=mpi_procs),
+        )
 
     @property
     def executable(self) -> str:
@@ -4989,13 +5150,13 @@ class AnaddbTask(Task):
         lines = []
         app = lines.append
 
-        app(self.input_file.path)          # 1) Path of the input file
-        app(self.output_file.path)         # 2) Path of the output file
-        app(self.ddb_filepath)             # 3) Input derivative database e.g. t13.ddb.in
-        app(self.md_filepath)              # 4) Output molecular dynamics e.g. t13.md
-        app(self.gkk_filepath)             # 5) Input elphon matrix elements  (GKK file)
+        app(self.input_file.path)  # 1) Path of the input file
+        app(self.output_file.path)  # 2) Path of the output file
+        app(self.ddb_filepath)  # 3) Input derivative database e.g. t13.ddb.in
+        app(self.md_filepath)  # 4) Output molecular dynamics e.g. t13.md
+        app(self.gkk_filepath)  # 5) Input elphon matrix elements  (GKK file)
         app(self.outdir.path_join("out"))  # 6) Base name for elphon output files e.g. t13
-        app(self.ddk_filepath)             # 7) File containing ddk filenames for elphon/transport.
+        app(self.ddk_filepath)  # 7) File containing ddk filenames for elphon/transport.
 
         return "\n".join(lines)
 
@@ -5003,36 +5164,43 @@ class AnaddbTask(Task):
     def ddb_filepath(self) -> str:
         """Returns (at runtime) the absolute path of the input DDB file."""
         # This is not very elegant! A possible approach could to be path self.ddb_node.outdir!
-        if isinstance(self.ddb_node, FileNode): return self.ddb_node.filepath
+        if isinstance(self.ddb_node, FileNode):
+            return self.ddb_node.filepath
         path = self.ddb_node.outdir.has_abiext("DDB")
-        return path if path else None
+        return path or None
 
     @property
     def md_filepath(self) -> str:
         """Returns (at runtime) the absolute path of the input MD file."""
-        if self.md_node is None: return None
-        if isinstance(self.md_node, FileNode): return self.md_node.filepath
+        if self.md_node is None:
+            return None
+        if isinstance(self.md_node, FileNode):
+            return self.md_node.filepath
 
         path = self.md_node.outdir.has_abiext("MD")
-        return path if path else None
+        return path or None
 
     @property
     def gkk_filepath(self) -> str:
         """Returns (at runtime) the absolute path of the input GKK file."""
-        if self.gkk_node is None: return None
-        if isinstance(self.gkk_node, FileNode): return self.gkk_node.filepath
+        if self.gkk_node is None:
+            return None
+        if isinstance(self.gkk_node, FileNode):
+            return self.gkk_node.filepath
 
         path = self.gkk_node.outdir.has_abiext("GKK")
-        return path if path else None
+        return path or None
 
     @property
     def ddk_filepath(self) -> str:
         """Returns (at runtime) the absolute path of the input DKK file."""
-        if self.ddk_node is None: return None
-        if isinstance(self.ddk_node, FileNode): return self.ddk_node.filepath
+        if self.ddk_node is None:
+            return None
+        if isinstance(self.ddk_node, FileNode):
+            return self.ddk_node.filepath
 
         path = self.ddk_node.outdir.has_abiext("DDK")
-        return path if path else None
+        return path or None
 
     def setup(self):
         """Public method called before submitting the task."""
@@ -5044,9 +5212,11 @@ class AnaddbTask(Task):
         """
 
     def outpath_from_ext(self, ext: str) -> str:
+        """Return the absolute path of the output file with the given extension."""
         if ext == "anaddb.nc":
             path = os.path.join(self.outdir.path, "anaddb.nc")
-            if os.path.isfile(path): return path
+            if os.path.isfile(path):
+                return path
 
         path = self.outdir.has_abiext(ext)
         if not path:
@@ -5057,12 +5227,14 @@ class AnaddbTask(Task):
     def open_phbst(self):
         """Open PHBST file produced by Anaddb and returns |PhbstFile| object."""
         from abipy.dfpt.phonons import PhbstFile
+
         phbst_path = self.outpath_from_ext("PHBST.nc")
         return PhbstFile(phbst_path)
 
     def open_phdos(self):
         """Open PHDOS file produced by Anaddb and returns |PhdosFile| object."""
         from abipy.dfpt.phonons import PhdosFile
+
         phdos_path = self.outpath_from_ext("PHDOS.nc")
         return PhdosFile(phdos_path)
 
@@ -5083,11 +5255,12 @@ class AnaddbTask(Task):
             inp["ddk_filepath"] = ddk_filepath
 
         s = str(inp)
-        if with_header: s = str(self) + "\n" + s
+        if with_header:
+            s = str(self) + "\n" + s
         return s
 
 
-#class BoxcuttedPhononTask(PhononTask):
+# class BoxcuttedPhononTask(PhononTask):
 #    """
 #    This task compute phonons with a two-step algorithm.
 #    The first DFPT run is done with low-accuracy settings for boxcutmin and ecut
@@ -5157,8 +5330,7 @@ class AtdepTask(Task):
             self.ddb_node = Node.as_node(ddb_node)
             deps[self.ddb_node] = "DDB"
 
-        super().__init__(input=atdep_input, workdir=workdir,
-                         manager=manager, deps=deps)
+        super().__init__(input=atdep_input, workdir=workdir, manager=manager, deps=deps)
 
     @property
     def executable(self) -> str:
@@ -5171,9 +5343,10 @@ class AtdepTask(Task):
     @property
     def hist_filepath(self) -> str:
         """Returns (at runtime) the absolute path of the input HIST file."""
-        if isinstance(self.hist_node, FileNode): return self.hist_node.filepath
+        if isinstance(self.hist_node, FileNode):
+            return self.hist_node.filepath
         path = self.hist_node.outdir.has_abiext("HIST.nc")
-        return path if path else None
+        return path or None
 
     @property
     def ddb_filepath(self) -> str:
@@ -5194,11 +5367,13 @@ class AtdepTask(Task):
         """Public method called before submitting the task."""
 
     def make_links(self):
+        """Create symbolic links to the input files."""
         self.inlink_file(self.hist_filepath)
         if self.ddb_filepath is not None:
             self.inlink_file(self.ddb_filepath)
 
     def outpath_from_ext(self, ext):
+        """Return the absolute path of the output file with the given extension."""
         path = self.outdir.has_abiext(ext)
         if not path:
             raise RuntimeError("Atdep task `%s` didn't produce file with extension: `%s`" % (self, ext))
@@ -5207,6 +5382,7 @@ class AtdepTask(Task):
     def open_ddb(self):
         """Open DDB file produced by atdep and returns |DdbFile| object."""
         from abipy.dfpt.ddb import DdbFile
+
         ddb_path = self.outpath_from_ext("DDB")
         return DdbFile(ddb_path)
 
@@ -5219,5 +5395,6 @@ class AtdepTask(Task):
         inp["outdata_prefix"] = self.outdir.path_in("out")
 
         s = str(inp)
-        if with_header: s = str(self) + "\n" + s
+        if with_header:
+            s = str(self) + "\n" + s
         return s

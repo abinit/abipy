@@ -1,4 +1,5 @@
 """Tests for extxyz_generator module"""
+
 import os
 
 import abipy.data as abidata
@@ -7,7 +8,6 @@ from abipy.ml.extxyz_generator import ExtxyzIOWriter
 
 
 class AbimlTest(AbipyTest):
-
     def test_from_hist(self):
         """Testing ExtxyzIOWriter from ABINIT HIST.nc file."""
         filepaths_set = [

@@ -2,6 +2,7 @@
 """
 This script runs all the python scripts located in this directory
 """
+
 from __future__ import annotations
 
 import argparse
@@ -30,11 +31,15 @@ def main():
             sys.stderr.write("Fatal Error\n" + err_msg + "\n")
         sys.exit(error_code)
 
-    parser = argparse.ArgumentParser(epilog=str_examples(),formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument("-V", "--version", action="version", version="%(prog)s version " + __version__)
-    parser.add_argument("--loglevel", default="ERROR", type=str,
-                        help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+    parser.add_argument(
+        "--loglevel",
+        default="ERROR",
+        type=str,
+        help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG",
+    )
 
     parser.add_argument("-m", "--mode", type=str, default="sequential", help="execution mode. Default is sequential.")
     parser.add_argument("-e", "--exclude", type=str, default="", help="Exclude scripts. Comma-separated names")
@@ -54,13 +59,13 @@ def main():
     root = os.path.abspath(os.path.join(os.path.dirname(__file__), "flows"))
     scripts = []
     for fname in os.listdir(root):
-        if fname in options.exclude: continue
+        if fname in options.exclude:
+            continue
         if fname.endswith(".py") and fname.startswith("run_"):
             path = os.path.join(root, fname)
             if path != __file__:
                 scripts.append(path)
-    print("Executing: %d scripts with mode: `%s` and execute: `%s`" % (
-          len(scripts), options.mode, options.execute))
+    print("Executing: %d scripts with mode: `%s` and execute: `%s`" % (len(scripts), options.mode, options.execute))
 
     # Run scripts according to mode.
     dirpaths, errors, retcode, cnt = [], [], 0, 0
@@ -88,7 +93,8 @@ def main():
                 try:
                     flow = flowtk.Flow.pickle_load(workdir)
                     flow.make_scheduler().start()
-                    if not flow.all_ok: retcode += 1
+                    if not flow.all_ok:
+                        retcode += 1
 
                 except Exception as exc:
                     ret += 1

@@ -1,6 +1,5 @@
-"""
-This modules provides subclasses of pymatgen tensor objects.
-"""
+"""This modules provides subclasses of pymatgen tensor objects."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -14,7 +13,6 @@ from abipy.iotools import ETSF_Reader
 
 
 class _Tensor33:
-
     def _repr_html_(self):
         """Integration with jupyter notebooks."""
         return self.get_dataframe()._repr_html_()
@@ -27,10 +25,12 @@ class _Tensor33:
             cmode: "real" or "imag" to include only the real/imaginary part.
         """
         tensor = self.zeroed(tol=tol)
-        if cmode == "real": tensor = tensor.real
-        if cmode == "imag": tensor = tensor.imag
+        if cmode == "real":
+            tensor = tensor.real
+        if cmode == "imag":
+            tensor = tensor.imag
 
-        return pd.DataFrame({"x": tensor[:,0], "y": tensor[:,1], "z": tensor[:,2]}, index=["x", "y", "z"])
+        return pd.DataFrame({"x": tensor[:, 0], "y": tensor[:, 1], "z": tensor[:, 2]}, index=["x", "y", "z"])
 
     def get_voigt_dataframe(self, tol=1e-3) -> pd.DataFrame:
         """
@@ -109,6 +109,7 @@ class DielectricDataList(list):
                 raise TypeError(f"Expecting DielectricTensor instance but got {type(obj[0])=}")
 
         from abipy.core.structure import Structure
+
         if not isinstance(obj[1], Structure):
             raise TypeError(f"Expecting Structure instance but got {type(obj[1])=}")
 
@@ -119,19 +120,23 @@ class DielectricDataList(list):
 
     @property
     def eps_list(self) -> list:
+        """Return the list of dielectric tensors."""
         return [obj[0] for obj in self]
 
     @property
     def structures(self) -> list:
+        """Return the list of structures."""
         return [obj[1] for obj in self]
 
     @property
     def params_list(self) -> list[dict]:
+        """Return the list of parameters."""
         return [obj[2] for obj in self]
 
     def has_same_structure(self) -> bool:
         """True if all structures are equal."""
-        if len(self) in (0, 1): return True
+        if len(self) in (0, 1):
+            return True
         structures = self.structures
         structure0 = structures[0]
         return all(structure0 == s for s in structures[1:])
@@ -151,8 +156,17 @@ class DielectricDataList(list):
         """
         structures, eps_list, params_list = self.structures, self.eps_list, self.params_list
 
-        comps2inds = {"xx": (0,0), "yy": (1,1), "zz": (2,2),
-                      "xy": (0, 1), "xz": (0, 2), "yx": (1, 0), "yz": (1, 2), "zx": (2, 0), "zy": (2, 1)}
+        comps2inds = {
+            "xx": (0, 0),
+            "yy": (1, 1),
+            "zz": (2, 2),
+            "xy": (0, 1),
+            "xz": (0, 2),
+            "yx": (1, 0),
+            "yz": (1, 2),
+            "zx": (2, 0),
+            "zy": (2, 1),
+        }
 
         rows = []
         for structure, eps, params in zip(structures, eps_list, params_list, strict=True):
@@ -200,7 +214,7 @@ class NLOpticalSusceptibilityTensor(Tensor):
                 return cls(reader.read_value("dchide"))
             except Exception:
                 import traceback
+
                 msg = traceback.format_exc()
-                msg += ("Error while trying to read from file.\n"
-                        "Verify that nlflag > 0 in anaddb\n")
+                msg += "Error while trying to read from file.\nVerify that nlflag > 0 in anaddb\n"
                 raise ValueError(msg)

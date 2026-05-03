@@ -23,10 +23,10 @@ def make_scf_input(structure, ngkpt, tsmear, pseudos, paral_kgb=1):
     scf_inp.set_vars(
         ecut=35,
         nband=8,
-        occopt=4,    # Marzari smearing
+        occopt=4,  # Marzari smearing
         tsmear=tsmear,
         paral_kgb=paral_kgb,
-   )
+    )
 
     # Dataset 1 (GS run)
     scf_inp.set_kmesh(ngkpt=ngkpt, shiftk=structure.calc_shiftk())
@@ -47,7 +47,7 @@ def build_flow(options):
     pseudos = table.get_pseudos_for_structure(structure)
 
     nval = structure.num_valence_electrons(pseudos)
-    #print(nval)
+    # print(nval)
 
     flow = flowtk.Flow(workdir=options.workdir)
 
@@ -74,6 +74,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).plot_networkx(with_edge_labels=True, tight_layout=True)
 

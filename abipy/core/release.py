@@ -1,6 +1,4 @@
-"""
-Release data for the AbiPy project.
-"""
+"""Release data for the AbiPy project."""
 
 from collections import OrderedDict
 
@@ -13,13 +11,15 @@ name = "abipy"
 _version_major = 0
 _version_minor = 9
 _version_micro = 8  # use '' for first of series, number for 1 and above
-#_version_extra = 'dev'
+# _version_extra = 'dev'
 _version_extra = ""  # Uncomment this for full releases
 
 # Construct full version string from these.
 _ver = [_version_major, _version_minor]
-if _version_micro: _ver.append(_version_micro)
-if _version_extra: _ver.append(_version_extra)
+if _version_micro:
+    _ver.append(_version_micro)
+if _version_extra:
+    _ver.append(_version_extra)
 
 __version__ = ".".join(map(str, _ver))
 
@@ -57,12 +57,14 @@ author = "M. Giantomassi and the AbiPy group"
 author_email = "matteo.giantomassi@uclouvain.be"
 maintainer = "Matteo Giantomassi"
 maintainer_email = author_email
-authors = OrderedDict([
-    ("Matteo", ("M. Giantomassi", "nobody@nowhere")),
-    ("Michiel", ("M. J. van Setten", "nobody@nowhere")),
-    ("Guido", ("G. Petretto", "nobody@nowhere")),
-    ("Henrique", ("H. Miranda", "nobody@nowhere")),
-])
+authors = OrderedDict(
+    [
+        ("Matteo", ("M. Giantomassi", "nobody@nowhere")),
+        ("Michiel", ("M. J. van Setten", "nobody@nowhere")),
+        ("Guido", ("G. Petretto", "nobody@nowhere")),
+        ("Henrique", ("H. Miranda", "nobody@nowhere")),
+    ]
+)
 
 url = "https://github.com/abinit/abipy"
 download_url = "https://github.com/abinit/abipy"

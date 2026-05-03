@@ -1,4 +1,5 @@
 """Decorators."""
+
 from __future__ import annotations
 
 import functools
@@ -11,13 +12,19 @@ from textwrap import dedent
 
 class classproperty(property):
     """class-level property"""
+
     def __get__(self, obj, cls):
         return self.fget(cls)
 
 
 class cached_classproperty:
     """class-level property that is also cached."""
+
     def __init__(self, func):
+        """
+        Args:
+            func: Function to be decorated.
+        """
         self.func = func
         self._cache_name = f"__cached_{func.__name__}"
 
@@ -33,13 +40,16 @@ def return_straceback_ifexc(func: Callable):
     Instead of raising an exception, the decorated function returns a string with the
     traceback so that execution can continue.
     """
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
         except Exception:
             import traceback
+
             return traceback.format_exc()
+
     return wrapper
 
 
@@ -49,13 +59,15 @@ def timeit(method):
     https://medium.com/pythonhive/python-decorator-to-measure-the-execution-time-of-methods-fa04cb6bb36d
     sets the timing of the routine as an attribute of the class
     """
+
     def timed(self, *args, **kw):
         ts = time.time()
         result = method(self, *args, **kw)
         te = time.time()
 
-        setattr(self,"time_" + method.__name__, (te - ts) * 1000)
+        setattr(self, "time_" + method.__name__, (te - ts) * 1000)
         return result
+
     return timed
 
 
@@ -73,6 +85,7 @@ def memoized_method(*lru_args, **lru_kwargs):
         def method(self, a, b):
             return a + b
     """
+
     def decorator(func):
         @functools.wraps(func)
         def wrapped_func(self, *args, **kwargs):
@@ -84,9 +97,12 @@ def memoized_method(*lru_args, **lru_kwargs):
             @functools.lru_cache(*lru_args, **lru_kwargs)
             def cached_method(*args, **kwargs):
                 return func(self_weak(), *args, **kwargs)
+
             setattr(self, func.__name__, cached_method)
             return cached_method(*args, **kwargs)
+
         return wrapped_func
+
     return decorator
 
 
@@ -99,9 +115,7 @@ def dump_args(func: Callable):
 
     def wrapper(*args, **kwargs):
         func_args = inspect.signature(func).bind(*args, **kwargs).arguments
-        func_args_str = ", ".join(
-            "{} = {!r}".format(*item) for item in func_args.items()
-        )
+        func_args_str = ", ".join("{} = {!r}".format(*item) for item in func_args.items())
         print(f"{func.__module__}.{func.__qualname__} ( {func_args_str} )")
         return func(*args, **kwargs)
 
@@ -132,7 +146,16 @@ class Appender:
     MG: Added dedent and debug args.
 
     """
+
     def __init__(self, addendum, join="", indents=0, dedent=True, debug=False):
+        """
+        Args:
+            addendum: String to be appended to the docstring.
+            join: String used to join the docstring and addendum.
+            indents: Number of indents to add to the addendum.
+            dedent: True if docstrings should be dedented.
+            debug: True to print debug information.
+        """
         if indents > 0:
             self.addendum = indent(addendum, indents=indents)
         else:
@@ -145,8 +168,9 @@ class Appender:
         self.debug = debug
 
     def __call__(self, func):
-        func.__doc__ = func.__doc__ if func.__doc__ else ""
-        self.addendum = self.addendum if self.addendum else ""
+        """Append the addendum to the docstring of `func`."""
+        func.__doc__ = func.__doc__ or ""
+        self.addendum = self.addendum or ""
 
         if self.dedent:
             docitems = [dedent(func.__doc__), dedent(self.addendum)]

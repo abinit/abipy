@@ -1,4 +1,5 @@
 """Interface between phonopy and the AbiPy workflow model."""
+
 from __future__ import annotations
 
 import os
@@ -32,11 +33,15 @@ def structure_from_atoms(atoms) -> Structure:
     """
     Convert a phonopy Atoms object into a abipy Structure.
     """
-    return Structure(lattice=atoms.cell,
-                     species=atoms.symbols,
-                     coords=atoms.scaled_positions,
-                     validate_proximity=False, to_unit_cell=False,
-                     coords_are_cartesian=False, site_properties=None)
+    return Structure(
+        lattice=atoms.cell,
+        species=atoms.symbols,
+        coords=atoms.scaled_positions,
+        validate_proximity=False,
+        to_unit_cell=False,
+        coords_are_cartesian=False,
+        site_properties=None,
+    )
 
 
 class PhonopyWork(Work):
@@ -64,11 +69,7 @@ class PhonopyWork(Work):
     """
 
     @classmethod
-    def from_gs_input(cls,
-                      gs_inp: AbinitInput,
-                      scdims,
-                      phonopy_kwargs=None,
-                      displ_kwargs=None) -> PhonopyWork:
+    def from_gs_input(cls, gs_inp: AbinitInput, scdims, phonopy_kwargs=None, displ_kwargs=None) -> PhonopyWork:
         """
         Build the work from an AbinitInput object representing a GS calculations.
 
@@ -104,7 +105,7 @@ class PhonopyWork(Work):
             sc_gsinp = gs_inp.new_with_structure(sc_struct, scdims=new.scdims)
             sc_gsinp.pop_tolerances()
             sc_gsinp.pop_vars(["ionmov", "optcell", "ntime"])
-            sc_gsinp.set_vars(toldff=1.e-6)
+            sc_gsinp.set_vars(toldff=1.0e-6)
             sc_gsinp.set_vars_ifnotin(chksymbreak=0, chkprim=0)
 
             task = new.register_scf_task(sc_gsinp)
@@ -127,12 +128,15 @@ class PhonopyWork(Work):
         # Write yaml file with displacements.
         supercell = phonon.supercell
         displacements = phonon.displacements
-        file_IO.write_disp_yaml(displacements, supercell, # directions=directions,
-                                filename=self.outdir.path_in("disp.yaml"))
+        file_IO.write_disp_yaml(
+            displacements,
+            supercell,  # directions=directions,
+            filename=self.outdir.path_in("disp.yaml"),
+        )
 
         # Extract forces from the main Abinit output files.
         forces_filenames = [task.output_file.path for task in self.phonopy_tasks]
-        num_atoms = len(supercell) #.get_number_of_atoms()
+        num_atoms = len(supercell)  # .get_number_of_atoms()
         force_sets = parse_set_of_forces(num_atoms, forces_filenames)
 
         # Write FORCE_SETS file.
@@ -201,13 +205,11 @@ class PhonopyGruneisenWork(Work):
 
         numpy arrays with the number of cells in the supercell along the three reduced directions.
     """
+
     @classmethod
-    def from_gs_input(cls,
-                      gs_inp: AbinitInput,
-                      voldelta,
-                      scdims,
-                      phonopy_kwargs=None,
-                      displ_kwargs=None) -> PhonopyGruneisenWork:
+    def from_gs_input(
+        cls, gs_inp: AbinitInput, voldelta, scdims, phonopy_kwargs=None, displ_kwargs=None
+    ) -> PhonopyGruneisenWork:
         """
         Build the work from an AbinitInput object representing a GS calculations.
 
@@ -244,7 +246,7 @@ class PhonopyGruneisenWork(Work):
             new_input = gs_inp.new_with_structure(new_structure)
             # Set variables for structural optimization at constant volume.
             new_input.pop_tolerances()
-            new_input.set_vars(optcell=3, ionmov=3, tolvrs=1e-10, toldff=1.e-6)
+            new_input.set_vars(optcell=3, ionmov=3, tolvrs=1e-10, toldff=1.0e-6)
             new_input.set_vars_ifnotin(ecutsm=0.5, dilatmx=1.05)
             new.register_relax_task(new_input)
 
@@ -267,9 +269,9 @@ class PhonopyGruneisenWork(Work):
             relaxed_structure = task.get_final_structure()
             gs_inp = task.input.new_with_structure(relaxed_structure)
 
-            work = PhonopyWork.from_gs_input(gs_inp, self.scdims,
-                                             phonopy_kwargs=self.phonopy_kwargs,
-                                             displ_kwargs=self.displ_kwargs)
+            work = PhonopyWork.from_gs_input(
+                gs_inp, self.scdims, phonopy_kwargs=self.phonopy_kwargs, displ_kwargs=self.displ_kwargs
+            )
 
             self.flow.register_work(work)
             # Tell the work to copy the results to e.g. `flow/outdir/w0/minus`

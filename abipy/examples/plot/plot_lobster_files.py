@@ -8,6 +8,7 @@ produced by Lobster code <<http://schmeling.ac.rwth-aachen.de/cohp/>
 
 Use `abiview.py lobster DIRPATH` for a command line interface.
 """
+
 import os
 
 import abipy.data as abidata
@@ -29,4 +30,4 @@ lobana.plot_coxp_with_dos(from_site_index=[0, 1])
 # Plot orbital projections.
 lobana.plot_coxp_with_dos(from_site_index=[0], with_orbitals=True)
 
-#lobana.plot_with_ebands(ebands="out_GSR.nc")
+# lobana.plot_with_ebands(ebands="out_GSR.nc")

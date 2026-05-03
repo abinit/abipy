@@ -6,11 +6,11 @@ from abipy.tools import duck
 
 
 class DecoratorsTest(AbipyTest):
-
     def test_return_straceback_ifexc(self):
         """Testing return_straceback_ifexc."""
+
         def f(a, b):
-            return  a + b
+            return a + b
 
         with self.assertRaises(TypeError):
             f("hello", 1)

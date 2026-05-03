@@ -1,6 +1,7 @@
 """
 Works for Abinit
 """
+
 from __future__ import annotations
 
 import abc
@@ -92,7 +93,6 @@ __all__ = [
 
 
 class WorkResults(NodeResults):
-
     JSON_SCHEMA = NodeResults.JSON_SCHEMA.copy()
 
     @classmethod
@@ -117,6 +117,7 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: BaseWork
     """
+
     Error = WorkError
 
     Results = WorkResults
@@ -306,18 +307,21 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
         Returns: graphviz.Digraph <https://graphviz.readthedocs.io/en/stable/api.html#digraph>
         """
         from graphviz import Digraph
-        fg = Digraph("work", #filename="work_%s.gv" % os.path.basename(self.workdir),
-            engine="fdp" if engine == "automatic" else engine)
+
+        fg = Digraph(
+            "work",  # filename="work_%s.gv" % os.path.basename(self.workdir),
+            engine="fdp" if engine == "automatic" else engine,
+        )
 
         # Set graph attributes.
         # https://www.graphviz.org/doc/info/
-        #fg.attr(label="%s@%s" % (self.__class__.__name__, self.relworkdir))
+        # fg.attr(label="%s@%s" % (self.__class__.__name__, self.relworkdir))
         fg.attr(label=repr(self))
-        #fg.attr(fontcolor="white", bgcolor='purple:pink')
+        # fg.attr(fontcolor="white", bgcolor='purple:pink')
         fg.attr(rankdir="LR", pagedir="BL")
-        #fg.attr(constraint="false", pack="true", packMode="clust")
+        # fg.attr(constraint="false", pack="true", packMode="clust")
         fg.node_attr.update(color="lightblue2", style="filled")
-        #fg.node_attr.update(ranksep='equally')
+        # fg.node_attr.update(ranksep='equally')
 
         # Add input attributes.
         if graph_attr is not None:
@@ -329,10 +333,9 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
 
         def node_kwargs(node):
             return dict(
-                #shape="circle",
+                # shape="circle",
                 color=node.color_hex,
-                label=(str(node) if not hasattr(node, "pos_str") else
-                    node.pos_str + "\n" + node.__class__.__name__),
+                label=(str(node) if not hasattr(node, "pos_str") else node.pos_str + "\n" + node.__class__.__name__),
             )
 
         edge_kwargs = dict(arrowType="vee", style="solid")
@@ -353,8 +356,7 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
                     # Find file extensions required by this task
                     i = [dep.node for dep in child.deps].index(task)
                     edge_label = "+".join(child.deps[i].exts)
-                    myg.edge(task.name, child.name, label=edge_label, color=task.color_hex,
-                             **edge_kwargs)
+                    myg.edge(task.name, child.name, label=edge_label, color=task.color_hex, **edge_kwargs)
 
                 # Connect task to parents
                 for parent in task.get_parents():
@@ -364,11 +366,10 @@ class BaseWork(Node, metaclass=abc.ABCMeta):
                     # Find file extensions required by this task
                     i = [dep.node for dep in task.deps].index(parent)
                     edge_label = "+".join(task.deps[i].exts)
-                    myg.edge(parent.name, task.name, label=edge_label, color=parent.color_hex,
-                             **edge_kwargs)
+                    myg.edge(parent.name, task.name, label=edge_label, color=parent.color_hex, **edge_kwargs)
 
         # Treat the case in which we have a work producing output for tasks in *this* work.
-        #for work in self.flow:
+        # for work in self.flow:
         #    children = work.get_children()
         #    if not children or all(child not in self for child in children):
         #        continue
@@ -398,6 +399,7 @@ class NodeContainer(metaclass=abc.ABCMeta):
     to register tasks in the container.
     The helper function call the `register` method of the container.
     """
+
     # Abstract protocol for containers
 
     @abc.abstractmethod
@@ -428,7 +430,8 @@ class NodeContainer(metaclass=abc.ABCMeta):
         task = self.register_task(*args, **kwargs)
 
         # Make sure the parent producing the DEN file is given.
-        if task.is_work: task = task[-1]
+        if task.is_work:
+            task = task[-1]
         den_parent = task.find_parent_with_ext("DEN")
         if den_parent is None:
             raise ValueError("NSCF task %s\nrequires parent producing DEN file!" % repr(task))
@@ -510,7 +513,7 @@ class NodeContainer(metaclass=abc.ABCMeta):
         kwargs["task_class"] = GwrTask
         task = self.register_task(*args, **kwargs)
         gwr_task = task.input["gwr_task"]
-        #if gwr_task = ""
+        # if gwr_task = ""
 
         return task
 
@@ -579,7 +582,8 @@ class NodeContainer(metaclass=abc.ABCMeta):
             kwargs.update({"manager": manager.new_with_fixed_mpi_omp(mpi_procs, 1)})
 
         task = self.register_task(*args, **kwargs)
-        if msg: task.history.info(msg)
+        if msg:
+            task.history.info(msg)
         return task
 
     def register_kerange_task(self, *args, **kwargs) -> KerangeTask:
@@ -601,18 +605,22 @@ class NodeContainer(metaclass=abc.ABCMeta):
         Example:
             flow.walknset_vars(ecut=10, kptopt=4)
         """
+
         def change_task(task):
-            if task_class is not None and task.__class__ is not task_class: return False
+            if task_class is not None and task.__class__ is not task_class:
+                return False
             return True
 
         if self.is_work:
             for task in self:
-                if not change_task(task): continue
+                if not change_task(task):
+                    continue
                 task.set_vars(*args, **kwargs)
 
         elif self.is_flow:
             for task in self.iflat_tasks():
-                if not change_task(task): continue
+                if not change_task(task):
+                    continue
                 task.set_vars(*args, **kwargs)
 
         else:
@@ -676,7 +684,7 @@ class Work(BaseWork, NodeContainer):
     def set_workdir(self, workdir: str, chroot=False) -> None:
         """Set the working directory. Cannot be set more than once unless chroot is True"""
         if not chroot and hasattr(self, "workdir") and self.workdir != workdir:
-            raise ValueError("self.workdir != workdir: %s, %s" % (self.workdir,  workdir))
+            raise ValueError("self.workdir != workdir: %s, %s" % (self.workdir, workdir))
 
         self.workdir = os.path.abspath(workdir)
 
@@ -690,6 +698,7 @@ class Work(BaseWork, NodeContainer):
         self.wdir = Directory(self.workdir)
 
     def chroot(self, new_workdir: str) -> None:
+        """Changes the working directory of the work and its tasks."""
         self.set_workdir(new_workdir, chroot=True)
 
         for i, task in enumerate(self):
@@ -751,6 +760,7 @@ class Work(BaseWork, NodeContainer):
 
     @property
     def processes(self) -> list:
+        """List of processes associated with the tasks."""
         return [task.process for task in self]
 
     @property
@@ -791,7 +801,6 @@ class Work(BaseWork, NodeContainer):
             manager: |TaskManager| object or None
         """
         for i, task in enumerate(self):
-
             if not hasattr(task, "manager"):
                 # Set the manager
                 # Use the one provided in input else the one of the work/flow.
@@ -810,14 +819,13 @@ class Work(BaseWork, NodeContainer):
             elif task.workdir != task_workdir:
                 raise ValueError("task.workdir != task_workdir: %s, %s" % (task.workdir, task_workdir))
 
-    #def append_task(self, task: Task) -> None:
+    # def append_task(self, task: Task) -> None:
     #    """
     #    Low level method to append a pre-existent task.
     #    """
     #    self._tasks.append(task)
 
-    def register(self, obj: AbinitInput | Task,
-                 deps=None, required_files=None, manager=None, task_class=None) -> Task:
+    def register(self, obj: AbinitInput | Task, deps=None, required_files=None, manager=None, task_class=None) -> Task:
         """
         Registers a new |Task| and add it to the internal list, taking into account possible dependencies.
 
@@ -934,12 +942,14 @@ class Work(BaseWork, NodeContainer):
         # Recompute the status of the tasks
         # Ignore OK and LOCKED tasks.
         for task in self:
-            if task.status in (task.S_OK, task.S_LOCKED): continue
+            if task.status in (task.S_OK, task.S_LOCKED):
+                continue
             task.check_status()
 
         # Take into account possible dependencies.
         for task in self:
-            if task.status == task.S_LOCKED: continue
+            if task.status == task.S_LOCKED:
+                continue
             if task.status < task.S_SUB and all(status == task.S_OK for status in task.deps_status):
                 task.set_status(task.S_READY, "Status set to Ready")
 
@@ -947,7 +957,8 @@ class Work(BaseWork, NodeContainer):
         """
         Check if structures are equivalent, return string with info about differences (if any).
         """
-        if len(self) <= 1: return ""
+        if len(self) <= 1:
+            return ""
         formulas = set([task.input.structure.composition.formula for task in self])
         if len(formulas) != 1:
             return "Found structures with different full formulas: %s" % str(formulas)
@@ -970,6 +981,7 @@ class Work(BaseWork, NodeContainer):
         Subclasses may provide specialized implementations.
         """
         from abipy.panels.works import WorkPanel
+
         return WorkPanel(work=self).get_panel(**kwargs)
 
     def get_dataframe(self, as_dict=False) -> pd.DataFrame:
@@ -982,7 +994,8 @@ class Work(BaseWork, NodeContainer):
             d = task.get_dataframe(as_dict=True)
             rows.append(d)
 
-        if as_dict: return rows
+        if as_dict:
+            return rows
 
         return pd.DataFrame(rows)
 
@@ -1045,7 +1058,8 @@ class Work(BaseWork, NodeContainer):
             task.start()
 
         if wait:
-            for task in self: task.wait()
+            for task in self:
+                task.wait()
 
     def start(self, *args, **kwargs) -> None:
         """
@@ -1113,9 +1127,9 @@ class BandStructureWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls, scf_input: AbinitInput,
-                       dos_ngkpt, nb_extra=10, ndivsm=-20,
-                       dos_shiftk=(0, 0, 0), prtdos=3) -> BandStructureWork:
+    def from_scf_input(
+        cls, scf_input: AbinitInput, dos_ngkpt, nb_extra=10, ndivsm=-20, dos_shiftk=(0, 0, 0), prtdos=3
+    ) -> BandStructureWork:
         """
         Build a BandStructureWork from an |AbinitInput| representing a GS-SCF calculation.
 
@@ -1132,23 +1146,24 @@ class BandStructureWork(Work):
                 Set prtdos to zero to deactivate L-projections.
         """
         # Build input for NSCF along k-path.
-        nscf_input = scf_input.make_ebands_input(ndivsm=ndivsm, tolwfr=1e-20, nscf_nband=None, nb_extra=nb_extra,
-                                                 nstep=100)
+        nscf_input = scf_input.make_ebands_input(
+            ndivsm=ndivsm, tolwfr=1e-20, nscf_nband=None, nb_extra=nb_extra, nstep=100
+        )
         nscf_input["prtdos"] = prtdos
-        #if prtdos != 0: nscf_input.set_ratpsh(ratsph_mode)
+        # if prtdos != 0: nscf_input.set_ratpsh(ratsph_mode)
 
         dos_input = None
         if dos_ngkpt is not None:
             # Build input for NSCF with k-mesh.
-            dos_input = scf_input.make_edos_input(dos_ngkpt, shiftk=dos_shiftk, tolwfr=1e-20, nb_extra=nb_extra, nstep=100)
+            dos_input = scf_input.make_edos_input(
+                dos_ngkpt, shiftk=dos_shiftk, tolwfr=1e-20, nb_extra=nb_extra, nstep=100
+            )
             dos_input["prtdos"] = prtdos
-            #if prtdos != 0: dos_input.set_ratpsh(ratsph_mode)
+            # if prtdos != 0: dos_input.set_ratpsh(ratsph_mode)
 
         return cls(scf_input, nscf_input, [dos_input])
 
-
-    def __init__(self, scf_input: AbinitInput, nscf_input: AbinitInput,
-                 dos_inputs=None, workdir=None, manager=None):
+    def __init__(self, scf_input: AbinitInput, nscf_input: AbinitInput, dos_inputs=None, workdir=None, manager=None):
         """
         Args:
             scf_input: Input for the SCF run
@@ -1184,8 +1199,7 @@ class BandStructureWork(Work):
         with self.nscf_task.open_gsr() as gsr:
             return gsr.ebands.plot(**kwargs)
 
-    def plot_ebands_with_edos(self, dos_pos=0, method="gaussian",
-                              step=0.01, width=0.1, **kwargs) -> Figure:
+    def plot_ebands_with_edos(self, dos_pos=0, method="gaussian", step=0.01, width=0.1, **kwargs) -> Figure:
         """
         Plot the band structure and the DOS.
 
@@ -1221,12 +1235,15 @@ class BandStructureWork(Work):
 
         Return: |matplotlib-Figure|
         """
-        if dos_pos is not None and not isinstance(dos_pos, (list, tuple)): dos_pos = [dos_pos]
+        if dos_pos is not None and not isinstance(dos_pos, (list, tuple)):
+            dos_pos = [dos_pos]
 
         from abipy.electrons.ebands import ElectronDosPlotter
+
         plotter = ElectronDosPlotter()
         for i, task in enumerate(self.dos_tasks):
-            if dos_pos is not None and i not in dos_pos: continue
+            if dos_pos is not None and i not in dos_pos:
+                continue
             with task.open_gsr() as gsr:
                 edos = gsr.ebands.get_edos(method=method, step=step, width=width)
                 ngkpt = task.get_inpvar("ngkpt")
@@ -1245,8 +1262,10 @@ class RelaxWork(Work):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: RelaxWork
     """
-    def __init__(self, ion_input: AbinitInput, ioncell_input: AbinitInput,
-                 workdir=None, manager=None, target_dilatmx=None):
+
+    def __init__(
+        self, ion_input: AbinitInput, ioncell_input: AbinitInput, workdir=None, manager=None, target_dilatmx=None
+    ):
         """
         Args:
             ion_input: Input for the relaxation of the ions (cell is fixed)
@@ -1261,11 +1280,11 @@ class RelaxWork(Work):
         # Note:
         #   1) It would be nice to restart from the WFK file but ABINIT crashes due to the
         #      different unit cell parameters if paral_kgb == 1
-        #paral_kgb = ion_input[0]["paral_kgb"]
-        #if paral_kgb == 1:
+        # paral_kgb = ion_input[0]["paral_kgb"]
+        # if paral_kgb == 1:
 
-        #deps = {self.ion_task: "WFK"}  # --> FIXME: Problem in rwwf
-        #deps = {self.ion_task: "DEN"}
+        # deps = {self.ion_task: "WFK"}  # --> FIXME: Problem in rwwf
+        # deps = {self.ion_task: "DEN"}
         deps = None
 
         self.ioncell_task = self.register_relax_task(ioncell_input, deps=deps)
@@ -1297,11 +1316,14 @@ class RelaxWork(Work):
             self.ioncell_task.unlock(source_node=self)
 
         elif sender == self.ioncell_task and self.target_dilatmx:
-            actual_dilatmx = self.ioncell_task.get_inpvar("dilatmx", 1.)
+            actual_dilatmx = self.ioncell_task.get_inpvar("dilatmx", 1.0)
             if self.target_dilatmx < actual_dilatmx:
                 self.ioncell_task.reduce_dilatmx(target=self.target_dilatmx)
-                self.history.info("Converging dilatmx. Value reduced from {} to {}."
-                            .format(actual_dilatmx, self.ioncell_task.get_inpvar("dilatmx")))
+                self.history.info(
+                    "Converging dilatmx. Value reduced from {} to {}.".format(
+                        actual_dilatmx, self.ioncell_task.get_inpvar("dilatmx")
+                    )
+                )
                 self.ioncell_task.restart()
 
         return super().on_ok(sender)
@@ -1335,8 +1357,8 @@ class G0W0Work(Work):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: G0W0Work
     """
-    def __init__(self, scf_inputs, nscf_inputs, scr_inputs, sigma_inputs,
-                 workdir=None, manager=None):
+
+    def __init__(self, scf_inputs, nscf_inputs, scr_inputs, sigma_inputs, workdir=None, manager=None):
         """
         Args:
             scf_inputs: Input(s) for the SCF run, if it is a list add all but only link
@@ -1352,10 +1374,12 @@ class G0W0Work(Work):
         """
         super().__init__(workdir=workdir, manager=manager)
 
-        spread_scr = (isinstance(sigma_inputs, (list, tuple)) and
-                      isinstance(scr_inputs, (list, tuple)) and
-                      len(sigma_inputs) == len(scr_inputs))
-        #print("spread_scr", spread_scr)
+        spread_scr = (
+            isinstance(sigma_inputs, (list, tuple))
+            and isinstance(scr_inputs, (list, tuple))
+            and len(sigma_inputs) == len(scr_inputs)
+        )
+        # print("spread_scr", spread_scr)
 
         self.sigma_tasks = []
 
@@ -1400,6 +1424,7 @@ class SigmaConvWork(Work):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: SigmaConvWork
     """
+
     def __init__(self, wfk_node, scr_node, sigma_inputs, workdir=None, manager=None):
         """
         Args:
@@ -1431,8 +1456,8 @@ class BseMdfWork(Work):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: BseMdfWork
     """
-    def __init__(self, scf_input: AbinitInput, nscf_input: AbinitInput,
-                 bse_inputs, workdir=None, manager=None):
+
+    def __init__(self, scf_input: AbinitInput, nscf_input: AbinitInput, bse_inputs, workdir=None, manager=None):
         """
         Args:
             scf_input: Input for the SCF run.
@@ -1459,6 +1484,7 @@ class BseMdfWork(Work):
     def get_mdf_robot(self):
         """Builds and returns a :class:`MdfRobot` for analyzing the results in the MDF files."""
         from abipy.electrons.bse import MdfRobot
+
         robot = MdfRobot()
         for task in self[2:]:
             mdf_path = task.outdir.has_abiext(robot.EXT)
@@ -1554,6 +1580,7 @@ class QptdmWork(Work):
         final_scr = self.merge_scrfiles()
         return self.Results(node=self, returncode=0, message="mrgscr done", final_scr=final_scr)
 
+
 # TODO: MergeDdb --> DfptWork(Work) postpone it because it may break pickle.
 
 
@@ -1562,8 +1589,9 @@ class MergeDdb:
     Mixin class for Works that need to merge the DDB files produced by the tasks in self.
     """
 
-    def add_becs_from_scf_task(self, scf_task, ddk_tolerance, ph_tolerance,
-                               with_quad=False, with_flexoe=False) -> tuple:
+    def add_becs_from_scf_task(
+        self, scf_task, ddk_tolerance, ph_tolerance, with_quad=False, with_flexoe=False
+    ) -> tuple:
         """
         Build tasks for the computation of Born effective charges and add them to the work.
 
@@ -1602,13 +1630,12 @@ class MergeDdb:
         bec_deps.update({scf_task: "WFK"})
 
         if with_flexoe:
-            bec_inputs = scf_task.input.make_strain_perts_inputs(tolerance=ph_tolerance,
-                                                                 phonon_pert=True, efield_pert=True,
-                                                                 prepalw=1)
+            bec_inputs = scf_task.input.make_strain_perts_inputs(
+                tolerance=ph_tolerance, phonon_pert=True, efield_pert=True, prepalw=1
+            )
         else:
             # Dataset 4 in <https://docs.abinit.org/tests/tutorespfn/Input/tlw_4.abi>
-            bec_inputs = scf_task.input.make_bec_inputs(tolerance=ph_tolerance,
-                                                        prepalw=2 if with_quad else 0)
+            bec_inputs = scf_task.input.make_bec_inputs(tolerance=ph_tolerance, prepalw=2 if with_quad else 0)
 
         bec_tasks = []
         for bec_inp in bec_inputs:
@@ -1645,7 +1672,7 @@ class MergeDdb:
                 quad_task = self.register_quad_task(quad_inp, deps=quad_deps)
 
             if with_flexoe:
-                #flexoe_inp = scf_task.input.make_flexoe_input(tolerance=ph_tolerance)
+                # flexoe_inp = scf_task.input.make_flexoe_input(tolerance=ph_tolerance)
                 flexoe_inp = scf_task.input.new_with_vars(
                     optdriver=10,
                     lw_flexo=1,
@@ -1655,8 +1682,9 @@ class MergeDdb:
 
                 self.register_flexoe_task(flexoe_inp, deps=quad_deps)
 
-    def merge_ddb_files(self, delete_source_ddbs=False, only_dfpt_tasks=True,
-                        exclude_tasks=None, include_tasks=None) -> str:
+    def merge_ddb_files(
+        self, delete_source_ddbs=False, only_dfpt_tasks=True, exclude_tasks=None, include_tasks=None
+    ) -> str:
         """
         This method is called when all the q-points have been computed.
         It runs `mrgddb` in sequential on the local machine to produce
@@ -1682,8 +1710,9 @@ class MergeDdb:
             my_tasks = [task for task in self]
 
         if only_dfpt_tasks:
-            ddb_files = list(filter(None, [task.outdir.has_abiext("DDB") for task in my_tasks
-                                    if isinstance(task, DfptTask)]))
+            ddb_files = list(
+                filter(None, [task.outdir.has_abiext("DDB") for task in my_tasks if isinstance(task, DfptTask)])
+            )
         else:
             ddb_files = list(filter(None, [task.outdir.has_abiext("DDB") for task in my_tasks]))
 
@@ -1702,8 +1731,9 @@ class MergeDdb:
             # Call mrgddb
             desc = "DDB file merged by %s on %s" % (self.__class__.__name__, time.asctime())
             mrgddb = wrappers.Mrgddb(manager=self[0].manager, verbose=0)
-            mrgddb.merge(self.outdir.path, ddb_files, out_ddb=out_ddb, description=desc,
-                         delete_source_ddbs=delete_source_ddbs)
+            mrgddb.merge(
+                self.outdir.path, ddb_files, out_ddb=out_ddb, description=desc, delete_source_ddbs=delete_source_ddbs
+            )
 
         return out_ddb
 
@@ -1723,17 +1753,19 @@ class MergeDdb:
 
         pot1_files = []
         for task in self:
-            if not isinstance(task, DfptTask): continue
+            if not isinstance(task, DfptTask):
+                continue
             paths = task.outdir.list_filepaths(wildcard="*_POT*")
             for path in paths:
                 # Include only atomic perturbations i.e. files whose ext <= 3 * natom
                 i = path.rindex("_POT")
-                pertcase = int(path[i+4:].replace(".nc", ""))
+                pertcase = int(path[i + 4 :].replace(".nc", ""))
                 if pertcase <= max_pertcase:
                     pot1_files.append(path)
 
         # prtpot = 0 disables the output of the DFPT POT files so an empty list is not fatal here.
-        if not pot1_files: return None
+        if not pot1_files:
+            return None
 
         self.history.info("Will call mrgdvdb to merge %s files:" % len(pot1_files))
 
@@ -1766,11 +1798,23 @@ class PhononWork(Work, MergeDdb):
     """
 
     @classmethod
-    def from_scf_task(cls, scf_task: ScfTask,
-                      qpoints, is_ngqpt=False, with_becs=False,
-                      with_quad=False, with_flexoe=False, with_dvdb=True,
-                      tolerance=None, ddk_tolerance=None, ndivsm=0, qptopt=1,
-                      prtwf=-1, prepgkk=0, manager=None) -> PhononWork:
+    def from_scf_task(
+        cls,
+        scf_task: ScfTask,
+        qpoints,
+        is_ngqpt=False,
+        with_becs=False,
+        with_quad=False,
+        with_flexoe=False,
+        with_dvdb=True,
+        tolerance=None,
+        ddk_tolerance=None,
+        ndivsm=0,
+        qptopt=1,
+        prtwf=-1,
+        prepgkk=0,
+        manager=None,
+    ) -> PhononWork:
         """
         Construct a `PhononWork` from a |ScfTask| object.
         The input file for phonons is automatically generated from the input of the ScfTask.
@@ -1824,17 +1868,19 @@ class PhononWork(Work, MergeDdb):
 
         if with_becs:
             # Special treatment of q == 0.
-            new.add_becs_from_scf_task(scf_task, ddk_tolerance, ph_tolerance=tolerance,
-                                       with_quad=with_quad, with_flexoe=with_flexoe)
+            new.add_becs_from_scf_task(
+                scf_task, ddk_tolerance, ph_tolerance=tolerance, with_quad=with_quad, with_flexoe=with_flexoe
+            )
 
         for qpt in qpoints:
-            is_gamma = np.sum(qpt ** 2) < 1e-12
-            if with_becs and is_gamma: continue
-            multi = scf_task.input.make_ph_inputs_qpoint(qpt, tolerance=tolerance,
-                                                         prepgkk=prepgkk)
+            is_gamma = np.sum(qpt**2) < 1e-12
+            if with_becs and is_gamma:
+                continue
+            multi = scf_task.input.make_ph_inputs_qpoint(qpt, tolerance=tolerance, prepgkk=prepgkk)
             for ph_inp in multi:
                 # Here we set the value of prtwf for the DFPT tasks if q != Gamma.
-                if not is_gamma: ph_inp.set_vars(prtwf=prtwf)
+                if not is_gamma:
+                    ph_inp.set_vars(prtwf=prtwf)
                 new.register_phonon_task(ph_inp, deps={scf_task: "WFK"})
 
         new.ebands_task = None
@@ -1844,21 +1890,23 @@ class PhononWork(Work, MergeDdb):
         return new
 
     @classmethod
-    def from_scf_input(cls,
-                       scf_input: AbinitInput,
-                       qpoints,
-                       is_ngqpt=False,
-                       with_becs=False,
-                       with_quad=False,
-                       with_flexoe=False,
-                       with_dvdb=True,
-                       tolerance=None,
-                       ddk_tolerance=None,
-                       ndivsm=0,
-                       qptopt=1,
-                       prtwf=-1,
-                       prepgkk=0,
-                       manager=None) -> PhononWork:
+    def from_scf_input(
+        cls,
+        scf_input: AbinitInput,
+        qpoints,
+        is_ngqpt=False,
+        with_becs=False,
+        with_quad=False,
+        with_flexoe=False,
+        with_dvdb=True,
+        tolerance=None,
+        ddk_tolerance=None,
+        ndivsm=0,
+        qptopt=1,
+        prtwf=-1,
+        prepgkk=0,
+        manager=None,
+    ) -> PhononWork:
         """
         Similar to `from_scf_task`, the difference is that this method requires
         an input for SCF calculation. A new |ScfTask| is created and added to the Work.
@@ -1881,17 +1929,19 @@ class PhononWork(Work, MergeDdb):
 
         if with_becs:
             # Special treatment of q == 0.
-            new.add_becs_from_scf_task(scf_task, ddk_tolerance, ph_tolerance=tolerance,
-                                       with_quad=with_quad, with_flexoe=with_flexoe)
+            new.add_becs_from_scf_task(
+                scf_task, ddk_tolerance, ph_tolerance=tolerance, with_quad=with_quad, with_flexoe=with_flexoe
+            )
 
         for qpt in qpoints:
-            is_gamma = np.sum(qpt ** 2) < 1e-12
-            if with_becs and is_gamma: continue
-            multi = scf_task.input.make_ph_inputs_qpoint(qpt, tolerance=tolerance,
-                                                         prepgkk=prepgkk)
+            is_gamma = np.sum(qpt**2) < 1e-12
+            if with_becs and is_gamma:
+                continue
+            multi = scf_task.input.make_ph_inputs_qpoint(qpt, tolerance=tolerance, prepgkk=prepgkk)
             for ph_inp in multi:
                 # Here we set the value of prtwf for the DFPT tasks if q != Gamma.
-                if not is_gamma: ph_inp.set_vars(prtwf=prtwf)
+                if not is_gamma:
+                    ph_inp.set_vars(prtwf=prtwf)
                 new.register_phonon_task(ph_inp, deps={scf_task: "WFK"})
 
         new.ebands_task = None
@@ -1934,11 +1984,23 @@ class PhononWfkqWork(Work, MergeDdb):
     """
 
     @classmethod
-    def from_scf_task(cls, scf_task: ScfTask,
-                      ngqpt, ph_tolerance=None, tolwfr=1.0e-22, nband=None,
-                      with_becs=False, with_quad=False, ddk_tolerance=None, shiftq=(0, 0, 0),
-                      is_ngqpt=True, qptopt=1, remove_wfkq=True,
-                      prepgkk=0, manager=None) -> PhononWfkqWork:
+    def from_scf_task(
+        cls,
+        scf_task: ScfTask,
+        ngqpt,
+        ph_tolerance=None,
+        tolwfr=1.0e-22,
+        nband=None,
+        with_becs=False,
+        with_quad=False,
+        ddk_tolerance=None,
+        shiftq=(0, 0, 0),
+        is_ngqpt=True,
+        qptopt=1,
+        remove_wfkq=True,
+        prepgkk=0,
+        manager=None,
+    ) -> PhononWfkqWork:
         """
         Construct a `PhononWfkqWork` from a |ScfTask| object.
         The input files for WFQ and phonons are automatically generated from the input of the ScfTask.
@@ -1972,8 +2034,8 @@ class PhononWfkqWork(Work, MergeDdb):
         if not isinstance(scf_task, ScfTask):
             raise TypeError(f"task {scf_task} does not inherit from ScfTask")
 
-        shiftq = np.reshape(shiftq, (3, ))
-        #print("ngqpt", ngqpt, "\nshiftq", shiftq)
+        shiftq = np.reshape(shiftq, (3,))
+        # print("ngqpt", ngqpt, "\nshiftq", shiftq)
         if is_ngqpt:
             qpoints = scf_task.input.abiget_ibz(ngkpt=ngqpt, shiftk=shiftq, kptopt=qptopt).points
         else:
@@ -1992,16 +2054,17 @@ class PhononWfkqWork(Work, MergeDdb):
         # Get ngkpt, shift for electrons from input.
         # Won't try to skip WFQ if multiple shifts or off-diagonal kptrlatt
         ngkpt, shiftk = scf_task.input.get_ngkpt_shiftk()
-        #try_to_skip_wfkq = True
-        #if ngkpt is not None and len(shiftk) == 1 and not is_ngqpt:
+        # try_to_skip_wfkq = True
+        # if ngkpt is not None and len(shiftk) == 1 and not is_ngqpt:
         #    try_to_skip_wfkq = True
         try_to_skip_wfkq = False
 
         # TODO: One could avoid kptopt 3 by computing WFK in the IBZ and then rotating.
         # but this has to be done inside Abinit.
         for qpt in qpoints:
-            is_gamma = np.sum(qpt ** 2) < 1e-12
-            if with_becs and is_gamma: continue
+            is_gamma = np.sum(qpt**2) < 1e-12
+            if with_becs and is_gamma:
+                continue
 
             # Avoid WFQ if k + q = k (requires ngkpt, multiple shifts are not supported)
             need_wfkq = True
@@ -2010,17 +2073,17 @@ class PhononWfkqWork(Work, MergeDdb):
             elif try_to_skip_wfkq:
                 # k = (i + shiftk) / ngkpt
                 qinds = np.rint(qpt * ngqpt - shiftq)
-                #print("qpt", qpt, "\nqinds", qinds, "\nngkpt", ngkpt, "\nngqpt", ngqpt)
+                # print("qpt", qpt, "\nqinds", qinds, "\nngkpt", ngkpt, "\nngqpt", ngqpt)
                 f = (qinds * ngkpt) % ngqpt
                 need_wfkq = np.any(f != 0)
 
-            #neee_wfkq = True
+            # neee_wfkq = True
 
             if need_wfkq:
                 nscf_inp = scf_task.input.new_with_vars(qpt=qpt, nqpt=1, iscf=-2, kptopt=3, tolwfr=tolwfr)
                 if nband:
-                    nbdbuf = max(2, nband*0.1)
-                    nscf_inp.set_vars(nband=nband+nbdbuf, nbdbuf=nbdbuf)
+                    nbdbuf = max(2, nband * 0.1)
+                    nscf_inp.set_vars(nband=nband + nbdbuf, nbdbuf=nbdbuf)
 
                 wfkq_task = new.register_nscf_task(nscf_inp, deps={scf_task: ["DEN", "WFK"]})
                 new.wfkq_tasks.append(wfkq_task)
@@ -2028,7 +2091,7 @@ class PhononWfkqWork(Work, MergeDdb):
             multi = scf_task.input.make_ph_inputs_qpoint(qpt, tolerance=ph_tolerance, prepgkk=prepgkk)
             for ph_inp in multi:
                 deps = {scf_task: "WFK", wfkq_task: "WFQ"} if need_wfkq else {scf_task: "WFK"}
-                #ph_inp["prtwf"] = -1
+                # ph_inp["prtwf"] = -1
                 t = new.register_phonon_task(ph_inp, deps=deps)
                 new.phonon_tasks.append(t)
                 if need_wfkq:
@@ -2043,7 +2106,8 @@ class PhononWfkqWork(Work, MergeDdb):
         """
         if self.remove_wfkq:
             for task in self.wfkq_tasks:
-                if task.status != task.S_OK: continue
+                if task.status != task.S_OK:
+                    continue
                 children = self.wfkq_task_children[task]
                 if all(child.status == child.S_OK for child in children):
                     path = task.outdir.has_abiext("WFQ")
@@ -2076,9 +2140,21 @@ class GKKPWork(Work):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GKKPWork
     """
+
     @classmethod
-    def from_den_ddb_dvdb(cls, inp, den_path, ddb_path, dvdb_path, mpiprocs=1, remove_wfkq=True,
-                          qpath=None, with_ddk=True, expand=True, manager=None):
+    def from_den_ddb_dvdb(
+        cls,
+        inp,
+        den_path,
+        ddb_path,
+        dvdb_path,
+        mpiprocs=1,
+        remove_wfkq=True,
+        qpath=None,
+        with_ddk=True,
+        expand=True,
+        manager=None,
+    ):
         """
         Construct a `GKKPWork` from a DDB and DVDB file.
         For each q found, a WFQ task and an EPH task computing the matrix elements are created.
@@ -2095,7 +2171,8 @@ class GKKPWork(Work):
         new.remove_wfkq = remove_wfkq
         new.wfkq_tasks = []
         new.wfkq_task_children = collections.defaultdict(list)
-        if manager is None: manager = TaskManager.from_user_config()
+        if manager is None:
+            manager = TaskManager.from_user_config()
         tm = manager.new_with_fixed_mpi_omp(mpiprocs, 1)
 
         # Create a WFK task
@@ -2116,10 +2193,12 @@ class GKKPWork(Work):
         if qpath is None:
             qpath = q_frac_coords
         else:
-            interp_inp = inp.new_with_vars(optdriver=7, eph_task=-5, ddb_ngqpt=ddb_ngqpt,
-                                           ph_nqpath=len(qpath), ph_qpath=qpath, prtphdos=0)
-            dvdb = new.register_eph_task(interp_inp, deps={wfk_task: "WFK", ddb_file: "DDB", dvdb_file: "DVDB"},
-                                         manager=tm)
+            interp_inp = inp.new_with_vars(
+                optdriver=7, eph_task=-5, ddb_ngqpt=ddb_ngqpt, ph_nqpath=len(qpath), ph_qpath=qpath, prtphdos=0
+            )
+            dvdb = new.register_eph_task(
+                interp_inp, deps={wfk_task: "WFK", ddb_file: "DDB", dvdb_file: "DVDB"}, manager=tm
+            )
 
         # Create a WFK expansion task
         if expand:
@@ -2127,8 +2206,7 @@ class GKKPWork(Work):
             fbz_nscf_inp.set_spell_check(False)
             fbz_nscf_inp.set_vars(wfk_task="wfk_fullbz")
             tm_serial = manager.new_with_fixed_mpi_omp(1, 1)
-            wfk_task = new.register_nscf_task(fbz_nscf_inp, deps={wfk_task: "WFK", den_file: "DEN"},
-                                              manager=tm_serial)
+            wfk_task = new.register_nscf_task(fbz_nscf_inp, deps={wfk_task: "WFK", den_file: "DEN"}, manager=tm_serial)
             new.wfkq_tasks.append(wfk_task)
             new.wfk_task = wfk_task
 
@@ -2142,7 +2220,7 @@ class GKKPWork(Work):
 
         # For each qpoint
         for qpt in qpath:
-            is_gamma = np.sum(qpt ** 2) < 1e-12
+            is_gamma = np.sum(qpt**2) < 1e-12
             if is_gamma:
                 # Create a link from WFK to WFQ on_ok
                 wfkq_task = wfk_task
@@ -2155,8 +2233,9 @@ class GKKPWork(Work):
                 deps = {wfk_task: "WFK", wfkq_task: "WFQ", ddb_file: "DDB", dvdb: "DVDB"}
 
             # Create a EPH task
-            eph_inp = inp.new_with_vars(optdriver=7, prtphdos=0, eph_task=-2, kptopt=3,
-                                        ddb_ngqpt=[1, 1, 1], nqpt=1, qpt=qpt)
+            eph_inp = inp.new_with_vars(
+                optdriver=7, prtphdos=0, eph_task=-2, kptopt=3, ddb_ngqpt=[1, 1, 1], nqpt=1, qpt=qpt
+            )
             t = new.register_eph_task(eph_inp, deps=deps, manager=tm)
             new.wfkq_task_children[wfkq_task].append(t)
 
@@ -2172,7 +2251,7 @@ class GKKPWork(Work):
         qpoints = []
         qpoints_deps = []
         for task in phononwfkq_work:
-            if isinstance(task,PhononTask):
+            if isinstance(task, PhononTask):
                 # Store qpoints
                 qpt = task.input.get("qpt", [0, 0, 0])
                 qpoints.append(qpt)
@@ -2187,7 +2266,7 @@ class GKKPWork(Work):
 
         # Get scf_task from first q-point
         for dep in qpoints_deps[0]:
-            if isinstance(dep.node,ScfTask) and dep.exts[0] == "WFK":
+            if isinstance(dep.node, ScfTask) and dep.exts[0] == "WFK":
                 scf_task = dep.node
 
         # Create new work
@@ -2197,10 +2276,11 @@ class GKKPWork(Work):
         new.wfk_task = []
 
         # Add one eph task per qpoint
-        for qpt,qpoint_deps in zip(qpoints,qpoints_deps, strict=False):
+        for qpt, qpoint_deps in zip(qpoints, qpoints_deps, strict=False):
             # Create eph task
-            eph_input = scf_task.input.new_with_vars(optdriver=7, prtphdos=0, eph_task=-2,
-                                                     ddb_ngqpt=[1, 1, 1], nqpt=1, qpt=qpt)
+            eph_input = scf_task.input.new_with_vars(
+                optdriver=7, prtphdos=0, eph_task=-2, ddb_ngqpt=[1, 1, 1], nqpt=1, qpt=qpt
+            )
             deps = {ddb_file: "DDB", dvdb_file: "DVDB"}
             for dep in qpoint_deps:
                 deps[dep.node] = dep.exts[0]
@@ -2213,7 +2293,8 @@ class GKKPWork(Work):
                 filename, extension = os.path.splitext(wfk_path)
                 infile = "out_WFQ" + extension
                 wfq_path = os.path.join(os.path.dirname(wfk_path), infile)
-                if not os.path.isfile(wfq_path): os.symlink(wfk_path, wfq_path)
+                if not os.path.isfile(wfq_path):
+                    os.symlink(wfk_path, wfq_path)
                 deps[FileNode(wfq_path)] = "WFQ"
 
             new.register_eph_task(eph_input, deps=deps)
@@ -2227,7 +2308,8 @@ class GKKPWork(Work):
         """
         if self.remove_wfkq:
             for task in self.wfkq_tasks:
-                if task.status != task.S_OK: continue
+                if task.status != task.S_OK:
+                    continue
                 children = self.wfkq_task_children[task]
                 if all(child.status == child.S_OK for child in children):
                     path = task.outdir.has_abiext("WFQ")
@@ -2249,6 +2331,7 @@ class GKKPWork(Work):
 
 # TODO: We may deprecate it and use PhononWork that is more general!
 
+
 class BecWork(Work, MergeDdb):
     """
     Work for the computation of the Born effective charges.
@@ -2262,8 +2345,7 @@ class BecWork(Work, MergeDdb):
     """
 
     @classmethod
-    def from_scf_task(cls, scf_task: ScfTask,
-                      ddk_tolerance=None, ph_tolerance=None, manager=None):
+    def from_scf_task(cls, scf_task: ScfTask, ddk_tolerance=None, ph_tolerance=None, manager=None):
         """
         Build tasks for the computation of Born effective charges from a ground-state task.
 
@@ -2299,9 +2381,9 @@ class DteWork(Work, MergeDdb):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: DteWork
     """
+
     @classmethod
-    def from_scf_task(cls, scf_task: ScfTask,
-                      ddk_tolerance=None, manager=None) -> DteWork:
+    def from_scf_task(cls, scf_task: ScfTask, ddk_tolerance=None, manager=None) -> DteWork:
         """
         Build a DteWork from a ground-state task.
 
@@ -2340,7 +2422,7 @@ class DteWork(Work, MergeDdb):
         # DTE calculations
         # Read WFK only and use it to compute the density on the fly
         # to avoid possible problems with paral_kgb 1 and MPI-FFT
-        #dte_deps = {scf_task: "WFK DEN"}
+        # dte_deps = {scf_task: "WFK DEN"}
         dte_deps = {scf_task: "WFK"}
         dte_deps.update(dict.fromkeys(dde_tasks, "1WF 1DEN"))
 
@@ -2350,13 +2432,13 @@ class DteWork(Work, MergeDdb):
         gs_inp = scf_task.input.deepcopy()
         gs_inp.pop_irdvars()
         nval = gs_inp.structure.num_valence_electrons(gs_inp.pseudos)
-        #nval -= gs_inp['charge'] # VT: commented out because KeyError
+        # nval -= gs_inp['charge'] # VT: commented out because KeyError
         nband = int(round(nval / 2))
         gs_inp.set_vars(nband=nband)
         gs_inp.pop("nbdbuf", None)
         multi_dte = gs_inp.make_dte_inputs()
 
-        #multi_dte = scf_task.input.make_dte_inputs()
+        # multi_dte = scf_task.input.make_dte_inputs()
         dte_tasks = []
         for dte_inp in multi_dte:
             dte_task = new.register_dte_task(dte_inp, deps=dte_deps)
@@ -2398,8 +2480,9 @@ class ConducWork(Work):
     """
 
     @classmethod
-    def from_phwork(cls, phwork, multi, nbr_proc=None, flow=None, with_kerange=False,
-                    omp_nbr_thread=1, manager=None) -> ConducWork:
+    def from_phwork(
+        cls, phwork, multi, nbr_proc=None, flow=None, with_kerange=False, omp_nbr_thread=1, manager=None
+    ) -> ConducWork:
         """
         Construct a ConducWork from a |PhononWork| and |MultiDataset|.
 
@@ -2418,14 +2501,20 @@ class ConducWork(Work):
             raise TypeError(f"Work {phwork} does not inherit from PhononWork")
 
         # Verify Multi
-        if (not with_kerange) and (multi.ndtset != 3): #Without kerange, multi should contain 3 datasets
-            raise ValueError("""The |MultiDataset| object does not contain the expected number of dataset.
+        if (not with_kerange) and (multi.ndtset != 3):  # Without kerange, multi should contain 3 datasets
+            raise ValueError(
+                """The |MultiDataset| object does not contain the expected number of dataset.
                                 It should have 3 datasets and it had `%s`. You should generate
-                                multi with the factory function conduc_from_scf_nscf_inputs""" % multi.ndtset)
-        if (with_kerange) and (multi.ndtset != 5): # With Kerange, multi should contain 5 datasets
-            raise ValueError("""The |MultiDataset| object does not contain the expected number of dataset.
+                                multi with the factory function conduc_from_scf_nscf_inputs"""
+                % multi.ndtset
+            )
+        if (with_kerange) and (multi.ndtset != 5):  # With Kerange, multi should contain 5 datasets
+            raise ValueError(
+                """The |MultiDataset| object does not contain the expected number of dataset.
                               It should have 5 datasets and it had `%s`. You should generate
-                              multi with the factory function conduc_from_scf_nscf_inputs""" % multi.ndtset)
+                              multi with the factory function conduc_from_scf_nscf_inputs"""
+                % multi.ndtset
+            )
         # Verify nbr_proc and flow are defined if with_kerange
         if with_kerange and (flow is None or nbr_proc is None):
             raise ValueError(f"""When using kerange, the argument flow and nbr_proc must be passed to the function from_filepath
@@ -2435,20 +2524,20 @@ class ConducWork(Work):
 
         new.register_task(multi[0])
         new.register_task(multi[1], deps={new[0]: "DEN"})
-        taskNumber = 2 # To keep track of the task in new and multi
+        taskNumber = 2  # To keep track of the task in new and multi
 
         if with_kerange:  # Using Kerange
             new.register_task(multi[2], deps={new[1]: "WFK"})
             new.register_task(multi[3], deps={new[0]: "DEN", new[1]: "WFK", new[2]: "KERANGE.nc"})
-            taskNumber = 4 # We have 2 more dataset
+            taskNumber = 4  # We have 2 more dataset
 
-        new.register_task(multi[taskNumber], deps={new[taskNumber-1]: "WFK", phwork: ["DDB","DVDB"]})
+        new.register_task(multi[taskNumber], deps={new[taskNumber - 1]: "WFK", phwork: ["DDB", "DVDB"]})
 
         for task in new:
             task.set_work(new)
 
         # Manual Parallelization since autoparal doesn't work with optdriver=8 (t2)
-        if flow is not None :
+        if flow is not None:
             new.set_flow(flow)
             if nbr_proc is not None:
                 for task in new[2:]:
@@ -2456,8 +2545,9 @@ class ConducWork(Work):
         return new
 
     @classmethod
-    def from_filepath(cls, ddb_path, dvdb_path, multi, nbr_proc=None, flow=None,
-                      with_kerange=False, omp_nbr_thread=1, manager=None) -> ConducWork:
+    def from_filepath(
+        cls, ddb_path, dvdb_path, multi, nbr_proc=None, flow=None, with_kerange=False, omp_nbr_thread=1, manager=None
+    ) -> ConducWork:
         """
         Construct a ConducWork from previously calculated DDB/DVDB file and |MultiDataset|.
 
@@ -2473,14 +2563,20 @@ class ConducWork(Work):
             manager: |TaskManager| of the task. If None, the manager is initialized from the config file.
         """
         # Verify Multi
-        if (not with_kerange) and (multi.ndtset != 3): # Without kerange, multi should contain 4 datasets
-            raise ValueError("""The |MultiDataset| object does not contain the expected number of dataset.
+        if (not with_kerange) and (multi.ndtset != 3):  # Without kerange, multi should contain 4 datasets
+            raise ValueError(
+                """The |MultiDataset| object does not contain the expected number of dataset.
                                 It should have 4 datasets and it had `%s`. You should generate
-                                multi with the factory function conduc_from_scf_nscf_inputs""" % multi.ndtset)
-        if (with_kerange) and (multi.ndtset != 5): # With Kerange, multi should contain 6 datasets
-            raise ValueError("""The |MultiDataset| object does not contain the expected number of dataset.
+                                multi with the factory function conduc_from_scf_nscf_inputs"""
+                % multi.ndtset
+            )
+        if (with_kerange) and (multi.ndtset != 5):  # With Kerange, multi should contain 6 datasets
+            raise ValueError(
+                """The |MultiDataset| object does not contain the expected number of dataset.
                               It should have 6 datasets and it had `%s`.You should generate
-                                multi with the factory function conduc_from_scf_nscf_inputs""" % multi.ndtset)
+                                multi with the factory function conduc_from_scf_nscf_inputs"""
+                % multi.ndtset
+            )
         # Make sure both file exists
         if not os.path.exists(ddb_path):
             raise ValueError(f"The DDB file {ddb_path} does not exist")
@@ -2497,24 +2593,24 @@ class ConducWork(Work):
 
         new.register_task(multi[0])
         new.register_task(multi[1], deps={new[0]: "DEN"})
-        taskNumber = 2 # To keep track of the task in new and multi
+        taskNumber = 2  # To keep track of the task in new and multi
 
-        if with_kerange: # Using Kerange
+        if with_kerange:  # Using Kerange
             new.register_task(multi[2], deps={new[1]: "WFK"})
             new.register_task(multi[3], deps={new[0]: "DEN", new[1]: "WFK", new[2]: "KERANGE.nc"})
-            taskNumber = 4 # We have 2 more task
+            taskNumber = 4  # We have 2 more task
 
-        #new.register_task(multi[taskNumber], deps=[Dependency(new[taskNumber-1], "WFK"),
+        # new.register_task(multi[taskNumber], deps=[Dependency(new[taskNumber-1], "WFK"),
         #                                             Dependency(ddb_path, "DDB"),
         #                                             Dependency(dvdb_path, "DVDB")])
-        #new.register_task(multi[taskNumber], deps=[{new[taskNumber-1]: "WFK"},(ddb_path, "DDB"),(dvdb_path, "DVDB")])
-        new.register_task(multi[taskNumber], deps={new[taskNumber-1]: "WFK", ddb_path: "DDB", dvdb_path: "DVDB"})
+        # new.register_task(multi[taskNumber], deps=[{new[taskNumber-1]: "WFK"},(ddb_path, "DDB"),(dvdb_path, "DVDB")])
+        new.register_task(multi[taskNumber], deps={new[taskNumber - 1]: "WFK", ddb_path: "DDB", dvdb_path: "DVDB"})
 
         for task in new:
             task.set_work(new)
 
         # Manual Parallelization since autoparal doesn't work with optdriver=8 (t2)
-        if flow is not None :
+        if flow is not None:
             new.set_flow(flow)
             if nbr_proc is not None:
                 for task in new[2:]:

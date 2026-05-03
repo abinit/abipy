@@ -46,22 +46,26 @@ class TestNumTools(AbipyTest):
         arr.shape = (2, 3)
         new_arr = add_periodic_replicas(arr)
         assert np.all(new_arr[-1] == [1, 2, 3, 1])
-        assert np.all(new_arr[:,-1] == [1, 4, 1])
+        assert np.all(new_arr[:, -1] == [1, 4, 1])
 
         # 4D case.
         arr = np.arange(120)
         arr.shape = (2, 2, 10, 3)
 
         new_arr = add_periodic_replicas(arr)
-        assert np.all(new_arr[:,:-1,:-1,:-1] == arr)
+        assert np.all(new_arr[:, :-1, :-1, :-1] == arr)
 
-        axes = [[0, 1, 2, 3], [0, 2, 3, 1], [0, 3, 1, 2],]
+        axes = [
+            [0, 1, 2, 3],
+            [0, 2, 3, 1],
+            [0, 3, 1, 2],
+        ]
 
         for ax in axes:
             view = np.transpose(new_arr, axes=ax)
-            assert np.all(view[...,0] == view[...,-1])
-            assert np.all(view[...,0,0] == view[...,-1,-1])
-            assert np.all(view[...,0,0,0] == view[...,-1,-1,-1])
+            assert np.all(view[..., 0] == view[..., -1])
+            assert np.all(view[..., 0, 0] == view[..., -1, -1])
+            assert np.all(view[..., 0, 0, 0] == view[..., -1, -1, -1])
 
     def test_data_from_cplx_mode(self):
         """Testing data_from_cplx_mode."""
@@ -92,7 +96,7 @@ class TestNumTools(AbipyTest):
         assert gaussian(x=0.0, width=1.0, center=0.0, height=1.0) == 1.0
 
         assert lorentzian(x=0.0, width=1.0, center=0.0, height=1.0) == 1.0
-        self.assert_almost_equal(lorentzian(x=0.0, width=1.0, center=0.0, height=None), 1/np.pi)
+        self.assert_almost_equal(lorentzian(x=0.0, width=1.0, center=0.0, height=None), 1 / np.pi)
 
     def test_iflat(self):
         nested_list = [[0], [1, 2, [3, 4]]]
@@ -126,7 +130,6 @@ class TestNumTools(AbipyTest):
 
 
 class TestBzRegularGridInterpolator(AbipyTest):
-
     def test_api(self):
         # Creates a simple cubic structure for testing.
         lattice = Lattice.cubic(1.0)  # Simple cubic lattice with a=1
@@ -135,7 +138,7 @@ class TestBzRegularGridInterpolator(AbipyTest):
         # Test that BzRegularGridInterpolator initializes correctly.
         ndat, nx, ny, nz = 2, 4, 5, 6
         shifts = [0, 0, 0]
-        shape = (ndat, nx, ny ,nz)     # (ndat=1, nx=4, ny=4, nz=4)
+        shape = (ndat, nx, ny, nz)  # (ndat=1, nx=4, ny=4, nz=4)
         datak = np.zeros(shape)  # All zeros except one point
         datak[0, 2, 2, 2] = 1.0  # Set one known value
         datak[1, 2, 2, 2] = 2.0  # Set one known value
@@ -177,7 +180,7 @@ class TestBzRegularGridInterpolator(AbipyTest):
 
         # Compare interpolated and initial reference value.
         for ix, iy, iz in itertools.product(range(nx), range(ny), range(nz)):
-            kpoint = [ix/nx, iy/ny, iz/nz]
+            kpoint = [ix / nx, iy / ny, iz / nz]
             values = interp.eval_kpoint(kpoint)
             ref_values = datak[:, ix, iy, iz]
             self.assert_almost_equal(values, ref_values)

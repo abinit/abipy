@@ -15,8 +15,15 @@ from .nodes import Status
 from .tasks import *
 from .tasks import EphTask, ElasticTask
 from .works import *
-from .flows import (Flow, G0W0WithQptdmFlow, bandstructure_flow, PhononFlow, phonon_conv_flow,
-    g0w0_flow, NonLinearCoeffFlow)
+from .flows import (
+    Flow,
+    G0W0WithQptdmFlow,
+    bandstructure_flow,
+    PhononFlow,
+    phonon_conv_flow,
+    g0w0_flow,
+    NonLinearCoeffFlow,
+)
 from .abitimer import AbinitTimerParser, AbinitTimerSection
 from .events import EventsParser, autodoc_event_handlers
 from .dfpt_works import ElasticWork, NscfDdksWork
@@ -48,9 +55,10 @@ def flow_main(main):  # pragma: no cover
         # loglevel is bound to the string value obtained from the command line argument.
         # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
         import logging
+
         numeric_level = getattr(logging, options.loglevel.upper(), None)
         if not isinstance(numeric_level, int):
-            raise ValueError('Invalid log level: %s' % options.loglevel)
+            raise ValueError("Invalid log level: %s" % options.loglevel)
         logging.basicConfig(level=numeric_level)
 
         # Instantiate the manager.
@@ -68,7 +76,7 @@ def flow_main(main):  # pragma: no cover
                 flow.plot_networkx(tight_layout=True, with_edge_labels=True)
 
             if options.graphviz:
-                graph = flow.get_graphviz() #engine=options.engine)
+                graph = flow.get_graphviz()  # engine=options.engine)
                 directory = tempfile.mkdtemp()
                 print("Producing source files in:", directory)
                 graph.view(directory=directory, cleanup=False)
@@ -78,7 +86,8 @@ def flow_main(main):  # pragma: no cover
                 isok, errors = flow.abivalidate_inputs()
                 if not isok:
                     for e in errors:
-                        if e.retcode == 0: continue
+                        if e.retcode == 0:
+                            continue
                         lines = e.log_file.readlines()
                         i = len(lines) - 50 if len(lines) >= 50 else 0
                         print("Last 50 line from log file:")
@@ -90,6 +99,7 @@ def flow_main(main):  # pragma: no cover
             if options.remove and os.path.isdir(flow.workdir):
                 print("Removing old directory:", flow.workdir)
                 import shutil
+
                 shutil.rmtree(flow.workdir)
 
             if options.dry_run:
@@ -109,6 +119,7 @@ def flow_main(main):  # pragma: no cover
         if options.prof:
             # Profile execute
             import pstats, cProfile
+
             cProfile.runctx("execute()", globals(), locals(), "Profile.prof")
             s = pstats.Stats("Profile.prof")
             s.strip_dirs().sort_stats("time").print_stats()
@@ -139,24 +150,35 @@ Usage example:
 """
 
     import argparse
-    parser = argparse.ArgumentParser(epilog=epilog,
-                                     formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_argument('--loglevel', default="ERROR", type=str,
-                        help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
-    parser.add_argument("-w", '--workdir', default="", type=str, help="Working directory of the flow.")
-    parser.add_argument("-m", '--manager', default=None,
-                        help="YAML file with the parameters of the task manager. "
-                             "Default None i.e. the manager is read from standard locations: "
-                             "working directory first then ~/.abinit/abipy/manager.yml.")
-    parser.add_argument("-s", '--scheduler', action="store_true", default=False,
-                        help="Run the flow with the scheduler")
+    parser = argparse.ArgumentParser(epilog=epilog, formatter_class=argparse.RawDescriptionHelpFormatter)
+
+    parser.add_argument(
+        "--loglevel",
+        default="ERROR",
+        type=str,
+        help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG",
+    )
+    parser.add_argument("-w", "--workdir", default="", type=str, help="Working directory of the flow.")
+    parser.add_argument(
+        "-m",
+        "--manager",
+        default=None,
+        help="YAML file with the parameters of the task manager. "
+        "Default None i.e. the manager is read from standard locations: "
+        "working directory first then ~/.abinit/abipy/manager.yml.",
+    )
+    parser.add_argument("-s", "--scheduler", action="store_true", default=False, help="Run the flow with the scheduler")
     parser.add_argument("-r", "--remove", default=False, action="store_true", help="Remove old flow workdir (if any)")
     parser.add_argument("-p", "--plot", default=False, action="store_true", help="Plot flow with networkx.")
     parser.add_argument("-g", "--graphviz", default=False, action="store_true", help="Plot flow with graphviz.")
     parser.add_argument("-d", "--dry-run", default=False, action="store_true", help="Don't write directory with flow.")
-    parser.add_argument("-a", "--abivalidate", default=False, action="store_true", help="Call Abinit to validate input files.")
-    parser.add_argument("-t", "--tempdir", default=False, action="store_true", help="Execute flow in temporary directory.")
+    parser.add_argument(
+        "-a", "--abivalidate", default=False, action="store_true", help="Call Abinit to validate input files."
+    )
+    parser.add_argument(
+        "-t", "--tempdir", default=False, action="store_true", help="Execute flow in temporary directory."
+    )
     parser.add_argument("--prof", action="store_true", default=False, help="Profile code with cProfile ")
     parser.add_argument("-e", "--extra", default=None, help="Extra argument passed to the script.")
 

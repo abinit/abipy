@@ -7,6 +7,7 @@ Calculation of the band structure of Fe with and without magnetization,
 including L-projected (FATBANDS and FATDOS)
 See also <~abinit/tutorial/Input/tspin_1.in>
 """
+
 import os
 import sys
 
@@ -60,8 +61,8 @@ def build_flow(options):
     structure = abilab.Structure.from_string(CIF_STRING, fmt="cif", primitive=True)
 
     pseudos_list = [
-            ("foo", "bar"),
-            ("foo1", "bar1"),
+        ("foo", "bar"),
+        ("foo1", "bar1"),
     ]
 
     for pseudos in pseudos_list:
@@ -79,7 +80,7 @@ def build_flow(options):
             ngkpt=[4, 4, 4],
             shiftk=[0.5, 0.5, 0.5],
             tolvrs=1e-8,
-            #paral_kgb=paral_kgb,
+            # paral_kgb=paral_kgb,
         )
 
         # Build a BandStructureWork from the scf_input with the given nsppol and add it to the flow
@@ -95,6 +96,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 
