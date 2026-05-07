@@ -251,6 +251,7 @@ def ask_yesno(question: str, default=True):
     Args:
         question: The question to ask.
         default: Default answer if input is empty or EOF occurs.
+
     Returns:
         True if answer is yes/y, False otherwise.
     """
