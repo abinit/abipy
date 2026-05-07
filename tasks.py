@@ -94,7 +94,7 @@ def twine(ctx):
     """Upload new release with twine."""
     with cd(ABIPY_ROOTDIR):
         ctx.run("rm dist/*.*", warn=True)
-        ctx.run("python setup.py register sdist bdist_wheel")
+        ctx.run("python setup.py sdist bdist_wheel")
         ctx.run("twine upload dist/*")
 
 

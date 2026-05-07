@@ -164,7 +164,7 @@ Unit tests require ``scripttest`` that can be installed with::
     pip install scripttest
 
 Two tests rely on the availability of a
-`pymatgen PMG_MAPI_KEY <http://pymatgen.org/usage.html#setting-the-pmg-mapi-key-in-the-config-file>` in ~/.pmgrc.yaml.
+`pymatgen PMG_MAPI_KEY <http://pymatgen.org/usage.html#setting-the-pmg-mapi-key-in-the-config-file>`_ in ~/.pmgrc.yaml.
 
 Note that several unit tests check the integration between AbiPy and Abinit.
 In order to run the tests, you will need a working set of Abinit executables and  a ``manager.yml`` configuration file.
@@ -215,7 +215,7 @@ At this step, AbiPy might fail to install due to missing/incompatible packages.
 Some of these issues may be solved by repeating the above steps (excluding the environment creation) for packages that are listed as missing/incompatible during the installation procedure, by updating the requirements.txt and packages/ and trying to install again.
 Upon reading::
 
-	Successfully installed abipy-x.y.z
+    Successfully installed abipy-x.y.z
 
 You can quickly test your installation by running ``python`` followed by ``import abipy``.
 
@@ -261,7 +261,7 @@ to check that the python installation is OK::
 then quit the interpreter.
 
 For general information about how to troubleshoot problems that may occur at this level,
-see the :ref:`troubleshooting` section.
+see the `troubleshooting`_ section.
 
 .. _anaconda_howto:
 
@@ -456,21 +456,21 @@ How to contribute
 
 To contribute to Abipy, the standard procedure is as follows:
 
-1.	Fork the repository by clicking the fork button at the top of the screen.
+1. Fork the repository by clicking the fork button at the top of the screen.
 
-2.	Clone your repository locally using::
+2. Clone your repository locally using::
 
-        git clone https://github.com/USERNAME/abipy.git
+    git clone https://github.com/USERNAME/abipy.git
 
-    where USERNAME is your GitHub username.
+   where USERNAME is your GitHub username.
 
-3.	Register the upstream repository with::
+3. Register the upstream repository with::
 
-        git remote add trunk https://github.com/abinit/abipy.git
+    git remote add trunk https://github.com/abinit/abipy.git
 
-4.  Pull the latest commit from the develop branch of trunk with::
+4. Pull the latest commit from the develop branch of trunk with::
 
-        git pull trunk develop
+    git pull trunk develop
 
 5. Modify the code and commit your changes to your fork using::
 

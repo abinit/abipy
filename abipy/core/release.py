@@ -16,7 +16,7 @@ _version_extra = ""  # Uncomment this for full releases
 
 # Construct full version string from these.
 _ver = [_version_major, _version_minor]
-if _version_micro:
+if _version_micro is not None and str(_version_micro) != "":
     _ver.append(_version_micro)
 if _version_extra:
     _ver.append(_version_extra)
@@ -31,7 +31,7 @@ min_abinit_version = "9.2.0"
 description = "Python package to automate ABINIT calculations and analyze the results."
 
 # Don't add spaces because pypi complains about RST
-long_description = """\
+long_description = r"""\
 AbiPy is a Python library to analyze the results produced by `ABINIT <https://www.abinit.org>`_,
 an open-source program for the ab-initio calculations of the physical properties of materials
 within Density Functional Theory and Many-Body perturbation theory.
@@ -45,11 +45,12 @@ AbiPy can be used in conjunction with `matplotlib <http://matplotlib.org>`_, `pa
 thus providing a powerful and user-friendly environment for data analysis and visualization.
 Check out our `gallery of plotting scripts <http://abinit.github.io/abipy/gallery/index.html>`_
 and the `gallery of AbiPy workflows <http://abinit.github.io/abipy/flow_gallery/index.html>`_.
-To learn more about the integration between jupyter and AbiPy, visit our collection of `notebooks
-<http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/index.ipynb>`_ and the
+To learn more about the integration between jupyter and AbiPy, visit our collection of
+`notebooks <http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/index.ipynb>`_ and the
 `AbiPy lessons <http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/lessons/index.ipynb>`_.
-The latest development version is always available from <https://github.com/abinit/abipy>
+The latest development version is always available from `github <https://github.com/abinit/abipy>`_.
 """
+
 
 license = "GPL"
 
