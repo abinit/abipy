@@ -56,13 +56,12 @@ ZsisaResults.json:
 ```
 """
 
-import sys
 import os
-import numpy as np
-import abipy.abilab as abilab
-import abipy.data as abidata
+import sys
 
-from abipy import flowtk
+import numpy as np
+
+from abipy import abilab, flowtk
 from abipy.flowtk.zsisa import ZsisaFlow
 
 
@@ -96,7 +95,7 @@ rprim
 """)
 
     # This is just to make the computation faster.
-    #structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
+    # structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
 
     # IMPORTANT:
     # The Zsisa code assumes structure in primitive standard settings.
@@ -105,6 +104,7 @@ rprim
 
     # Use NC PBEsol pseudos from pseudodojo v0.4.
     from abipy.flowtk.psrepos import get_oncvpsp_pseudos
+
     pseudos = get_oncvpsp_pseudos(xc_name="PBEsol", version="0.4")
 
     scf_input = abilab.AbinitInput(structure, pseudos)
@@ -115,18 +115,19 @@ rprim
         nband=scf_input.num_valence_electrons // 2,
         nstep=100,
         ecutsm=1.0,
-        tolvrs=1.0e-8,      # SCF stopping criterion.
+        tolvrs=1.0e-8,  # SCF stopping criterion.
         paral_kgb=0,
-        #nbdbuf=0,
-        #nline=10,
-        #chksymbreak=1
+        # nbdbuf=0,
+        # nline=10,
+        # chksymbreak=1
     )
 
     # Select k-mesh for electrons and q-mesh for phonons.
     # Important: the q-mesh should divide ngkpt.
-    ngkpt = [2, 2, 2]; ngqpt = [1, 1, 1]
-    #ngkpt = [6, 6, 4]; ngqpt = [1, 1, 1]
-    #ngkpt = [4, 4, 4]; ngqpt = [2, 2, 2]
+    ngkpt = [2, 2, 2]
+    ngqpt = [1, 1, 1]
+    # ngkpt = [6, 6, 4]; ngqpt = [1, 1, 1]
+    # ngkpt = [4, 4, 4]; ngqpt = [2, 2, 2]
 
     scf_input.set_kmesh(ngkpt=ngkpt, shiftk=[0, 0, 0])
 
@@ -135,20 +136,20 @@ rprim
     with_becs = True
     with_quad = False
 
-    #with_becs = False
-    #with_quad = not structure.has_zero_dynamical_quadrupoles
+    # with_becs = False
+    # with_quad = not structure.has_zero_dynamical_quadrupoles
 
     # List of temperatures in Kelvin and pressures in Gpa.
     temperatures = [10, 100, 200]
     pressures_gpa = [0, 5]
-    #pressures_gpa = [0]
+    # pressures_gpa = [0]
 
     eps = 0.005  # Strain magnitude to be applied to the reference lattice.
 
-    mode = "ECs" # "ECs" to include T-dependent elastic constants
-                 #  (more configurations are usually needed)
+    mode = "ECs"  # "ECs" to include T-dependent elastic constants
+    #  (more configurations are usually needed)
 
-    mode = "TEC" # "TEC" for thermal expansion only.
+    mode = "TEC"  # "TEC" for thermal expansion only.
 
     # Q-mesh for the computation of the phonon DOS. See docstring.
     nqsmall_or_qppa = np.max(ngqpt) * 10
@@ -156,12 +157,21 @@ rprim
     # Relaxation with thermal stress may require several iterations.
     # Here we set programmatically the maximum number of restarts to 20.
     from abipy.flowtk.tasks import set_user_config_taskmanager_attrs
+
     set_user_config_taskmanager_attrs(max_num_launches=20)
 
-    flow = ZsisaFlow.from_scf_input(options.workdir, scf_input, eps, mode, ngqpt,
-                                    with_becs, with_quad, temperatures, pressures_gpa,
-                                    nqsmall_or_qppa=nqsmall_or_qppa,
-                                    )
+    flow = ZsisaFlow.from_scf_input(
+        options.workdir,
+        scf_input,
+        eps,
+        mode,
+        ngqpt,
+        with_becs,
+        with_quad,
+        temperatures,
+        pressures_gpa,
+        nqsmall_or_qppa=nqsmall_or_qppa,
+    )
     return flow
 
 
@@ -170,6 +180,7 @@ rprim
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

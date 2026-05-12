@@ -1,21 +1,19 @@
-# coding: utf-8
 """Tests for scr module."""
+
 import numpy as np
 import pymatgen.core.units as pmgu
+
 import abipy.data as abidata
-
-
 from abipy.core.gsphere import GSphere
 from abipy.core.testing import AbipyTest
-from abipy.electrons.scr import _AwggMatrix, ScrFile, InverseDielectricFunction
+from abipy.electrons.scr import InverseDielectricFunction, ScrFile, _AwggMatrix
 
 
 class AwggMatTest(AbipyTest):
-
     def test_awggmat_api(self):
         """Testing AwggMat API"""
         ecut = 2
-        lattice = np.reshape(np.array([1., 0, 0, 0, 1, 0, 0, 0, 1]), (3, 3))
+        lattice = np.reshape(np.array([1.0, 0, 0, 0, 1, 0, 0, 0, 1]), (3, 3))
         kpoint = [0, 0, 0]
         gvecs = np.array([[0, 0, 0], [1, 0, 0]])
         gsphere = GSphere(ecut, lattice, kpoint, gvecs, istwfk=1)
@@ -27,7 +25,8 @@ class AwggMatTest(AbipyTest):
         data = np.empty((nw, ng, ng), dtype=complex)
 
         f = _AwggMatrix(wpoints, gsphere, data, inord="C")
-        repr(f); str(f)
+        repr(f)
+        str(f)
 
         assert _AwggMatrix.class_from_netcdf_name("inverse_dielectric_function") is InverseDielectricFunction
         with self.assertRaises(ValueError):
@@ -39,8 +38,8 @@ class AwggMatTest(AbipyTest):
         assert f.nrew == 3 and f.nimw == 2 and f.nw == 5
         assert np.all(f.real_wpoints == [0, 1, 2])
         assert np.all(f.imag_wpoints == [3j, 4j])
-        self.assert_equal(f.wggmat_realw, f.wggmat[:f.nrew])
-        self.assert_equal(f.wggmat_imagw, f.wggmat[f.nrew:])
+        self.assert_equal(f.wggmat_realw, f.wggmat[: f.nrew])
+        self.assert_equal(f.wggmat_imagw, f.wggmat[f.nrew :])
         assert f.windex(2) == 2
         assert f.windex(3j) == 3
         assert f.gindex([1, 0, 0]) == 1
@@ -55,17 +54,17 @@ class AwggMatTest(AbipyTest):
 
 
 class ScrFileTest(AbipyTest):
-
     def test_scrfile(self):
         """Testing ScrFile."""
         with ScrFile(abidata.ref_file("sio2_SCR.nc")) as ncfile:
-            repr(ncfile); str(ncfile)
+            repr(ncfile)
+            str(ncfile)
             ncfile.to_string(verbose=1)
             assert ncfile.netcdf_name == "inverse_dielectric_function"
             assert ncfile.structure.formula == "Si3 O6"
             assert len(ncfile.kpoints) == 9
             assert ncfile.kpoints[0] == [0, 0, 0]
-            self.assert_almost_equal(ncfile.kpoints[8].frac_coords, [1/4, 1/4, 1/3])
+            self.assert_almost_equal(ncfile.kpoints[8].frac_coords, [1 / 4, 1 / 4, 1 / 3])
             assert len(ncfile.wpoints) == 35
             assert ncfile.nw == 35 and ncfile.nrew == 30 and ncfile.nimw == 5
             assert ncfile.ng == 9
@@ -97,16 +96,17 @@ class ScrFileTest(AbipyTest):
 
             kpoint = [0.5, 0, 0]
             em1 = ncfile.r.read_wggmat(kpoint)
-            repr(em1); str(em1)
+            repr(em1)
+            str(em1)
             assert em1.kpoint == kpoint
             assert em1.nw == 35 and em1.nrew == 30 and em1.nimw == 5
-            #assert em1.real_wpoints
-            #assert em1.imag_wpoints
+            # assert em1.real_wpoints
+            # assert em1.imag_wpoints
             assert em1.windex(em1.real_wpoints[1]) == 1
             assert em1.windex(em1.imag_wpoints[1]) == em1.nrew + 1
             assert em1.gindex([0, 0, -1]) == em1.gindex(2)
             assert em1.wggmat.shape == (em1.nw, em1.ng, em1.ng)
-            self.assert_almost_equal(em1.wggmat[1, 1, 0], 0.0014264496999664958-0.0024049081437133571j)
+            self.assert_almost_equal(em1.wggmat[1, 1, 0], 0.0014264496999664958 - 0.0024049081437133571j)
 
             for cplx_mode in ("re", "im", "abs", "angle"):
                 str(em1.latex_label(cplx_mode))
@@ -115,7 +115,9 @@ class ScrFileTest(AbipyTest):
                 # ncfile plot methods
                 assert ncfile.plot_emacro(show=False)
                 assert ncfile.ebands.plot(show=False)
-                assert ncfile.plot_freqs_at_ggp(gvec1=[0,0,0], gvec2=None, waxis="real", cplx_modes=("re", "im"), show=False)
+                assert ncfile.plot_freqs_at_ggp(
+                    gvec1=[0, 0, 0], gvec2=None, waxis="real", cplx_modes=("re", "im"), show=False
+                )
 
                 # em1 plot methods
                 assert em1.plot_freq(gvec1=0, gvec2=None, waxis="real", cplx_mode="re-im", show=False)

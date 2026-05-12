@@ -1,7 +1,6 @@
 #!/usr/bin/env python
-"""
-Git pre-commit hook script that runs tests only for the modified Python files using pytest.
-"""
+"""Git pre-commit hook script that runs tests only for the modified Python files using pytest."""
+
 import subprocess
 import sys
 import os
@@ -11,8 +10,9 @@ def get_changed_files():
     """Return list of python files that have been changed."""
     result = subprocess.run(
         ["git", "diff", "--cached", "--name-only", "--diff-filter=ACMR"],
-        #["git", "diff", "--name-only", "--diff-filter=ACMR"],
-        stdout=subprocess.PIPE, text=True
+        # ["git", "diff", "--name-only", "--diff-filter=ACMR"],
+        stdout=subprocess.PIPE,
+        text=True,
     )
     lines = [l.strip() for l in result.stdout.splitlines()]
     return [l for l in lines if l.endswith(".py")]
@@ -27,7 +27,7 @@ def get_test_files(py_paths):
         # dirname/module.py --> dirname/tests/test_module.py
         test_path = os.path.join(dirname, "tests", f"test_{basename}")
         if os.path.exists(test_path):
-            #print(test_path)
+            # print(test_path)
             test_paths.append(test_path)
 
     return test_paths

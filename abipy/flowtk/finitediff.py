@@ -1,62 +1,68 @@
-# coding: utf-8
 """
 This module provide Works for finite difference calculations and related post-processing tools.
 
 IMPORTANT: In Abinit, the  stress is equal to dE/d_strain * (1/ucvol). See m_forstr.F90.
 """
+
 from __future__ import annotations
 
-# Handle
-#=   KILLED BY SIGNAL: 9 (Killed)
-# slurmstepd: error: Detected 1 oom_kill event in StepId=8214672.0. Some of the step tasks have been OOM Killed.
-#srun: error: cns264: task 1: Out Of Memory
-
-import sys
-import pickle
-import itertools
 import dataclasses
-import numpy as np
-import pandas as pd
-import abipy.core.abinit_units as abu
+import itertools
+import pickle
 
+# Handle
+# =   KILLED BY SIGNAL: 9 (Killed)
+# slurmstepd: error: Detected 1 oom_kill event in StepId=8214672.0. Some of the step tasks have been OOM Killed.
+# srun: error: cns264: task 1: Out Of Memory
+import sys
 from dataclasses import field
-from typing import Optional
+from functools import cached_property
 from io import StringIO
 from pathlib import Path
-from functools import cached_property
-from monty.string import list_strings #, marquee
+
+import numpy as np
+import pandas as pd
+from monty.string import list_strings  # , marquee
 from monty.termcolor import cprint
 from pymatgen.analysis.elasticity.strain import Strain
-from abipy.core.structure import Structure
-from abipy.tools.numtools import build_mesh
-from abipy.tools.derivatives import central_fdiff_weights
-from abipy.tools.tensors import DielectricDataList
-from abipy.tools import duck
-from abipy.tools.typing import Figure
-from abipy.abio.inputs import AbinitInput
-from abipy.abio.enums import StrEnum
-from abipy.tools.serialization import HasPickleIO
-from abipy.tools.plotting import (add_fig_kwargs, set_grid_legend, get_axarray_fig_plt,
-    quadratic_fit_ax) # linear_fit_ax, get_ax_fig_plt,
-#from abipy.tools.serialization import Serializble
-from .works import Work
-#from .flows import Flow
 
-#def centered_indices(n):
+import abipy.core.abinit_units as abu
+from abipy.abio.enums import StrEnum
+from abipy.abio.inputs import AbinitInput
+from abipy.core.structure import Structure
+from abipy.tools import duck
+from abipy.tools.derivatives import central_fdiff_weights
+from abipy.tools.numtools import build_mesh
+from abipy.tools.plotting import (
+    add_fig_kwargs,
+    get_axarray_fig_plt,
+    quadratic_fit_ax,  # linear_fit_ax, get_ax_fig_plt,
+    set_grid_legend,
+)
+from abipy.tools.serialization import HasPickleIO
+from abipy.tools.tensors import DielectricDataList
+from abipy.tools.typing import Figure
+
+# from abipy.tools.serialization import Serializble
+from .works import Work
+
+# from .flows import Flow
+
+# def centered_indices(n):
 #    half = n // 2
 #    if n % 2 == 0:
 #        return list(range(-half, half)), half
 #    #else:
 #    #return list(range(-half, half + 1)),
 
-#VOIGT_TO_TUPLE = {
+# VOIGT_TO_TUPLE = {
 #    0: (0, 0),
 #    1: (1, 1),
 #    2: (2, 2),
 #    3: (0, 1),
 #    4: (0, 2),
 #    5: (1, 2),
-#}
+# }
 
 
 NORMAL_STRAIN_INDS = [0, 1, 2]
@@ -72,7 +78,7 @@ def _mesh_for_fd_accuracy(acc, order, step) -> tuple:
     return num_points, values, ip0
 
 
-def vec2str(vec, variables: str = 'xyz') -> str:
+def vec2str(vec, variables: str = "xyz") -> str:
     """
     >>> vec2str((1, 2, 3)))
     "x + 2y + 3z"
@@ -87,14 +93,14 @@ def vec2str(vec, variables: str = 'xyz') -> str:
     for coeff, var in zip(vec, variables, strict=True):
         if coeff == 0:
             continue  # Skip terms with a coefficient of 0
-        elif coeff == 1:
+        if coeff == 1:
             terms.append(f"{var}")
         elif coeff == -1:
             terms.append(f"-{var}")
         else:
             terms.append(f"{coeff}{var}")
 
-    return ' + '.join(terms).replace('+ -', '- ')
+    return " + ".join(terms).replace("+ -", "- ")
 
 
 def mat33_to_voigt(mat: np.ndarray, engineering_strain: bool = False) -> np.ndarray:
@@ -147,28 +153,29 @@ class _FdData(HasPickleIO):
     Except for the Structure that uses Angstrom, all values are in a.u. and tensors
     are given in Cartesian coordinates.
     """
+
     ions_mode: str
     initial_structure: Structure
 
-    has_pol: bool                     # True if polarization has been computed with Berry phase.
-    has_mag: bool                     # True if magnetization has been computed.
-    perts: list[Perturbation]         # List of perturbations.
-    params_pv: np.ndarray             # Parameters used for each perturbation. Each entry is a dict.
+    has_pol: bool  # True if polarization has been computed with Berry phase.
+    has_mag: bool  # True if magnetization has been computed.
+    perts: list[Perturbation]  # List of perturbations.
+    params_pv: np.ndarray  # Parameters used for each perturbation. Each entry is a dict.
 
     # The `_pv` suffix stands for perturbation and perturbation value.
-    structures_pv: np.ndarray         # Array with structures: shape (npert, np_vals)
-    etotals_pv: np.ndarray            # (npert, np_vals)
-    eterms_pv: np.ndarray             # (npert, np_vals)
-    cart_forces_pv: np.ndarray        # (npert, np_vals, natom, 3)
-    carts_stresses_pv: np.ndarray     # (npert, np_vals, 6) Voigt form
+    structures_pv: np.ndarray  # Array with structures: shape (npert, np_vals)
+    etotals_pv: np.ndarray  # (npert, np_vals)
+    eterms_pv: np.ndarray  # (npert, np_vals)
+    cart_forces_pv: np.ndarray  # (npert, np_vals, natom, 3)
+    carts_stresses_pv: np.ndarray  # (npert, np_vals, 6) Voigt form
 
     # Macro Polarization computed with Berry phase
-    cart_pol_pv: Optional[np.ndarray] = None      # (npert, np_vals, 3)
-    cart_pole_pv: Optional[np.ndarray] = None     # (npert, np_vals, 3)
-    cart_poli_pv: Optional[np.ndarray] = None     # (npert, np_vals, 3)
+    cart_pol_pv: np.ndarray | None = None  # (npert, np_vals, 3)
+    cart_pole_pv: np.ndarray | None = None  # (npert, np_vals, 3)
+    cart_poli_pv: np.ndarray | None = None  # (npert, np_vals, 3)
 
     # Magnetization (spin part).
-    cart_mag_pv: Optional[np.ndarray] = None      # (npert, np_vals, 3)
+    cart_mag_pv: np.ndarray | None = None  # (npert, np_vals, 3)
 
     # npts -> dForce/dPert with shape (natom, 3, npert) in Cart. coords.
     dforces_dpert_npts: dict[int, np.array] = field(init=False)
@@ -200,7 +207,8 @@ class _FdData(HasPickleIO):
         ipv0 = self.perts[0].ipv0
 
         for acc, weights in central_fdiff_weights[1].items():
-            if np_vals < len(weights): continue
+            if np_vals < len(weights):
+                continue
             nn = acc // 2
             npts = len(weights)
             # fd_slice is used to select the values for the Finite difference.
@@ -230,8 +238,8 @@ class _FdData(HasPickleIO):
                     # Shape is (npert, np_vals, 3)
                     dpol_dpert[ii, ip] = np.sum(self.cart_pol_pv[ip, fd_slice, ii] * weights) / pert.step
                 self.dpol_dpert_npts[npts] = dpol_dpert
-                #self.dpole_dpert_npts[npts] = dpole_dpert  TODO?
-                #self.dpoli_dpert_npts[npts] = dpoli_dpert  TODO?
+                # self.dpole_dpert_npts[npts] = dpole_dpert  TODO?
+                # self.dpoli_dpert_npts[npts] = dpoli_dpert  TODO?
 
             # Finite differences for magnetization (if available).
             if self.has_mag:
@@ -278,8 +286,10 @@ class _FdData(HasPickleIO):
         """
         Helper functions to convert elements and iat_list provided by users.
         """
-        if elements is not None: elements = list_strings(elements)
-        if iat_list is not None: iat_list = set(iat_list)
+        if elements is not None:
+            elements = list_strings(elements)
+        if iat_list is not None:
+            iat_list = set(iat_list)
         if elements is not None and iat_list is not None:
             raise ValueError("elements and iat_list are mutually exclusive.")
         return elements, iat_list
@@ -296,9 +306,7 @@ class _FdData(HasPickleIO):
         if with_params:
             dct.update(self.params)
 
-    def print_relaxed_coords(self,
-                             elements: list[str] | None = None,
-                             iat_list: int | None = None) -> None:
+    def print_relaxed_coords(self, elements: list[str] | None = None, iat_list: int | None = None) -> None:
         """
         Print relaxed atomic coordinates for each perturbation.
 
@@ -310,8 +318,10 @@ class _FdData(HasPickleIO):
 
         for iatom in range(self.natom):
             init_site = self.initial_structure[iatom]
-            if elements is not None and init_site.species_string not in elements: continue
-            if iat_set is not None and iatom not in iat_set: continue
+            if elements is not None and init_site.species_string not in elements:
+                continue
+            if iat_set is not None and iatom not in iat_set:
+                continue
             for ip, pert in enumerate(self.perts):
                 print(init_site, "Initial site")
                 for ipv, p_val in enumerate(pert.values):
@@ -342,6 +352,7 @@ class _FdData(HasPickleIO):
 
         # ade stands from atom, direction and electric field.
         from abipy.dfpt.ddb import Zeffs, ZeffsList
+
         zeffs_list = ZeffsList()
 
         rows, xyz_comps = [], "x y z".split()
@@ -368,21 +379,19 @@ class _FdData(HasPickleIO):
                 for ip, pert in enumerate(self.perts):
                     cnt += 1
                     iat_dir = ip % 3
-                    z_ade[pert.iatom, iat_dir,:] = dpol_dpert[:, ip]
+                    z_ade[pert.iatom, iat_dir, :] = dpol_dpert[:, ip]
                     atom_comps.append(pert.dir_str)
 
-                z_ade *= self.initial_structure.volume * abu.Ang_Bohr ** 3
+                z_ade *= self.initial_structure.volume * abu.Ang_Bohr**3
                 zeff_comps = list(itertools.product(atom_comps, xyz_comps))
                 zeffs = Zeffs(zeff_name, z_ade, self.initial_structure, params=params)
                 zeffs_list.append(zeffs)
 
         return zeffs_list
 
-    def print_eff_charges(self,
-                          elements: None | list[str] = None,
-                          iat_list: None | list[int] = None,
-                          file=sys.stdout,
-                          verbose: int = 0) -> None:
+    def print_eff_charges(
+        self, elements: None | list[str] = None, iat_list: None | list[int] = None, file=sys.stdout, verbose: int = 0
+    ) -> None:
         """
         Print effective charges to `file`.
 
@@ -415,29 +424,31 @@ class _FdData(HasPickleIO):
             mode: "diff" to plot the difference wrt to the unperturbed configuration.
         """
         nrows, ncols = self.npert, 1
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=sharey, squeeze=True)
+        ax_list, fig, plt = get_axarray_fig_plt(
+            None, nrows=nrows, ncols=ncols, sharex=True, sharey=sharey, squeeze=True
+        )
 
         for ip, pert in enumerate(self.perts):
             ax = ax_list[ip]
             ys = self.etotals_pv[ip] * abu.Ha_meV / self.natom
-            if mode == "diff": ys -= ys[pert.ipv0]
+            if mode == "diff":
+                ys -= ys[pert.ipv0]
             ax.plot(pert.values, ys, marker="o", label=pert.label)
             quadratic_fit_ax(ax, pert.values, ys, fontsize)
 
             ylabel = r"$\Delta$ Energy/atom (meV)" if mode == "diff" else "Energy/atom (meV)"
-            set_grid_legend(ax, fontsize,
-                            xlabel=f"${pert.tex}$ (a.u.)" if ip == len(self.perts) - 1 else None,
-                            ylabel=ylabel if ip == 0 else None,
-                            )
+            set_grid_legend(
+                ax,
+                fontsize,
+                xlabel=f"${pert.tex}$ (a.u.)" if ip == len(self.perts) - 1 else None,
+                ylabel=ylabel if ip == 0 else None,
+            )
         return fig
 
     @add_fig_kwargs
-    def plot_forces(self,
-                    elements: None | list[str] = None,
-                    iat_list: None | list[int] = None,
-                    fontsize=8, sharey=False,
-                    **kwargs) -> Figure:
+    def plot_forces(
+        self, elements: None | list[str] = None, iat_list: None | list[int] = None, fontsize=8, sharey=False, **kwargs
+    ) -> Figure:
         """
         Plot Cartesian forces as a function of the amplitude of the perturbation.
 
@@ -448,21 +459,24 @@ class _FdData(HasPickleIO):
         elements, iat_set = self.get_elements_iat_set(elements, iat_list)
 
         nrows, ncols = 3, self.npert
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=sharey, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(
+            None, nrows=nrows, ncols=ncols, sharex=True, sharey=sharey, squeeze=False
+        )
 
         for iat_dir in range(3):
             for ip, pert in enumerate(self.perts):
                 ax = ax_mat[iat_dir, ip]
                 ax.set_title(f"{pert.label}, Atom_dir: {pert.dir_str}", fontsize=fontsize)
                 for iat, site in enumerate(self.initial_structure):
-                    if elements is not None and site.species_string not in elements: continue
-                    if iat_set is not None and iat not in iat_set: continue
+                    if elements is not None and site.species_string not in elements:
+                        continue
+                    if iat_set is not None and iat not in iat_set:
+                        continue
                     ys = self.cart_forces_pv[ip, :, iat, iat_dir]
                     ax.plot(pert.values, ys, marker="o", label=site.species_string + r"$_{\text{%s}}$" % iat)
 
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
-                #set_grid_legend(ax, fontsize, xlabel=, ylabel=)
+                # set_grid_legend(ax, fontsize, xlabel=, ylabel=)
 
         return fig
 
@@ -472,8 +486,9 @@ class _FdData(HasPickleIO):
         Plot Cartesian stresses as a function of the perturbation amplitude.
         """
         nrows, ncols = self.npert, 1
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=sharey, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(
+            None, nrows=nrows, ncols=ncols, sharex=True, sharey=sharey, squeeze=False
+        )
         for ip, pert in enumerate(self.perts):
             ax = ax_mat[ip, 0]
             ax.set_title(pert.label, fontsize=fontsize)
@@ -482,7 +497,7 @@ class _FdData(HasPickleIO):
                 ax.plot(pert.values, ys, marker="o", label=r"$\sigma_{%s}$" % (f"{ivoigt}"))
 
             ax.legend(loc="best", fontsize=fontsize, shadow=True)
-            #set_grid_legend(ax, fontsize, xlabel=f"${pert.tex}$ (a.u.)", ylabel=)
+            # set_grid_legend(ax, fontsize, xlabel=f"${pert.tex}$ (a.u.)", ylabel=)
 
         return fig
 
@@ -502,21 +517,24 @@ class _FdData(HasPickleIO):
         }[what]
 
         nrows, ncols = len(self.perts), 3
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=sharey, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(
+            None, nrows=nrows, ncols=ncols, sharex=True, sharey=sharey, squeeze=False
+        )
 
         for ip, pert in enumerate(self.perts):
             for pol_dir in range(3):
                 ax = ax_mat[ip, pol_dir]
-                #ax.set_title(f"H_dir: {idir2s(pdir)}, Atom_dir: {idir2s(iat_dir)}", fontsize=fontsize)
+                # ax.set_title(f"H_dir: {idir2s(pdir)}, Atom_dir: {idir2s(iat_dir)}", fontsize=fontsize)
                 ys = vals_pv[ip, :, pol_dir]
                 ax.plot(pert.values, ys, marker="o", label=pert.label)
                 quadratic_fit_ax(ax, pert.values, ys, fontsize)
 
-                set_grid_legend(ax, fontsize,
-                                xlabel=f"${pert.tex}$ (a.u.)" if ip == len(self.perts) - 1 else None,
-                                #ylabel=ylabel if ip == 0 else None,
-                                )
+                set_grid_legend(
+                    ax,
+                    fontsize,
+                    xlabel=f"${pert.tex}$ (a.u.)" if ip == len(self.perts) - 1 else None,
+                    # ylabel=ylabel if ip == 0 else None,
+                )
         return fig
 
     @add_fig_kwargs
@@ -528,22 +546,25 @@ class _FdData(HasPickleIO):
             raise ValueError("Polarization has not been computed.")
 
         nrows, ncols = len(self.perts), 3
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=sharey, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(
+            None, nrows=nrows, ncols=ncols, sharex=True, sharey=sharey, squeeze=False
+        )
 
         for ip, pert in enumerate(self.perts):
             for mag_dir in range(3):
                 # (npert, np_vals, 3)
                 ys = self.cart_mag_pv[ip, :, mag_dir]
                 ax = ax_mat[ip, mag_dir]
-                #ax.set_title(f"H_dir: {idir2s(pdir)}, Atom_dir: {idir2s(iat_dir)}", fontsize=fontsize)
+                # ax.set_title(f"H_dir: {idir2s(pdir)}, Atom_dir: {idir2s(iat_dir)}", fontsize=fontsize)
                 ax.plot(pert.values, ys, marker="o", label=pert.label)
                 quadratic_fit_ax(ax, pert.values, ys, fontsize)
 
-                set_grid_legend(ax, fontsize,
-                                xlabel=f"${pert.tex}$ (a.u.)" if ip == len(self.perts) - 1 else None,
-                                #ylabel=ylabel if ip == 0 else None,
-                                )
+                set_grid_legend(
+                    ax,
+                    fontsize,
+                    xlabel=f"${pert.tex}$ (a.u.)" if ip == len(self.perts) - 1 else None,
+                    # ylabel=ylabel if ip == 0 else None,
+                )
         return fig
 
     def yield_figs(self, **kwargs):  # pragma: no cover
@@ -566,6 +587,7 @@ class DisplData(_FdData):
     """
 
     def get_force_constants(self, npts: int) -> np.ndarray:
+        """Return the force constants matrix obtained with npts FD points."""
         # K_mn = d2E/{du_m du_n} = -dF_m/ du_n
         # dforces_dpert has shape (natom, 3, npert)
         # TODO: Singular value decomposition
@@ -573,7 +595,7 @@ class DisplData(_FdData):
         kmn = np.empty(self.natom, 3, self.natom, 3)
         for ip, pert in enumerate(self.perts):
             idir = ip % 3
-            kmn[pert.iatom, idir] = - dforces_dpert[:,:,ip]
+            kmn[pert.iatom, idir] = -dforces_dpert[:, :, ip]
         return kmn
 
     def to_string(self, verbose: int = 0) -> str:
@@ -581,7 +603,7 @@ class DisplData(_FdData):
         strio = StringIO()
         if self.has_pol or self.has_mag:
             self.print_eff_charges(file=strio)
-        #print("piezoelectric tensor in Cartesian coords:\n", self.get_piezoel_df(), end=2*"\n", file=strio)
+        # print("piezoelectric tensor in Cartesian coords:\n", self.get_piezoel_df(), end=2*"\n", file=strio)
 
         strio.seek(0)
         return strio.read()
@@ -605,7 +627,7 @@ class StrainData(_FdData):
         cmat = np.empty((6, 6))
         for ip, pert in enumerate(self.perts):
             iv1 = pert.voigt_ind
-            cmat[iv1] = dstress_dpert[:,ip]
+            cmat[iv1] = dstress_dpert[:, ip]
 
         return cmat
 
@@ -633,18 +655,22 @@ class StrainData(_FdData):
         for ip, pert in enumerate(self.perts):
             iv1 = pert.voigt_ind
             print(iv1)
-            lmat[:,:iv1] = dforces_dpert[:,ip]
+            lmat[:, :iv1] = dforces_dpert[:, ip]
 
-        return np.reshape(lmat, (self.natom*3, 6))
+        return np.reshape(lmat, (self.natom * 3, 6))
 
-    #def get_internal_strain_df(self) -> pd.DataFrame:
+    # def get_internal_strain_df(self) -> pd.DataFrame:
 
     def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level `verbose`"""
         strio = StringIO()
-        #print("internal-strain tensor in Cartesian coords:\n", self.get_internal_strain_df(), end=2*"\n", file=strio)
-        print(f"Elastic tensor in Cartesian coords and a.u. ({self.ions_mods}):\n",
-               self.get_elastic_df(), end=2*"\n", file=strio)
+        # print("internal-strain tensor in Cartesian coords:\n", self.get_internal_strain_df(), end=2*"\n", file=strio)
+        print(
+            f"Elastic tensor in Cartesian coords and a.u. ({self.ions_mods}):\n",
+            self.get_elastic_df(),
+            end=2 * "\n",
+            file=strio,
+        )
 
         strio.seek(0)
         return strio.read()
@@ -672,12 +698,15 @@ class _HasExternalField:
         raise ValueError(f"Cannot find perturbation with {field_cart_dir=}")
 
     @add_fig_kwargs
-    def plot_forces_vs_field(self,
-                             field_cart_dir,
-                             elements: None | list[str] = None,
-                             iat_list: None | list[int] = None,
-                             fontsize=8, sharey=False,
-                             **kwargs) -> Figure:
+    def plot_forces_vs_field(
+        self,
+        field_cart_dir,
+        elements: None | list[str] = None,
+        iat_list: None | list[int] = None,
+        fontsize=8,
+        sharey=False,
+        **kwargs,
+    ) -> Figure:
         """
         Plot Cartesian forces as a function of the amplitude of the perturbation.
 
@@ -695,23 +724,26 @@ class _HasExternalField:
         ip, pert = self.find_ip_pert_from_cart_dir(field_cart_dir)
 
         nrows, ncols = nrows, 3
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=sharey, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(
+            None, nrows=nrows, ncols=ncols, sharex=True, sharey=sharey, squeeze=False
+        )
 
         irow = -1
         for iat, site in enumerate(self.initial_structure):
-            if elements is not None and site.species_string not in elements: continue
-            if iat_set is not None and iat not in iat_set: continue
+            if elements is not None and site.species_string not in elements:
+                continue
+            if iat_set is not None and iat not in iat_set:
+                continue
             irow += 1
             for iat_dir in range(3):
                 ax = ax_mat[irow, iat_dir]
-                #ax.set_title(f"{pert.label}, Atom_dir: {pert.dir_str}", fontsize=fontsize)
+                # ax.set_title(f"{pert.label}, Atom_dir: {pert.dir_str}", fontsize=fontsize)
                 ys = self.cart_forces_pv[ip, :, iat, iat_dir]
                 ax.plot(pert.values, ys, marker="o", label=site.species_string + r"$_{\text{%s}}$" % iat)
                 quadratic_fit_ax(ax, pert.values, ys, fontsize)
 
                 ax.legend(loc="best", fontsize=fontsize, shadow=True)
-                #set_grid_legend(ax, fontsize,
+                # set_grid_legend(ax, fontsize,
                 #                xlabel=f"${pert.tex}$ (a.u.)" if ip == len(self.perts) - 1 else None,
                 #                ylabel=ylabel if ip == 0 else None,
                 #                )
@@ -740,10 +772,10 @@ class ElectricFieldData(_FdData, _HasExternalField):
             with_geo: True to add info on structure.
             with_params: True to add calculations parameters.
         """
-        #comps2inds = {"xx": (0,0), "yy": (1,1), "zz": (2,2),
+        # comps2inds = {"xx": (0,0), "yy": (1,1), "zz": (2,2),
         #              "xy": (0, 1), "xz": (0, 2), "yx": (1, 0), "yz": (1, 2), "zx": (2, 0), "zy": (2, 1)}
 
-        #eps_inf_comps = list(itertools.product(self.pert_dir_comps, self.pert_dir_comps))
+        # eps_inf_comps = list(itertools.product(self.pert_dir_comps, self.pert_dir_comps))
 
         diel_data = DielectricDataList()
         for npts in self.dpol_dpert_npts:
@@ -761,17 +793,17 @@ class ElectricFieldData(_FdData, _HasExternalField):
         dstress_dpert = self.dstress_dpert_npts[npts]
         piezoel = np.empty((3, 6))
         for ip, pert in enumerate(self.perts):
-            piezoel[ip] = -dstress_dpert[:,ip]
+            piezoel[ip] = -dstress_dpert[:, ip]
 
         if proper:
             # Compute proper tensor. Eq (A9) of WVH.
             if not self.has_pol:
                 raise RuntimeError("Polarization is needed to compute the proper piezoelectric tensor.")
-            raise NotImplementedError()
+            raise NotImplementedError
             # Go from Voigt to (3,3)
             # Add polarization terms
             # Shape: (npert, np_vals, 3)
-            #cart_pol = self.cart_pol_pv[ip, ipv0]
+            # cart_pol = self.cart_pol_pv[ip, ipv0]
             # From (3, 3) to Voigt.
 
         return piezoel
@@ -801,17 +833,25 @@ class ElectricFieldData(_FdData, _HasExternalField):
     def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level verbose"""
         strio = StringIO()
-        print(f"Epsilon_inf tensor in Cartesian coords and a.u. ({self.ions_mode}):\n",
-              self.get_epsinf_data(), end=2*"\n", file=strio)
+        print(
+            f"Epsilon_inf tensor in Cartesian coords and a.u. ({self.ions_mode}):\n",
+            self.get_epsinf_data(),
+            end=2 * "\n",
+            file=strio,
+        )
         proper = False
-        print(f"Piezoelectric tensor in Cartesian coords and a.u. ({self.ions_mode}):\n",
-              self.get_piezoel_df(proper), end=2*"\n", file=strio)
+        print(
+            f"Piezoelectric tensor in Cartesian coords and a.u. ({self.ions_mode}):\n",
+            self.get_piezoel_df(proper),
+            end=2 * "\n",
+            file=strio,
+        )
         self.print_eff_charges(file=strio)
 
         strio.seek(0)
         return strio.read()
 
-    #def yield_figs(self, **kwargs):  # pragma: no cover
+    # def yield_figs(self, **kwargs):  # pragma: no cover
     #    """This function *generates* a predefined list of matplotlib figures with minimal input from the user."""
     #    # First, yield everything from the superclass
     #    yield from super().yield_figs()
@@ -831,7 +871,7 @@ class ZeemanData(_FdData, _HasExternalField):
         dstress_dpert = self.dstress_dpert_npts[npts]
         piezomag = np.empty((3, 6))
         for ip, pert in enumerate(self.perts):
-            piezomag[ip] = -dstress_dpert[:,ip]
+            piezomag[ip] = -dstress_dpert[:, ip]
         return piezomag
 
     def get_piezomag_df(self, with_geo=False, with_params=False, **kwargs) -> pd.Dataframe:
@@ -857,16 +897,21 @@ class ZeemanData(_FdData, _HasExternalField):
     def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level verbose"""
         strio = StringIO()
-        print(f"Piezomagnetic tensor in Cartesian coords and a.u. ({self.ions_mode}):\n",
-              self.get_piezomag_df(), end=2*"\n", file=strio)
+        print(
+            f"Piezomagnetic tensor in Cartesian coords and a.u. ({self.ions_mode}):\n",
+            self.get_piezomag_df(),
+            end=2 * "\n",
+            file=strio,
+        )
         self.print_eff_charges(file=strio)
 
         strio.seek(0)
         return strio.read()
 
 
-def _dict_from_mat_npts(mat: np.ndarray, mat_comps: list[str], npts: int, with_info: bool = True,
-                        comps2inds: dict | None = None) -> dict:
+def _dict_from_mat_npts(
+    mat: np.ndarray, mat_comps: list[str], npts: int, with_info: bool = True, comps2inds: dict | None = None
+) -> dict:
     """
     Convert a numpy array to a dict that can be used to construct a pandas DataFrame.
     """
@@ -879,18 +924,19 @@ def _dict_from_mat_npts(mat: np.ndarray, mat_comps: list[str], npts: int, with_i
 
     if with_info and mat.shape[0] == mat.shape[1]:
         d["iso_avg"] = np.trace(mat) / mat.shape[0]
-        #d["det"] = np.linalg.det(mat)
+        # d["det"] = np.linalg.det(mat)
         tmp_mat = (mat + mat.T) / 2.0
         eigvals = np.linalg.eigvalsh(mat)  # Assuming Hermitian matrix
         d["det"] = np.prod(eigvals)
         d["posdef"] = np.all(eigvals > 0)
-        #d["min_eig"] = np.min(eigvals)
+        # d["min_eig"] = np.min(eigvals)
 
     return d
 
 
 class PertKind(StrEnum):
     """String enumerator for the different kind of perturbations."""
+
     DISPL = "displ"
     E = "E"
     H = "H"
@@ -899,6 +945,7 @@ class PertKind(StrEnum):
 
 class IonsMode(StrEnum):
     """String enumerator for the different kind of tensors."""
+
     CLAMPED = "clamped_ions"
     RELAXED = "relaxed_ions"
 
@@ -908,8 +955,9 @@ class Perturbation:
     """
     This object stores info on the perturbation and its amplitude.
     """
-    kind: str            # Kind of perturbation.
-    values: np.ndarray   # Perturbation amplitudes.
+
+    kind: str  # Kind of perturbation.
+    values: np.ndarray  # Perturbation amplitudes.
 
     # Optional arguments.
     cart_dir: np.ndarray | None = None
@@ -941,7 +989,7 @@ class Perturbation:
         """Step of the linear mesh. Raises ValueError if mesh is not linear."""
         dx = np.zeros(len(self.values) - 1)
         for i, x in enumerate(self.values[:-1]):
-            dx[i] = self.values[i+1] - x
+            dx[i] = self.values[i + 1] - x
 
         if np.allclose(dx[0], dx):
             return float(dx[0])
@@ -951,7 +999,7 @@ class Perturbation:
     # TODO: Is this safe to use?
     @cached_property
     def ipv0(self) -> int:
-        """Index of the """
+        """Index of the"""
         return np.argmin(np.abs(self.values))
 
     @cached_property
@@ -1074,7 +1122,6 @@ class _BaseFdWork(Work):
         # Read energy, forces and stress from the GSR files.
         for ip, pert in enumerate(self.perts):
             for ipv, p_val in enumerate(pert.values):
-
                 # Select the appropriate task.
                 if ions_mode == IonsMode.CLAMPED:
                     task = self.gs_tasks_pv[ip, ipv]
@@ -1084,14 +1131,16 @@ class _BaseFdWork(Work):
                     raise ValueError(f"Invalid {ions_mode=}")
 
                 if task is None:
-                    raise RuntimeError(f"Got None instead of task for {ip=}, {ipv=}, {ions_mode=} and work type: {type(self)}")
-                #print(f"{task=}")
+                    raise RuntimeError(
+                        f"Got None instead of task for {ip=}, {ipv=}, {ions_mode=} and work type: {type(self)}"
+                    )
+                # print(f"{task=}")
 
                 with task.open_gsr() as gsr:
                     structures_pv[ip, ipv] = gsr.structure.copy()
                     etotals_pv[ip, ipv] = gsr.r.read_value("etotal")
                     eterms_pv[ip, ipv] = gsr.r.read_energy_terms(unit="Ha")
-                    cart_forces_pv[ip, ipv] = gsr.r.read_value("cartesian_forces") # Ha/Bohr units.
+                    cart_forces_pv[ip, ipv] = gsr.r.read_value("cartesian_forces")  # Ha/Bohr units.
                     # Abinit stores 6 unique components of this symmetric 3x3 tensor:
                     # Given in order (1,1), (2,2), (3,3), (3,2), (3,1), (2,1).
                     carts_stresses_pv[ip, ipv] = gsr.r.read_value("cartesian_stress_tensor")
@@ -1120,7 +1169,7 @@ class _BaseFdWork(Work):
         for ions_mode, obj in data.items():
             with open(Path(self.outdir.path) / f"{ions_mode}_{obj.__class__.__name__}.pickle", "wb") as fh:
                 pickle.dump(obj, fh)
-            #mjson_write(obj, Path(self.outdir.path ) / f"{ions_mode}_{obj.__class__.__name__}.json")
+            # mjson_write(obj, Path(self.outdir.path ) / f"{ions_mode}_{obj.__class__.__name__}.json")
 
         return super().on_all_ok()
 
@@ -1130,17 +1179,20 @@ class FiniteDisplWork(_BaseFdWork):
     This work displaces the atoms in unit cell by a finite amount and performs
     GS calculations to get forces and stresses.
     """
+
     DataCls = DisplData
 
     @classmethod
-    def from_scf_input(cls,
-                       scf_input: AbinitInput,
-                       fd_accuracy: int,
-                       step_au: float = 0.01,
-                       pert_cart_dirs=None,
-                       mask_iatom=None,
-                       extra_abivars: dict | None = None,
-                       manager=None):
+    def from_scf_input(
+        cls,
+        scf_input: AbinitInput,
+        fd_accuracy: int,
+        step_au: float = 0.01,
+        pert_cart_dirs=None,
+        mask_iatom=None,
+        extra_abivars: dict | None = None,
+        manager=None,
+    ):
         """
         Build a work from an AbinitInput representing a GS SCF calculation.
 
@@ -1183,9 +1235,12 @@ class FiniteDisplWork(_BaseFdWork):
         # Build list of perturbations.
         work.perts = []
         for iatom, mask in zip(range(natom), work.mask_iatom, strict=True):
-            if not mask: continue
+            if not mask:
+                continue
             for cart_dir in work.pert_cart_dirs:
-                work.perts.append(Perturbation(kind=PertKind.DISPL, values=work.pert_values, cart_dir=cart_dir, iatom=iatom))
+                work.perts.append(
+                    Perturbation(kind=PertKind.DISPL, values=work.pert_values, cart_dir=cart_dir, iatom=iatom)
+                )
 
         work.relax_ions = False
         work.allocate_tasks_pv(work.relax_ions, {})
@@ -1194,15 +1249,15 @@ class FiniteDisplWork(_BaseFdWork):
         return work
 
     def _add_tasks_with_displacements(self, structure: Structure):
-        """
-        """
+        """ """
         for ip, pert in enumerate(self.perts):
             iatom, cart_dir = pert.iatom, pert.cart_dir
             for iv, delta_au in enumerate(pert.values):
                 # Note Bohr --> Ang conversion.
                 new_structure = structure.copy()
-                new_structure.translate_sites([iatom], delta_au * abu.Bohr_Ang * cart_dir,
-                                               frac_coords=False, to_unit_cell=False)
+                new_structure.translate_sites(
+                    [iatom], delta_au * abu.Bohr_Ang * cart_dir, frac_coords=False, to_unit_cell=False
+                )
                 new_input = self.scf_input.new_with_structure(new_structure)
                 task = self.register_scf_task(new_input)
                 self.gs_tasks_pv[ip, iv] = task
@@ -1213,19 +1268,22 @@ class FiniteStrainWork(_BaseFdWork):
     This work deforms the initial unit cell by a finite amount and performs
     GS calculations to get forces and stresses.
     """
+
     DataCls = StrainData
 
     @classmethod
-    def from_scf_input(cls,
-                       scf_input,
-                       fd_accuracy: int,
-                       norm_step: float,
-                       shear_step: float,
-                       voigt_inds=None,
-                       extra_abivars: dict | None = None,
-                       relax_ions: bool = False,
-                       relax_ions_opts: dict | None = None,
-                       manager=None):
+    def from_scf_input(
+        cls,
+        scf_input,
+        fd_accuracy: int,
+        norm_step: float,
+        shear_step: float,
+        voigt_inds=None,
+        extra_abivars: dict | None = None,
+        relax_ions: bool = False,
+        relax_ions_opts: dict | None = None,
+        manager=None,
+    ):
         """
         Build a Work from an AbinitInput representing a GS SCF calculation.
 
@@ -1270,8 +1328,14 @@ class FiniteStrainWork(_BaseFdWork):
         # Build list of perturbations.
         work.perts = []
         for vind, strain in zip(voigt_inds, strains, strict=True):
-            work.perts.append(Perturbation(kind=PertKind.STRAIN, voigt_ind=vind, strain=strain,
-                              values=norm_values if vind in NORMAL_STRAIN_INDS else shear_values))
+            work.perts.append(
+                Perturbation(
+                    kind=PertKind.STRAIN,
+                    voigt_ind=vind,
+                    strain=strain,
+                    values=norm_values if vind in NORMAL_STRAIN_INDS else shear_values,
+                )
+            )
 
         work.allocate_tasks_pv(relax_ions, relax_ions_opts)
         for ip, pert in enumerate(work.perts):
@@ -1279,27 +1343,27 @@ class FiniteStrainWork(_BaseFdWork):
 
         return work
 
-        #from pymatgen.analysis.elasticity.strain import DeformedStructureSet
-        #DeformedStructureSet(structure: Structure,
+        # from pymatgen.analysis.elasticity.strain import DeformedStructureSet
+        # DeformedStructureSet(structure: Structure,
         #                     norm_strains: Sequence[float] = (-0.01, -0.005, 0.005, 0.01),
         #                     shear_strains: Sequence[float] = (-0.06, -0.03, 0.03, 0.06),
         #                     symmetry=False,
 
-    def _add_tasks_with_strains_ipv(self,
-                                    ip: int, ipv_select: int | None,
-                                    structure: Structure,
-                                    ions_mode: str) -> None:
+    def _add_tasks_with_strains_ipv(
+        self, ip: int, ipv_select: int | None, structure: Structure, ions_mode: str
+    ) -> None:
         """Build new GS tasks with strained cells."""
         scf_input = self.scf_input
         pert = self.perts[ip]
-        task_pv0 = None # TODO
+        task_pv0 = None  # TODO
 
         if ions_mode == IonsMode.CLAMPED:
             if ipv_select is not None:
                 raise ValueError(f"ipv_select should be None if {ions_mode=} but got {ipv_select=}")
 
         for ipv, p_val in enumerate(pert.values):
-            if ipv_select is not None and ipv != ipv_select: continue
+            if ipv_select is not None and ipv != ipv_select:
+                continue
             is_pv0 = abs(p_val) < 1e-16
 
             if ions_mode == IonsMode.CLAMPED:
@@ -1312,9 +1376,9 @@ class FiniteStrainWork(_BaseFdWork):
 
             elif ions_mode == IonsMode.RELAXED:
                 # Get strained structure from gs_tasks_pv and relax atoms.
-                relax_inp = self.gs_tasks_pv[ip,ipv].input.new_with_vars(**self.relax_ions_opts)
+                relax_inp = self.gs_tasks_pv[ip, ipv].input.new_with_vars(**self.relax_ions_opts)
                 task = self.register_relax_task(relax_inp)
-                task.add_deps({self.gs_tasks_pv[ip,ipv]: "WFK"})
+                task.add_deps({self.gs_tasks_pv[ip, ipv]: "WFK"})
                 # Add the (ip, iv) indices as attribute of the task.
                 task.attrs["ip_ipv"] = (ip, ipv)
                 self.relax_tasks_pv[ip, ipv] = task
@@ -1340,11 +1404,11 @@ class FiniteStrainWork(_BaseFdWork):
         for ions_mode, obj in data.items():
             with open(Path(self.outdir.path) / f"{ions_mode}_{obj.__class__.__name__}.pickle", "wb") as fh:
                 pickle.dump(obj, fh)
-            #mjson_write(obj, Path(self.outdir.path ) / f"{ions_mode}_{obj.__class__.__name__}.json")
+            # mjson_write(obj, Path(self.outdir.path ) / f"{ions_mode}_{obj.__class__.__name__}.json")
 
         # TODO: Use ElasticData from dfpt.elastic module
-        #from abipy.dfpt.elastic import ElasticData
-        #el_data = ElasticData(
+        # from abipy.dfpt.elastic import ElasticData
+        # el_data = ElasticData(
         #             self.initial_structure,
         #             params=self.params_pv[0,0]
         #             elastic_clamped=None,
@@ -1366,15 +1430,17 @@ class _FieldWork(_BaseFdWork):
     """
 
     @classmethod
-    def from_scf_input(cls,
-                       scf_input: AbinitInput,
-                       fd_accuracy: int,
-                       step_au: float,
-                       pert_cart_dirs: np.ndarray | None = None,
-                       extra_abivars: dict | None = None,
-                       relax_ions: bool = False,
-                       relax_ions_opts: dict | None = None,
-                       manager=None):
+    def from_scf_input(
+        cls,
+        scf_input: AbinitInput,
+        fd_accuracy: int,
+        step_au: float,
+        pert_cart_dirs: np.ndarray | None = None,
+        extra_abivars: dict | None = None,
+        relax_ions: bool = False,
+        relax_ions_opts: dict | None = None,
+        manager=None,
+    ):
         """
         Build the work from an AbinitInput representing a GS SCF calculation.
 
@@ -1407,8 +1473,10 @@ class _FieldWork(_BaseFdWork):
             raise TypeError(f"Don't know how to handle {type(work)=}")
 
         # Build list of perturbations.
-        work.perts = [Perturbation(kind=work.pert_kind, values=work.pert_values, cart_dir=cart_dir)
-                      for cart_dir in work.pert_cart_dirs]
+        work.perts = [
+            Perturbation(kind=work.pert_kind, values=work.pert_values, cart_dir=cart_dir)
+            for cart_dir in work.pert_cart_dirs
+        ]
 
         work.allocate_tasks_pv(relax_ions, relax_ions_opts)
 
@@ -1448,10 +1516,12 @@ class FiniteHfieldWork(_FieldWork):
     r"""
     This work performs GS calculations with a finite Zeeman field.
     """
+
     DataCls = ZeemanData
 
-    def _add_tasks_with_zeeman_field_ipv(self, ip: int, ipv_select: int | None,
-                                         structure: Structure, ions_mode: str) -> None:
+    def _add_tasks_with_zeeman_field_ipv(
+        self, ip: int, ipv_select: int | None, structure: Structure, ions_mode: str
+    ) -> None:
         """Build new GS tasks with zeemanfield."""
         scf_input = self.scf_input.new_with_structure(structure)
         pert = self.perts[ip]
@@ -1472,7 +1542,8 @@ class FiniteHfieldWork(_FieldWork):
             raise ValueError(f"Invalid {ions_mode=}")
 
         for ipv, p_val in enumerate(pert.values):
-            if ipv_select is not None and ipv != ipv_select: continue
+            if ipv_select is not None and ipv != ipv_select:
+                continue
             is_pv0 = abs(p_val) < 1e-16
 
             new_inp = scf_input.new_with_vars(zeemanfield=p_val * pert.cart_dir, **relax_ions_opts)
@@ -1490,12 +1561,10 @@ class FiniteEfieldWork(_FieldWork):
     r"""
     This work performs GS calculations with a finite Electric field.
     """
+
     DataCls = ElectricFieldData
 
-    def _add_tasks_with_efield_ipv(self,
-                                   ip: int,
-                                   ipv_select: int | None,
-                                   structure: Structure, ions_mode: str) -> None:
+    def _add_tasks_with_efield_ipv(self, ip: int, ipv_select: int | None, structure: Structure, ions_mode: str) -> None:
         """Build new GS tasks with finite electric field."""
         scf_input = self.scf_input.new_with_structure(structure)
         pert = self.perts[ip]
@@ -1516,12 +1585,13 @@ class FiniteEfieldWork(_FieldWork):
             raise ValueError(f"Invalid {ions_mode=}")
 
         for ipv, p_val in enumerate(pert.values):
-            if ipv_select is not None and ipv != ipv_select: continue
+            if ipv_select is not None and ipv != ipv_select:
+                continue
             is_pv0 = abs(p_val) < 1e-16
             new_inp = scf_input.new_with_vars(efield=p_val * pert.cart_dir, **relax_ions_opts)
 
             if tasks_pv[ip, ipv] is not None:
-                raise RuntimeError(f"Expecting None for {ip=}, {ipv=} but got {str(tasks_pv[ip, ipv])}")
+                raise RuntimeError(f"Expecting None for {ip=}, {ipv=} but got {tasks_pv[ip, ipv]!s}")
 
             if is_pv0:
                 # Avoid computing the zero-field case multiple times.
@@ -1544,8 +1614,8 @@ class FiniteEfieldWork(_FieldWork):
 
         # Now add dependencies for GS tasks: connect tasks with +E and -E starting from E = 0.
         if ions_mode == IonsMode.CLAMPED:
-            for ipv in range(0, pert.ipv0):
-                tasks_pv[ip, ipv].add_deps({tasks_pv[ip, ipv+1]: "WFK"})
+            for ipv in range(pert.ipv0):
+                tasks_pv[ip, ipv].add_deps({tasks_pv[ip, ipv + 1]: "WFK"})
 
-            for ipv in range(pert.ipv0+1, len(tasks_pv[ip])):
-                tasks_pv[ip, ipv].add_deps({tasks_pv[ip, ipv-1]: "WFK"})
+            for ipv in range(pert.ipv0 + 1, len(tasks_pv[ip])):
+                tasks_pv[ip, ipv].add_deps({tasks_pv[ip, ipv - 1]: "WFK"})

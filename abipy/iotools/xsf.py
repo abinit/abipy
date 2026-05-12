@@ -1,18 +1,17 @@
-# coding: utf-8
 """Tools for writing Xcrysden files."""
+
 from __future__ import annotations
 
 import numpy as np
-
 from pymatgen.core.units import Energy, EnergyArray
-from abipy.tools.numtools import transpose_last3dims, add_periodic_replicas
 
+from abipy.tools.numtools import add_periodic_replicas, transpose_last3dims
 
 __all__ = [
-    "xsf_write_structure_and_data_to_path",
-    "xsf_write_structure",
-    "xsf_write_data",
     "bxsf_write",
+    "xsf_write_data",
+    "xsf_write_structure",
+    "xsf_write_structure_and_data_to_path",
 ]
 
 
@@ -33,47 +32,47 @@ def xsf_write_structure(file, structures: list) -> None:
 
     if animation:
         # axsf file.
-        fwrite('ANIMSTEPS %s\n' % len(structures))
+        fwrite("ANIMSTEPS %s\n" % len(structures))
 
-    fwrite('CRYSTAL\n')
+    fwrite("CRYSTAL\n")
 
     for n, struct in enumerate(structures):
         cell = struct.lattice.matrix
 
-        fwrite('# Primitive lattice vectors in Angstrom\n')
-        fwrite('PRIMVEC %d\n' % (n + 1))
+        fwrite("# Primitive lattice vectors in Angstrom\n")
+        fwrite("PRIMVEC %d\n" % (n + 1))
         for i in range(3):
-            fwrite(' %.14f %.14f %.14f\n' % tuple(cell[i]))
+            fwrite(" %.14f %.14f %.14f\n" % tuple(cell[i]))
 
         cart_coords = struct.cart_coords
         atomic_numbers = struct.atomic_numbers
 
         # TODO
         cart_forces = None
-        #if "cartesian_forces" in structure.site_properties:
-        #cart_forces = ArrayWithUnit().to("Ha ang^-1")
+        # if "cartesian_forces" in structure.site_properties:
+        # cart_forces = ArrayWithUnit().to("Ha ang^-1")
 
         fwrite("# Cartesian coordinates in Angstrom.\n")
-        fwrite('PRIMCOORD %d\n' % (n + 1))
-        fwrite(' %d 1\n' % len(cart_coords))
+        fwrite("PRIMCOORD %d\n" % (n + 1))
+        fwrite(" %d 1\n" % len(cart_coords))
 
         for a in range(len(cart_coords)):
-            fwrite(' %2d' % atomic_numbers[a])
-            fwrite(' %20.14f %20.14f %20.14f' % tuple(cart_coords[a]))
+            fwrite(" %2d" % atomic_numbers[a])
+            fwrite(" %20.14f %20.14f %20.14f" % tuple(cart_coords[a]))
             if cart_forces is None:
-                fwrite('\n')
+                fwrite("\n")
             else:
-                fwrite(' %20.14f %20.14f %20.14f\n' % tuple(cart_forces[a]))
+                fwrite(" %20.14f %20.14f %20.14f\n" % tuple(cart_forces[a]))
 
 
 def xsf_write_structure_and_data_to_path(filepath, structure, datar, **kwargs) -> None:
     """Simplified interface to write structure and data to filepath in XSF format."""
-    with open(filepath, mode="wt") as fh:
+    with open(filepath, mode="w") as fh:
         xsf_write_structure(fh, structure)
         xsf_write_data(fh, structure, datar, **kwargs)
 
 
-#def xsf_write_structure_and_multidata(filepath, structure, multi_datar, tags=None, **kwargs) -> None:
+# def xsf_write_structure_and_multidata(filepath, structure, multi_datar, tags=None, **kwargs) -> None:
 #    """
 #    """
 #    multi_datar = np.array(multi_datar, ndmin=4)
@@ -88,10 +87,8 @@ def xsf_write_structure_and_data_to_path(filepath, structure, datar, **kwargs) -
 #           xsf_write_data(fh, structure, multi_datar[i], tag=tag, **kwargs)
 
 
-
-def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None,
-                   idname="data", tag="_UNKNOWN") -> None:
-                   #idname="data", tag="_grid") -> None:
+def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None, idname="data", tag="_UNKNOWN") -> None:
+    # idname="data", tag="_grid") -> None:
     """
     Write data in the Xcrysden format (XSF)
 
@@ -145,29 +142,29 @@ def xsf_write_data(file, structure, data, add_replicas=True, cplx_mode=None,
     cell = structure.lattice.matrix
     origin = np.zeros(3)
 
-    fwrite('BEGIN_BLOCK_DATAGRID_3D\n')
-    fwrite(f' {idname}\n')
+    fwrite("BEGIN_BLOCK_DATAGRID_3D\n")
+    fwrite(f" {idname}\n")
 
     for dg in range(ngrids):
         if ngrids != 1:
-            fwrite(f" BEGIN_DATAGRID_3D{tag}#{dg+1}" + "\n")
+            fwrite(f" BEGIN_DATAGRID_3D{tag}#{dg + 1}" + "\n")
         else:
             fwrite(f" BEGIN_DATAGRID_3D{tag}" + "\n")
-        fwrite('%d %d %d\n' % shape[-3:])
+        fwrite("%d %d %d\n" % shape[-3:])
 
-        fwrite('%f %f %f\n' % tuple(origin))
+        fwrite("%f %f %f\n" % tuple(origin))
         for i in range(3):
-            fwrite('%f %f %f\n' % tuple(cell[i]))
+            fwrite("%f %f %f\n" % tuple(cell[i]))
 
         for z in range(fgrid[0]):
             for y in range(fgrid[1]):
-                slice_x = fdata[dg,z,y]
-                fwrite(' '.join(['%f' % d for d in slice_x]))
-                fwrite('\n')
-            fwrite('\n')
+                slice_x = fdata[dg, z, y]
+                fwrite(" ".join(["%f" % d for d in slice_x]))
+                fwrite("\n")
+            fwrite("\n")
 
-        fwrite(' END_DATAGRID_3D\n')
-    fwrite('END_BLOCK_DATAGRID_3D\n')
+        fwrite(" END_DATAGRID_3D\n")
+    fwrite("END_BLOCK_DATAGRID_3D\n")
 
 
 def bxsf_write(file, structure, nsppol, nband, ngkpt, ucdata_sbk, fermie, unit="eV") -> None:
@@ -205,31 +202,31 @@ def bxsf_write(file, structure, nsppol, nband, ngkpt, ucdata_sbk, fermie, unit="
 
     close_it = False
     if not hasattr(file, "write"):
-        file = open(str(file), mode="wt")
+        file = open(str(file), mode="w")
         close_it = True
 
     fw = file.write
 
     # Write the header.
-    fw('BEGIN_INFO\n')
-    fw('# Band-XCRYSDEN-Structure-File for Visualization of Fermi Surface generated by the ABINIT package\n')
-    fw('# NOTE: the first band is relative to spin-up electrons,\n')
-    fw('#       the second band to spin-down electrons (if any) and so on ...\n#\n')
-    fw('# Launch as: xcrysden --bxsf\n#\n')
-    fw(' Fermi Energy: %f\n' % fermie)
-    fw('END_INFO\n\n')
-    fw('BEGIN_BLOCK_BANDGRID_3D\n')
-    fw(' band_energies\n')
-    fw(' BEGIN_BANDGRID_3D\n')
+    fw("BEGIN_INFO\n")
+    fw("# Band-XCRYSDEN-Structure-File for Visualization of Fermi Surface generated by the ABINIT package\n")
+    fw("# NOTE: the first band is relative to spin-up electrons,\n")
+    fw("#       the second band to spin-down electrons (if any) and so on ...\n#\n")
+    fw("# Launch as: xcrysden --bxsf\n#\n")
+    fw(" Fermi Energy: %f\n" % fermie)
+    fw("END_INFO\n\n")
+    fw("BEGIN_BLOCK_BANDGRID_3D\n")
+    fw(" band_energies\n")
+    fw(" BEGIN_BANDGRID_3D\n")
 
     fw(str(nsppol * nband) + "\n")  # Number of bands written.
-    fw("%d %d %d\n" % tuple(ngkpt)) # Number of division in the full BZ mesh.
-    fw("0 0 0\n")                   # NB: Unshifted meshes are not supported.
+    fw("%d %d %d\n" % tuple(ngkpt))  # Number of division in the full BZ mesh.
+    fw("0 0 0\n")  # NB: Unshifted meshes are not supported.
 
     # Reciprocal lattice vectors in Ang^{-1}
     gcell = structure.lattice.reciprocal_lattice.matrix
     for i in range(3):
-        fw('%f %f %f\n' % tuple(gcell[i]))
+        fw("%f %f %f\n" % tuple(gcell[i]))
 
     # Write energies on the full mesh for all spins and bands.
     idx = 0
@@ -241,8 +238,8 @@ def bxsf_write(file, structure, nsppol, nband, ngkpt, ucdata_sbk, fermie, unit="
             fw("\n".join("%.18e" % v for v in enes))
             fw("\n")
 
-    fw(' END_BANDGRID_3D\n')
-    fw('END_BLOCK_BANDGRID_3D\n')
+    fw(" END_BANDGRID_3D\n")
+    fw("END_BLOCK_BANDGRID_3D\n")
     file.flush()
 
     if close_it:

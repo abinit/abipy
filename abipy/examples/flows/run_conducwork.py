@@ -8,16 +8,14 @@ Flow to compute conductivity in metals.
 
 import os
 import sys
-import abipy.data as abidata
-import abipy.abilab as abilab
 
-from abipy import flowtk
+import abipy.data as abidata
+from abipy import abilab, flowtk
 from abipy.abio.factories import conduc_kerange_from_inputs
 
 
 def make_scf_input(structure, pseudos, ngkpt=(2, 2, 2), shiftk=(0, 0, 0), **variables):
     """Build and return SCF input given the structure and pseudopotentials"""
-
     scf_inp = abilab.AbinitInput(structure, pseudos=pseudos)
 
     # Global variables
@@ -25,12 +23,12 @@ def make_scf_input(structure, pseudos, ngkpt=(2, 2, 2), shiftk=(0, 0, 0), **vari
 
     # Dataset 1 (GS run)
     scf_inp.set_kmesh(ngkpt=ngkpt, shiftk=shiftk)
-    #scf_inp.set_vars(toldfe=1e-10)
+    # scf_inp.set_vars(toldfe=1e-10)
 
     return scf_inp
 
 
-def make_nscf_input(structure, pseudos, ngkpt=(2,2,2), shiftk=(0,0,0), **variables):
+def make_nscf_input(structure, pseudos, ngkpt=(2, 2, 2), shiftk=(0, 0, 0), **variables):
     """Build and return NSCF input given the structure and pseudopotentials"""
     scf_inp = abilab.AbinitInput(structure, pseudos=pseudos)
 
@@ -54,45 +52,29 @@ def build_flow(options):
     pseudos = abidata.pseudos("13al.pspnc")
 
     # Variables
-    variables = dict(
-            ecut=20,
-            tsmear=0.05,
-            nband=12,
-            nbdbuf=2,
-            occopt=3,
-            iomode=1,
-            nstep=20
-    )
+    variables = dict(ecut=20, tsmear=0.05, nband=12, nbdbuf=2, occopt=3, iomode=1, nstep=20)
 
     ngkpt = [4, 4, 4]
     ngkpt_fine = [8, 8, 8]
     shiftk = [0.0, 0.0, 0.0]
     ngqpt = [2, 2, 2]
-    tmesh = [0, 30, 11] # Conductivity at temp from 0K to 300K by increment of 30
+    tmesh = [0, 30, 11]  # Conductivity at temp from 0K to 300K by increment of 30
     boxcutmin = 1.1
     mixprec = 1
 
     # Kerange Variables
     nbr_proc = 4
-    ngqpt_fine = [16, 16, 16]         # The sigma_ngkpt grid must be divisible by the qpt grid
+    ngqpt_fine = [16, 16, 16]  # The sigma_ngkpt grid must be divisible by the qpt grid
     sigma_ngkpt = [16, 16, 16]
-    einterp = [1, 5, 0, 0]            # Star functions Interpolation
-    sigma_erange = [-0.3, -0.3, "eV"] # Negative value for metals
+    einterp = [1, 5, 0, 0]  # Star functions Interpolation
+    sigma_erange = [-0.3, -0.3, "eV"]  # Negative value for metals
 
     flow = flowtk.Flow(workdir=options.workdir)
 
     # Create inputs
-    scf_input = make_scf_input(structure, pseudos,
-                               tolvrs=1e-12,
-                               ngkpt=ngkpt,
-                               shiftk=shiftk,
-                               **variables)
+    scf_input = make_scf_input(structure, pseudos, tolvrs=1e-12, ngkpt=ngkpt, shiftk=shiftk, **variables)
 
-    nscf_input = make_nscf_input(structure, pseudos,
-                                 tolwfr=1e-18,
-                                 ngkpt=ngkpt_fine,
-                                 shiftk=shiftk,
-                                 **variables)
+    nscf_input = make_nscf_input(structure, pseudos, tolwfr=1e-18, ngkpt=ngkpt_fine, shiftk=shiftk, **variables)
 
     # Create Work Object
     # Work 0:  SCF run
@@ -101,32 +83,33 @@ def build_flow(options):
     flow.register_work(gs_work)
 
     # Work 1: Compute DDB et DVDB
-    ph_work = flowtk.PhononWork.from_scf_task(gs_work[0],
-                                              qpoints=ngqpt, is_ngqpt=True,
-                                              tolerance={"tolvrs": 1e-8})
+    ph_work = flowtk.PhononWork.from_scf_task(gs_work[0], qpoints=ngqpt, is_ngqpt=True, tolerance={"tolvrs": 1e-8})
     flow.register_work(ph_work)
 
     # Work 2: Conductivity with Kerange
-    multi = conduc_kerange_from_inputs(scf_input=scf_input,
-                                       nscf_input=nscf_input,
-                                       tmesh=tmesh,
-                                       ddb_ngqpt=ngqpt,
-                                       eph_ngqpt_fine=ngqpt_fine,
-                                       sigma_ngkpt=sigma_ngkpt,
-                                       sigma_erange=sigma_erange,
-                                       einterp=einterp,
-                                       boxcutmin=boxcutmin, # 1.1 is the default value of the function
-                                       mixprec=mixprec      # 1 is the default value of the function
-                                       )
+    multi = conduc_kerange_from_inputs(
+        scf_input=scf_input,
+        nscf_input=nscf_input,
+        tmesh=tmesh,
+        ddb_ngqpt=ngqpt,
+        eph_ngqpt_fine=ngqpt_fine,
+        sigma_ngkpt=sigma_ngkpt,
+        sigma_erange=sigma_erange,
+        einterp=einterp,
+        boxcutmin=boxcutmin,  # 1.1 is the default value of the function
+        mixprec=mixprec,  # 1 is the default value of the function
+    )
 
     # Here we can change multi to change the variable of a particular dataset
 
-    conduc_work = flowtk.ConducWork.from_phwork(phwork=ph_work,    # Linking the DDB and DVDB via a PhononWork
-                                                multi=multi,       # The multidataset object
-                                                nbr_proc=nbr_proc, # Needed to parallelize the calculation
-                                                flow=flow,
-                                                with_kerange=True, # Using Kerange
-                                                omp_nbr_thread=1)  # 1 is the default value of the function
+    conduc_work = flowtk.ConducWork.from_phwork(
+        phwork=ph_work,  # Linking the DDB and DVDB via a PhononWork
+        multi=multi,  # The multidataset object
+        nbr_proc=nbr_proc,  # Needed to parallelize the calculation
+        flow=flow,
+        with_kerange=True,  # Using Kerange
+        omp_nbr_thread=1,
+    )  # 1 is the default value of the function
 
     # If you already have the DDB and DVDB, use from_filepath(ddb_path, dvdb_path, multi, ...) instead of from_phwork
 
@@ -140,6 +123,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

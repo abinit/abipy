@@ -16,12 +16,12 @@ the efield variable sets the strength (in atomic units) and direction of the fie
 Based on tutorespfn/Input/tpolarization_6.abi
 """
 
-import sys
 import os
-import abipy.flowtk as flowtk
+import sys
 
-from abipy.core.structure import Structure
+from abipy import flowtk
 from abipy.abio.inputs import AbinitInput
+from abipy.core.structure import Structure
 from abipy.flowtk.finitediff import FiniteDisplWork
 
 
@@ -54,14 +54,14 @@ xred
 
     # Get NC pseudos from pseudodojo.
     from abipy.flowtk.psrepos import get_oncvpsp_pseudos
-    pseudos = get_oncvpsp_pseudos(xc_name="LDA", version="0.4",
-                                  relativity_type="SR", accuracy="standard")
-    #nspinor = 1
-    #nsppol, nspden = 1, 4
-    #if nspinor == 1:
+
+    pseudos = get_oncvpsp_pseudos(xc_name="LDA", version="0.4", relativity_type="SR", accuracy="standard")
+    # nspinor = 1
+    # nsppol, nspden = 1, 4
+    # if nspinor == 1:
     #    nsppol, nspden  = 2, 2
 
-    #nband 4
+    # nband 4
     # nband is restricted here to the number of filled bands only, no empty bands. The theory of
     # the Berrys phase polarization formula assumes filled bands only. Our pseudopotential choice
     # includes 5 valence electrons on P, 3 on Al, for 8 total in the primitive unit cell, hence
@@ -74,26 +74,37 @@ xred
         ecut=5,
         nband=4,
         tolvrs=1.0e-8,
-        nstep=50,         # Maximal number of SCF cycles
+        nstep=50,  # Maximal number of SCF cycles
         ecutsm=0.5,
         dilatmx=1.05,
         paral_kgb=0,
     )
 
-    shiftk = [0.5, 0.5, 0.5,
-              0.5, 0.0, 0.0,
-              0.0, 0.5, 0.0,
-              0.0, 0.0, 0.5,
+    shiftk = [
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.0,
+        0.0,
+        0.0,
+        0.5,
+        0.0,
+        0.0,
+        0.0,
+        0.5,
     ]
 
-    #scf_input.set_kmesh(ngkpt=[6, 6, 6], shiftk=shiftk)
+    # scf_input.set_kmesh(ngkpt=[6, 6, 6], shiftk=shiftk)
     scf_input.set_kmesh(ngkpt=[1, 1, 1], shiftk=[0, 0, 0])
 
     # Initialize the flow.
     flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)
 
     mask_iatom = [True, False]
-    pert_cart_dirs = [[1, 0, 0],]
+    pert_cart_dirs = [
+        [1, 0, 0],
+    ]
 
     mask_iatom = None
     pert_cart_dirs = None
@@ -104,7 +115,7 @@ xred
         step_au=0.01,
         pert_cart_dirs=pert_cart_dirs,
         mask_iatom=mask_iatom,
-        #extra_abivars=dict(berryopt=-1),  # This to compute the polarization at E = 0
+        # extra_abivars=dict(berryopt=-1),  # This to compute the polarization at E = 0
     )
 
     # Add the work to the flow.
@@ -118,6 +129,7 @@ xred
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

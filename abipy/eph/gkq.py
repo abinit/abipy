@@ -5,34 +5,42 @@ This file is produced by the eph code with eph_task -4.
 
 To analyze the e-ph scattering potentials, use v1qavg and eph_task 15 or -15
 """
-from __future__ import annotations
 
-import numpy as np
-import pandas as pd
-import abipy.core.abinit_units as abu
+from __future__ import annotations
 
 from collections import OrderedDict
 from functools import cached_property
+
+import numpy as np
+import pandas as pd
 from monty.string import marquee
-from abipy.core.structure import Structure
-from abipy.core.kpoints import Kpoint
-from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
-from abipy.tools import duck
-from abipy.tools.typing import Figure, PathLike
+
+import abipy.core.abinit_units as abu
 from abipy.abio.robots import Robot
+from abipy.core.kpoints import Kpoint
+from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Header, Has_Structure, NotebookWriter
+from abipy.core.structure import Structure
 from abipy.electrons.ebands import ElectronBands, ElectronsReader, RobotWithEbands
-from abipy.eph.common import glr_frohlich, EPH_WTOL
+from abipy.eph.common import EPH_WTOL, glr_frohlich
+from abipy.tools import duck
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
+from abipy.tools.typing import Figure, PathLike
 
 
 class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
-
+    """
+    This file stores the results of a GKQ calculation.
+    """
     @classmethod
     def from_file(cls, filepath: PathLike):
         """Initialize the object from a netcdf_ file."""
         return cls(filepath)
 
     def __init__(self, filepath: PathLike):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
         self.r = GkqReader(filepath)
 
@@ -42,7 +50,8 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     def to_string(self, verbose: int = 0) -> str:
         """String representation."""
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
 
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
@@ -57,7 +66,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         app(str(self.epsinf_cart))
         app("")
         app("Born effective charges in Cartesian coordinates:")
-        for i, (site, bec) in enumerate(zip(self.structure, self.becs_cart)):
+        for i, (site, bec) in enumerate(zip(self.structure, self.becs_cart, strict=False)):
             app("[%d]: %s" % (i, repr(site)))
             app(str(bec))
             app("")
@@ -69,6 +78,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return "\n".join(lines)
 
     def close(self) -> None:
+        """Close the file."""
         self.r.close()
 
     @cached_property
@@ -95,7 +105,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
     @cached_property
     def qpoint(self) -> Kpoint:
         """Q-point object."""
-        return Kpoint(self.r.read_value('qpoint'), self.structure.reciprocal_lattice)
+        return Kpoint(self.r.read_value("qpoint"), self.structure.reciprocal_lattice)
 
     @cached_property
     def phfreqs_ha(self) -> np.ndarray:
@@ -173,7 +183,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         # Convert from atomic to phonon representation. May use np.einsum for better efficiency but oh well!
         nband = gkq_atm.shape[-1]
         assert nband == gkq_atm.shape[-2] and nband == self.ebands.nband
-        nb2, natom3 = nband ** 2, 3 * len(self.structure)
+        nb2, natom3 = nband**2, 3 * len(self.structure)
         phfreqs_ha, phdispl_red = self.phfreqs_ha, self.phdispl_red
 
         gkq_nu, cwork = np.empty_like(gkq_atm), np.empty((natom3, nb2), dtype=complex)
@@ -181,12 +191,16 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             for ik in range(self.ebands.nkpt):
                 gc = np.reshape(gkq_atm[spin, ik], (-1, nb2))
                 for nu in range(natom3):
-                    cwork[nu] = np.dot(phdispl_red[nu], gc) / np.sqrt(2.0 * phfreqs_ha[nu]) if (phfreqs_ha[nu] > EPH_WTOL) else 0.0
+                    cwork[nu] = (
+                        np.dot(phdispl_red[nu], gc) / np.sqrt(2.0 * phfreqs_ha[nu])
+                        if (phfreqs_ha[nu] > EPH_WTOL)
+                        else 0.0
+                    )
                 gkq_nu[spin, ik] = np.reshape(cwork, (natom3, nband, nband))
 
         return gkq_nu
 
-    def get_absg_kpoint(self, kpoint, eps_mev: float=0.01) -> tuple[np.ndarray, np.ndarray, int, Kpoint]:
+    def get_absg_kpoint(self, kpoint, eps_mev: float = 0.01) -> tuple[np.ndarray, np.ndarray, int, Kpoint]:
         """
         Args:
             kpoint: |Kpoint| object or list/tuple with reduced coordinates or integer with the index
@@ -212,8 +226,8 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
         # (nsppol, nkpt, 3*natom, mband, mband) real array.
         absg = np.abs(self.read_all_gkq(mode="phonon")) * abu.Ha_meV
-        absgk = absg[:,ik].copy()
-        absg_unsym = absg[:,ik].copy()
+        absgk = absg[:, ik].copy()
+        absg_unsym = absg[:, ik].copy()
         absg_sym = np.zeros_like(absgk)
 
         # Average over phonons.
@@ -224,10 +238,11 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
                 g2_mn[:], nn = 0.0, 0
                 for mu in range(natom3):
                     w_2 = phfreqs_ha[mu]
-                    if abs(w_1 - w_2) >= eps_ha: continue
+                    if abs(w_1 - w_2) >= eps_ha:
+                        continue
                     nn += 1
-                    g2_mn += absgk[spin,mu,:,:] ** 2
-                absg_sym[spin,nu,:,:] = np.sqrt(g2_mn / nn)
+                    g2_mn += absgk[spin, mu, :, :] ** 2
+                absg_sym[spin, nu, :, :] = np.sqrt(g2_mn / nn)
 
         # Average over k electrons.
         absg = absg_sym.copy()
@@ -239,11 +254,12 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
                     g2_nu[:], nn = 0.0, 0
                     for pbnd in range(nb):
                         w_2 = eigens_k[spin, ik, pbnd]
-                        if abs(w_2 - w_1) >= eps_ev: continue
+                        if abs(w_2 - w_1) >= eps_ev:
+                            continue
                         nn += 1
                         # MG FIXME: Why absgk and not absg here as done below for k+q?
-                        g2_nu += absgk[spin,:,jbnd,pbnd] ** 2
-                    absg_sym[spin,:,jbnd,ibnd] = np.sqrt(g2_nu / nn)
+                        g2_nu += absgk[spin, :, jbnd, pbnd] ** 2
+                    absg_sym[spin, :, jbnd, ibnd] = np.sqrt(g2_nu / nn)
 
         # Average over k+q electrons.
         absgk = absg_sym.copy()
@@ -254,10 +270,11 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
                     g2_nu[:], nn = 0.0, 0
                     for pbnd in range(nb):
                         w_2 = eigens_kq[spin, ik, pbnd]
-                        if abs(w_2 - w_1) >= eps_ev: continue
+                        if abs(w_2 - w_1) >= eps_ev:
+                            continue
                         nn += 1
-                        g2_nu += absgk[spin,:,pbnd,ibnd] ** 2
-                    absg_sym[spin,:,jbnd,ibnd] = np.sqrt(g2_nu / nn)
+                        g2_nu += absgk[spin, :, pbnd, ibnd] ** 2
+                    absg_sym[spin, :, jbnd, ibnd] = np.sqrt(g2_nu / nn)
 
         return absg_sym, absg_unsym, ik, kpoint
 
@@ -282,7 +299,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         imodes = df["imode"].to_numpy()
         df["omega(q)[meV]"] = (self.phfreqs_ha * abu.Ha_meV)[imodes]
         spin_inds, mkq_inds, nk_inds = df["spin"].to_numpy(), df["m_kq"].to_numpy(), df["n_k"].to_numpy()
-        #print(self.ebands.eigens[spin_inds,ik,nk_inds].shape)
+        # print(self.ebands.eigens[spin_inds,ik,nk_inds].shape)
         df["e_nk[eV]"] = self.ebands.eigens[spin_inds, ik, nk_inds]
         df["e_mkq[eV]"] = self.eigens_kq[spin_inds, ik, mkq_inds]
 
@@ -306,7 +323,8 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         Return: |matplotlib-Figure|
         """
         gkq = np.abs(self.read_all_gkq(mode=mode))
-        if mode == "phonon": gkq *= abu.Ha_meV
+        if mode == "phonon":
+            gkq *= abu.Ha_meV
 
         # Compute e_{k+q} - e_k for all possible (b, b')
         ediffs = np.empty_like(gkq)
@@ -320,28 +338,30 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         if with_glr and mode == "phonon":
             # Add horizontal bar with matrix elements computed from Verdi's model (only G = 0, \delta_nm in bands).
             dcart_bohr = self.phdispl_cart_bohr
-            #dcart_bohr = self.r.read_value("phdispl_cart_qvers", cmode="c").real
-            gkq_lr = glr_frohlich(self.qpoint, self.becs_cart, self.epsinf_cart,
-                                  dcart_bohr, self.phfreqs_ha, self.structure)
+            # dcart_bohr = self.r.read_value("phdispl_cart_qvers", cmode="c").real
+            gkq_lr = glr_frohlich(
+                self.qpoint, self.becs_cart, self.epsinf_cart, dcart_bohr, self.phfreqs_ha, self.structure
+            )
             # self.phdispl_cart_bohr, self.phfreqs_ha, self.structure)
             gkq2_lr = np.abs(gkq_lr) * abu.Ha_meV
 
         natom = len(self.structure)
         num_plots, ncols, nrows = 3 * natom, 3, natom
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=sharey, squeeze=False)
+        ax_list, fig, plt = get_axarray_fig_plt(
+            None, nrows=nrows, ncols=ncols, sharex=True, sharey=sharey, squeeze=False
+        )
         ax_list = ax_list.ravel()
         cmap = plt.get_cmap(colormap)
 
         for nu, ax in enumerate(ax_list):
             idir = nu % 3
             iat = (nu - idir) // 3
-            data, c = gkq[:, :, nu, :, :].ravel(), ediffs[:,:,nu,:,:].ravel()
+            data, c = gkq[:, :, nu, :, :].ravel(), ediffs[:, :, nu, :, :].ravel()
             # Filter items according to ediff
             index = c <= 1.2 * self.phfreqs_ha.max() * abu.Ha_eV
             data, c = data[index], c[index]
             sc = ax.scatter(np.arange(len(data)), data, alpha=0.9, s=30, c=c, cmap=cmap)
-                            #facecolors='none', edgecolors='orange')
+            # facecolors='none', edgecolors='orange')
             plt.colorbar(sc, ax=ax)
 
             ax.grid(True)
@@ -351,11 +371,13 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
                 ylabel = r"$|g^{atm}_{\bf q}|$" if mode == "atom" else r"$|g_{\bf q}|$ (meV)"
                 ax.set_ylabel(ylabel)
 
-            ax.set_title(r"$\nu$: %d, $\omega_{{\bf q}\nu}$ = %.2E (meV)" %
-                         (nu, self.phfreqs_ha[nu] * abu.Ha_meV), fontsize=fontsize)
+            ax.set_title(
+                r"$\nu$: %d, $\omega_{{\bf q}\nu}$ = %.2E (meV)" % (nu, self.phfreqs_ha[nu] * abu.Ha_meV),
+                fontsize=fontsize,
+            )
 
             if with_glr:
-                ax.axhline(gkq2_lr[nu], color='k', linestyle='dashed', linewidth=2)
+                ax.axhline(gkq2_lr[nu], color="k", linestyle="dashed", linewidth=2)
 
         fig.suptitle("qpoint: %s" % repr(self.qpoint), fontsize=fontsize)
         return fig
@@ -378,8 +400,10 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             raise ValueError("Found different q-points: %s and %s" % (self.qpoint, other.qpoint))
 
         if labels is None:
-            labels = ["this (interpolated: %s)" % self.uses_interpolated_dvdb,
-                      "other (interpolated: %s)" % other.uses_interpolated_dvdb]
+            labels = [
+                "this (interpolated: %s)" % self.uses_interpolated_dvdb,
+                "other (interpolated: %s)" % other.uses_interpolated_dvdb,
+            ]
 
         this_gkq = np.abs(self.read_all_gkq(mode=mode))
         other_gkq = np.abs(other.read_all_gkq(mode=mode))
@@ -389,16 +413,19 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
         absdiff_gkq = np.abs(this_gkq - other_gkq)
 
-        stats = OrderedDict([
-            ("min", absdiff_gkq.min()),
-            ("max", absdiff_gkq.max()),
-            ("mean", absdiff_gkq.mean()),
-            ("std", absdiff_gkq.std()),
-        ])
+        stats = OrderedDict(
+            [
+                ("min", absdiff_gkq.min()),
+                ("max", absdiff_gkq.max()),
+                ("mean", absdiff_gkq.mean()),
+                ("std", absdiff_gkq.std()),
+            ]
+        )
 
         num_plots, ncols, nrows = 2, 2, 1
-        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
-                                                sharex=False, sharey=False, squeeze=False)
+        ax_list, fig, plt = get_axarray_fig_plt(
+            ax_list, nrows=nrows, ncols=ncols, sharex=False, sharey=False, squeeze=False
+        )
         ax_list = ax_list.ravel()
 
         # Downsample datasets. Show only points with error > threshold.
@@ -409,7 +436,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         xs = np.arange(len(data))
 
         ax = ax_list[0]
-        ax.scatter(xs, data, alpha=0.9, s=30, label=labels[0], facecolors='none', edgecolors='orange')
+        ax.scatter(xs, data, alpha=0.9, s=30, label=labels[0], facecolors="none", edgecolors="orange")
 
         data = other_gkq[absdiff_gkq > threshold].ravel()
         ax.scatter(xs, data, alpha=0.3, s=10, marker="x", label=labels[1], facecolors="g", edgecolors="none")
@@ -418,21 +445,29 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         ax.set_xlabel("Matrix element index")
         ylabel = r"$|g^{atm}_{\bf q}|$" if mode == "atom" else r"$|g_{\bf q}|$ (meV)"
         ax.set_ylabel(ylabel)
-        ax.set_title(r"qpt: %s, $\Delta$ > %.1E (%.1f %%)" % (
-                     repr(self.qpoint), threshold, 100 * nshown / ntot), fontsize=fontsize)
+        ax.set_title(
+            r"qpt: %s, $\Delta$ > %.1E (%.1f %%)" % (repr(self.qpoint), threshold, 100 * nshown / ntot),
+            fontsize=fontsize,
+        )
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         ax = ax_list[1]
-        ax.hist(absdiff_gkq.ravel(), facecolor='g', alpha=0.75)
+        ax.hist(absdiff_gkq.ravel(), facecolor="g", alpha=0.75)
         ax.grid(True)
         ax.set_xlabel("Absolute Error" if mode == "atom" else "Absolute Error (meV)")
         ax.set_ylabel("Count")
 
-        ax.axvline(stats["mean"], color='k', linestyle='dashed', linewidth=1)
+        ax.axvline(stats["mean"], color="k", linestyle="dashed", linewidth=1)
         _, max_ = ax.get_ylim()
-        ax.text(0.7, 0.7,  "\n".join("%s = %.1E" % item for item in stats.items()),
-                fontsize=fontsize, horizontalalignment='center', verticalalignment='center',
-                transform=ax.transAxes)
+        ax.text(
+            0.7,
+            0.7,
+            "\n".join("%s = %.1E" % item for item in stats.items()),
+            fontsize=fontsize,
+            horizontalalignment="center",
+            verticalalignment="center",
+            transform=ax.transAxes,
+        )
 
         return fig
 
@@ -450,17 +485,19 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        nb.cells.extend([
-            nbv.new_code_cell("gkq = abilab.abiopen('%s')" % self.filepath),
-            nbv.new_code_cell("print(gkq)"),
-            nbv.new_code_cell("gkq.ebands.plot();"),
-            nbv.new_code_cell("gkq.epsinf_cart;"),
-            nbv.new_code_cell("gkq.becs_cart;"),
-            nbv.new_code_cell("""
+        nb.cells.extend(
+            [
+                nbv.new_code_cell("gkq = abilab.abiopen('%s')" % self.filepath),
+                nbv.new_code_cell("print(gkq)"),
+                nbv.new_code_cell("gkq.ebands.plot();"),
+                nbv.new_code_cell("gkq.epsinf_cart;"),
+                nbv.new_code_cell("gkq.becs_cart;"),
+                nbv.new_code_cell("""
               #with abilab.abiopen('other_GKQ.nc') as other:
               #     gkq.plot_diff_with_other(other);
-            """)
-        ])
+            """),
+            ]
+        )
 
         return self._write_nb_nbpath(nb, nbpath)
 
@@ -482,16 +519,19 @@ class GkqRobot(Robot, RobotWithEbands):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GkqRobot
     """
+
     EXT = "GKQ"
 
     @cached_property
     def kpoints(self):
+        """List of k-points."""
         # Consistency check: kmesh should be the same in each file.
         ref_kpoints = self.abifiles[0].ebands.kpoints
         for i, abifile in enumerate(self.abifiles):
-            if i == 0: continue
+            if i == 0:
+                continue
             if abifile.kpoints != ref_kpoints:
-                for k1, k2 in zip(ref_kpoints, abifile.kpoints):
+                for k1, k2 in zip(ref_kpoints, abifile.kpoints, strict=False):
                     print("k1:", k1, "--- k2:", k2)
                 raise ValueError("Found different list of kpoints in %s" % str(abifile.filepath))
         return ref_kpoints
@@ -500,20 +540,33 @@ class GkqRobot(Robot, RobotWithEbands):
         """Raises ValueError if different `qpoint` in files."""
         ref_qpoint = self.abifiles[0].qpoint
         for i, abifile in enumerate(self.abifiles):
-            if i == 0: continue
+            if i == 0:
+                continue
             if abifile.qpoint != ref_qpoint:
                 raise ValueError("Found different qpoint in %s" % str(abifile.filepath))
 
-    #@add_fig_kwargs
-    #def plot_gkq2_qpath(self, band_kq, band_k, kpoint=0, with_glr=False, qdamp=None, nu_list=None, # spherical_average=False,
+    # @add_fig_kwargs
+    # def plot_gkq2_qpath(self, band_kq, band_k, kpoint=0, with_glr=False, qdamp=None, nu_list=None, # spherical_average=False,
     #                    ax=None, fontsize=8, eph_wtol=EPH_WTOL, **kwargs):
     #    ncols, nrows = 2, len(self) - 1
     #    num_plots = ncols * nrows
     #    ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
 
     @add_fig_kwargs
-    def plot_gkq2_qpath(self, band_kq, band_k, kpoint=0, with_glr=False, qdamp=None, nu_list=None, # spherical_average=False,
-                        ax=None, fontsize=8, eph_wtol=EPH_WTOL, kq_labels=False, **kwargs) -> Figure:
+    def plot_gkq2_qpath(
+        self,
+        band_kq,
+        band_k,
+        kpoint=0,
+        with_glr=False,
+        qdamp=None,
+        nu_list=None,  # spherical_average=False,
+        ax=None,
+        fontsize=8,
+        eph_wtol=EPH_WTOL,
+        kq_labels=False,
+        **kwargs,
+    ) -> Figure:
         r"""
         Plot the magnitude of the electron-phonon matrix elements <k+q, band_kq| Delta_{q\nu} V |k, band_k>
         for a given set of (band_kq, band, k) as a function of the q-point.
@@ -544,13 +597,14 @@ class GkqRobot(Robot, RobotWithEbands):
         nsppol = self.abifiles[0].nsppol
         nqpt = len(self.abifiles)
         gkq_snuq = np.empty((nsppol, natom3, nqpt), dtype=complex)
-        if with_glr: gkq_lr = np.empty((nsppol, natom3, nqpt), dtype=complex)
+        if with_glr:
+            gkq_lr = np.empty((nsppol, natom3, nqpt), dtype=complex)
 
         # TODO: Should take into account possible degeneracies in k and k+q and phonon modes.
         xticks, xlabels = [], []
         for iq, abifile in enumerate(self.abifiles):
             qpoint = abifile.qpoint
-            #d3q_fact = one if not spherical_average else np.sqrt(4 * np.pi) * qpoint.norm
+            # d3q_fact = one if not spherical_average else np.sqrt(4 * np.pi) * qpoint.norm
 
             if kq_labels:
                 name = abifile.structure.findname_in_hsym_stars(kpoint + qpoint)
@@ -570,13 +624,21 @@ class GkqRobot(Robot, RobotWithEbands):
                 # Transform the gkq matrix elements from (atom, red_direction) basis to phonon-mode basis.
                 gkq_snuq[spin, :, iq] = 0.0
                 for nu in range(natom3):
-                    if phfreqs_ha[nu] < eph_wtol: continue
+                    if phfreqs_ha[nu] < eph_wtol:
+                        continue
                     gkq_snuq[spin, nu, iq] = np.dot(phdispl_red[nu], gkq_atm) / np.sqrt(2.0 * phfreqs_ha[nu])
 
             if with_glr:
                 # Compute long range part with (simplified) generalized Frohlich model.
-                gkq_lr[spin, :, iq] = glr_frohlich(qpoint, abifile.becs_cart, abifile.epsinf_cart,
-                                                   abifile.phdispl_cart_bohr, phfreqs_ha, abifile.structure, qdamp=qdamp)
+                gkq_lr[spin, :, iq] = glr_frohlich(
+                    qpoint,
+                    abifile.becs_cart,
+                    abifile.epsinf_cart,
+                    abifile.phdispl_cart_bohr,
+                    phfreqs_ha,
+                    abifile.structure,
+                    qdamp=qdamp,
+                )
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
@@ -584,9 +646,11 @@ class GkqRobot(Robot, RobotWithEbands):
         for spin in range(nsppol):
             for nu in nu_list:
                 ys = np.abs(gkq_snuq[spin, nu]) * abu.Ha_meV
-                pre_label = kwargs.pop("pre_label",r"$g_{\bf q}$")
-                if nsppol == 1: label = r"%s $\nu$: %s" % (pre_label, nu)
-                if nsppol == 2: label = r"%s $\nu$: %s, spin: %s" % (pre_label, nu, spin)
+                pre_label = kwargs.pop("pre_label", r"$g_{\bf q}$")
+                if nsppol == 1:
+                    label = r"%s $\nu$: %s" % (pre_label, nu)
+                if nsppol == 2:
+                    label = r"%s $\nu$: %s, spin: %s" % (pre_label, nu, spin)
                 ax.plot(xs, ys, linestyle="--", label=label)
                 if with_glr:
                     # Plot model with G = 0 and delta_nn'
@@ -615,30 +679,34 @@ class GkqRobot(Robot, RobotWithEbands):
         contained in the robot. Assume all files have the same q-point. Compare the `iref` file with others.
         kwargs are passed to `plot_diff_with_other`.
         """
-        if len(self) <= 1: return None
+        if len(self) <= 1:
+            return None
         self._check_qpoints_equal()
 
         ncols, nrows = 2, len(self) - 1
         num_plots = ncols * nrows
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=False, sharey=False, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(
+            None, nrows=nrows, ncols=ncols, sharex=False, sharey=False, squeeze=False
+        )
 
         ref_gkq, ref_label = self.abifiles[iref], self.labels[iref]
         cnt = -1
-        for ifile, (other_label, other_gkq) in enumerate(zip(self.labels, self.abifiles)):
-            if ifile == iref: continue
+        for ifile, (other_label, other_gkq) in enumerate(zip(self.labels, self.abifiles, strict=False)):
+            if ifile == iref:
+                continue
             cnt += 1
             labels = [ref_label, other_label]
             ref_gkq.plot_diff_with_other(other_gkq, ax_list=ax_mat[cnt], labels=labels, show=False, **kwargs)
 
         return fig
 
-    def yield_figs(self, **kwargs): # pragma: no cover
+    def yield_figs(self, **kwargs):  # pragma: no cover
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         Used in abiview.py to get a quick look at the results.
         """
-        for fig in self.get_ebands_plotter().yield_figs(): yield fig
+        for fig in self.get_ebands_plotter().yield_figs():
+            yield fig
 
     def write_notebook(self, nbpath=None):
         """
@@ -648,12 +716,14 @@ class GkqRobot(Robot, RobotWithEbands):
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
         args = [(l, f.filepath) for l, f in self.items()]
-        nb.cells.extend([
-            #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("robot = abilab.GkqRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-            nbv.new_code_cell("# robot.plot_gkq2_diff();"),
-            nbv.new_code_cell("# robot.plot_gkq2_qpath(band_kq=0, band_k=0, kpoint=0, with_glr=True, qdamp=None);")
-        ])
+        nb.cells.extend(
+            [
+                # nbv.new_markdown_cell("# This is a markdown cell"),
+                nbv.new_code_cell("robot = abilab.GkqRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+                nbv.new_code_cell("# robot.plot_gkq2_diff();"),
+                nbv.new_code_cell("# robot.plot_gkq2_qpath(band_kq=0, band_k=0, kpoint=0, with_glr=True, qdamp=None);"),
+            ]
+        )
 
         # Mixins
         nb.cells.extend(self.get_baserobot_code_cells())

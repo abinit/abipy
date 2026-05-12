@@ -5,12 +5,12 @@ Non-linear optical properties with DFPT
 
 Flow to compute non-linear optical properties with DFPT (static limit).
 """
-import sys
-import os
-import abipy.flowtk as flowtk
-import abipy.data as abidata
 
-from abipy import abilab
+import os
+import sys
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
 
 # NB: This flow requires abinit >= "8.5.2"
 
@@ -28,8 +28,9 @@ def make_scf_input(ecut=10, ngkpt=(8, 8, 8)):
         `AbinitInput` object
     """
     # Initialize the AlAs structure from an internal database. Use the pseudos shipped with AbiPy.
-    gs_inp = abilab.AbinitInput(structure=abidata.structure_from_ucell("AlAs"),
-                                pseudos=abidata.pseudos("13al.981214.fhi", "33as.pspnc"))
+    gs_inp = abilab.AbinitInput(
+        structure=abidata.structure_from_ucell("AlAs"), pseudos=abidata.pseudos("13al.981214.fhi", "33as.pspnc")
+    )
 
     # Set the value of the Abinit variables needed for GS runs.
     gs_inp.set_vars(
@@ -47,7 +48,7 @@ def make_scf_input(ecut=10, ngkpt=(8, 8, 8)):
         kptopt=1,
     )
 
-    #gs_inp.set_mnemonics(True)
+    # gs_inp.set_mnemonics(True)
     return gs_inp
 
 
@@ -64,6 +65,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

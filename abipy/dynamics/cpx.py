@@ -18,21 +18,24 @@ See: https://www.quantum-espresso.org/Doc/INPUT_CP.html
       prefix_ndw.save/ : write restart folder
       prefix_ndr.save/ : read restart folder
 """
+
 from __future__ import annotations
+
+import dataclasses
+from functools import cached_property
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import dataclasses
+
 import abipy.core.abinit_units as abu
 
-from pathlib import Path
-from functools import cached_property
-#from monty.bisect import find_le
-from abipy.core.mixins import TextFile, NotebookWriter
-from abipy.tools.typing import PathLike, Figure
-from abipy.tools.plotting import (set_axlims, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
-    get_ax3d_fig_plt, rotate_ticklabels, set_visible, plot_unit_cell, set_ax_xylabels, get_figs_plotly,
-    get_fig_plotly, add_plotly_fig_kwargs, PlotlyRowColDesc, plotly_klabels, plotly_set_lims)
+# from monty.bisect import find_le
+from abipy.core.mixins import NotebookWriter, TextFile
+from abipy.tools.plotting import (
+    add_fig_kwargs,
+)
+from abipy.tools.typing import Figure, PathLike
 
 
 def parse_file_with_blocks(filepath: PathLike, block_len: int) -> tuple[int, np.ndarray, list]:
@@ -57,11 +60,11 @@ def parse_file_with_blocks(filepath: PathLike, block_len: int) -> tuple[int, np.
     Return: (number_of_steps, array_to_be_reshaped, list_of_headers)
     """
     nsteps, data, headers = 0, [], []
-    with open(filepath, "rt") as fh:
+    with open(filepath) as fh:
         for il, line in enumerate(fh):
             toks = line.split()
             if il % (block_len + 1) == 0:
-                #assert len(toks) == 2
+                # assert len(toks) == 2
                 headers.append([int(toks[0]), float(toks[1])])
                 nsteps += 1
             else:
@@ -75,8 +78,9 @@ def parse_file_with_header(filepath: PathLike) -> pd.DataFrame:
     Parse a file with an header followed by csv-like columns e.g. an .evp file
     """
     from io import StringIO
+
     sbuf = StringIO()
-    with open(filepath, "rt") as fh:
+    with open(filepath) as fh:
         for il, line in enumerate(fh):
             if il == 0:
                 if not line.startswith("#"):
@@ -102,6 +106,7 @@ def parse_file_with_header(filepath: PathLike) -> pd.DataFrame:
 
 @dataclasses.dataclass
 class Key:
+    """Entry in EvpFile.COLS_DICT."""
     name: str
     info: str = "No info available"
     color: str = "b"
@@ -124,26 +129,32 @@ class EvpFile(TextFile, NotebookWriter):
     .. inheritance-diagram:: EvpFile
     """
 
-    COLS_DICT = {k.name: k for k in [
-         Key(name="nfi"    , color="b", info="number of iterations"),
-         Key(name="ekinc"  , color="b", info="electron fake kinetic energy"),
-         Key(name="temphc" , color="b", info="temperature due to “cell” kinetic energy in K"),
-         Key(name="tempp"  , color="b", info="temperature due to ionic displacements within the cell"),
-         Key(name="etot"   , color="b", info="dft total energy (without ionic and cell kinetic energy)"),
-         Key(name="enthal" , color="b", info="etot+external_pressure*volume"),
-         Key(name="econs"  , color="b", info="etot+kinetic_energy_due_to_ions_moving"),
-         Key(name="econt"  , color="b", info="econs+ekinc+(thermostat_total_energy)"),
-         Key(name="time(ps)", color="b", info="time"),
-         Key(name="tps(ps)", color="b", info="time"),
-         #Volume        Pressure(GPa)        EXX               EVDW
-    ]}
+    COLS_DICT = {
+        k.name: k
+        for k in [
+            Key(name="nfi", color="b", info="number of iterations"),
+            Key(name="ekinc", color="b", info="electron fake kinetic energy"),
+            Key(name="temphc", color="b", info="temperature due to “cell” kinetic energy in K"),
+            Key(name="tempp", color="b", info="temperature due to ionic displacements within the cell"),
+            Key(name="etot", color="b", info="dft total energy (without ionic and cell kinetic energy)"),
+            Key(name="enthal", color="b", info="etot+external_pressure*volume"),
+            Key(name="econs", color="b", info="etot+kinetic_energy_due_to_ions_moving"),
+            Key(name="econt", color="b", info="econs+ekinc+(thermostat_total_energy)"),
+            Key(name="time(ps)", color="b", info="time"),
+            Key(name="tps(ps)", color="b", info="time"),
+            # Volume        Pressure(GPa)        EXX               EVDW
+        ]
+    }
 
     @cached_property
     def time_key(self) -> str:
+        """Return the key used to store the time in the dataframe."""
         key1 = "time(ps)"
         key2 = "tps(ps)"
-        if key1 in self.df.keys(): return key1
-        if key2 in self.df.keys(): return key2
+        if key1 in self.df.keys():
+            return key1
+        if key2 in self.df.keys():
+            return key2
         raise ValueError(f"Cannot find time key in {self.df.keys()}")
 
     @cached_property
@@ -160,7 +171,8 @@ class EvpFile(TextFile, NotebookWriter):
 
     def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level verbose."""
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
         app(self.df.describe(percentiles=None).to_string())
         if verbose:
             for name, col in self.COLS_DICT.items():
@@ -171,10 +183,10 @@ class EvpFile(TextFile, NotebookWriter):
 
     @add_fig_kwargs
     def plot(self, **kwargs) -> Figure:
-        """
-        """
-        ax_mat = self.df.plot.line(x=self.time_key, subplots=True,
-                                   y=[k for k in self.df.keys() if k not in ("nfi", self.time_key)])
+        """ """
+        ax_mat = self.df.plot.line(
+            x=self.time_key, subplots=True, y=[k for k in self.df.keys() if k not in ("nfi", self.time_key)]
+        )
         return ax_mat.ravel()[0].get_figure()
 
         """
@@ -221,11 +233,13 @@ class EvpFile(TextFile, NotebookWriter):
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        nb.cells.extend([
-            nbv.new_code_cell("evp = abilab.abiopen('%s')" % self.filepath),
-            nbv.new_code_cell("evp.plot();"),
-            nbv.new_code_cell("evp.plot_hist();"),
-        ])
+        nb.cells.extend(
+            [
+                nbv.new_code_cell("evp = abilab.abiopen('%s')" % self.filepath),
+                nbv.new_code_cell("evp.plot();"),
+                nbv.new_code_cell("evp.plot_hist();"),
+            ]
+        )
 
         return self._write_nb_nbpath(nb, nbpath)
 
@@ -239,6 +253,7 @@ def traj_to_qepos(traj_filepath: PathLike, pos_filepath: PathLike) -> None:
         pos_filepath: Name of output file.
     """
     from ase.io import read
+
     traj = read(traj_filepath, index=":")
 
     nsteps, natoms = len(traj), len(traj[0])
@@ -246,11 +261,10 @@ def traj_to_qepos(traj_filepath: PathLike, pos_filepath: PathLike) -> None:
     for it, atoms in enumerate(traj):
         pos_tac[it] = atoms.positions
 
-    with open(str(pos_filepath), "wt") as fh:
+    with open(str(pos_filepath), "w") as fh:
         for it in range(nsteps):
-            fh.write(str(it) + '\n')
-            for ia in range(natoms):
-                fh.write(str(pos_tac[it,ia,0]) + ' ' + str(pos_tac[it,ia,1]) + ' ' + str(pos_tac[it,ia,2]) + '\n')
+            fh.write(str(it) + "\n")
+            fh.writelines(str(pos_tac[it, ia, 0]) + " " + str(pos_tac[it, ia, 1]) + " " + str(pos_tac[it, ia, 2]) + "\n" for ia in range(natoms))
 
 
 class Qe2Extxyz:
@@ -258,7 +272,6 @@ class Qe2Extxyz:
     Convert QE/CP output files into ASE extended xyz format.
 
     Example:
-
         from abipy.dynamics.cpx import Qe2Extxyz
         converter = Qe2Extxyz.from_input("cp.in", code="cp")
         converter.write_xyz("extended.xyz", take_every=1)
@@ -273,13 +286,14 @@ class Qe2Extxyz:
         qe_input = Path(str(qe_input)).absolute()
         directory = qe_input.cwd()
         from ase.io.espresso import read_fortran_namelist
-        with open(qe_input, "rt") as fh:
+
+        with open(qe_input) as fh:
             sections, card_lines = read_fortran_namelist(fh)
 
         # https://www.quantum-espresso.org/Doc/INPUT_CP.html
         control = sections["control"]
         calculation = control["calculation"]
-        #outdir = control["outdir"]
+        # outdir = control["outdir"]
 
         default_prefix = "cp" if code == "cp" else "pwscf"
         if prefix is None:
@@ -317,10 +331,11 @@ Reading stresses from: {str_filepath=}
 
         # Parse input file to get initial_atoms and symbols.
         from ase.io.espresso import read_espresso_in
-        with open(qe_input, "rt") as fh:
+
+        with open(qe_input) as fh:
             self.initial_atoms = read_espresso_in(fh)
             natom = len(self.initial_atoms)
-            #print("initial_atoms:", self.initial_atoms)
+            # print("initial_atoms:", self.initial_atoms)
 
         # NB: in QE/CP lengths are in Bohr
         # but CP uses Hartree for energies whereas PW uses Rydberg.
@@ -371,29 +386,34 @@ Reading stresses from: {str_filepath=}
         """
         print(f"Writing results in extended xyz format in: {xyz_filepath}")
         from ase.io import write
-        with open(xyz_filepath, "wt") as fh:
+
+        with open(xyz_filepath, "w") as fh:
             for istep, atoms in enumerate(self.yield_atoms(pbc)):
-                if istep % take_every != 0: continue
-                write(fh, atoms, format='extxyz', append=True)
+                if istep % take_every != 0:
+                    continue
+                write(fh, atoms, format="extxyz", append=True)
 
     def yield_atoms(self, pbc):
         """Yields ASE atoms along the trajectory."""
         from ase.atoms import Atoms
         from ase.calculators.singlepoint import SinglePointCalculator
+
         for istep in range(self.nsteps):
-            atoms = Atoms(symbols=self.initial_atoms.symbols,
-                          positions=self.pos_cart[istep],
-                          cell=self.cells[istep],
-                          pbc=pbc,
-                          )
+            atoms = Atoms(
+                symbols=self.initial_atoms.symbols,
+                positions=self.pos_cart[istep],
+                cell=self.cells[istep],
+                pbc=pbc,
+            )
 
             # Attach calculator with results.
-            atoms.calc = SinglePointCalculator(atoms,
-                                               energy=self.energies[istep],
-                                               free_energy=self.energies[istep],
-                                               forces=self.forces_step[istep],
-                                               stress=self.stresses[istep] if self.stresses is not None else None,
-                                               )
+            atoms.calc = SinglePointCalculator(
+                atoms,
+                energy=self.energies[istep],
+                free_energy=self.energies[istep],
+                forces=self.forces_step[istep],
+                stress=self.stresses[istep] if self.stresses is not None else None,
+            )
             yield atoms
 
 
@@ -408,14 +428,18 @@ def downsample_xyz(input_xyz, take_every, output_xyz, skip_head=None, verbose=1)
         skip_head: If not None, skip the first skip_head configurations.
         verbose: Verbosity level.
     """
-    from ase.io import write, iread
-    count = 0
-    with open(output_xyz, "wt") as out_xyz:
-        for istep, atoms in enumerate(iread(input_xyz)):
-            if istep % take_every != 0: continue
-            if skip_head is not None and (istep + 1) <= skip_head: continue
-            count += 1
-            write(out_xyz, atoms, format='extxyz', append=True)
+    from ase.io import iread, write
 
-    if verbose: print(f"Wrote {count=} configurations to {output_xyz=} with {take_every=} and {skip_head=}")
+    count = 0
+    with open(output_xyz, "w") as out_xyz:
+        for istep, atoms in enumerate(iread(input_xyz)):
+            if istep % take_every != 0:
+                continue
+            if skip_head is not None and (istep + 1) <= skip_head:
+                continue
+            count += 1
+            write(out_xyz, atoms, format="extxyz", append=True)
+
+    if verbose:
+        print(f"Wrote {count=} configurations to {output_xyz=} with {take_every=} and {skip_head=}")
     return count

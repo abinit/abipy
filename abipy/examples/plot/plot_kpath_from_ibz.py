@@ -6,8 +6,9 @@ K-path from IBZ
 This example shows how to extract energies along a k-path
 from a calculation done with a (dense) IBZ sampling.
 """
-from abipy.abilab import abiopen
+
 import abipy.data as abidata
+from abipy.abilab import abiopen
 
 # Open the file with energies computed with a homogeneous sampling of the BZ
 # and extract the band structure object.

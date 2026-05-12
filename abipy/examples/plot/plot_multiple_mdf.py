@@ -5,6 +5,7 @@ Multiple Bethe-Salpeter calculations
 
 This example shows how to analyze multiple MDF files.
 """
+
 import abipy.data as abidata
 from abipy import abilab
 
@@ -16,12 +17,10 @@ robot = abilab.MdfRobot.from_files(mdf_paths)
 plotter = robot.get_multimdf_plotter()
 
 # Plot the dielectric function with excitonic effects.
-plotter.plot(mdf_type="exc", qview="avg",
-             title="Real and Imaginary part (averaged over q-points)", tight_layout=True)
+plotter.plot(mdf_type="exc", qview="avg", title="Real and Imaginary part (averaged over q-points)", tight_layout=True)
 
 # Plot the dielectric function computed at the RPA level with KS energies.
 # Show q-point dependence.
-plotter.plot(mdf_type="rpa", qview="all",
-             title="Real and Imaginary part for individual q-points", tight_layout=True)
+plotter.plot(mdf_type="rpa", qview="all", title="Real and Imaginary part for individual q-points", tight_layout=True)
 
 robot.close()

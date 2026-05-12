@@ -7,8 +7,9 @@ This example shows how to plot the optical properties
 computed by optic within the independent-particle approximation,
 no local-field effects and no excitonic effects.
 """
-from abipy import abilab
+
 import abipy.data as abidata
+from abipy import abilab
 
 # Here we use one of the OPTIC.nc files shipped with abipy.
 # Replace filename with the path to your OPTIC.nc file.
@@ -17,7 +18,7 @@ filename = abidata.ref_file("gaas_121212_OPTIC.nc")
 ncfile = abilab.abiopen(filename)
 
 # Optic files have a Structure and an ElectronBands object.
-#ncfile.ebands.plot()
+# ncfile.ebands.plot()
 
 # To plot linear dielectric tensor and other optical
 # properties for all tensor components available in the file:

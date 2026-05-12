@@ -1,18 +1,17 @@
-# coding: utf-8
 """
 Functions to perform analytic continuation with Pade'
 Some of these routines have been directly translated from the Fortran version
 implemented in ABINIT.
 """
+
 from __future__ import annotations
 
 import numpy as np
 
 
 class SigmaPade:
-    """
-    High-level interface to perform the analytic continuation of the self-energy with the Pade' method.
-    """
+    """High-level interface to perform the analytic continuation of the self-energy with the Pade' method."""
+
     def __init__(self, zs, f_zs):
         """
         Args:
@@ -40,9 +39,7 @@ class SigmaPade:
         return sws, dsdws
 
     def _eval_one(self, z_eval) -> tuple:
-        """
-        Pade for a single point z_eval.
-        """
+        """Pade for a single point z_eval."""
         # if z_eval is in 2 or 3 quadrant, avoid the branch cut in the complex plane using Sigma(-iw) = Sigma(iw)*.
         # See also sigma_pade_eval in m_dyson_solver.F90
         if z_eval.real > 0.0:
@@ -59,7 +56,7 @@ def pade(zs: np.ndarray, f_zs: np.ndarray, z_eval) -> complex:
     """
     Calculate the Pade approximant of the function f_zs at z_eval.
 
-    Args
+    Args:
       zs: Input array of complex numbers.
       f_zs: Input array of complex numbers.
       z_eval: Point at which to evaluate the Pade approximant.
@@ -172,9 +169,9 @@ def calculate_pade_a(zs: np.ndarray, f_zs: np.ndarray) -> np.ndarray:
     # Compute the divided differences
     for i in range(1, n):
         for j in range(i, n):
-            #if np.real(g[i-1, j]) == 0.0 and np.imag(g[i-1, j]) == 0.0:
+            # if np.real(g[i-1, j]) == 0.0 and np.imag(g[i-1, j]) == 0.0:
             #    print(f"g_i(z_j): i={i+1}, j={j+1}, g={g[i, j]}")
-            g[i, j] = (g[i-1, i-1] - g[i-1, j]) / ((zs[j] - zs[i-1]) * g[i-1, j])
+            g[i, j] = (g[i - 1, i - 1] - g[i - 1, j]) / ((zs[j] - zs[i - 1]) * g[i - 1, j])
 
     # Extract the coefficients a(i)
     a = np.diag(g[:n, :n])

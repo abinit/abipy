@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 """Analyze the parallel efficiency of the BSE code (Haydock method with model dielectric function)"""
-import sys
-import abipy.abilab as abilab
-import abipy.data as abidata
-import abipy.flowtk as flowtk
 
+import sys
 from itertools import product
-from abipy.benchmarks import bench_main, BenchmarkFlow
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
+from abipy.benchmarks import BenchmarkFlow, bench_main
 
 
 def make_inputs(paw=False):
@@ -22,7 +22,7 @@ def make_inputs(paw=False):
     ecut = 8
     multi.set_vars(
         ecut=ecut,
-        pawecutdg=ecut*4 if paw else None,
+        pawecutdg=ecut * 4 if paw else None,
         nsppol=1,
         timopt=-1,
         istwfk="*1",
@@ -37,9 +37,10 @@ def make_inputs(paw=False):
 
     gs, bse = multi.split_datasets()
 
-    gs.set_vars(tolvrs=1e-6,
-                nband=8,
-                )
+    gs.set_vars(
+        tolvrs=1e-6,
+        nband=8,
+    )
 
     # Dataset 6 BSE equation with Model dielectric function and Haydock (only resonant + W + v)
     # Note that SCR file is not needed here
@@ -48,19 +49,19 @@ def make_inputs(paw=False):
         ecutwfn=ecut,
         ecuteps=4.0,
         inclvkb=2,
-        bs_algorithm=2,        # Haydock
-        bs_haydock_niter=60,   # No. of iterations for Haydock
+        bs_algorithm=2,  # Haydock
+        bs_haydock_niter=60,  # No. of iterations for Haydock
         bs_exchange_term=1,
-        bs_coulomb_term=21,    # Use model W and full W_GG.
+        bs_coulomb_term=21,  # Use model W and full W_GG.
         mdf_epsinf=12.0,
-        bs_calctype=1,         # Use KS energies and orbitals to construct L0
+        bs_calctype=1,  # Use KS energies and orbitals to construct L0
         mbpt_sciss="0.8 eV",
         bs_coupling=0,
         bs_loband=2,
         nband=8,
         bs_freq_mesh="0 10 0.1 eV",
-        bs_hayd_term=0,        # No terminator
-        #gwmem=01               # Compute the model-dielectric function on-the-fly.
+        bs_hayd_term=0,  # No terminator
+        # gwmem=01               # Compute the model-dielectric function on-the-fly.
     )
 
     return gs, bse
@@ -82,13 +83,15 @@ def build_flow(options):
 
     if options.mpi_list is None:
         nkpt = len(gs_inp.abiget_ibz().points)
-        ntrans = (2*2*nkpt)**2
+        ntrans = (2 * 2 * nkpt) ** 2
         mpi_list = [p for p in range(1, 1 + ntrans) if ntrans % p == 0]
-    if options.verbose: print("Using mpi_list:", mpi_list)
+    if options.verbose:
+        print("Using mpi_list:", mpi_list)
 
     bse_work = flowtk.Work()
     for mpi_procs, omp_threads in product(mpi_list, options.omp_list):
-        if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
+        if not options.accept_mpi_omp(mpi_procs, omp_threads):
+            continue
         manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
         bse_work.register_bse_task(bse_inp, manager=manager, deps={gs_work[0]: "WFK"})
     flow.register_work(bse_work)
@@ -101,7 +104,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return
+        return None
 
     return build_flow(options)
 

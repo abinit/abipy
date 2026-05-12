@@ -1,6 +1,7 @@
 """
 This module defines enumerators associated to important Abinit input variables
 """
+
 from __future__ import annotations
 
 import enum
@@ -21,13 +22,10 @@ class StrEnum(str, enum.Enum):
     """StrEnum were added in version 3.11"""
 
     def __new__(cls, *args):
+        """Create a new member."""
         for arg in args:
             if not isinstance(arg, (str, enum.auto)):
-                raise TypeError(
-                    "Values of StrEnums must be strings: {} is a {}".format(
-                        repr(arg), type(arg)
-                    )
-                )
+                raise TypeError(f"Values of StrEnums must be strings: {arg!r} is a {type(arg)}")
         return super().__new__(cls, *args)
 
     def __str__(self):
@@ -43,6 +41,7 @@ class RUNL(EnumMixin, enum.IntEnum):
     """
     Values of optdriver corresponding to the different run-levels. See defs_basis.F90
     """
+
     GSTATE = 0
     RESPFN = 1
     SCREENING = 3
@@ -64,6 +63,7 @@ class WFK_TASK(EnumMixin, enum.IntEnum):
     """
     Integer flags defining the task to be performed in wfk_analyze. See defs_basis.F90
     """
+
     NONE = 0
     FULLBZ = 1
     CLASSIFY = 2
@@ -83,6 +83,7 @@ class GWR_TASK(EnumMixin, StrEnum):  # StrEnum added in 3.11
     """
     String flags defining the task to be performed in the GWR code.
     """
+
     HDIAGO = "HDIAGO"
     HDIAGO_FULL = "HDIAGO_FULL"
     CC4S = "CC4S"

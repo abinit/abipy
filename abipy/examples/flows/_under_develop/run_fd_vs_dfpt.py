@@ -15,15 +15,15 @@ the efield variable sets the strength (in atomic units) and direction of the fie
 
 Based on tutorespfn/Input/tpolarization_6.abi
 """
-import sys
-import os
-import abipy.flowtk as flowtk
 
-from abipy.core.structure import Structure
+import os
+import sys
+
+from abipy import flowtk
 from abipy.abio.inputs import AbinitInput
-from abipy.flowtk.works import PhononWork
+from abipy.core.structure import Structure
 from abipy.flowtk.dfpt_works import ElasticWork
-from abipy.flowtk.finitediff import FiniteEfieldWork, FiniteDisplWork, FiniteStrainWork, FiniteHfieldWork
+from abipy.flowtk.finitediff import FiniteEfieldWork, FiniteStrainWork
 
 
 def build_flow(options):
@@ -56,9 +56,9 @@ xred
 
     # Get NC pseudos from pseudodojo.
     from abipy.flowtk.psrepos import get_oncvpsp_pseudos
-    pseudos = get_oncvpsp_pseudos(xc_name="PBE", version="0.4",
-                                  relativity_type="SR", accuracy="standard")
-    #nband 4
+
+    pseudos = get_oncvpsp_pseudos(xc_name="PBE", version="0.4", relativity_type="SR", accuracy="standard")
+    # nband 4
     # nband is restricted here to the number of filled bands only, no empty bands. The theory of
     # the Berrys phase polarization formula assumes filled bands only. Our pseudopotential choice
     # includes 5 valence electrons on P, 3 on Al, for 8 total in the primitive unit cell, hence
@@ -71,62 +71,75 @@ xred
         ecut=5,
         nband=4,
         tolvrs=1.0e-8,
-        nstep=100,         # Maximal number of SCF cycles
+        nstep=100,  # Maximal number of SCF cycles
         ecutsm=0.5,
         dilatmx=1.05,
         paral_kgb=0,
     )
 
-    shiftk = [0.5, 0.5, 0.5,
-              0.5, 0.0, 0.0,
-              0.0, 0.5, 0.0,
-              0.0, 0.0, 0.5,
+    shiftk = [
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.0,
+        0.0,
+        0.0,
+        0.5,
+        0.0,
+        0.0,
+        0.0,
+        0.5,
     ]
     scf_input.set_kmesh(ngkpt=[6, 6, 6], shiftk=shiftk)
-    #scf_input.set_kmesh(ngkpt=[1, 1, 1], shiftk=[0, 0, 0])
+    # scf_input.set_kmesh(ngkpt=[1, 1, 1], shiftk=[0, 0, 0])
 
     # Initialize the flow.
     flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)
 
-    fd_accuracy = 2   # 3 points
-    #fd_accuracy = 4  # 5 points
+    fd_accuracy = 2  # 3 points
+    # fd_accuracy = 4  # 5 points
     relax_ions = True
     relax_ions_opts = None
 
-    flow.register_work(FiniteEfieldWork.from_scf_input(
-        scf_input,
-        fd_accuracy=fd_accuracy,
-        step_au=0.0001,
-        relax_ions=relax_ions,
-        relax_ions_opts=relax_ions_opts,
-    ))
+    flow.register_work(
+        FiniteEfieldWork.from_scf_input(
+            scf_input,
+            fd_accuracy=fd_accuracy,
+            step_au=0.0001,
+            relax_ions=relax_ions,
+            relax_ions_opts=relax_ions_opts,
+        )
+    )
 
-    #flow.register_work(FiniteDisplWork.from_scf_input(
+    # flow.register_work(FiniteDisplWork.from_scf_input(
     #    scf_input,
     #    fd_accuracy=fd_accuracy,
     #    step_au=0.01,
     #    extra_abivars=dict(berryopt=-1),  # This to compute the polarization at E = 0
-    #))
+    # ))
 
-    flow.register_work(FiniteStrainWork.from_scf_input(
-        scf_input,
-        fd_accuracy=fd_accuracy,
-        norm_step=0.005,
-        shear_step=0.03,
-        extra_abivars=dict(berryopt=-1),  # This to compute the polarization at E = 0
-        relax_ions=relax_ions,
-        relax_ions_opts=relax_ions_opts,
-    ))
+    flow.register_work(
+        FiniteStrainWork.from_scf_input(
+            scf_input,
+            fd_accuracy=fd_accuracy,
+            norm_step=0.005,
+            shear_step=0.03,
+            extra_abivars=dict(berryopt=-1),  # This to compute the polarization at E = 0
+            relax_ions=relax_ions,
+            relax_ions_opts=relax_ions_opts,
+        )
+    )
 
-    #flow.register_work(FiniteHfieldWork.from_scf_input(
+    # flow.register_work(FiniteHfieldWork.from_scf_input(
     #    scf_input,
     #    fd_accuracy=fd_accuracy,
     #    step_au=0.01,
     #    relax_ions=relax_ions,
     #    relax_ions_opts=relax_ions_opts,
-    #))
+    # ))
 
-    #flow.register_work(PhononWork.from_scf_input(scf_input,
+    # flow.register_work(PhononWork.from_scf_input(scf_input,
     #   qpoints=[0, 0, 0],
     #   is_ngqpt=False,
     #   with_becs=True,
@@ -135,14 +148,11 @@ xred
     #   with_dvdb=False,
     #   tolerance=None,
     #   ddk_tolerance=None
-    #))
+    # ))
 
-    flow.register_work(ElasticWork.from_scf_input(scf_input,
-        with_relaxed_ion=True,
-        with_piezo=True,
-        with_dde=False,
-        tolerances=None
-    ))
+    flow.register_work(
+        ElasticWork.from_scf_input(scf_input, with_relaxed_ion=True, with_piezo=True, with_dde=False, tolerances=None)
+    )
 
     return flow
 
@@ -152,6 +162,7 @@ xred
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

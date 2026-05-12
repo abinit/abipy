@@ -1,13 +1,11 @@
-# coding: utf-8
-"""
-This module provides functions to compute integrals of Bessel functions.
-"""
+"""This module provides functions to compute integrals of Bessel functions."""
+
 from __future__ import annotations
 
 import numpy as np
-
-from scipy.special import spherical_jn
 from scipy.interpolate import UnivariateSpline
+from scipy.special import spherical_jn
+
 try:
     from scipy.integrate import simpson as simps
 except ImportError:
@@ -35,12 +33,12 @@ def spline_int_jlqr(l, qmax, rcut, numq=None, numr=None) -> UnivariateSpline:
     numr = numr if numr is not None else _DEFAULTS["numr"]
 
     rs = np.linspace(0, rcut, num=numr)
-    r2 = rs ** 2
+    r2 = rs**2
     qmesh = np.linspace(0, qmax, num=numq)
     values = []
     for q in qmesh:
         qrs = q * rs
-        #qrs = 2 * np.pi * q * rs
+        # qrs = 2 * np.pi * q * rs
         ys = spherical_jn(l, qrs) * r2
         intg = simps(ys, x=rs)
         values.append(intg)

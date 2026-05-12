@@ -1,11 +1,12 @@
 """Tests for core.restapi module"""
-import contextlib
-import pytest
-import abipy.data as abidata
 
+import contextlib
+
+import pytest
+
+import abipy.data as abidata
 from abipy import abilab
 from abipy.core.testing import AbipyTest
-from abipy.core import restapi
 
 
 class TestMpRestApi(AbipyTest):
@@ -14,10 +15,10 @@ class TestMpRestApi(AbipyTest):
     @pytest.mark.skip(reason="Interface with MP rester is broken")
     def test_mprester(self):
         """Testing MP Rest API wrappers."""
-
         # Test mp_search
         mp = abilab.mp_search("MgB2")
-        repr(mp); str(mp)
+        repr(mp)
+        str(mp)
         assert mp.structures
         assert "mp-763" in mp.ids
         assert len(mp.structures) == len(mp.data)
@@ -32,7 +33,8 @@ class TestMpRestApi(AbipyTest):
 
         # Test mp_match_structure
         mp = abilab.mp_match_structure(abidata.cif_file("al.cif"))
-        repr(mp); str(mp)
+        repr(mp)
+        str(mp)
         assert mp.structures and mp
         assert "mp-134" in mp.ids
         assert mp.data is None and mp.dataframe is None
@@ -46,7 +48,8 @@ class TestMpRestApi(AbipyTest):
         self.skip_if_not_executable("mysql")
         # Test abilab.cod_search
         cod = abilab.cod_search("MgB2", primitive=True)
-        repr(cod); str(cod)
+        repr(cod)
+        str(cod)
         assert cod.structures and cod
         assert 1000026 in cod.ids
         assert cod.data is not None

@@ -11,22 +11,20 @@ can be implemented on the basis of this example.
 
 import os
 import sys
-import abipy.data as data
-import abipy.abilab as abilab
 
-from abipy import flowtk
+from abipy import abilab, data, flowtk
 from abipy.flowtk.gwr_works import DirectDiagoWork, GWRSigmaConvWork
 
 
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
-        options.workdir = os.path.basename(sys.argv[0]).replace(".py", "").replace("run_","flow_")
+        options.workdir = os.path.basename(sys.argv[0]).replace(".py", "").replace("run_", "flow_")
 
     # IMPORTANT: Note stringent table to have semi-core states.
     from abipy.flowtk.psrepos import get_oncvpsp_pseudos
-    pseudos = get_oncvpsp_pseudos(xc_name="PBE", version="0.4",
-                                  relativity_type="SR", accuracy="stringent")
+
+    pseudos = get_oncvpsp_pseudos(xc_name="PBE", version="0.4", relativity_type="SR", accuracy="stringent")
 
     scf_input = abilab.AbinitInput(structure=data.cif_file("si.cif"), pseudos=pseudos)
 
@@ -60,19 +58,19 @@ def build_flow(options):
 
     # 2) To take the Cartesian product of two or more variables use e.g.:
     #
-    #varname_values = [
+    # varname_values = [
     #   ("nband", [50, 100]),
     #   ("ecuteps", [2, 4]),
-    #]
+    # ]
 
     # Can also use strings with path to files for den_node and wfk_node
     # so that one does not need to recompute these files.
 
     gwr_work = GWRSigmaConvWork.from_varname_values(
-            varname_values,
-            gwr_template,
-            den_node=diago_work.scf_task,
-            wfk_node=diago_work.diago_task,
+        varname_values,
+        gwr_template,
+        den_node=diago_work.scf_task,
+        wfk_node=diago_work.diago_task,
     )
     flow.register_work(gwr_work)
 
@@ -84,6 +82,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

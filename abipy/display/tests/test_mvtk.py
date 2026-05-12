@@ -1,12 +1,10 @@
 """Tests for psps module."""
-import abipy.data as abidata
 
 from abipy.core.testing import AbipyTest
-import abipy.display.mvtk as mvtk
+from abipy.display import mvtk
 
 
 class MayaviTest(AbipyTest):
-
     def test_mayavi_toolkit(self):
         """Test mayavi toolkit."""
         if not self.has_mayavi():
@@ -22,7 +20,15 @@ class MayaviTest(AbipyTest):
         figure = mvtk.plot_unit_cell(si_structure.lattice)
         assert mvtk.plot_lattice_vectors(si_structure.lattice, figure=figure) is figure
 
-        assert mvtk.plot_structure(si_structure, frac_coords=False, to_unit_cell=False, style="points+labels",
-                                   unit_cell_color=(0, 0, 0), color_scheme="VESTA", figure=None, show=False)
+        assert mvtk.plot_structure(
+            si_structure,
+            frac_coords=False,
+            to_unit_cell=False,
+            style="points+labels",
+            unit_cell_color=(0, 0, 0),
+            color_scheme="VESTA",
+            figure=None,
+            show=False,
+        )
 
-        #mvtk.plot_labels(labels, lattice=None, coords_are_cartesian=False, figure=None, **kwargs)
+        # mvtk.plot_labels(labels, lattice=None, coords_are_cartesian=False, figure=None, **kwargs)

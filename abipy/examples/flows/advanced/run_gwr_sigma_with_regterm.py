@@ -10,28 +10,28 @@ in order to monitor the convergence and stability wrt gwr_ntau.
 
 import os
 import sys
-import abipy.data as data
-import abipy.abilab as abilab
 
-from abipy import flowtk
+from abipy import abilab, flowtk
 
 
 def build_flow(options):
 
     from abipy.data.gwr_structures import get_gwr_structure
+
     symbol = "Si"
-    #symbol = "LiF"
-    #symbol = "Si"
-    #symbol = "C"
-    #symbol = "BN"
-    #symbol = "MgO"
+    # symbol = "LiF"
+    # symbol = "Si"
+    # symbol = "C"
+    # symbol = "BN"
+    # symbol = "MgO"
     structure = get_gwr_structure(symbol)
 
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
-        options.workdir = os.path.basename(sys.argv[0]).replace(".py", "").replace("run_","flow_")
+        options.workdir = os.path.basename(sys.argv[0]).replace(".py", "").replace("run_", "flow_")
 
     from abipy.flowtk.psrepos import get_repo_from_name
+
     pseudos = get_repo_from_name("ONCVPSP-PBE-SR-PDv0.4").get_pseudos("stringent")
 
     scf_input = abilab.AbinitInput(structure=structure, pseudos=pseudos)
@@ -46,10 +46,10 @@ def build_flow(options):
         npfft=1,
     )
     scf_input.set_kmesh(
-        #ngkpt=[2, 2, 2],
+        # ngkpt=[2, 2, 2],
         ngkpt=[4, 4, 4],
-        #ngkpt=[8, 8, 8],
-        shiftk=[0.0, 0.0, 0.0], # IMPORTANT: k-grid for GWR must be Gamma-centered.
+        # ngkpt=[8, 8, 8],
+        shiftk=[0.0, 0.0, 0.0],  # IMPORTANT: k-grid for GWR must be Gamma-centered.
     )
 
     # Get max number of PWs.
@@ -61,6 +61,7 @@ def build_flow(options):
 
     # GS-SCF run to get the DEN, followed by direct diago to obtain green_nband bands.
     from abipy.flowtk.gwr_works import DirectDiagoWork, GWRSigmaConvWork
+
     green_nband = -1  # -1 this means full diago
     diago_work = DirectDiagoWork.from_scf_input(scf_input, green_nband)
     diago_work[0].set_manager(small_manager)
@@ -71,14 +72,14 @@ def build_flow(options):
     gwr_template = scf_input.make_gwr_qprange_input(gwr_ntau=6, nband=int(mpw * 0.9), ecuteps=ecuteps)
 
     ival = scf_input.num_valence_electrons // 2
-    kptgw = [ # k-points in reduced coordinates
+    kptgw = [  # k-points in reduced coordinates
         (0.0, 0.0, 0.0),
-        (0.5, 0.5, 0.0), # X
-        #(0.5    0.000    0.000
+        (0.5, 0.5, 0.0),  # X
+        # (0.5    0.000    0.000
     ]
 
     nkptgw = len(kptgw)
-    bdgw = (ival, ival+1) * nkptgw
+    bdgw = (ival, ival + 1) * nkptgw
 
     gwr_template.set_vars(
         nkptgw=nkptgw,
@@ -93,17 +94,18 @@ def build_flow(options):
     varname_values = ("gwr_ntau", gwr_ntau_list)
     # or take the Cartesian product of two or more variables with e.g.:
     #
-    #varname_values = [
+    # varname_values = [
     #   ("gwr_ntau", gwr_ntau_list),
     #   #("userra", [0.0, 1e-6),    # Compute QP corrections with/without regterm.
     #   #("ecuteps", [4, 6]),
-    #]
+    # ]
 
     # Conpute QP corrections without/with regularization term.
     for userra in [0.0, 1e-6]:
         gwr_template["userra"] = userra
         gwr_work = GWRSigmaConvWork.from_varname_values(
-                varname_values, gwr_template, den_node=diago_work[0], wfk_node=diago_work[1])
+            varname_values, gwr_template, den_node=diago_work[0], wfk_node=diago_work[1]
+        )
         flow.register_work(gwr_work)
 
     return flow

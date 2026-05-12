@@ -7,28 +7,26 @@ This examples shows how to build a Flow to compute the
 phonon band structure in a metallic system (MgB2) with different
 k-point samplings and values of the electronic smearing tsmear
 """
-from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 import sys
+
 import abipy.data as abidata
-import abipy.abilab as abilab
-from abipy import flowtk
+from abipy import abilab, flowtk
 
 
 def make_scf_input(structure, ngkpt, tsmear, pseudos, paral_kgb=1):
-    """return GS input."""
-
+    """Return GS input."""
     scf_inp = abilab.AbinitInput(structure, pseudos=pseudos)
 
     # Global variables
     scf_inp.set_vars(
         ecut=35,
         nband=8,
-        occopt=4,    # Marzari smearing
+        occopt=4,  # Marzari smearing
         tsmear=tsmear,
         paral_kgb=paral_kgb,
-   )
+    )
 
     # Dataset 1 (GS run)
     scf_inp.set_kmesh(ngkpt=ngkpt, shiftk=structure.calc_shiftk())
@@ -49,7 +47,7 @@ def build_flow(options):
     pseudos = table.get_pseudos_for_structure(structure)
 
     nval = structure.num_valence_electrons(pseudos)
-    #print(nval)
+    # print(nval)
 
     flow = flowtk.Flow(workdir=options.workdir)
 
@@ -76,6 +74,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).plot_networkx(with_edge_labels=True, tight_layout=True)
 

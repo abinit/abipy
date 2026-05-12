@@ -6,8 +6,9 @@ GW Convergence
 This example shows how to use the SigresRobot to visualize the convergence of the
 QP results stored in the SIGRES.nc files produced by the GW code (sigma run).
 """
-from abipy.abilab import SigresRobot
+
 import abipy.data as abidata
+from abipy.abilab import SigresRobot
 
 # List of SIGRES files computed with different values of nband.
 filenames = [
@@ -20,7 +21,7 @@ filepaths = [abidata.ref_file(fname) for fname in filenames]
 
 # Build robot from list of file paths
 robot = SigresRobot.from_files(filepaths)
-#robot.remap_labels(lambda sigres: sigres.params["sigma_nband"])
+# robot.remap_labels(lambda sigres: sigres.params["sigma_nband"])
 
 # Plot the convergence of the QP gaps.
 robot.plot_qpgaps_convergence(sortby="sigma_nband", title="QP gaps vs sigma_nband")

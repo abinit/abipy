@@ -1,22 +1,20 @@
-# coding: utf-8
 """
 Workflows for calculations within the ZSISA quasi-harmonic approximation
 and two degrees of freedom. The main entry point is Qha2dFlow.
 """
+
 from __future__ import annotations
 
-import itertools
 import dataclasses
+import itertools
+
 import numpy as np
 
-from abipy.tools.serialization import mjson_write, Serializable
-from abipy.tools.typing import PathLike, VectorLike
-from abipy.dfpt.deformation_utils import generate_deformations
-from abipy.dfpt.qha_2D import QHA_2D
 from abipy.abio.inputs import AbinitInput
-from abipy.flowtk.works import Work, PhononWork
-from abipy.flowtk.tasks import RelaxTask
+from abipy.dfpt.qha_2D import QHA_2D
 from abipy.flowtk.flows import Flow
+from abipy.flowtk.works import PhononWork, Work
+from abipy.tools.typing import PathLike, VectorLike
 
 
 class Qha2dFlow(Flow):
@@ -29,17 +27,19 @@ class Qha2dFlow(Flow):
     """
 
     @classmethod
-    def from_scf_input(cls,
-                       workdir: PathLike,
-                       scf_input: AbinitInput,
-                       bo_strains_ac: list[list],
-                       phdos_strains_ac: list[list],
-                       ngqpt: VectorLike,
-                       with_becs: bool,
-                       with_quad: bool,
-                       ndivsm: int = 0,
-                       edos_ngkpt=None,
-                       manager=None) -> Qha2dFlow:
+    def from_scf_input(
+        cls,
+        workdir: PathLike,
+        scf_input: AbinitInput,
+        bo_strains_ac: list[list],
+        phdos_strains_ac: list[list],
+        ngqpt: VectorLike,
+        with_becs: bool,
+        with_quad: bool,
+        ndivsm: int = 0,
+        edos_ngkpt=None,
+        manager=None,
+    ) -> Qha2dFlow:
         """
         Build a flow for QHA calculations from an |AbinitInput| for GS-SCF calculation.
 
@@ -66,9 +66,19 @@ class Qha2dFlow(Flow):
             manager: |TaskManager| instance. Use default if None.
         """
         flow = cls(workdir=workdir, manager=manager)
-        flow.register_work(Qha2dWork.from_scf_input(scf_input, bo_strains_ac, phdos_strains_ac,
-                                                    ngqpt, with_becs, with_quad,
-                                                    ndivsm, ionmov=2, edos_ngkpt=edos_ngkpt))
+        flow.register_work(
+            Qha2dWork.from_scf_input(
+                scf_input,
+                bo_strains_ac,
+                phdos_strains_ac,
+                ngqpt,
+                with_becs,
+                with_quad,
+                ndivsm,
+                ionmov=2,
+                edos_ngkpt=edos_ngkpt,
+            )
+        )
         return flow
 
     def finalize(self):
@@ -85,19 +95,24 @@ class Qha2dFlow(Flow):
         gsr_relax_entries, gsr_relax_volumes = [], []
         for task in work.relax_tasks_strained:
             with task.open_gsr() as gsr:
-                gsr_relax_entries.append(dict(
-                    volume=gsr.structure.volume,
-                    energy_eV=float(gsr.energy),
-                    pressure_GPa=float(gsr.pressure),
-                    #structure=gsr.structure,
-                ))
+                gsr_relax_entries.append(
+                    dict(
+                        volume=gsr.structure.volume,
+                        energy_eV=float(gsr.energy),
+                        pressure_GPa=float(gsr.pressure),
+                        # structure=gsr.structure,
+                    )
+                )
                 gsr_relax_volumes.append(gsr.structure.volume)
 
         data["gsr_relax_entries"] = gsr_relax_entries
         data["ddb_relax_paths"] = [ph_work.outdir.has_abiext("DDB") for ph_work in work.ph_works]
         data["gsr_relax_edos_paths"] = [] if not work.edos_work else [task.gsr_path for task in work.edos_work]
-        data["gsr_relax_ebands_paths"] = [] if work.ndivsm == 0 else \
-            [ph_work.ebands_task.gsr_path for ph_work in work.ph_works if ph_work.ebands_task is not None]
+        data["gsr_relax_ebands_paths"] = (
+            []
+            if work.ndivsm == 0
+            else [ph_work.ebands_task.gsr_path for ph_work in work.ph_works if ph_work.ebands_task is not None]
+        )
 
         # Write json file
         Qha2DData(**data).json_write(self.outdir.path_in("qha_2d.json"), indent=4)
@@ -116,16 +131,18 @@ class Qha2dWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls,
-                       scf_input: AbinitInput,
-                       bo_strains_ac,
-                       phdos_strains_ac,
-                       ngqpt,
-                       with_becs: bool,
-                       with_quad: bool,
-                       ndivsm: int,
-                       ionmov: int,
-                       edos_ngkpt=None) -> Qha2dWork:
+    def from_scf_input(
+        cls,
+        scf_input: AbinitInput,
+        bo_strains_ac,
+        phdos_strains_ac,
+        ngqpt,
+        with_becs: bool,
+        with_quad: bool,
+        ndivsm: int,
+        ionmov: int,
+        edos_ngkpt=None,
+    ) -> Qha2dWork:
         """
         Build the work from an |AbinitInput| representing a GS-SCF calculation.
         See Qha2dFlow for the meaning of the arguments.
@@ -162,7 +179,7 @@ class Qha2dWork(Work):
         relax_template.set_vars(optcell=2, ionmov=ionmov, tolvrs=1e-8, tolmxf=1e-6)
         relax_template.set_vars_ifnotin(ecutsm=1.0, dilatmx=1.05)
 
-        #work.initial_relax_task = work.register_relax_task(relax_template)
+        # work.initial_relax_task = work.register_relax_task(relax_template)
         work.initial_relax_task = work.register_multi_relax_task(relax_template)
 
         return work
@@ -183,14 +200,17 @@ class Qha2dWork(Work):
                 # Apply strain to the structure
                 strain_tensor = np.diag([s1, s1, s3])
                 strained_structure = relaxed_structure.apply_strain(strain_tensor, inplace=False)
-                #print("strained_structure:", strained_structure)
+                # print("strained_structure:", strained_structure)
 
                 # Relax deformed structure with fixed unit cell.
-                task = self.register_relax_task(self.relax_template.new_with_structure(strained_structure, optcell=0, dilatmx=1.0))
+                task = self.register_relax_task(
+                    self.relax_template.new_with_structure(strained_structure, optcell=0, dilatmx=1.0)
+                )
 
                 task.bo_strain = np.array((s1, s3))
-                task.in_phdos_strains = np.any(np.abs(s1 - self.phdos_strains_ac[0]) < 1e-3) and \
-                                        np.any(np.abs(s3 - self.phdos_strains_ac[1]) < 1e-3)
+                task.in_phdos_strains = np.any(np.abs(s1 - self.phdos_strains_ac[0]) < 1e-3) and np.any(
+                    np.abs(s3 - self.phdos_strains_ac[1]) < 1e-3
+                )
                 self.relax_tasks_strained.append(task)
 
             self.flow.allocate(build=True)
@@ -215,9 +235,15 @@ class Qha2dWork(Work):
             scf_input = self.initial_scf_input.new_with_structure(relaxed_structure)
 
             if task.in_phdos_strains:
-                ph_work = PhononWork.from_scf_input(scf_input, self.ngqpt, is_ngqpt=True, tolerance=None,
-                                                    with_becs=self.with_becs, with_quad=self.with_quad,
-                                                    ndivsm=0 if np.any(task.bo_strain != 0) else self.ndivsm)
+                ph_work = PhononWork.from_scf_input(
+                    scf_input,
+                    self.ngqpt,
+                    is_ngqpt=True,
+                    tolerance=None,
+                    with_becs=self.with_becs,
+                    with_quad=self.with_quad,
+                    ndivsm=0 if np.any(task.bo_strain != 0) else self.ndivsm,
+                )
 
                 # Reduce the number of files produced in the DFPT tasks to avoid possible disk quota issues.
                 for task in ph_work[1:]:
@@ -240,8 +266,8 @@ class Qha2dWork(Work):
         return super().on_all_ok()
 
 
-#@dataclass
-#class RelaxEntry:
+# @dataclass
+# class RelaxEntry:
 #    volume: float
 #    energy_eV: float
 #    pressure_GPa: float
@@ -255,21 +281,24 @@ class Qha2DData:
     Provides get_qha_2d method to build an instance of QHA_2D
     that can be used for further post-processing.
     """
+
     bo_strains_ac: np.ndarray
     phdos_strains_ac: np.ndarray
 
     gsr_relax_paths: list[str]
     gsr_relax_entries: list[dict]
-    #gsr_relax_entries: list[RelaxEntry]
+    # gsr_relax_entries: list[RelaxEntry]
     ddb_relax_paths: list[str]
     gsr_relax_edos_paths: list[str]
     gsr_relax_ebands_paths: list[str]
 
-    def get_qha_2d(self,
-                   nqsmall_or_qppa: int,
-                   anaget_kwargs: dict | None = None,
-                   smearing_ev: float | None = None,
-                   verbose: int = 0) -> QHA_2D:
+    def get_qha_2d(
+        self,
+        nqsmall_or_qppa: int,
+        anaget_kwargs: dict | None = None,
+        smearing_ev: float | None = None,
+        verbose: int = 0,
+    ) -> QHA_2D:
         """
         Build an instance from a json file `filepath` typically produced by an AbiPy flow.
 
@@ -281,8 +310,13 @@ class Qha2DData:
             smearing_ev: Smearing for phonon DOS in eV.
             verbose: Verbosity level.
         """
-        return QHA_2D.from_gsr_ddb_paths(nqsmall_or_qppa,
-                                         self.gsr_relax_paths, self.ddb_relax_paths,
-                                         self.bo_strains_ac, self.phdos_strains_ac,
-                                         anaget_kwargs=anaget_kwargs,
-                                         smearing_ev=smearing_ev, verbose=verbose)
+        return QHA_2D.from_gsr_ddb_paths(
+            nqsmall_or_qppa,
+            self.gsr_relax_paths,
+            self.ddb_relax_paths,
+            self.bo_strains_ac,
+            self.phdos_strains_ac,
+            anaget_kwargs=anaget_kwargs,
+            smearing_ev=smearing_ev,
+            verbose=verbose,
+        )

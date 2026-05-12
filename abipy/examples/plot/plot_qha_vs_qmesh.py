@@ -7,25 +7,26 @@ This example shows how to use the GSR.nc and PHDOS.nc files computed with differ
 to analyze the convergence of QHA thermodynamic properties with respect to the number of q-points
 used to compute the phonon DOS.
 """
-import os
-import abipy.data as abidata
 
+import os
+
+import abipy.data as abidata
 from abipy.dfpt.qha import QHAQmeshAnalyzer
 
 # We use a list of GSR.nc and PHDOS.nc files corresponding to different isotropic strains.
 # These files are shipped with AbiPy so that we don't need to run calculations from scratch.
-#strains = [-4, -2, 0, 2, 4, 6]
+# strains = [-4, -2, 0, 2, 4, 6]
 strains = [-2, 0, 2, 4]
 dirpath = os.path.join(abidata.dirpath, "refs", "si_qha")
 
-gsr_paths = [os.path.join(dirpath, "mp-149_{:+d}_GSR.nc".format(s)) for s in strains]
-ddb_paths = [os.path.join(dirpath, "mp-149_{:+d}_DDB".format(s)) for s in strains]
+gsr_paths = [os.path.join(dirpath, f"mp-149_{s:+d}_GSR.nc") for s in strains]
+ddb_paths = [os.path.join(dirpath, f"mp-149_{s:+d}_DDB") for s in strains]
 
 # Initialize QHA object from files.
 qhana = QHAQmeshAnalyzer(gsr_paths, ddb_paths)
 
 # To change the default EOS (vinet), use
-#qhana.set_eos("vinet")
+# qhana.set_eos("vinet")
 
 # Compute ph-DOS with this list of nqsmall values.
 qhana.run_qlist([2, 4])

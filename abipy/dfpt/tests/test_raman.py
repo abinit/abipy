@@ -1,15 +1,13 @@
 """Tests for Raman module."""
-import abipy.data as abidata
 
+import abipy.data as abidata
 from abipy.core.testing import AbipyTest
 from abipy.dfpt.raman import Raman
 
 
 class RamanTest(AbipyTest):
-
     def test_raman(self):
         """Testing Raman object."""
-
         r = Raman.from_file(abidata.ref_file("AlAs_nl_dte_anaddb.nc"))
 
         im = r.get_modes_intensities(temp=300, laser_freq=2.54, non_anal_dir=0)
@@ -19,8 +17,9 @@ class RamanTest(AbipyTest):
         il = r.get_lorentz_intensity(temp=300, laser_freq=2.54, non_anal_dir=None, width=0.001, num=100)
         self.assert_almost_equal(il[0][1].values[50], 11.558435430746329)
 
-        il = r.get_lorentz_intensity(temp=300, laser_freq=20491, non_anal_dir=None, width=5,
-                                     pol_in="x", pol_out="y", units="cm-1", relative=True)
+        il = r.get_lorentz_intensity(
+            temp=300, laser_freq=20491, non_anal_dir=None, width=5, pol_in="x", pol_out="y", units="cm-1", relative=True
+        )
         self.assert_almost_equal(il.values[501], 0.9991991198326963)
 
         pi = r.get_powder_intensity(temp=300, laser_freq=2.54, relative=True)
@@ -31,13 +30,38 @@ class RamanTest(AbipyTest):
         self.assert_almost_equal(pil.tot.values[50], 109.47538037690873)
 
         if self.has_matplotlib():
-            assert r.plot_intensity(temp=300, laser_freq=20491, non_anal_dir=None, width=5,
-                                    value="powder", units="cm-1", relative=True, show=False)
-            assert r.plot_intensity(temp=300, laser_freq=2.54, non_anal_dir=0, width=0.0001,
-                                    value="xy", units="eV", relative=False, show=False, plot_phfreqs=True)
+            assert r.plot_intensity(
+                temp=300,
+                laser_freq=20491,
+                non_anal_dir=None,
+                width=5,
+                value="powder",
+                units="cm-1",
+                relative=True,
+                show=False,
+            )
+            assert r.plot_intensity(
+                temp=300,
+                laser_freq=2.54,
+                non_anal_dir=0,
+                width=0.0001,
+                value="xy",
+                units="eV",
+                relative=False,
+                show=False,
+                plot_phfreqs=True,
+            )
 
-            assert r.plot_intensity(temp=300, laser_freq=2.54, non_anal_dir=None, width=None,
-                                    value="xz", units="eV", relative=False, show=False)
+            assert r.plot_intensity(
+                temp=300,
+                laser_freq=2.54,
+                non_anal_dir=None,
+                width=None,
+                value="xz",
+                units="eV",
+                relative=False,
+                show=False,
+            )
 
     def test_fail_parse(self):
         with self.assertRaises(ValueError):

@@ -6,12 +6,11 @@ This example shows how to compute the KS + U band structure of NiO
 with PAW for several values of U and J.
 """
 
-import sys
 import os
-import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+import sys
 
+import abipy.data as abidata
+from abipy import abilab, flowtk
 from abipy.flowtk.abiobjects import LdauParams
 
 
@@ -21,7 +20,6 @@ def make_scf_nscf_dos_inputs(structure, pseudos, luj_params, paral_kgb=1):
 
     # Global variables
     global_vars = dict(
-        #
         ecut=12,
         pawecutdg=30,
         nband=40,
@@ -34,10 +32,7 @@ def make_scf_nscf_dos_inputs(structure, pseudos, luj_params, paral_kgb=1):
         nsppol=1,
         nspden=2,
         nspinor=1,
-        spinat=[0,  0,  1,
-                0,  0, -1,
-                0,  0,  0,
-                0,  0,  0],
+        spinat=[0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 0],
         # Kpoint Grid
         # The k point grid is not symmetric, but the calculations being
         # for the ground-state, this is not a problem.
@@ -60,12 +55,12 @@ def make_scf_nscf_dos_inputs(structure, pseudos, luj_params, paral_kgb=1):
 
     # DOS calculation.
     multi[2].set_vars(
-        iscf=-3,   # NSCF calculation
+        iscf=-3,  # NSCF calculation
         ngkpt=structure.calc_ngkpt(nksmall=8),
         shiftk=[0.0, 0.0, 0.0],
         nshiftk=1,
-        tolwfr=1.e-8,
-        #pawprtdos=1,
+        tolwfr=1.0e-8,
+        # pawprtdos=1,
     )
 
     # Generate two input files for the GS and the NSCF run
@@ -86,17 +81,17 @@ def build_flow(options):
     pseudos = abidata.pseudos("28ni.paw", "8o.2.paw")
 
     # The code below set up the parameters for the LDA+U calculation in NiO.
-    #usepawu   1
-    #lpawu   2 -1
-    #upawu  8.0 0.0 eV
-    #jpawu  0.8 0.0 eV
+    # usepawu   1
+    # lpawu   2 -1
+    # upawu  8.0 0.0 eV
+    # jpawu  0.8 0.0 eV
     usepawu = 1
     u_values = [5.0, 8.0]
 
     for u in u_values:
         # Apply U-J on Ni only.
         luj_params = LdauParams(usepawu, structure)
-        luj_params.luj_for_symbol("Ni", l=2, u=u, j=0.1*u, unit="eV")
+        luj_params.luj_for_symbol("Ni", l=2, u=u, j=0.1 * u, unit="eV")
 
         scf_input, nscf_input, dos_input = make_scf_nscf_dos_inputs(structure, pseudos, luj_params)
 
@@ -111,6 +106,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

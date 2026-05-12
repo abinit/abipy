@@ -1,20 +1,18 @@
-# coding: utf-8
-"""
-This modules provides subclasses of pymatgen tensor objects.
-"""
+"""This modules provides subclasses of pymatgen tensor objects."""
+
 from __future__ import annotations
+
 import numpy as np
 import pandas as pd
-
-from pymatgen.core.tensors import Tensor, SquareTensor
 from pymatgen.analysis.elasticity.elastic import ElasticTensor  # noqa: F401
 from pymatgen.analysis.elasticity.stress import Stress as pmg_Stress
-from pymatgen.analysis.piezo import PiezoTensor # noqa: F401
+from pymatgen.analysis.piezo import PiezoTensor  # noqa: F401
+from pymatgen.core.tensors import SquareTensor, Tensor
+
 from abipy.iotools import ETSF_Reader
 
 
 class _Tensor33:
-
     def _repr_html_(self):
         """Integration with jupyter notebooks."""
         return self.get_dataframe()._repr_html_()
@@ -27,10 +25,12 @@ class _Tensor33:
             cmode: "real" or "imag" to include only the real/imaginary part.
         """
         tensor = self.zeroed(tol=tol)
-        if cmode == "real": tensor = tensor.real
-        if cmode == "imag": tensor = tensor.imag
+        if cmode == "real":
+            tensor = tensor.real
+        if cmode == "imag":
+            tensor = tensor.imag
 
-        return pd.DataFrame({"x": tensor[:,0], "y": tensor[:,1], "z": tensor[:,2]}, index=["x", "y", "z"])
+        return pd.DataFrame({"x": tensor[:, 0], "y": tensor[:, 1], "z": tensor[:, 2]}, index=["x", "y", "z"])
 
     def get_voigt_dataframe(self, tol=1e-3) -> pd.DataFrame:
         """
@@ -41,7 +41,7 @@ class _Tensor33:
         """
         tensor = self.zeroed(tol=tol)
         columns = ["xx", "yy", "zz", "yz", "xz", "xy"]
-        d = {k: v for k, v in zip(columns, tensor.voigt)}
+        d = {k: v for k, v in zip(columns, tensor.voigt, strict=False)}
         return pd.DataFrame(d, index=[0], columns=columns)
 
 
@@ -86,7 +86,6 @@ class DielectricDataList(list):
     Useful for convergence studies.
 
     Example:
-
         diel_data = DielectricDataList()
         diel_data.append((eps0, structure0, params0))
         diel_data.append((eps1, structure1, params1))
@@ -110,6 +109,7 @@ class DielectricDataList(list):
                 raise TypeError(f"Expecting DielectricTensor instance but got {type(obj[0])=}")
 
         from abipy.core.structure import Structure
+
         if not isinstance(obj[1], Structure):
             raise TypeError(f"Expecting Structure instance but got {type(obj[1])=}")
 
@@ -120,19 +120,23 @@ class DielectricDataList(list):
 
     @property
     def eps_list(self) -> list:
+        """Return the list of dielectric tensors."""
         return [obj[0] for obj in self]
 
     @property
     def structures(self) -> list:
+        """Return the list of structures."""
         return [obj[1] for obj in self]
 
     @property
     def params_list(self) -> list[dict]:
+        """Return the list of parameters."""
         return [obj[2] for obj in self]
 
     def has_same_structure(self) -> bool:
         """True if all structures are equal."""
-        if len(self) in (0, 1): return True
+        if len(self) in (0, 1):
+            return True
         structures = self.structures
         structure0 = structures[0]
         return all(structure0 == s for s in structures[1:])
@@ -152,8 +156,17 @@ class DielectricDataList(list):
         """
         structures, eps_list, params_list = self.structures, self.eps_list, self.params_list
 
-        comps2inds = {"xx": (0,0), "yy": (1,1), "zz": (2,2),
-                      "xy": (0, 1), "xz": (0, 2), "yx": (1, 0), "yz": (1, 2), "zx": (2, 0), "zy": (2, 1)}
+        comps2inds = {
+            "xx": (0, 0),
+            "yy": (1, 1),
+            "zz": (2, 2),
+            "xy": (0, 1),
+            "xz": (0, 2),
+            "yx": (1, 0),
+            "yz": (1, 2),
+            "zx": (2, 0),
+            "zy": (2, 1),
+        }
 
         rows = []
         for structure, eps, params in zip(structures, eps_list, params_list, strict=True):
@@ -199,9 +212,9 @@ class NLOpticalSusceptibilityTensor(Tensor):
         with ETSF_Reader(filepath) as reader:
             try:
                 return cls(reader.read_value("dchide"))
-            except Exception as exc:
+            except Exception:
                 import traceback
+
                 msg = traceback.format_exc()
-                msg += ("Error while trying to read from file.\n"
-                        "Verify that nlflag > 0 in anaddb\n")
+                msg += "Error while trying to read from file.\nVerify that nlflag > 0 in anaddb\n"
                 raise ValueError(msg)

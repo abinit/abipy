@@ -1,24 +1,25 @@
 """Tests for frozen_phonons"""
+
 import os
 import warnings
-import abipy.data as abidata
 
-from abipy.dfpt.qha import QHA, QHA3PF, QHA3P, QHAQmeshAnalyzer
-from abipy.dfpt.phonons import PhononBands
+import abipy.data as abidata
 from abipy.core.testing import AbipyTest
+from abipy.dfpt.phonons import PhononBands
+from abipy.dfpt.qha import QHA, QHA3P, QHA3PF, QHAQmeshAnalyzer
 
 
 class QhaTest(AbipyTest):
-
     @classmethod
     def setUpClass(cls):
         cls.strains = [-4, -2, 0, 2, 4, 6]
         dirpath = os.path.join(abidata.dirpath, "refs", "si_qha")
-        cls.gsr_paths = [os.path.join(dirpath, "mp-149_{:+d}_GSR.nc".format(s)) for s in cls.strains]
-        cls.dos_paths = [os.path.join(dirpath, "mp-149_{:+d}_PHDOS.nc".format(s)) for s in cls.strains]
-        cls.ddb_paths = [os.path.join(dirpath, "mp-149_{:+d}_DDB".format(s)) for s in cls.strains]
-        cls.phbs_list = [PhononBands.from_file(os.path.join(dirpath, "mp-149_{:+d}_PHBST.nc".format(s))) for s in
-                         cls.strains[2:4]]
+        cls.gsr_paths = [os.path.join(dirpath, f"mp-149_{s:+d}_GSR.nc") for s in cls.strains]
+        cls.dos_paths = [os.path.join(dirpath, f"mp-149_{s:+d}_PHDOS.nc") for s in cls.strains]
+        cls.ddb_paths = [os.path.join(dirpath, f"mp-149_{s:+d}_DDB") for s in cls.strains]
+        cls.phbs_list = [
+            PhononBands.from_file(os.path.join(dirpath, f"mp-149_{s:+d}_PHBST.nc")) for s in cls.strains[2:4]
+        ]
 
     def test_qha(self):
         """Testing QHA"""
@@ -35,7 +36,7 @@ class QhaTest(AbipyTest):
         qha.set_eos("murnaghan")
         self.assert_equal(qha.eos._eos_name, "murnaghan")
 
-        te = qha.get_thermal_expansion_coeff(num=4,method="finite_difference")
+        te = qha.get_thermal_expansion_coeff(num=4, method="finite_difference")
         self.assert_almost_equal(te.values[1], 1.4676820862386381e-05)
 
         self.assert_almost_equal(qha.get_vol_at_t(200), 41.07441539803265, decimal=4)
@@ -66,6 +67,7 @@ class QhaTest(AbipyTest):
         qha = QHA.from_files(self.gsr_paths, self.dos_paths)
 
         from phonopy.qha.core import QHA as QHA_phonopy
+
         qha_ph = qha.get_phonopy_qha(tstop=500, num=11)
         self.assertIsInstance(qha_ph, QHA_phonopy)
         qha_ph.run()
@@ -80,7 +82,11 @@ class QhaTest(AbipyTest):
         with self.assertRaises(RuntimeError):
             assert qhana.plot_energies(title="Energies as a function of V for different T", show=False)
 
-        qhana.run_qlist([2,])
+        qhana.run_qlist(
+            [
+                2,
+            ]
+        )
 
         qhana.set_eos("birch_murnaghan")
         assert qhana.ngqpt_list.shape == (1, 3)
@@ -94,17 +100,15 @@ class QhaTest(AbipyTest):
 
 
 class Qha3pfTest(AbipyTest):
-
     @classmethod
     def setUpClass(cls):
         cls.strains = [-4, -2, 0, 2, 4, 6]
         path = os.path.join(abidata.dirpath, "refs", "si_qha")
-        cls.gsr_paths = [os.path.join(path, "mp-149_{:+d}_GSR.nc".format(s)) for s in cls.strains]
-        cls.dos_paths = [os.path.join(path, "mp-149_{:+d}_PHDOS.nc".format(s)) for s in cls.strains]
+        cls.gsr_paths = [os.path.join(path, f"mp-149_{s:+d}_GSR.nc") for s in cls.strains]
+        cls.dos_paths = [os.path.join(path, f"mp-149_{s:+d}_PHDOS.nc") for s in cls.strains]
 
     def test_qha3pf(self):
         """Testing QHA3PF"""
-
         qha = QHA3PF.from_files(self.gsr_paths, self.dos_paths[1:4], ind_doses=[1, 2, 3])
 
         self.assert_equal(qha.nvols, len(self.strains))
@@ -118,7 +122,7 @@ class Qha3pfTest(AbipyTest):
         qha.set_eos("murnaghan")
         self.assert_equal(qha.eos._eos_name, "murnaghan")
 
-        te = qha.get_thermal_expansion_coeff(num=4,method="finite_difference")
+        te = qha.get_thermal_expansion_coeff(num=4, method="finite_difference")
         self.assert_almost_equal(te.values[1], 1.2773693323408941e-05)
 
         self.assert_almost_equal(qha.get_vol_at_t(200), 41.10212044734946, decimal=4)
@@ -137,6 +141,7 @@ class Qha3pfTest(AbipyTest):
         qha = QHA3PF.from_files(self.gsr_paths, self.dos_paths[1:4], ind_doses=[1, 2, 3])
 
         from phonopy.qha.core import QHA as QHA_phonopy
+
         qha_ph = qha.get_phonopy_qha(tstop=500, num=11)
         self.assertIsInstance(qha_ph, QHA_phonopy)
         qha_ph.run()
@@ -145,12 +150,11 @@ class Qha3pfTest(AbipyTest):
 
 
 class Qha3pTest(AbipyTest):
-
     @classmethod
     def setUpClass(cls):
         cls.strains = [-4, -2, 0, 2, 4, 6]
         path = os.path.join(abidata.dirpath, "refs", "si_qha")
-        cls.gsr_paths = [os.path.join(path, "mp-149_{:+d}_GSR.nc".format(s)) for s in cls.strains]
+        cls.gsr_paths = [os.path.join(path, f"mp-149_{s:+d}_GSR.nc") for s in cls.strains]
         cls.gruns_path = os.path.join(path, "mp-149_GRUNS.nc")
         warnings.simplefilter("ignore")
 
@@ -172,7 +176,7 @@ class Qha3pTest(AbipyTest):
         qha.set_eos("murnaghan")
         self.assert_equal(qha.eos._eos_name, "murnaghan")
 
-        te = qha.get_thermal_expansion_coeff(num=4,method="finite_difference")
+        te = qha.get_thermal_expansion_coeff(num=4, method="finite_difference")
         self.assert_almost_equal(te.values[1], 1.2725767394824783e-05)
 
         self.assert_almost_equal(qha.get_vol_at_t(200), 41.1083743159003, decimal=4)
@@ -191,6 +195,7 @@ class Qha3pTest(AbipyTest):
         qha = QHA3P.from_files(self.gsr_paths, self.gruns_path, ind_doses=[1, 2, 3])
 
         from phonopy.qha.core import QHA as QHA_phonopy
+
         qha_ph = qha.get_phonopy_qha(tstop=500, num=11)
         self.assertIsInstance(qha_ph, QHA_phonopy)
         qha_ph.run()

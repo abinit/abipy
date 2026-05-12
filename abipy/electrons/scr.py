@@ -1,29 +1,36 @@
-# coding: utf-8
 """
 Objects to analyze the screening files in netcdf format produced by the GW code (optdriver 3).
 """
+
 from __future__ import annotations
+
+from functools import cached_property
 
 import numpy as np
 import pymatgen.core.units as pmgu
-
-from functools import cached_property
-from monty.string import marquee
-from monty.inspect import all_subclasses
-from monty.termcolor import cprint
-from monty.collections import AttrDict
 from monty.bisect import index as bs_index
+from monty.collections import AttrDict
+from monty.inspect import all_subclasses
+from monty.string import marquee
+from monty.termcolor import cprint
+
 from abipy.core.func1d import Function1D
-from abipy.core.kpoints import KpointList
-from abipy.core.structure import Structure
 from abipy.core.gsphere import GSphere
-from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
+from abipy.core.kpoints import KpointList
+from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Header, Has_Structure, NotebookWriter
+from abipy.core.structure import Structure
 from abipy.electrons.ebands import ElectronBands
 from abipy.iotools import ETSF_Reader
-from abipy.tools.plotting import ArrayPlotter, data_from_cplx_mode, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims
-from abipy.tools.typing import Figure
 from abipy.tools import duck
-
+from abipy.tools.plotting import (
+    ArrayPlotter,
+    add_fig_kwargs,
+    data_from_cplx_mode,
+    get_ax_fig_plt,
+    get_axarray_fig_plt,
+    set_axlims,
+)
+from abipy.tools.typing import Figure
 
 _COLOR_CMODE = dict(re="red", im="blue", abs="black", angle="green")
 
@@ -34,7 +41,8 @@ def _latex_symbol_cplxmode(symbol: str, cplx_mode: str) -> str:
         "re": r"$\Re(" + symbol + ")$",
         "im": r"$\Im(" + symbol + ")$",
         "abs": r"$||" + symbol + "||$",
-        "angle": r"$Phase(" + symbol + ")$"}[cplx_mode]
+        "angle": r"$Phase(" + symbol + ")$",
+    }[cplx_mode]
 
 
 class ScrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
@@ -52,12 +60,14 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: ScrFile
     """
+
     @classmethod
     def from_file(cls, filepath: str) -> ScrFile:
         """Initialize the object from a Netcdf file"""
         return cls(filepath)
 
     def __init__(self, filepath: str):
+        """Initialize the object from a file path."""
         super().__init__(filepath)
         self.r = ScrReader(filepath)
 
@@ -70,7 +80,8 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     def to_string(self, verbose=0) -> str:
         """String representation."""
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
 
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
@@ -78,7 +89,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         app(self.structure.to_string(verbose=verbose, title="Structure"))
         app("")
         # TODO: Fix problem with efermi
-        #app(self.ebands.to_string(with_structure=False, title="Electronic Bands"))
+        # app(self.ebands.to_string(with_structure=False, title="Electronic Bands"))
         app(self.kpoints.to_string(verbose=verbose, title="K-points for screening function"))
         app("")
         app("Number of G-vectors in screening matrices: %d" % self.ng)
@@ -149,10 +160,10 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
     @cached_property
     def params(self) -> dict:
         """
-        dict with the most important parameters used to compute the screening
+        Dict with the most important parameters used to compute the screening
         keys can be accessed with the dot notation i.e. ``params.zcut``.
         """
-        #od = self.get_ebands_params()
+        # od = self.get_ebands_params()
         return self.r.read_params()
 
     @add_fig_kwargs
@@ -180,10 +191,14 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         for c in cplx_mode.lower().split("-"):
-            ax.plot(xx, data_from_cplx_mode(c, yy),
-                    color=_COLOR_CMODE[c], linewidth=kwargs.get("linewidth", 2),
-                    linestyle=kwargs.get("linestyle", "solid"),
-                    label=_latex_symbol_cplxmode(r"\varepsilon_{M}", c))
+            ax.plot(
+                xx,
+                data_from_cplx_mode(c, yy),
+                color=_COLOR_CMODE[c],
+                linewidth=kwargs.get("linewidth", 2),
+                linestyle=kwargs.get("linestyle", "solid"),
+                label=_latex_symbol_cplxmode(r"\varepsilon_{M}", c),
+            )
 
         set_axlims(ax, xlims, "x")
         ax.grid(True)
@@ -207,8 +222,7 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         xx, yy = eelf.mesh * pmgu.Ha_to_eV, eelf.values
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
-        ax.plot(xx, yy, linewidth=kwargs.get("linewidth", 2),
-                linestyle=kwargs.get("linestyle", "solid"), label="EELF")
+        ax.plot(xx, yy, linewidth=kwargs.get("linewidth", 2), linestyle=kwargs.get("linestyle", "solid"), label="EELF")
 
         set_axlims(ax, xlims, "x")
         ax.grid(True)
@@ -217,8 +231,9 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
         return fig
 
-    def plot_freqs_at_ggp(self, gvec1, gvec2=None, waxis="real", cplx_modes=("re", "im"),
-                          colormap="viridis", fontsize=8, **kwargs) -> Figure:
+    def plot_freqs_at_ggp(
+        self, gvec1, gvec2=None, waxis="real", cplx_modes=("re", "im"), colormap="viridis", fontsize=8, **kwargs
+    ) -> Figure:
         """
         Plot the real and the imaginary part of the response function as a function of omega along
         eithe the real or the imaginary axis. Each subplot, shows all the q-points stored on file
@@ -230,20 +245,26 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             colormap: Color map. Have a look at the colormaps here and decide which one you like:
                 http://matplotlib.sourceforge.net/examples/pylab_examples/show_colormaps.html
         """
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=len(cplx_modes), ncols=1,
-                                                sharex=True, sharey=False, squeeze=False)
+        ax_list, fig, plt = get_axarray_fig_plt(
+            None, nrows=len(cplx_modes), ncols=1, sharex=True, sharey=False, squeeze=False
+        )
         ax_list = ax_list.ravel()
         cmap = plt.get_cmap(colormap)
 
         nqpt = len(self.r.sorted_kpoints)
         for iq, qpoint in enumerate(self.r.sorted_kpoints):
             wggmat = self.r.read_wggmat(qpoint)
-            for ax, cplx_mode in zip(ax_list, cplx_modes):
-                wggmat.plot_freq(gvec1, gvec2=gvec2, waxis=waxis,
-                                 color=cmap(float(iq) / nqpt),
-                                 label=f"{qpoint}",
-                                 cplx_mode=cplx_mode,
-                                 ax=ax, show=False)
+            for ax, cplx_mode in zip(ax_list, cplx_modes, strict=False):
+                wggmat.plot_freq(
+                    gvec1,
+                    gvec2=gvec2,
+                    waxis=waxis,
+                    color=cmap(float(iq) / nqpt),
+                    label=f"{qpoint}",
+                    cplx_mode=cplx_mode,
+                    ax=ax,
+                    show=False,
+                )
 
         return fig
 
@@ -266,29 +287,34 @@ class ScrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        nb.cells.extend([
-            nbv.new_code_cell("ncfile = abilab.abiopen('%s')" % self.filepath),
-            nbv.new_code_cell("print(ncfile)"),
-            nbv.new_code_cell("print(ncfile.params)"),
-            #nbv.new_code_cell("ncfile.ebands.plot();"),
-            nbv.new_code_cell("edos = ncfile.ebands.get_edos()\nncfile.ebands.plot_with_edos(edos);"),
-        ])
+        nb.cells.extend(
+            [
+                nbv.new_code_cell("ncfile = abilab.abiopen('%s')" % self.filepath),
+                nbv.new_code_cell("print(ncfile)"),
+                nbv.new_code_cell("print(ncfile.params)"),
+                # nbv.new_code_cell("ncfile.ebands.plot();"),
+                nbv.new_code_cell("edos = ncfile.ebands.get_edos()\nncfile.ebands.plot_with_edos(edos);"),
+            ]
+        )
 
         if self.nrew > 2:
             # Plot optical properties and EELF
-            nb.cells.extend([
-                nbv.new_code_cell("ncfile.plot_emacro();"),
-                nbv.new_code_cell("ncfile.plot_eelf();"),
-            ])
+            nb.cells.extend(
+                [
+                    nbv.new_code_cell("ncfile.plot_emacro();"),
+                    nbv.new_code_cell("ncfile.plot_eelf();"),
+                ]
+            )
 
         return self._write_nb_nbpath(nb, nbpath)
 
 
 class SusFile(ScrFile):
-    pass
+    """File object for SUS.nc files."""
 
 
 class ScrReader(ETSF_Reader):
+    """Class to read screening files."""
     """
     This object reads the results stored in the SCR (Screening) file produced by ABINIT.
     It provides helper functions to access the most important quantities.
@@ -300,7 +326,12 @@ class ScrReader(ETSF_Reader):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: ScrReader
     """
+
     def __init__(self, filepath: str):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
 
         # Read and store important quantities.
@@ -320,9 +351,11 @@ class ScrReader(ETSF_Reader):
                 break
 
         self.nimw = self.nw - self.nrew
-        if self.nimw and not np.all(np.iscomplex(self.wpoints[self.nrew+1:])):
-            raise ValueError("wpoints should contained real points packed in the first positions\n"
-                             "followed by imaginary points but got: %s" % str(self.wpoints))
+        if self.nimw and not np.all(np.iscomplex(self.wpoints[self.nrew + 1 :])):
+            raise ValueError(
+                "wpoints should contained real points packed in the first positions\n"
+                "followed by imaginary points but got: %s" % str(self.wpoints)
+            )
 
         # Define self.netcdf_name from the data available on file.
         nfound = 0
@@ -343,7 +376,7 @@ class ScrReader(ETSF_Reader):
         Build list of k-points sorted by norm (ascending order).
         """
         norms = [(kpt.norm, kpt) for kpt in self.kpoints]
-        sorted_frac_coords = [t[1].frac_coords for t in sorted(norms, key= lambda t: t[0], reverse=False)]
+        sorted_frac_coords = [t[1].frac_coords for t in sorted(norms, key=lambda t: t[0], reverse=False)]
         return KpointList(self.structure.reciprocal_lattice, sorted_frac_coords)
 
     def read_params(self) -> AttrDict:
@@ -355,13 +388,28 @@ class ScrReader(ETSF_Reader):
             |AttrDict| a dictionary whose keys can be accessed with the dot notation i.e. ``d.key``.
         """
         # TODO: ecuteps is missing!
-        keys = ["ikxc", "inclvkb", "gwcalctyp", "nbands_used", "npwwfn_used",
-                "spmeth", "test_type", "tordering", "awtr", "icutcoul", "gwcomp",
-                "gwgamma", "mbpt_sciss", "spsmear", "zcut", "gwencomp"]
+        keys = [
+            "ikxc",
+            "inclvkb",
+            "gwcalctyp",
+            "nbands_used",
+            "npwwfn_used",
+            "spmeth",
+            "test_type",
+            "tordering",
+            "awtr",
+            "icutcoul",
+            "gwcomp",
+            "gwgamma",
+            "mbpt_sciss",
+            "spsmear",
+            "zcut",
+            "gwencomp",
+        ]
 
         def convert(arr):
             """Convert to scalar if size == 1"""
-            #return np.asscalar(arr) if arr.size == 1 else arr
+            # return np.asscalar(arr) if arr.size == 1 else arr
             return np.asarray(arr).item() if arr.size == 1 else arr
 
         return AttrDict({k: convert(self.read_value(k)) for k in keys})
@@ -372,11 +420,11 @@ class ScrReader(ETSF_Reader):
         """
         if self.netcdf_name == "inverse_dielectric_function":
             em1 = self.read_wslice(kpoint, ig1=0, ig2=0)
-            emacro = 1 / em1[:self.nrew]
+            emacro = 1 / em1[: self.nrew]
         else:
             raise NotImplementedError("emacro_lf with netcdf != InverseDielectricFunction")
 
-        return Function1D(np.real(self.wpoints[:self.nrew]).copy(), emacro)
+        return Function1D(np.real(self.wpoints[: self.nrew]).copy(), emacro)
 
     def read_emacro_nlf(self, kpoint=(0, 0, 0)) -> Function1D:
         """
@@ -389,11 +437,11 @@ class ScrReader(ETSF_Reader):
         """
         if self.netcdf_name == "inverse_dielectric_function":
             em1 = self.read_wggmat(kpoint)
-            e = np.linalg.inv(em1.wggmat[:self.nrew, :, :])
+            e = np.linalg.inv(em1.wggmat[: self.nrew, :, :])
         else:
             raise NotImplementedError("emacro_nlf with netcdf != InverseDielectricFunction")
 
-        return Function1D(np.real(self.wpoints[:self.nrew]).copy(), e[:, 0, 0])
+        return Function1D(np.real(self.wpoints[: self.nrew]).copy(), e[:, 0, 0])
 
     def read_eelf(self, kpoint=(0, 0, 0)) -> Function1D:
         """
@@ -401,7 +449,7 @@ class ScrReader(ETSF_Reader):
         """
         # eelf = -Im(1 / eM)
         emacro_lf = self.read_emacro_lf(kpoint=kpoint)
-        #emacro_lf = self.read_emacro_nlf(kpoint=kpoint)
+        # emacro_lf = self.read_emacro_nlf(kpoint=kpoint)
         values = (-1 / emacro_lf.values).imag
 
         return Function1D(emacro_lf.mesh.copy(), values)
@@ -417,7 +465,7 @@ class ScrReader(ETSF_Reader):
         # Use ik = 0 because the basis set is not k-dependent.
         ik0 = 0
         gvecs = var[ik0, :]
-        #print("gvecs", gvecs)
+        # print("gvecs", gvecs)
 
         kpoint, ik = self.find_kpoint_fileindex(kpoint)
 
@@ -468,6 +516,7 @@ class _AwggMatrix:
         nrew:
         nwim:
     """
+
     netcdf_name = "_AwggMatrix"
 
     latex_name = "Unknown"
@@ -489,7 +538,9 @@ class _AwggMatrix:
         return out_cls
 
     def __init__(self, wpoints, gsphere, wggmat, inord="C"):
-        """"
+        """
+        Initialize the matrix with frequencies, G-sphere and data.
+
         Args:
             gsphere: |GSphere| with G-vectors and k-point object.
             wpoints: Complex frequency points in Hartree.
@@ -522,9 +573,11 @@ class _AwggMatrix:
                 break
 
         self.nimw = self.nw - self.nrew
-        if self.nimw and not np.all(np.iscomplex(self.wpoints[self.nrew+1:])):
-            raise ValueError("wpoints should contained real points packed in the first positions\n"
-                "followed by imaginary points but got: %s" % str(self.wpoints))
+        if self.nimw and not np.all(np.iscomplex(self.wpoints[self.nrew + 1 :])):
+            raise ValueError(
+                "wpoints should contained real points packed in the first positions\n"
+                "followed by imaginary points but got: %s" % str(self.wpoints)
+            )
 
     def __str__(self) -> str:
         return self.to_string()
@@ -566,7 +619,7 @@ class _AwggMatrix:
         Real frequencies in Hartree. Empty list if not available.
         """
         if self.nrew > 0:
-            return np.real(self.wpoints[:self.nrew])
+            return np.real(self.wpoints[: self.nrew])
         return []
 
     @property
@@ -575,18 +628,18 @@ class _AwggMatrix:
         Imaginary frequencies in Hartree. Empty list if not available.
         """
         if self.nimw > 0:
-            return self.wpoints[self.nrew:]
+            return self.wpoints[self.nrew :]
         return []
 
     @property
     def wggmat_realw(self):
         """The slice of wggmat along the real axis."""
-        return self.wggmat[:self.nrew, :, :]
+        return self.wggmat[: self.nrew, :, :]
 
     @property
     def wggmat_imagw(self):
         """The slice of wggmat along the imaginary axis."""
-        return self.wggmat[self.nrew:, :, :]
+        return self.wggmat[self.nrew :, :, :]
 
     def windex(self, w, atol: float = 0.001) -> int:
         """
@@ -607,7 +660,8 @@ class _AwggMatrix:
         Raises:
             `ValueError` if gvec is not found.
         """
-        if duck.is_intlike(gvec): return int(gvec)
+        if duck.is_intlike(gvec):
+            return int(gvec)
         return self.gsphere.index(gvec)
 
     def latex_label(self, cplx_mode: str) -> str:
@@ -615,16 +669,18 @@ class _AwggMatrix:
         return _latex_symbol_cplxmode(self.latex_name, cplx_mode)
 
     @add_fig_kwargs
-    def plot_freq(self,
-                  gvec1,
-                  gvec2=None,
-                  waxis="real",
-                  cplx_mode="re-im",
-                  ax=None,
-                  color: str = None,
-                  label: str = None,
-                  fontsize=8,
-                  **kwargs) -> Figure:
+    def plot_freq(
+        self,
+        gvec1,
+        gvec2=None,
+        waxis="real",
+        cplx_mode="re-im",
+        ax=None,
+        color: str = None,
+        label: str = None,
+        fontsize=8,
+        **kwargs,
+    ) -> Figure:
         r"""
         Plot the frequency dependence of :math:`W_{G1, G2}(\omega)`
 
@@ -679,9 +735,7 @@ class _AwggMatrix:
             if "color" not in plt_kwargs:
                 plt_kwargs["color"] = _COLOR_CMODE[c]
 
-            ax.plot(xx, data_from_cplx_mode(c, yy),
-                    label=self.latex_label(c) if label is None else label,
-                    **plt_kwargs)
+            ax.plot(xx, data_from_cplx_mode(c, yy), label=self.latex_label(c) if label is None else label, **plt_kwargs)
 
         ax.grid(True)
         ax.set_xlabel(r"$\omega$ (eV)")
@@ -708,13 +762,13 @@ class _AwggMatrix:
         Returns: |matplotlib-Figure|
         """
         # Get wpos indices.
-        choice_wpos = {None: [0], "all": range(self.nw),
-                       "real": range(self.nrew), "imag": range(self.nrew, self.nw)}
+        choice_wpos = {None: [0], "all": range(self.nw), "real": range(self.nrew), "imag": range(self.nrew, self.nw)}
 
         if any(wpos == k for k in choice_wpos):
             wpos = choice_wpos[wpos]
         else:
-            if duck.is_intlike(wpos): wpos = [int(wpos)]
+            if duck.is_intlike(wpos):
+                wpos = [int(wpos)]
             wpos = np.array(wpos)
 
         # Build plotter.
@@ -732,6 +786,7 @@ class Polarizability(_AwggMatrix):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: Polarizability
     """
+
     netcdf_name = "polarizability"
     latex_name = r"\tilde chi"
 
@@ -741,6 +796,7 @@ class DielectricFunction(_AwggMatrix):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: DielectricFunction
     """
+
     netcdf_name = "dielectric_function"
     latex_name = r"\epsilon"
 
@@ -750,10 +806,11 @@ class InverseDielectricFunction(_AwggMatrix):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: InverseDielectricFunction
     """
+
     netcdf_name = "inverse_dielectric_function"
     latex_name = r"\epsilon^{-1}"
 
-    #def _add_ppmodel(self, ppm):
+    # def _add_ppmodel(self, ppm):
     #    """
     #    Add a :class:`PPModel` object to the internal list. Return ppm.
     #    """
@@ -761,12 +818,12 @@ class InverseDielectricFunction(_AwggMatrix):
     #    self.ppmodels.append(ppm)
     #    return ppm
 
-    #def build_godby_needs_ppmodel(self, wplasma):
+    # def build_godby_needs_ppmodel(self, wplasma):
     #    ppm = GodbyNeeds.from_em1(self, wplasma)
     #    return self._add_ppmodel(ppm)
 
-    #@add_fig_kwargs
-    #def plot_with_ppmodels(self, gvec1, gvec2=None, waxis="real", cplx_mode="re",
+    # @add_fig_kwargs
+    # def plot_with_ppmodels(self, gvec1, gvec2=None, waxis="real", cplx_mode="re",
     #                       zcut=0.1/pmgu.Ha_to_eV, **kwargs):
     #    """
     #    Args:
@@ -807,7 +864,7 @@ class InverseDielectricFunction(_AwggMatrix):
     #    return fig
 
 
-#class PPModel(metaclass=abc.ABCMeta):
+# class PPModel(metaclass=abc.ABCMeta):
 #    """
 #    Abstract base class for Plasmonpole models.
 #    """
@@ -821,7 +878,7 @@ class InverseDielectricFunction(_AwggMatrix):
 #        """Compute the plasmon-pole model at frequency omega (Ha units)."""
 #
 #
-#class GodbyNeeds(PPModel):
+# class GodbyNeeds(PPModel):
 #
 #    def __init__(self, gsphere, omegatw, bigomegatwsq):
 #        r"""

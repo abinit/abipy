@@ -1,15 +1,13 @@
 """Tests for phonons"""
-import os
-import numpy as np
-import abipy.data as abidata
 
+import abipy.data as abidata
 from abipy import abilab
 from abipy.core.testing import AbipyTest
-#from abipy.dfpt.elastic import ElasticData
+
+# from abipy.dfpt.elastic import ElasticData
 
 
 class ElasticDataFileTest(AbipyTest):
-
     def test_alas_elastic(self):
         """
         Testing DDB containing also third order derivatives.
@@ -32,23 +30,24 @@ class ElasticDataFileTest(AbipyTest):
             assert e.params["instrflag"] == 1
             assert e.params["asr"] == 2 and e.params["chneut"] == 1
             # Elastic tensors.
-            self.assert_almost_equal(e.elastic_relaxed[0,0,0,0], 122.23496623977118, decimal=4)
+            self.assert_almost_equal(e.elastic_relaxed[0, 0, 0, 0], 122.23496623977118, decimal=4)
             assert e.elastic_clamped is not None
             assert e.elastic_stress_corr is None
             assert e.elastic_relaxed_fixed_D is None
 
             # TODO: Waiting for new version of elate compatible with numpy 2.4.1
-            #html = e.elastic_clamped.get_elate_html()
-            #assert "<!DOCTYPE" in html
+            # html = e.elastic_clamped.get_elate_html()
+            # assert "<!DOCTYPE" in html
 
             # Piezoelectric tensors.
-            self.assert_almost_equal(e.piezo_relaxed[2,2,2], -0.041496005147475756)
+            self.assert_almost_equal(e.piezo_relaxed[2, 2, 2], -0.041496005147475756)
             assert e.piezo_clamped is not None
             assert e.d_piezo_relaxed is None
             assert e.g_piezo_relaxed is None
             assert e.g_piezo_relaxed is None
 
-            assert repr(e); assert str(e)
+            assert repr(e)
+            assert str(e)
             assert e.to_string(verbose=2)
             assert e.structure.formula == "Al2 As2"
             assert e.elastic_relaxed._repr_html_()
@@ -72,5 +71,5 @@ class ElasticDataFileTest(AbipyTest):
             df = e.get_voigt_dataframe("elastic_relaxed", voigt_as_index=False, tol=1e-1)
 
             self.assert_almost_equal(df[(0, 0)].iloc[0], 122.23496623977118, decimal=4)
-            #self.assert_almost_equal(df[(0, 0)][0], 122.23496623977118, decimal=4)
+            # self.assert_almost_equal(df[(0, 0)][0], 122.23496623977118, decimal=4)
             df = e.get_elastic_properties_dataframe(tensor_names="elastic_relaxed", fit_to_structure=True)

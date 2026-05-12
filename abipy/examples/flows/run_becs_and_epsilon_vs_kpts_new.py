@@ -8,12 +8,12 @@ the dielectric tensors (e0, einf) of AlAs with AbiPy flows.
 We perform multiple calculations by varying the number of k-points
 to analyze the convergence of the results wrt nkpt.
 """
-import sys
-import os
-import abipy.abilab as abilab
-import abipy.data as abidata
 
-from abipy import flowtk
+import os
+import sys
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
 from abipy.flowtk.dfpt_flows import ConvBecsEpsFlow
 
 
@@ -31,16 +31,26 @@ def make_scf_input(ngkpt, paral_kgb=0):
         ecut=2.0,
         ngkpt=ngkpt,
         nshiftk=4,
-        shiftk=[0.0, 0.0, 0.5,   # This gives the usual fcc Monkhorst-Pack grid
-                0.0, 0.5, 0.0,
-                0.5, 0.0, 0.0,
-                0.5, 0.5, 0.5],
-        #shiftk=[0, 0, 0],
+        shiftk=[
+            0.0,
+            0.0,
+            0.5,  # This gives the usual fcc Monkhorst-Pack grid
+            0.0,
+            0.5,
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.5,
+            0.5,
+            0.5,
+        ],
+        # shiftk=[0, 0, 0],
         paral_kgb=paral_kgb,
         tolvrs=1.0e-10,
         diemac=9.0,
-        ixc=1,      # This is needed because the pseudos have been generated with different XC
-        #iomode=3,
+        ixc=1,  # This is needed because the pseudos have been generated with different XC
+        # iomode=3,
     )
 
     return gs_inp
@@ -63,7 +73,7 @@ def build_flow(options):
     flow = flowtk.Flow(workdir=options.workdir)
 
     ngkpt_list = [(2, 2, 2), (4, 4, 4), (6, 6, 6), (8, 8, 8)]
-    scf_input = make_scf_input(ngkpt=[4,4,4])
+    scf_input = make_scf_input(ngkpt=[4, 4, 4])
 
     flow = ConvBecsEpsFlow.from_scf_input(
         options.workdir,
@@ -78,6 +88,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

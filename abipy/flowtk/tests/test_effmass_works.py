@@ -1,15 +1,13 @@
 """Tests for abiphonopy module"""
-import abipy.data as abidata
-import abipy.flowtk as flowtk
-import abipy.data as abidata
 
-from abipy.core.testing import AbipyTest
+import abipy.data as abidata
+from abipy import flowtk
 from abipy.abio.factories import gs_input
-from abipy.flowtk.effmass_works import EffMassLineWork, EffMassDFPTWork, EffMassAutoDFPTWork, FrohlichZPRFlow
+from abipy.core.testing import AbipyTest
+from abipy.flowtk.effmass_works import EffMassAutoDFPTWork, EffMassDFPTWork, EffMassLineWork, FrohlichZPRFlow
 
 
 class TestEffMassWorks(AbipyTest):
-
     def test_effmassline_work(self):
         """Testing EffMassLineWork."""
         si_structure = abidata.structure_from_cif("si.cif")
@@ -36,10 +34,15 @@ class TestEffMassWorks(AbipyTest):
 
         # From DEN file
         flow = flowtk.Flow.temporary_flow()
-        work = EffMassLineWork.from_scf_input(scf_input, k0_list=(0, 0, 0), step=0.01, npts=10,
-                                              red_dirs=(1, 0, 0),
-                                              cart_dirs=[(1, 0, 0), (1, 1, 0)],
-                                              den_node=abidata.ref_file("si_DEN.nc"))
+        work = EffMassLineWork.from_scf_input(
+            scf_input,
+            k0_list=(0, 0, 0),
+            step=0.01,
+            npts=10,
+            red_dirs=(1, 0, 0),
+            cart_dirs=[(1, 0, 0), (1, 1, 0)],
+            den_node=abidata.ref_file("si_DEN.nc"),
+        )
         flow.register_work(work)
         flow.allocate()
         flow.check_status()
@@ -92,6 +95,7 @@ class TestEffMassWorks(AbipyTest):
         """Testing FrohlichZPRFlow"""
         # Read structure from DDB file.
         from abipy import abilab
+
         ddb_path = abidata.ref_file("refs/mgo_v8t57/mgo_zpr_t57o_DS3_DDB")
         with abilab.abiopen(ddb_path) as ddb:
             structure = ddb.structure
@@ -104,18 +108,27 @@ class TestEffMassWorks(AbipyTest):
             nband=12,
             nbdbuf=2,
             diemac=6,
-            ecut=30,                # Underconverged ecut.
-            #ecut=15,
+            ecut=30,  # Underconverged ecut.
+            # ecut=15,
             nstep=100,
             tolvrs=1e-16,
-            kptrlatt=[-2,  2,  2,   # In cartesian coordinates, this grid is simple cubic
-                       2, -2,  2,
-                       2,  2, -2],
+            kptrlatt=[
+                -2,
+                2,
+                2,  # In cartesian coordinates, this grid is simple cubic
+                2,
+                -2,
+                2,
+                2,
+                2,
+                -2,
+            ],
         )
 
         workdir = self.mkdtemp()
-        flow = FrohlichZPRFlow.from_scf_input(workdir, scf_input, ddb_node=ddb_path, ndivsm=2, tolwfr=1e-20,
-                                              metadata={"mp_id": "mp-149"})
+        flow = FrohlichZPRFlow.from_scf_input(
+            workdir, scf_input, ddb_node=ddb_path, ndivsm=2, tolwfr=1e-20, metadata={"mp_id": "mp-149"}
+        )
         flow.allocate()
         flow.check_status()
         isok, checks = flow.abivalidate_inputs()

@@ -17,13 +17,14 @@ in the `the official tutorial <https://docs.abinit.org/tutorial/elastic/>`_
 The DDB file with all the perturbations will be produced automatically at the end of the run
 and saved in ``flow_elastic/w0/outdata/out_DDB``.
 """
-import sys
-import os
-import numpy as np
-import abipy.abilab as abilab
-import abipy.data as abidata
 
-from abipy import flowtk
+import os
+import sys
+
+import numpy as np
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
 
 
 def make_scf_input(paral_kgb=0):
@@ -32,22 +33,16 @@ def make_scf_input(paral_kgb=0):
     AlAs in hypothetical wurzite (hexagonal) structure.
     In principle, the stucture should be relaxed before starting the calculation
     """
-
     # Initialize structure. Use enough significant digits
     # so that Abinit will recognize the correct spacegroup
     # (Hexagonal and rhombohedral lattices are a bit problematic).
     structure = abilab.Structure.from_abivars(
-        acell=[7.5389648144E+00, 7.5389648144E+00, 1.2277795374E+01],
+        acell=[7.5389648144e00, 7.5389648144e00, 1.2277795374e01],
         natom=4,
         ntypat=2,
-        rprim=[np.sqrt(0.75), 0.5, 0.0,
-               -np.sqrt(0.75), 0.5, 0.0,
-               0.0, 0.0, 1.0],
+        rprim=[np.sqrt(0.75), 0.5, 0.0, -np.sqrt(0.75), 0.5, 0.0, 0.0, 0.0, 1.0],
         typat=[1, 1, 2, 2],
-        xred=[1/3, 2/3, 0,
-              2/3, 1/3, 1/2,
-              1/3, 2/3, 3.7608588373E-01,
-              2/3, 1/3, 8.7608588373E-01],
+        xred=[1 / 3, 2 / 3, 0, 2 / 3, 1 / 3, 1 / 2, 1 / 3, 2 / 3, 3.7608588373e-01, 2 / 3, 1 / 3, 8.7608588373e-01],
         znucl=[13, 33],
     )
 
@@ -59,12 +54,12 @@ def make_scf_input(paral_kgb=0):
     gs_inp.set_vars(
         nband=8,
         ecut=6.0,
-        ecutsm=0.5,        # Important when performing structural optimization
-                           # with variable cell. All DFPT calculations should use
-                           # the same value to be consistent.
+        ecutsm=0.5,  # Important when performing structural optimization
+        # with variable cell. All DFPT calculations should use
+        # the same value to be consistent.
         ngkpt=[4, 4, 4],
         nshiftk=1,
-        shiftk=[0.0, 0.0, 0.5],   # This choice preserves the hexagonal symmetry of the grid.
+        shiftk=[0.0, 0.0, 0.5],  # This choice preserves the hexagonal symmetry of the grid.
         diemac=9.0,
         nstep=40,
         paral_kgb=paral_kgb,
@@ -106,6 +101,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 
@@ -139,14 +135,14 @@ if __name__ == "__main__":
 #
 # .. code-block:: bash
 #
-#	<ElasticTask, node_id=340607, workdir=flow_elastic/w0/t13, qpt: (0, 0, 0), rfstrs: 2, rfdir: [0, 0, 1], irdddk: 1>
-#	  +--<ScfTask, node_id=340593, workdir=flow_elastic/w0/t0>
-#	  +--<DdkTask, node_id=340594, workdir=flow_elastic/w0/t1, qpt: (0, 0, 0), rfelfd: 2 rfdir: (1, 0, 0), irdddk: 0>
-#	  |  +--<ScfTask, node_id=340593, workdir=flow_elastic/w0/t0>
-#	  +--<DdkTask, node_id=340595, workdir=flow_elastic/w0/t2, qpt: (0, 0, 0), rfelfd: 2 rfdir: (0, 1, 0), irdddk: 0>
-#	  |  +--<ScfTask, node_id=340593, workdir=flow_elastic/w0/t0>
-#	  +--<DdkTask, node_id=340596, workdir=flow_elastic/w0/t3, qpt: (0, 0, 0), rfelfd: 2 rfdir: (0, 0, 1), irdddk: 0>
-#	     +--<ScfTask, node_id=340593, workdir=flow_elastic/w0/t0>
+# <ElasticTask, node_id=340607, workdir=flow_elastic/w0/t13, qpt: (0, 0, 0), rfstrs: 2, rfdir: [0, 0, 1], irdddk: 1>
+# +--<ScfTask, node_id=340593, workdir=flow_elastic/w0/t0>
+# +--<DdkTask, node_id=340594, workdir=flow_elastic/w0/t1, qpt: (0, 0, 0), rfelfd: 2 rfdir: (1, 0, 0), irdddk: 0>
+# |  +--<ScfTask, node_id=340593, workdir=flow_elastic/w0/t0>
+# +--<DdkTask, node_id=340595, workdir=flow_elastic/w0/t2, qpt: (0, 0, 0), rfelfd: 2 rfdir: (0, 1, 0), irdddk: 0>
+# |  +--<ScfTask, node_id=340593, workdir=flow_elastic/w0/t0>
+# +--<DdkTask, node_id=340596, workdir=flow_elastic/w0/t3, qpt: (0, 0, 0), rfelfd: 2 rfdir: (0, 0, 1), irdddk: 0>
+# +--<ScfTask, node_id=340593, workdir=flow_elastic/w0/t0>
 #
 # Use:
 #
@@ -156,12 +152,12 @@ if __name__ == "__main__":
 #
 # .. code-block:: bash
 #
-#	 Has (at least one) atomic pertubation: True
-#	 Has (at least one) electric-field perturbation: True
-#	 Has (at least one) Born effective charge: True
-#	 Has (all) strain terms: True
-#	 Has (all) internal strain terms: True
-#	 Has (all) piezoelectric terms: True
+# Has (at least one) atomic pertubation: True
+# Has (at least one) electric-field perturbation: True
+# Has (at least one) Born effective charge: True
+# Has (all) strain terms: True
+# Has (all) internal strain terms: True
+# Has (all) piezoelectric terms: True
 #
 # Now open the final DDB file with:
 #

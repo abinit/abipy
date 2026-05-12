@@ -8,12 +8,12 @@ along a q-path, merge the POT files in the DVDB file and use the
 DVDB and the DDB file to analyze the average over the unit cell of the
 periodic part as a function of q
 """
-import sys
-import os
-import abipy.abilab as abilab
-import abipy.data as abidata
 
-from abipy import flowtk
+import os
+import sys
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
 
 
 def make_scf_input(ngkpt):
@@ -21,7 +21,7 @@ def make_scf_input(ngkpt):
     This function constructs the input file for the GS calculation:
     """
     structure = abilab.Structure.from_abistring(
-"""
+        """
 acell 1.0522E+01  1.0522E+01  1.0522E+01
 rprim  0.0  0.5 0.5
        0.5  0.0 0.5
@@ -33,7 +33,8 @@ natom 2
 typat 1 1
 xred  0.0  0.0  0.0
       1/4  1/4  1/4
-""")
+"""
+    )
 
     pseudos = abidata.pseudos("Ge.psp8")
     gs_inp = abilab.AbinitInput(structure, pseudos=pseudos)
@@ -74,6 +75,7 @@ def build_flow(options):
     # corresponding to a [4, 4, 4] q-mesh.
     # Electric field and Born effective charges are also computed.
     from abipy.flowtk.eph_flows import EphPotFlow
+
     ngqpt = [4, 4, 4]
 
     qpath_list = [
@@ -83,19 +85,18 @@ def build_flow(options):
         [+0.375, +0.375, +0.750],  # name: K, weight: 0.000
         [+0.000, +0.000, +0.000],  # name: $\Gamma$, weight: 0.000
         [+0.500, +0.500, +0.500],  # name: L, weight: 0.000
-        #[+0.625, +0.250, +0.625],  # name: U, weight: 0.000
-        #[+0.500, +0.250, +0.750],  # name: W, weight: 0.000
-        #[+0.500, +0.500, +0.500],  # name: L, weight: 0.000
-        #[+0.375, +0.375, +0.750],  # name: K, weight: 0.000
-        #[+0.625, +0.250, +0.625],  # name: U, weight: 0.000
-        #[+0.500, +0.000, +0.500],  # name: X, weight: 0.000
+        # [+0.625, +0.250, +0.625],  # name: U, weight: 0.000
+        # [+0.500, +0.250, +0.750],  # name: W, weight: 0.000
+        # [+0.500, +0.500, +0.500],  # name: L, weight: 0.000
+        # [+0.375, +0.375, +0.750],  # name: K, weight: 0.000
+        # [+0.625, +0.250, +0.625],  # name: U, weight: 0.000
+        # [+0.500, +0.000, +0.500],  # name: X, weight: 0.000
     ]
 
     # Use small ndivsm to reduce computing time.
-    flow = EphPotFlow.from_scf_input(options.workdir, scf_input,
-                                     ngqpt, qpath_list, ndivsm=10,
-                                     with_quads=True,
-                                     with_becs=True)
+    flow = EphPotFlow.from_scf_input(
+        options.workdir, scf_input, ngqpt, qpath_list, ndivsm=10, with_quads=True, with_becs=True
+    )
 
     return flow
 

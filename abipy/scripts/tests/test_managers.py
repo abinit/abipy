@@ -1,15 +1,13 @@
-# coding: utf-8
 """Test manager files."""
 
 import os
-import abipy.data as abidata
-import abipy.flowtk as flowtk
 
+import abipy.data as abidata
+from abipy import flowtk
 from abipy.core.testing import AbipyTest
 
 
 class ManagerTest(AbipyTest):
-
     def test_managers(self):
         """Trying to read all managers files in abipy/data/managers."""
         root = os.path.join(abidata.dirpath, "managers")
@@ -19,7 +17,7 @@ class ManagerTest(AbipyTest):
             manager = flowtk.TaskManager.from_file(p)
             print(manager)
             shell = manager.to_shell_manager(mpi_procs=2)
-        #assert 0
+        # assert 0
 
     def test_schedulers(self):
         """Trying to read all scheduler files in abipy/data/managers."""
@@ -30,4 +28,4 @@ class ManagerTest(AbipyTest):
             sched = flowtk.PyFlowScheduler.from_file(p)
             print(sched)
 
-        #assert 0
+        # assert 0

@@ -1,21 +1,20 @@
-# coding: utf-8
 """Tests for optic module."""
-import abipy.data as abidata
 
-from abipy.core.testing import AbipyTest
+import abipy.data as abidata
 from abipy import abilab
+from abipy.core.testing import AbipyTest
 
 
 class OpticTest(AbipyTest):
-
     def test_opticfile(self):
         """Testing OpticNcFile"""
         with abilab.abiopen(abidata.ref_file("gaas_121212_OPTIC.nc")) as optic:
-            repr(optic); str(optic)
+            repr(optic)
+            str(optic)
             assert optic.to_string(verbose=2)
             assert optic.structure.formula == "Ga1 As1"
             # TODO: kptopt is not propagated in optic.
-            #assert optic.kptopt == 2
+            # assert optic.kptopt == 2
             self.assert_almost_equal(optic.broadening, 0.002)
             self.assert_almost_equal(optic.domega, 0.0003)
             self.assert_almost_equal(optic.maxomega, 0.3)
@@ -33,7 +32,7 @@ class OpticTest(AbipyTest):
 
             assert optic.has_leo
             assert optic.reader.computed_components["leo"] == ["xyz"]
-            #assert not optic.reader.computed_components["leo2"]
+            # assert not optic.reader.computed_components["leo2"]
 
             # Test plot methods
             if self.has_matplotlib():
@@ -47,12 +46,12 @@ class OpticTest(AbipyTest):
 
 
 class OpticRobotTest(AbipyTest):
-
     def test_optic_robot(self):
         """Test OpticRobot."""
         files = abidata.ref_files("gaas_444_OPTIC.nc", "gaas_888_OPTIC.nc", "gaas_121212_OPTIC.nc")
         with abilab.OpticRobot.from_files(files) as robot:
-            repr(robot); str(robot)
+            repr(robot)
+            str(robot)
             robot.to_string(verbose=2)
             assert robot.computed_components_intersection["linopt"] == ["xx", "zz"]
             assert robot.computed_components_intersection["shg"] == ["xyz", "yyy"]

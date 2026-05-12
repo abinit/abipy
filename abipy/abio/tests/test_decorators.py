@@ -1,15 +1,11 @@
-# coding: utf-8
-import sys
-import abipy.data as abidata
-import abipy.abilab as abilab
 import abipy.abio.decorators as ideco
-
-from abipy.core.testing import AbipyTest
+import abipy.data as abidata
+from abipy import abilab
 from abipy.abio.factories import *
+from abipy.core.testing import AbipyTest
 
 
 class DecoratorTest(AbipyTest):
-
     def setUp(self):
         # Si ebands
         si_structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
@@ -20,8 +16,9 @@ class DecoratorTest(AbipyTest):
 
         # NiO bands with PAW
         nio_structure = abidata.structure_from_ucell("NiO")
-        self.nio_ebands = ebands_input(nio_structure, abidata.pseudos("28ni.paw", "8o.2.paw"),
-                                       ecut=2, pawecutdg=4, kppa=10)
+        self.nio_ebands = ebands_input(
+            nio_structure, abidata.pseudos("28ni.paw", "8o.2.paw"), ecut=2, pawecutdg=4, kppa=10
+        )
 
         self.nio_ebands_inpstr = str(self.nio_ebands)
 
@@ -37,22 +34,21 @@ class DecoratorTest(AbipyTest):
         # Hack needed because ecut is not in the pseudos.
         inp.set_vars(ecut=3)
 
-        #v = inp.validate()
-        #if v.retcode != 0:
+        # v = inp.validate()
+        # if v.retcode != 0:
         #    raise RuntimeError(v.err)
-        #else:
+        # else:
         #    print("Valid input!")
 
         # Test validity of individual datasets.
         for dtset in inp.split_datasets():
             v = dtset.abivalidate()
-            #assert dtset.decorators == inp.decorators
-            #assert len(dtset.decorators) == ndec
+            # assert dtset.decorators == inp.decorators
+            # assert len(dtset.decorators) == ndec
 
             if v.retcode != 0:
-                raise RuntimeError("Wrong input. See {0}".format(v))
-            else:
-                print("Valid input!")
+                raise RuntimeError(f"Wrong input. See {v}")
+            print("Valid input!")
 
     def test_spin_decorator(self):
         """Testing spin decorator."""
@@ -66,14 +62,14 @@ class DecoratorTest(AbipyTest):
         # kptopt is set to 4 if non-collinear magnetism and kptopt == 3 is not specified.
         for dt in new_inp:
             assert dt["nsppol"] == 1 and dt["nspinor"] == 2 and dt["kptopt"] == 4
-        #self.validate_inp(new_inp)
+        # self.validate_inp(new_inp)
 
         # kptopt should not be changes if it's set to 3 and non-collinear magnetism
         inp_with_kpt3 = self.si_ebands.deepcopy()
         inp_with_kpt3.kptopt = 3
 
         # FIXME: Here there's a bug because get should check the global variables!
-        #for dt in spinor_deco(inp_with_kpt3):
+        # for dt in spinor_deco(inp_with_kpt3):
         #    assert dt["nsppol"] == 1 and dt["nspinor"] == 2 and dt["kptopt"] == 3
 
     def test_smearing_decorator(self):
@@ -103,7 +99,7 @@ class DecoratorTest(AbipyTest):
         new_inp.set_vars(chkprim=0, ecut=3, pawecutdg=3)
         print(new_inp)
         self.validate_inp(new_inp)
-        #assert 0
+        # assert 0
 
         # LDA+U only if PAW
         with self.assertRaises(ldau_deco.Error):
@@ -118,7 +114,7 @@ class DecoratorTest(AbipyTest):
         new_inp.set_vars(chkprim=0, ecut=3, pawecutdg=3)
         print(new_inp)
         self.validate_inp(new_inp)
-        #assert 0
+        # assert 0
 
     def test_new_with_decorators(self):
         """Testing AbinitInput.new_with_decorators."""
@@ -128,6 +124,7 @@ class DecoratorTest(AbipyTest):
         new_inp = self.si_ebands.new_with_decorators([spinor_deco, smearing_deco])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import unittest
+
     unittest.main()

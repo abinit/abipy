@@ -1,11 +1,11 @@
-# coding: utf-8
 """Numeric tools."""
+
 from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-
 from monty.collections import dict2namedtuple
+
 from abipy.tools import duck
 
 
@@ -14,6 +14,7 @@ def print_stats_arr(arr: np.ndarray, take_abs=False) -> None:
     Print statistics on a NumPy array.
 
     Args:
+        arr: NumPy array.
         take_abs: use abs(arr) if True.
     """
     if np.iscomplexobj(arr):
@@ -61,11 +62,11 @@ def build_mesh(x0: float, num: int, step: float, direction: str) -> tuple[list, 
     directions == "centered" or a mesh that starts/ends at x0 if direction is `>`/`<`.
     Return mesh and index of x0.
     """
-    if direction in  ("centered", "="):
+    if direction in ("centered", "="):
         start = x0 - num * step
         return [start + i * step for i in range(2 * num + 1)], num
 
-    elif direction in (">", "<"):
+    if direction in (">", "<"):
         start, ix0 = x0, 0
         if direction == "<":
             ix0 = num - 1
@@ -77,9 +78,7 @@ def build_mesh(x0: float, num: int, step: float, direction: str) -> tuple[list, 
 
 
 def transpose_last3dims(arr) -> np.ndarray:
-    """
-    Transpose the last three dimensions of arr: (...,x,y,z) --> (...,z,y,x).
-    """
+    """Transpose the last three dimensions of arr: (...,x,y,z) --> (...,z,y,x)."""
     axes = np.arange(arr.ndim)
     axes[-3:] = axes[::-1][:3]
 
@@ -103,10 +102,10 @@ def add_periodic_replicas(arr: np.ndarray) -> np.ndarray:
 
     elif ndim == 2:
         oarr = np.empty(oshape + 1, dtype=arr.dtype)
-        oarr[:-1,:-1] = arr
-        oarr[-1,:-1] = arr[0,:]
-        oarr[:-1,-1] = arr[:,0]
-        oarr[-1,-1] = arr[0,0]
+        oarr[:-1, :-1] = arr
+        oarr[-1, :-1] = arr[0, :]
+        oarr[:-1, -1] = arr[:, 0]
+        oarr[-1, -1] = arr[0, 0]
 
     else:
         # Add periodic replica along the last three directions.
@@ -137,6 +136,7 @@ def data_from_cplx_mode(cplx_mode: str, arr, tol=None):
             "all" for both re and im.
             "abs" means that the absolute value of the complex number is shown.
             "angle" will display the phase of the complex number in radians.
+        arr: NumPy array.
         tol: If not None, values below tol are set to zero. Cannot be used with "angle"
     """
     if cplx_mode == "re":
@@ -158,16 +158,13 @@ def data_from_cplx_mode(cplx_mode: str, arr, tol=None):
 
 
 def is_diagonal(matrix, atol=1e-12) -> bool:
-    """
-    Return True if matrix is diagonal.
-    """
+    """Return True if matrix is diagonal."""
     m = matrix.copy()
     np.fill_diagonal(m, 0)
 
     if issubclass(matrix.dtype.type, np.integer):
         return np.all(m == 0)
-    else:
-        return np.all(np.abs(m) <= atol)
+    return np.all(np.abs(m) <= atol)
 
 
 #########################################################################################
@@ -182,7 +179,7 @@ def alternate(*iterables):
     [1, 2, 3, 4, 5, 6]
     """
     items = []
-    for tup in zip(*iterables):
+    for tup in zip(*iterables, strict=False):
         items.extend([item for item in tup])
     return items
 
@@ -228,19 +225,20 @@ def sort_and_groupby(items, key=None, reverse=False, ret_lists=False):
     ([1, 2], [[1, 1], [2]])
     """
     from itertools import groupby
+
     if not ret_lists:
         return groupby(sorted(items, key=key, reverse=reverse), key=key)
-    else:
-        keys, groups = [], []
-        for hvalue, grp in groupby(sorted(items, key=key, reverse=reverse), key=key):
-            keys.append(hvalue)
-            groups.append(list(grp))
-        return keys, groups
+    keys, groups = [], []
+    for hvalue, grp in groupby(sorted(items, key=key, reverse=reverse), key=key):
+        keys.append(hvalue)
+        groups.append(list(grp))
+    return keys, groups
 
 
 #########################################################################################
 # Sorting and ordering
 #########################################################################################
+
 
 def prune_ord(alist: list) -> list:
     """
@@ -255,6 +253,7 @@ def prune_ord(alist: list) -> list:
     """
     mset = {}
     return [mset.setdefault(e, e) for e in alist if e not in mset]
+
 
 #########################################################################################
 # Special functions
@@ -272,9 +271,10 @@ def gaussian(x, width, center=0.0, height=None):
         height: height of the gaussian. If height is None, a normalized gaussian is returned.
     """
     x = np.asarray(x)
-    if height is None: height = 1.0 / (width * np.sqrt(2 * np.pi))
+    if height is None:
+        height = 1.0 / (width * np.sqrt(2 * np.pi))
 
-    return height * np.exp(-((x - center) / width) ** 2 / 2.)
+    return height * np.exp(-(((x - center) / width) ** 2) / 2.0)
 
 
 def lorentzian(x, width, center=0.0, height=None):
@@ -288,18 +288,20 @@ def lorentzian(x, width, center=0.0, height=None):
         height: height of the Lorentzian. If height is None, a normalized Lorentzian is returned.
     """
     x = np.asarray(x)
-    if height is None: height = 1.0 / (width * np.pi)
+    if height is None:
+        height = 1.0 / (width * np.pi)
 
-    return height * width**2 / ((x - center) ** 2 + width ** 2)
+    return height * width**2 / ((x - center) ** 2 + width**2)
 
-#=====================================
+
+# =====================================
 # === Data Interpolation/Smoothing ===
-#=====================================
+# =====================================
 
 
-def smooth(x, window_len=11, window='hanning'):
+def smooth(x, window_len=11, window="hanning"):
     """
-    smooth the data using a window with requested size.
+    Smooth the data using a window with requested size.
 
     This method is based on the convolution of a scaled window with the signal.
     The signal is prepared by introducing reflected copies of the signal
@@ -321,8 +323,7 @@ def smooth(x, window_len=11, window='hanning'):
         x = sin(t)+randn(len(t))*0.1
         y = smooth(x)
 
-    See also:
-
+    See Also:
     numpy.hanning, numpy.hamming, numpy.bartlett, numpy.blackman, numpy.convolve scipy.signal.lfilter
 
     TODO: the window parameter could be the window itself if an array instead of a string
@@ -339,19 +340,19 @@ def smooth(x, window_len=11, window='hanning'):
     if window_len % 2 == 0:
         raise ValueError("window_len should be odd.")
 
-    windows = ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']
+    windows = ["flat", "hanning", "hamming", "bartlett", "blackman"]
 
     if window not in windows:
         raise ValueError("window must be in: " + str(windows))
 
-    s = np.r_[x[window_len - 1:0:-1], x, x[-1:-window_len:-1]]
+    s = np.r_[x[window_len - 1 : 0 : -1], x, x[-1:-window_len:-1]]
 
-    if window == 'flat': # moving average
-        w = np.ones(window_len, 'd')
+    if window == "flat":  # moving average
+        w = np.ones(window_len, "d")
     else:
-        w = eval('np.' + window + '(window_len)')
+        w = eval("np." + window + "(window_len)")
 
-    y = np.convolve(w / w.sum(), s, mode='valid')
+    y = np.convolve(w / w.sum(), s, mode="valid")
 
     s = window_len // 2
     e = s + len(x)
@@ -368,6 +369,7 @@ def find_convindex(values, tol, min_numpts=1, mode="abs", vinf=None):
         abs(value[i] - vinf) / vinf < tol if mode == "rel"
 
     Args:
+        values: List of values.
         tol: Tolerance
         min_numpts: Minimum number of points that must be converged.
         mode: "abs" for absolute convergence, "rel" for relative convergence.
@@ -388,10 +390,11 @@ def find_convindex(values, tol, min_numpts=1, mode="abs", vinf=None):
 
     numpts, i = len(vdiff), -2
     if numpts > min_numpts and vdiff[-2] < tol:
-        for i in range(numpts-1, -1, -1):
+        for i in range(numpts - 1, -1, -1):
             if vdiff[i] > tol:
                 break
-        if (numpts - i - 1) < min_numpts: i = -2
+        if (numpts - i - 1) < min_numpts:
+            i = -2
 
     return i + 1
 
@@ -430,9 +433,7 @@ def find_degs_sk(enesb, atol):
 
 
 class BlochRegularGridInterpolator:
-    """
-    This object interpolates the periodic part of a Bloch wavefunction in real space.
-    """
+    """This object interpolates the periodic part of a Bloch wavefunction in real space."""
 
     def __init__(self, structure, datar, add_replicas=True, **kwargs):
         """
@@ -462,6 +463,7 @@ class BlochRegularGridInterpolator:
         # ndat components and this complicates the declaration of callbacks
         # operating on a single component.
         from scipy.interpolate import RegularGridInterpolator
+
         self._interpolators = [None] * self.ndat
         for i in range(self.ndat):
             self._interpolators[i] = RegularGridInterpolator((x, y, z), datar[i], **kwargs)
@@ -475,6 +477,7 @@ class BlochRegularGridInterpolator:
             idat: Index of the sub-array to interpolate. If None, all sub-arrays are interpolated.
             cartesian: True if points are in cartesian coordinates.
             kpoint: k-point in reduced coordinates. If not None, the phase-factor e^{ikr} is included.
+            **kwargs: Keyword arguments passed to the interpolator.
 
         Return:
             [ndat, npoints] array or [1, npoints] if idat is not None
@@ -494,7 +497,8 @@ class BlochRegularGridInterpolator:
             values = self._interpolators[idat](uc_coords, **kwargs)
 
         if kpoint is not None:
-            if hasattr(kpoint, "frac_coords"): kpoint = kpoint.frac_coords
+            if hasattr(kpoint, "frac_coords"):
+                kpoint = kpoint.frac_coords
             kpoint = np.reshape(kpoint, (3,))
             values *= np.exp(2j * np.pi * np.dot(frac_coords, kpoint))
 
@@ -514,6 +518,7 @@ class BlochRegularGridInterpolator:
             cartesian: By default, `point1` and `point1` are interpreted as points in fractional
                 coordinates (if not integers). Use True to pass points in cartesian coordinates.
             kpoint: k-point in reduced coordinates. If not None, the phase-factor e^{ikr} is included.
+            **kwargs: Keyword arguments passed to eval_points.
 
         Return: named tuple with
             site1, site2: None if the points do not represent atomic sites.
@@ -547,14 +552,18 @@ class BlochRegularGridInterpolator:
         dist = self.structure.lattice.norm(line_points)
         line_points += point1
 
-        return dict2namedtuple(site1=site1, site2=site2, points=line_points, dist=dist,
-                               values=self.eval_points(line_points, kpoint=kpoint, **kwargs))
+        return dict2namedtuple(
+            site1=site1,
+            site2=site2,
+            points=line_points,
+            dist=dist,
+            values=self.eval_points(line_points, kpoint=kpoint, **kwargs),
+        )
 
 
 class BzRegularGridInterpolator:
-    """
-    This object interpolates quantities defined in the BZ.
-    """
+    """This object interpolates quantities defined in the BZ."""
+
     def __init__(self, structure, shifts, datak, add_replicas=True, **kwargs):
         """
         Args:
@@ -592,6 +601,7 @@ class BzRegularGridInterpolator:
         # [nx, ny, nz, ...] arrays but then each call operates on the full set of
         # ndat components and this complicates the declaration of callbacks operating on a single component.
         from scipy.interpolate import RegularGridInterpolator
+
         self._interpolators = [None] * self.ndat
 
         self.abs_data_min_idat = np.empty(self.ndat)
@@ -605,8 +615,7 @@ class BzRegularGridInterpolator:
             self.abs_data_max_idat[idat] = np.max(np.abs(datak[idat]))
 
     def get_max_abs_data(self, idat=None) -> tuple:
-        """
-        """
+        """ """
         if idat is None:
             return self.abs_data_max_idat.max()
         return self.abs_data_max_idat[idat]
@@ -618,6 +627,7 @@ class BzRegularGridInterpolator:
         Args:
             frac_coords: reduced coordinates of the k-point unless `cartesian`.
             cartesian: True if k-point is in cartesian coordinates.
+            **kwargs: Keyword arguments passed to the interpolator.
 
         Return:
             [ndat] array with interpolated data.
@@ -647,6 +657,7 @@ class BzRegularGridInterpolator:
 
         Args:
             ax: matplotlib :class:`Axes` or None if a new figure should be created.
+            **kwargs: Keyword arguments passed to ax.plot.
         """
         # Get high-symmetry path from structure.
         kpoints = self.structure.hsym_kpoints
@@ -662,10 +673,11 @@ class BzRegularGridInterpolator:
 
         # Plot values (import here to avoid cyclic dependencies)
         from abipy.tools.plotting import get_ax_fig_plt
+
         ax, fig, plt = get_ax_fig_plt(ax=ax, grid=True)
         for idat in range(self.ndat):
-            #if idat != 5: continue
-            ax.plot(values[:,idat])
+            # if idat != 5: continue
+            ax.plot(values[:, idat])
 
         ax.set_xlabel("Wave Vector")
         ax.set_xticks(ticks, minor=False)
@@ -674,7 +686,7 @@ class BzRegularGridInterpolator:
         return fig
 
 
-#class PolyExtrapolator:
+# class PolyExtrapolator:
 #
 #    def __init__(xs, ys):
 #        self.xs = np.array(xs)

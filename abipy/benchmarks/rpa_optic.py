@@ -1,26 +1,21 @@
 #!/usr/bin/env python
 """Benchmark for Optic calculations."""
-import sys
-import os
-import abipy.data as data
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
 
+import sys
 from itertools import product
-from abipy.benchmarks import bench_main, BenchmarkFlow
+
+from abipy import abilab, data, flowtk
+from abipy.benchmarks import BenchmarkFlow, bench_main
 
 
 def make_base_flow(options):
-    multi = abilab.MultiDataset(structure=data.structure_from_ucell("GaAs"),
-                                pseudos=data.pseudos("31ga.pspnc", "33as.pspnc"), ndtset=5)
+    multi = abilab.MultiDataset(
+        structure=data.structure_from_ucell("GaAs"), pseudos=data.pseudos("31ga.pspnc", "33as.pspnc"), ndtset=5
+    )
 
     # Global variables
-    kmesh = dict(ngkpt=[4, 4, 4],
-                 nshiftk=4,
-                 shiftk=[[0.5, 0.5, 0.5],
-                         [0.5, 0.0, 0.0],
-                         [0.0, 0.5, 0.0],
-                         [0.0, 0.0, 0.5]]
+    kmesh = dict(
+        ngkpt=[4, 4, 4], nshiftk=4, shiftk=[[0.5, 0.5, 0.5], [0.5, 0.0, 0.0], [0.0, 0.5, 0.0], [0.0, 0.0, 0.5]]
     )
 
     paral_kgb = 1
@@ -41,8 +36,8 @@ def make_base_flow(options):
         nband=20,
         nstep=25,
         kptopt=1,
-        tolwfr=1.e-9,
-        #kptopt=3,
+        tolwfr=1.0e-9,
+        # kptopt=3,
     )
 
     # Fourth dataset: ddk response function along axis 1
@@ -52,7 +47,7 @@ def make_base_flow(options):
         rfdir = 3 * [0]
         rfdir[dir] = 1
 
-        multi[2+dir].set_vars(
+        multi[2 + dir].set_vars(
             iscf=-3,
             nband=20,
             nstep=1,
@@ -63,7 +58,7 @@ def make_base_flow(options):
             qpt=[0.0, 0.0, 0.0],
             rfdir=rfdir,
             rfelfd=2,
-            tolwfr=1.e-9,
+            tolwfr=1.0e-9,
         )
 
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = multi.split_datasets()
@@ -102,14 +97,15 @@ def build_flow(options):
 
     mpi_list = options.mpi_list
     if mpi_list is None:
-        mpi_list = [1,2,4,8]
+        mpi_list = [1, 2, 4, 8]
         print("Using mpi_list:", mpi_list)
     else:
         print("Using mpi_list from cmd line:", mpi_list)
 
     work = flowtk.Work()
     for mpi_procs, omp_threads in product(mpi_list, options.omp_list):
-        if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
+        if not options.accept_mpi_omp(mpi_procs, omp_threads):
+            continue
         manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
         optic_task = flowtk.OpticTask(optic_input, manager=manager, nscf_node=flow[0].nscf_task, ddk_nodes=flow[1])
         work.register_task(optic_task)
@@ -124,7 +120,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return
+        return None
     return build_flow(options)
 
 

@@ -1,17 +1,18 @@
-# coding: utf-8
 """
 Flows and Works for GWR calculations (GW in supercells).
 
 NB: An Abinit build with Scalapack is required to run GWR.
 Elpa library is strongly recommended for improved performance.
 """
+
 from __future__ import annotations
 
 import os
 
-from abipy.tools.iotools import make_executable
-from abipy.abio.inputs import AbinitInput, RUNL, GWR_TASK
+from abipy.abio.inputs import GWR_TASK, RUNL, AbinitInput
 from abipy.electrons.gwr import GwrRobot
+from abipy.tools.iotools import make_executable
+
 from .nodes import Node
 from .tasks import TaskManager
 from .works import Work
@@ -28,10 +29,7 @@ class DirectDiagoWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls,
-                       scf_input: AbinitInput,
-                       green_nband: int,
-                       manager: TaskManager = None) -> DirectDiagoWork:
+    def from_scf_input(cls, scf_input: AbinitInput, green_nband: int, manager: TaskManager = None) -> DirectDiagoWork:
         """
         Build object from an input representing a GS-SCF calculation.
 
@@ -55,12 +53,14 @@ class _BaseGWRWork(Work):
     """Base class for GWR works."""
 
     @classmethod
-    def from_varname_values(cls,
-                            varname_values: tuple,
-                            gwr_template: AbinitInput,
-                            den_node: Node,
-                            wfk_node: Node,
-                            manager: TaskManager = None):
+    def from_varname_values(
+        cls,
+        varname_values: tuple,
+        gwr_template: AbinitInput,
+        den_node: Node,
+        wfk_node: Node,
+        manager: TaskManager = None,
+    ):
         """
         Generate the work by changing the values of selected variables in a template for GWR calculations.
 
@@ -72,7 +72,6 @@ class _BaseGWRWork(Work):
             manager: Abipy Task Manager.
 
         Example:
-
             varname_values = ("nband", [8, 12, 14])
             Work.from_varname_values(varname_values, gwr_template, den_node, wfk_node)
 
@@ -132,16 +131,18 @@ class GWRChiCompareWork(_BaseGWRWork):
     """
 
     @classmethod
-    def from_scf_input(cls,
-                       scf_input: AbinitInput,
-                       gwr_ntau: int,
-                       nband: int,
-                       ecuteps: float,
-                       den_node: Node,
-                       wfk_node: Node,
-                       gwr_kwargs: dict | None = None,
-                       scr_kwargs: dict | None = None,
-                       manager: TaskManager = None):
+    def from_scf_input(
+        cls,
+        scf_input: AbinitInput,
+        gwr_ntau: int,
+        nband: int,
+        ecuteps: float,
+        den_node: Node,
+        wfk_node: Node,
+        gwr_kwargs: dict | None = None,
+        scr_kwargs: dict | None = None,
+        manager: TaskManager = None,
+    ):
         """
         Build Work from an input for GS-SCF calculation
 
@@ -156,22 +157,26 @@ class GWRChiCompareWork(_BaseGWRWork):
             scr_kwargs: Extra kwargs used to build the SCR input.
             manager: Abipy Task Manager.
         """
-        gwr_input = scf_input.make_gwr_qprange_input(gwr_ntau=gwr_ntau, nband=nband,
-                                                     ecuteps=ecuteps, gwr_task=GWR_TASK.CHI0)
+        gwr_input = scf_input.make_gwr_qprange_input(
+            gwr_ntau=gwr_ntau, nband=nband, ecuteps=ecuteps, gwr_task=GWR_TASK.CHI0
+        )
         gwr_input.set_vars(prtsuscep=1, iomode=3)
-        if gwr_kwargs is not None: gwr_input.set_vars(**gwr_kwargs)
+        if gwr_kwargs is not None:
+            gwr_input.set_vars(**gwr_kwargs)
 
-        chi_input = scf_input.new_with_vars(optdriver=3,
-                                            gwcalctyp=1, # Analytic continuation.
-                                            nfreqim=gwr_ntau,
-                                            ecuteps=ecuteps,
-                                            nband=nband,
-                                            prtsuscep=1,
-                                            iomode=3,
-                                            userie=4242, # Magic number to use the minimax mesh in the SCR driver.
-                                                         # with nfreqim points.
-                                            )
-        if scr_kwargs is not None: chi_input.set_vars(**scr_kwargs)
+        chi_input = scf_input.new_with_vars(
+            optdriver=3,
+            gwcalctyp=1,  # Analytic continuation.
+            nfreqim=gwr_ntau,
+            ecuteps=ecuteps,
+            nband=nband,
+            prtsuscep=1,
+            iomode=3,
+            userie=4242,  # Magic number to use the minimax mesh in the SCR driver.
+            # with nfreqim points.
+        )
+        if scr_kwargs is not None:
+            chi_input.set_vars(**scr_kwargs)
 
         work = cls(manager=manager)
         work.register_scr_task(chi_input, deps={wfk_node: "WFK"})
@@ -213,7 +218,7 @@ o.expose_qpoints_gpairs(qpoint_list, gpairs, exposer="mpl")
 #o.plot_matdiff(qpoint=0, iw_index=0)
 """
         py_path = os.path.join(self.workdir, "plot_tchi_sus.py")
-        with open(py_path, "wt") as fh:
+        with open(py_path, "w") as fh:
             fh.write(py_text)
         make_executable(py_path)
 
@@ -227,15 +232,17 @@ class GWRRPAConvWork(_BaseGWRWork):
     """
 
     @classmethod
-    def from_scf_input_ntaus(cls,
-                             scf_input: AbinitInput,
-                             gwr_ntau_list: list,
-                             nband: int,
-                             ecuteps: float,
-                             den_node: Node,
-                             wfk_node: Node,
-                             gwr_kwargs: dict | None = None,
-                             manager: TaskManager = None):
+    def from_scf_input_ntaus(
+        cls,
+        scf_input: AbinitInput,
+        gwr_ntau_list: list,
+        nband: int,
+        ecuteps: float,
+        den_node: Node,
+        wfk_node: Node,
+        gwr_kwargs: dict | None = None,
+        manager: TaskManager = None,
+    ):
         """
         Build Work from an input for GS-SCF calculation
 
@@ -251,9 +258,11 @@ class GWRRPAConvWork(_BaseGWRWork):
         """
         work = cls(manager=manager)
         for gwr_ntau in gwr_ntau_list:
-            gwr_input = scf_input.make_gwr_qprange_input(gwr_ntau=gwr_ntau, nband=nband,
-                                                         ecuteps=ecuteps, gwr_task=GWR_TASK.RPA_ENERGY)
-            if gwr_kwargs is not None: gwr_input.set_vars(**gwr_kwargs)
+            gwr_input = scf_input.make_gwr_qprange_input(
+                gwr_ntau=gwr_ntau, nband=nband, ecuteps=ecuteps, gwr_task=GWR_TASK.RPA_ENERGY
+            )
+            if gwr_kwargs is not None:
+                gwr_input.set_vars(**gwr_kwargs)
             work.register_gwr_task(gwr_input, deps={den_node: "DEN", wfk_node: "WFK"})
 
         return work

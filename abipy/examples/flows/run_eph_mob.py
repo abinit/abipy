@@ -6,12 +6,13 @@ Phonon-limited mobilities in semiconductors
 This flow computes the phonon-limited mobility in AlAs
 using different dense k/q meshes.
 """
-import sys
+
 import os
-import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+import sys
+
 import abipy.core.abinit_units as abu
+import abipy.data as abidata
+from abipy import abilab, flowtk
 
 
 def build_flow(options):
@@ -48,8 +49,8 @@ def build_flow(options):
         shiftk=[0, 0, 0],
         tolvrs=1.0e-8,
         diemac=9.0,
-        #prtden=1,
-        #iomode=3,
+        # prtden=1,
+        # iomode=3,
     )
 
     # Initialize the first work and add the ground-state task
@@ -71,7 +72,7 @@ def build_flow(options):
         iscf=-2,
         tolwfr=1e-20,
         prtwf=1,
-        ngkpt=[16, 16, 16], # Should be dense enough so that the kerange interpolation works
+        ngkpt=[16, 16, 16],  # Should be dense enough so that the kerange interpolation works
         shiftk=[0.0, 0.0, 0.0],
     )
 
@@ -81,37 +82,32 @@ def build_flow(options):
     # Add the phonon work to the flow
     # NB: with_quad is set to False because non-linear core correction is not yet supported.
     ddb_ngqpt = [4, 4, 4]
-    ph_work = flowtk.PhononWork.from_scf_task(work0[0], qpoints=ddb_ngqpt,
-                                              is_ngqpt=True, with_becs=True, with_quad=False)
+    ph_work = flowtk.PhononWork.from_scf_task(
+        work0[0], qpoints=ddb_ngqpt, is_ngqpt=True, with_becs=True, with_quad=False
+    )
     flow.register_work(ph_work)
 
     # We loop over the dense k-meshes
     for i, sigma_ngkpt in enumerate(dense_kmeshes):
-
         # Use the kerange trick to generate a WFK file
-        multi = nscf_input.make_wfk_kerange_inputs(sigma_kerange=sigma_kerange,
-                                                   sigma_ngkpt=sigma_ngkpt)
+        multi = nscf_input.make_wfk_kerange_inputs(sigma_kerange=sigma_kerange, sigma_ngkpt=sigma_ngkpt)
         kerange_input, wfk_input = multi.split_datasets()
 
         work_eph = flowtk.Work()
         work_eph.register_kerange_task(kerange_input, deps={work0[2]: "WFK"})
-        work_eph.register_nscf_task(wfk_input,
-                                    deps={work0[0]: "DEN", work_eph[0]: "KERANGE.nc"})
+        work_eph.register_nscf_task(wfk_input, deps={work0[0]: "DEN", work_eph[0]: "KERANGE.nc"})
 
         # Generate the input file for transport calculations.
         # Use ibte_prep = 1 to activate the iterative BTE.
-        eph_input = wfk_input.make_eph_transport_input(ddb_ngqpt=ddb_ngqpt,
-                                                       sigma_erange=sigma_erange,
-                                                       tmesh=tmesh,
-                                                       eph_ngqpt_fine=sigma_ngkpt,
-                                                       ibte_prep=1)
+        eph_input = wfk_input.make_eph_transport_input(
+            ddb_ngqpt=ddb_ngqpt, sigma_erange=sigma_erange, tmesh=tmesh, eph_ngqpt_fine=sigma_ngkpt, ibte_prep=1
+        )
 
         # We compute the phonon dispersion in the EPH code to be able to check they are ok.
         if i == 0:
             eph_input.set_qpath(20)
 
-        work_eph.register_eph_task(eph_input,
-                                   deps={work_eph[1]: "WFK", ph_work: ["DDB", "DVDB"]})
+        work_eph.register_eph_task(eph_input, deps={work_eph[1]: "WFK", ph_work: ["DDB", "DVDB"]})
 
         flow.register_work(work_eph)
 
@@ -125,6 +121,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 
@@ -136,7 +133,6 @@ def main(options):
     flow_main is a decorator implementing the command line interface.
     Command line args are stored in `options`.
     """
-
     return build_flow(options)
 
 

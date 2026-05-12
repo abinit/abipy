@@ -9,15 +9,13 @@ band structure and the electron DOS of MgB2 with different k-point samplings.
 
 import os
 import sys
-import abipy.data as abidata
-import abipy.abilab as abilab
 
-from abipy import flowtk
+import abipy.data as abidata
+from abipy import abilab, flowtk
 
 
 def make_scf_nscf_inputs(structure, pseudos, paral_kgb=1):
-    """return GS, NSCF (band structure), and DOSes input."""
-
+    """Return GS, NSCF (band structure), and DOSes input."""
     multi = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=5)
 
     # Global variables
@@ -25,10 +23,10 @@ def make_scf_nscf_inputs(structure, pseudos, paral_kgb=1):
         ecut=10,
         nband=11,
         timopt=-1,
-        occopt=4,    # Marzari smearing
+        occopt=4,  # Marzari smearing
         tsmear=0.03,
         paral_kgb=paral_kgb,
-   )
+    )
 
     # Dataset 1 (GS run)
     multi[0].set_kmesh(ngkpt=[8, 8, 8], shiftk=structure.calc_shiftk())
@@ -40,8 +38,8 @@ def make_scf_nscf_inputs(structure, pseudos, paral_kgb=1):
 
     # Dos calculations with increasing k-point sampling.
     for i, nksmall in enumerate([4, 8, 16]):
-        multi[i+2].set_vars(
-            iscf=-3,   # NSCF calculation
+        multi[i + 2].set_vars(
+            iscf=-3,  # NSCF calculation
             ngkpt=structure.calc_ngkpt(nksmall),
             shiftk=[0.0, 0.0, 0.0],
             tolwfr=1.0e-10,
@@ -65,8 +63,9 @@ def build_flow(options):
     inputs = make_scf_nscf_inputs(structure, pseudos)
     scf_input, nscf_input, dos_inputs = inputs[0], inputs[1], inputs[2:]
 
-    return flowtk.bandstructure_flow(options.workdir, scf_input, nscf_input,
-                                     dos_inputs=dos_inputs, manager=options.manager)
+    return flowtk.bandstructure_flow(
+        options.workdir, scf_input, nscf_input, dos_inputs=dos_inputs, manager=options.manager
+    )
 
 
 # This block generates the thumbnails in the AbiPy gallery.
@@ -74,6 +73,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

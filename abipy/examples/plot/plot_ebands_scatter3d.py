@@ -7,8 +7,9 @@ This example shows how to plot a particular "band" in 3D
 with matplotlib scatter3D.
 The color of the point gives the energy of the state wrt to the Fermi level.
 """
-from abipy import abilab
+
 import abipy.data as abidata
+from abipy import abilab
 
 # Open the GSR file and extract the band structure.
 with abilab.abiopen(abidata.ref_file("ni_kpath_GSR.nc")) as ncfile:

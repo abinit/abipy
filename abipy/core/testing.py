@@ -6,6 +6,7 @@ Common test support for all AbiPy test scripts.
 This single module should provide all the common functionality for abipy tests
 in a single location, so that test scripts can just import it and work right away.
 """
+
 from __future__ import annotations
 
 import os
@@ -21,8 +22,9 @@ from functools import wraps
 from shutil import which
 from monty.string import is_string
 from pymatgen.util.testing import PymatgenTest
+
 # TODO
-#from pymatgen.util.testing import MatSciTest
+# from pymatgen.util.testing import MatSciTest
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput, MultiDataset
 
@@ -40,6 +42,7 @@ def cmp_version(this: str, other: str, op: str = ">=") -> bool:
     """
     from packaging.version import parse as parse_version
     from monty.operator import operator_from_str
+
     op = operator_from_str(op)
     return op(parse_version(this), parse_version(other))
 
@@ -50,6 +53,7 @@ def has_abinit(version: Optional[str] = None, op: str = ">=", manager=None) -> b
     If version is not None, `abinit_version op version` is evaluated and the result is returned.
     """
     from abipy.flowtk import TaskManager, AbinitBuild
+
     manager = TaskManager.from_user_config() if manager is None else manager
     build = AbinitBuild(manager=manager)
     if version is None:
@@ -78,21 +82,23 @@ def has_matplotlib(version: Optional[str] = None, op: str = ">=") -> bool:
 
     if _HAS_MATPLOTLIB_CALLS == 1:
         matplotlib.use("Agg")
-        #matplotlib.use("Agg", force=True)  # Use non-graphical display backend during test.
+        # matplotlib.use("Agg", force=True)  # Use non-graphical display backend during test.
 
     import matplotlib.pyplot as plt
+
     # http://stackoverflow.com/questions/21884271/warning-about-too-many-open-figures
     plt.close("all")
 
     backend = matplotlib.get_backend()
     if backend.lower() != "agg":
-        #raise RuntimeError("matplotlib backend now is %s" % backend)
-        #matplotlib.use("Agg", warn=True, force=False)
+        # raise RuntimeError("matplotlib backend now is %s" % backend)
+        # matplotlib.use("Agg", warn=True, force=False)
         # Switch the default backend.
         # This feature is experimental, and is only expected to work switching to an image backend.
         plt.switch_backend("Agg")
 
-    if version is None: return True
+    if version is None:
+        return True
     return cmp_version(matplotlib.__version__, version, op=op)
 
 
@@ -108,7 +114,8 @@ def has_plotly(version: Optional[str] = None, op: str = ">=") -> bool:
         print("Skipping plotlyt test")
         return False
 
-    if version is None: return True
+    if version is None:
+        return True
     return cmp_version(plotly.__version__, version, op=op)
 
 
@@ -116,6 +123,7 @@ def has_seaborn() -> bool:
     """True if seaborn_ is installed."""
     try:
         import seaborn as sns
+
         return True
     except ImportError:
         return False
@@ -132,7 +140,8 @@ def has_phonopy(version: Optional[str] = None, op: str = ">=") -> bool:
         print("Skipping phonopy test")
         return False
 
-    if version is None: return True
+    if version is None:
+        return True
     return cmp_version(phonopy.__version__, version, op=op)
 
 
@@ -176,6 +185,7 @@ def input_equality_check(ref_file, input2, rtol=1e-05, atol=1e-08, equal_nan=Fal
     we check if all vars are uniquely present in both inputs and if the values are equal (integers, strings)
     or almost equal (floats)
     """
+
     def check_int(i, j):
         return i != j
 
@@ -205,52 +215,54 @@ def input_equality_check(ref_file, input2, rtol=1e-05, atol=1e-08, equal_nan=Fal
             flat_var.append(o)
         return flat_var
 
-    input_ref = json_read_abinit_input_from_path(os.path.join(root, '..', 'test_files', ref_file))
+    input_ref = json_read_abinit_input_from_path(os.path.join(root, "..", "test_files", ref_file))
 
     errors = []
     diff_in_ref = [var for var in input_ref.vars if var not in input2.vars]
     diff_in_actual = [var for var in input2.vars if var not in input_ref.vars]
     if len(diff_in_ref) > 0 or len(diff_in_actual) > 0:
-        error_description = 'not the same input parameters:\n' \
-                            '     %s were found in ref but not in actual\n' \
-                            '     %s were found in actual but not in ref\n' % \
-                            (diff_in_ref, diff_in_actual)
+        error_description = (
+            "not the same input parameters:\n"
+            "     %s were found in ref but not in actual\n"
+            "     %s were found in actual but not in ref\n" % (diff_in_ref, diff_in_actual)
+        )
         errors.append(error_description)
 
     for var, val_r in input_ref.vars.items():
         try:
             val_t = input2.vars[var]
         except KeyError:
-            errors.append('variable %s from the reference is not in the actual input\n' % str(var))
+            errors.append("variable %s from the reference is not in the actual input\n" % str(var))
             continue
         val_list_t = flatten_var(val_t)
         val_list_r = flatten_var(val_r)
         error = False
-        #print(var)
-        #print(val_list_r, type(val_list_r[0]))
-        #print(val_list_t, type(val_list_t[0]))
+        # print(var)
+        # print(val_list_r, type(val_list_r[0]))
+        # print(val_list_t, type(val_list_t[0]))
         for k, var_item in enumerate(val_list_r):
             try:
                 error = error or check_var(val_list_t[k], val_list_r[k])
             except IndexError:
-                #print(val_list_t, type(val_list_t[0]))
-                #print(val_list_r, type(val_list_r[0]))
-                raise RuntimeError('two value lists were not flattened in the same way, try to add the collection'
-                                   'type to the tree_types tuple in flatten_var')
+                # print(val_list_t, type(val_list_t[0]))
+                # print(val_list_r, type(val_list_r[0]))
+                raise RuntimeError(
+                    "two value lists were not flattened in the same way, try to add the collection"
+                    "type to the tree_types tuple in flatten_var"
+                )
 
         if error:
-            error_description = 'var %s differs: %s (reference) != %s (actual)' % \
-                                (var, val_r, val_t)
+            error_description = "var %s differs: %s (reference) != %s (actual)" % (var, val_r, val_t)
             errors.append(error_description)
 
     if input2.structure != input_ref.structure:
-        errors.append('Structures are not the same.\n')
+        errors.append("Structures are not the same.\n")
         print(input2.structure, input_ref.structure)
 
     if len(errors) > 0:
-        msg = 'Two inputs were found to be not equal:\n'
+        msg = "Two inputs were found to be not equal:\n"
         for err in errors:
-            msg += '   ' + err + '\n'
+            msg += "   " + err + "\n"
         raise AssertionError(msg)
 
 
@@ -262,6 +274,7 @@ def get_gsinput_si(usepaw=0, as_task=False):
     silicon = abidata.cif_file("si.cif")
 
     from abipy.abio.inputs import AbinitInput
+
     scf_input = AbinitInput(silicon, pseudos)
     ecut = 6
     scf_input.set_vars(
@@ -281,6 +294,7 @@ def get_gsinput_si(usepaw=0, as_task=False):
         return scf_input
     else:
         from abipy.flowtk.tasks import ScfTask
+
         return ScfTask(scf_input)
 
 
@@ -288,7 +302,8 @@ def get_gsinput_alas_ngkpt(ngkpt, usepaw=0, as_task=False):
     """
     Build and return a GS input file for AlAs or a Task if `as_task`
     """
-    if usepaw != 0: raise NotImplementedError("PAW")
+    if usepaw != 0:
+        raise NotImplementedError("PAW")
     pseudos = abidata.pseudos("13al.981214.fhi", "33as.pspnc")
     structure = abidata.structure_from_ucell("AlAs")
 
@@ -308,10 +323,11 @@ def get_gsinput_alas_ngkpt(ngkpt, usepaw=0, as_task=False):
         return scf_input
     else:
         from abipy.flowtk.tasks import ScfTask
+
         return ScfTask(scf_input)
 
 
-#class AbipyTest(MatSciTest):
+# class AbipyTest(MatSciTest):
 class AbipyTest(PymatgenTest):
     """
     Extends MatSciTest with Abinit-specific methods.
@@ -341,11 +357,12 @@ class AbipyTest(PymatgenTest):
     def test_mprester():
         """Skip MP rester tests."""
         raise unittest.SkipTest("MPRester tests have been disabled")
-        #return True
+        # return True
 
     def is_url_reachable(url: str) -> bool:
         """check if a URL is reachable:"""
         import requests
+
         try:
             # Send a HEAD request to the URL
             response = requests.head(url, timeout=5)
@@ -357,7 +374,7 @@ class AbipyTest(PymatgenTest):
                 return False
         except requests.exceptions.RequestException as e:
             # Handle any request exceptions (e.g., connection errors)
-            #print(f"Error: {e}")
+            # print(f"Error: {e}")
             return False
 
     @staticmethod
@@ -380,7 +397,8 @@ class AbipyTest(PymatgenTest):
         except ImportError:
             return False
 
-        if version is None: return True
+        if version is None:
+            return True
         return cmp_version(ase.__version__, version, op=op)
 
     @staticmethod
@@ -388,6 +406,7 @@ class AbipyTest(PymatgenTest):
         """True if ifermi package is available."""
         try:
             from ifermi.interpolate import FourierInterpolator
+
             return True
         except ImportError:
             return False
@@ -397,6 +416,7 @@ class AbipyTest(PymatgenTest):
         """True if skimage package is available."""
         try:
             from skimage import measure
+
             return True
         except ImportError:
             return False
@@ -419,15 +439,16 @@ class AbipyTest(PymatgenTest):
         True if mayavi_ is available. Set also offscreen to True
         """
         # Disable mayavi for the time being.
-        #return False
+        # return False
         # This to run mayavi tests only on Travis
-        if not os.environ.get("TRAVIS"): return False
+        if not os.environ.get("TRAVIS"):
+            return False
         try:
             from mayavi import mlab
         except ImportError:
             return False
 
-        #mlab.clf()
+        # mlab.clf()
         mlab.options.offscreen = True
         mlab.options.backend = "test"
         return True
@@ -438,6 +459,7 @@ class AbipyTest(PymatgenTest):
             import param
             import panel as pn
             import bokeh
+
             return pn
         except ImportError:
             return False
@@ -446,6 +468,7 @@ class AbipyTest(PymatgenTest):
         """False if networkx library is not installed."""
         try:
             import networkx as nx
+
             return nx
         except ImportError:
             return False
@@ -458,7 +481,8 @@ class AbipyTest(PymatgenTest):
         except ImportError:
             return False
 
-        if self.which("dot") is None: return False
+        if self.which("dot") is None:
+            return False
         return graphviz
 
     def has_phonopy(self, version: Optional[str] = None, op: str = ">=") -> bool:
@@ -472,6 +496,7 @@ class AbipyTest(PymatgenTest):
     def get_abistructure_from_abiref(basename: str) -> Structure:
         """Return an Abipy |Structure| from the basename of one of the reference files."""
         from abipy.core.structure import Structure
+
         return Structure.as_structure(abidata.ref_file(basename))
 
     @staticmethod
@@ -509,11 +534,12 @@ class AbipyTest(PymatgenTest):
         """Return True if nbformat is available and we can test the generation of jupyter_ notebooks."""
         try:
             import nbformat
+
             return True
         except ImportError:
             return False
 
-    #def run_nbpath(self, nbpath: str):
+    # def run_nbpath(self, nbpath: str):
     #    """Test that the notebook in question runs all cells correctly."""
     #    nb, errors = notebook_run(nbpath)
     #    return nb, errors
@@ -525,15 +551,16 @@ class AbipyTest(PymatgenTest):
         # AttributeError: 'NoneType' object has no attribute 'session'
         return False
         # Disable widget tests on TRAVIS
-        #if os.environ.get("TRAVIS"): return False
+        # if os.environ.get("TRAVIS"): return False
         try:
             import ipywidgets as ipw
+
             return True
         except ImportError:
             return False
 
     @staticmethod
-    def assert_almost_equal(actual, desired, decimal=7, err_msg='', verbose=True) -> None:
+    def assert_almost_equal(actual, desired, decimal=7, err_msg="", verbose=True) -> None:
         """
         Alternative naming for assertArrayAlmostEqual.
         """
@@ -544,7 +571,7 @@ class AbipyTest(PymatgenTest):
         return nptu.assert_array_equal(actual, desired)
 
     @staticmethod
-    def assert_equal(actual, desired, err_msg='', verbose=True) -> None:
+    def assert_equal(actual, desired, err_msg="", verbose=True) -> None:
         """
         Alternative naming for assertArrayEqual.
         """
@@ -553,7 +580,7 @@ class AbipyTest(PymatgenTest):
     @staticmethod
     def json_read_abinit_input(json_basename: str) -> AbinitInput:
         """Return an |AbinitInput| from the basename of the file in abipy/data/test_files."""
-        return json_read_abinit_input_from_path(os.path.join(root, '..', 'test_files', json_basename))
+        return json_read_abinit_input_from_path(os.path.join(root, "..", "test_files", json_basename))
 
     @staticmethod
     def assert_input_equality(ref_basename, input_to_test, rtol=1e-05, atol=1e-08, equal_nan=False) -> None:
@@ -571,13 +598,14 @@ class AbipyTest(PymatgenTest):
         Returns:
             raises an assertion error if the two inputs are not the same
         """
-        ref_file = os.path.join(root, '..', 'test_files', ref_basename)
+        ref_file = os.path.join(root, "..", "test_files", ref_basename)
         input_equality_check(ref_file, input_to_test, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
     @staticmethod
     def straceback():
         """Returns a string with the traceback."""
         import traceback
+
         return traceback.format_exc()
 
     @staticmethod
@@ -605,6 +633,7 @@ class AbipyTest(PymatgenTest):
             raise unittest.SkipTest("This test requires bolztrap2")
 
         from BoltzTraP2.version import PROGRAM_VERSION
+
         if version is not None and not cmp_version(PROGRAM_VERSION, version, op=op):
             msg = "This test requires bolztrap2 version %s %s" % (op, version)
             raise unittest.SkipTest(msg)
@@ -636,6 +665,7 @@ class AbipyTest(PymatgenTest):
         Convert obj into JSON assuming MSONable protocol. Return new object decoded with MontyDecoder
         """
         from monty.json import MSONable, MontyDecoder
+
         self.assertIsInstance(obj, MSONable)
         return json.loads(obj.to_json(), cls=MontyDecoder)
 
@@ -688,6 +718,7 @@ class AbipyTest(PymatgenTest):
     def abivalidate_work(self, work):
         """Invoke Abinit to test validity of the inputs of a |Work|"""
         from abipy.flowtk import Flow
+
         tmpdir = tempfile.mkdtemp()
         flow = Flow(workdir=tmpdir)
         flow.register_work(work)
@@ -701,9 +732,10 @@ class AbipyTest(PymatgenTest):
         isok, errors = flow.abivalidate_inputs()
         if not isok:
             for e in errors:
-                if e.retcode == 0: continue
-                #print("type abinput:", type(abinput))
-                #print("abinput:\n", abinput)
+                if e.retcode == 0:
+                    continue
+                # print("type abinput:", type(abinput))
+                # print("abinput:\n", abinput)
                 lines = e.log_file.readlines()
                 i = len(lines) - 50 if len(lines) >= 50 else 0
                 print("Last 50 line from logfile:")
@@ -724,9 +756,10 @@ class AbipyTest(PymatgenTest):
 ABIPY_TESTDB_NAME = "abipy_unit_tests"
 
 
-def abipy_has_mongodb(host='localhost', port=27017, name=ABIPY_TESTDB_NAME, username=None, password=None) -> bool:
+def abipy_has_mongodb(host="localhost", port=27017, name=ABIPY_TESTDB_NAME, username=None, password=None) -> bool:
     try:
         from pymongo import MongoClient
+
         connection = MongoClient(host, port, j=True)
         db = connection[name]
         if username:
@@ -739,18 +772,18 @@ def abipy_has_mongodb(host='localhost', port=27017, name=ABIPY_TESTDB_NAME, user
 class AbipyTestWithMongoDb(AbipyTest):
     """A suite of tests requiring a MongoDB database."""
 
-    #def has_mongodb(self):
+    # def has_mongodb(self):
     #    """True if mongodb server is reachable."""
     #    return abipy_has_mongodb()
 
-    #@classmethod
-    #def setUpClass(cls):
+    # @classmethod
+    # def setUpClass(cls):
 
-    #@classmethod
-    #def tearDownClass(cls):
+    # @classmethod
+    # def tearDownClass(cls):
 
-    #@classmethod
-    #def setup_mongodb(cls):
+    # @classmethod
+    # def setup_mongodb(cls):
     #    try:
     #        cls._connection = connect(db=TESTDB_NAME)
     #        cls._connection.drop_database(TESTDB_NAME)
@@ -759,12 +792,13 @@ class AbipyTestWithMongoDb(AbipyTest):
     #        cls.db = None
     #        cls._connection = None
     #
-    #@classmethod
-    #def teardown_mongodb(cls):
+    # @classmethod
+    # def teardown_mongodb(cls):
     #    if cls._connection:
     #        cls._connection.drop_database(TESTDB_NAME)
 
-#class MongoTemporaryInstance:
+
+# class MongoTemporaryInstance:
 #    """Singleton to manage a temporary MongoDB instance
 #
 #    Use this for testing purpose only. The instance is automatically destroyed
@@ -821,7 +855,7 @@ class AbipyTestWithMongoDb(AbipyTest):
 #            shutil.rmtree(self._tmpdir, ignore_errors=True)
 
 
-#def notebook_run(path):
+# def notebook_run(path):
 #    """
 #    Execute a notebook via nbconvert and collect output.
 #

@@ -1,8 +1,9 @@
-import os
 import ast
+import os
 import types
 
 from monty.termcolor import cprint
+
 from abipy.flowtk import Flow
 
 
@@ -11,11 +12,10 @@ def as_orderedset(token, options):
     Helper function used to parse --mpi-list argument.
     Return OrderedSet
     """
-
     if token.startswith("range"):
         # start(1,4,2)
         token = token[5:]
-        #print("token", token)
+        # print("token", token)
         t = ast.literal_eval(token)
         assert len(t) == 3
         l = list(range(t[0], t[1], t[2]))
@@ -27,7 +27,8 @@ def as_orderedset(token, options):
         while True:
             i += 1
             val = fact * i
-            if val > options.max_ncpus: break
+            if val > options.max_ncpus:
+                break
             l.append(val)
 
     elif token.startswith("pow"):
@@ -36,16 +37,18 @@ def as_orderedset(token, options):
         l, i = [], 0
         while True:
             i += 1
-            val = base ** i
-            if val > options.max_ncpus: break
+            val = base**i
+            if val > options.max_ncpus:
+                break
             l.append(val)
     else:
         # lists
         l = ast.literal_eval(token)
 
-    #print("l", l)
+    # print("l", l)
     l = [n for n in l if options.min_ncpus <= n <= options.max_ncpus]
     from orderedset import OrderedSet
+
     return OrderedSet(l)
 
 
@@ -59,7 +62,8 @@ class BenchmarkFlow(Flow):
         """
         Exclude a task or the tasks in a Work from the benchmark analysis.
         """
-        if not hasattr(self, "_exclude_nodeids"): self._exclude_nodeids = set()
+        if not hasattr(self, "_exclude_nodeids"):
+            self._exclude_nodeids = set()
 
         if node.is_work:
             for task in node:
@@ -70,7 +74,9 @@ class BenchmarkFlow(Flow):
 
     @property
     def exclude_nodeids(self):
-        if not hasattr(self, "_exclude_nodeids"): self._exclude_nodeids = set()
+        """Set of node IDs to exclude from the benchmark."""
+        if not hasattr(self, "_exclude_nodeids"):
+            self._exclude_nodeids = set()
         return self._exclude_nodeids
 
     def get_parser(self):
@@ -80,33 +86,38 @@ class BenchmarkFlow(Flow):
         """
         nids = []
         for task in self.iflat_tasks():
-            if task.node_id in self.exclude_nodeids: continue
-            if task.status != task.S_OK: continue
-            #print("analysing task:", task)
+            if task.node_id in self.exclude_nodeids:
+                continue
+            if task.status != task.S_OK:
+                continue
+            # print("analysing task:", task)
             nids.append(task.node_id)
 
         parser = self.parse_timing(nids=nids)
 
         if parser is None:
             print("flow.parse_timing returned None!")
-        else:
-            if len(parser) != len(nids):
-                print("Not all timing sections have been parsed!")
+        elif len(parser) != len(nids):
+            print("Not all timing sections have been parsed!")
 
         return parser
 
     def build_and_pickle_dump(self, **kwargs):
+        """
+        Build the flow and pickle it.
+        """
         cnt = 0
         for task in self.iflat_tasks():
-            if task.node_id in self.exclude_nodeids: continue
+            if task.node_id in self.exclude_nodeids:
+                continue
             cnt += 1
-            #print("%s: mpi_procs %d, omp_threads %d" %
+            # print("%s: mpi_procs %d, omp_threads %d" %
             #  (task, task.manager.qadapter.mpi_procs, task.manager.qadapter.omp_threads))
 
         print("Total number of benchmarks: %d" % cnt)
         return super().build_and_pickle_dump(**kwargs)
 
-    #def make_tarball(self):
+    # def make_tarball(self):
     #    self.make_tarfile(self, name=None, max_filesize=None, exclude_exts=None, exclude_dirs=None, verbose=0, **kwargs):
 
 
@@ -135,49 +146,51 @@ def bench_main(main):
         # loglevel is bound to the string value obtained from the command line argument.
         # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
         import logging
+
         numeric_level = getattr(logging, options.loglevel.upper(), None)
         if not isinstance(numeric_level, int):
-            raise ValueError('Invalid log level: %s' % options.loglevel)
+            raise ValueError("Invalid log level: %s" % options.loglevel)
         logging.basicConfig(level=numeric_level)
 
         bench_monkey_patch_options(options)
 
         # Istantiate the manager.
         from abipy.abilab import TaskManager
+
         options.manager = TaskManager.as_manager(options.manager)
 
-        #if options.tempdir:
+        # if options.tempdir:
         #    import tempfile
         #    options.workdir = tempfile.mkdtemp()
         #    print("Working in temporary directory", options.workdir)
 
         flow = main(options)
-        if flow is None: return 0
+        if flow is None:
+            return 0
 
         if options.abivalidate:
             print("Validating input files of the flow...")
             isok, errors = flow.abivalidate_inputs()
             if not isok:
                 for e in errors:
-                    if e.retcode == 0: continue
+                    if e.retcode == 0:
+                        continue
                     lines = e.log_file.readlines()
                     i = len(lines) - 50 if len(lines) >= 50 else 0
                     print("Last 50 line from logfile:")
                     print("".join(lines[i:]))
                 raise RuntimeError("flow.abivalidate_input failed. See messages above.")
-            else:
-                print("Validation succeeded")
-                return 0
+            print("Validation succeeded")
+            return 0
 
-        #if options.remove and os.path.isdir(options.workdir):
+        # if options.remove and os.path.isdir(options.workdir):
         #    print("Removing old directory:", options.workdir)
         #    import shutil
         #    shutil.rmtree(options.workdir)
 
         if options.scheduler:
             return flow.make_scheduler().start()
-        else:
-            return flow.build_and_pickle_dump()
+        return flow.build_and_pickle_dump()
 
     return wrapper
 
@@ -185,36 +198,62 @@ def bench_main(main):
 def build_bench_main_parser():
     """Build the parser used in the abipy/benchmarks scripts"""
     import argparse
+
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--loglevel', default="ERROR", type=str,
-                        help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+    parser.add_argument(
+        "--loglevel",
+        default="ERROR",
+        type=str,
+        help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG",
+    )
 
-    parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-                              help='verbose, can be supplied multiple times to increase verbosity')
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        default=0,
+        action="count",  # -vv --> verbose=2
+        help="verbose, can be supplied multiple times to increase verbosity",
+    )
 
-    parser.add_argument("-w", '--workdir', default="", type=str, help="Working directory of the flow.")
+    parser.add_argument("-w", "--workdir", default="", type=str, help="Working directory of the flow.")
 
-    parser.add_argument("-m", '--manager', default=None,
-                        help="YAML file with the parameters of the task manager. "
-                             "Default None i.e. the manager is read from standard locations: "
-                             "working directory first then ~/.abinit/abipy/manager.yml.")
+    parser.add_argument(
+        "-m",
+        "--manager",
+        default=None,
+        help="YAML file with the parameters of the task manager. "
+        "Default None i.e. the manager is read from standard locations: "
+        "working directory first then ~/.abinit/abipy/manager.yml.",
+    )
 
-    parser.add_argument("--mpi-list", default=None, type=str, help="List of MPI processors to be tested. Syntax:\n"
-                        "--mpi-list=[1,6,12] to define a list, range(1,4,2) for a python range.\n"
-                        "--mpi-list=16x for multiple of 16 up to max--ncpus, --mpi-list=pow2 for powers of 2")
-    parser.add_argument("--omp-list", default=None, type=str,
-                        help="List of OMP threads to be tested. Default is [1]. Same syntax as mpi-list.")
+    parser.add_argument(
+        "--mpi-list",
+        default=None,
+        type=str,
+        help="List of MPI processors to be tested. Syntax:\n"
+        "--mpi-list=[1,6,12] to define a list, range(1,4,2) for a python range.\n"
+        "--mpi-list=16x for multiple of 16 up to max--ncpus, --mpi-list=pow2 for powers of 2",
+    )
+    parser.add_argument(
+        "--omp-list",
+        default=None,
+        type=str,
+        help="List of OMP threads to be tested. Default is [1]. Same syntax as mpi-list.",
+    )
 
     parser.add_argument("--min-ncpus", default=-1, type=int, help="Minimum number of CPUs to be tested.")
     parser.add_argument("--max-ncpus", default=248, type=int, help="Maximum number of CPUs to be tested. Default: 248.")
-    parser.add_argument("--min-eff", default=None, type=float, help="Minimum parallel efficiency accepted. Default None.")
+    parser.add_argument(
+        "--min-eff", default=None, type=float, help="Minimum parallel efficiency accepted. Default None."
+    )
 
-    parser.add_argument('--paw', default=False, action="store_true", help="Run PAW calculation if available")
-    parser.add_argument("-a", '--abivalidate', default=False, action="store_true",
-                        help="Call Abinit to validate input files and return")
+    parser.add_argument("--paw", default=False, action="store_true", help="Run PAW calculation if available")
+    parser.add_argument(
+        "-a", "--abivalidate", default=False, action="store_true", help="Call Abinit to validate input files and return"
+    )
 
-    parser.add_argument("-i", '--info', default=False, action="store_true", help="Show benchmark info and exit")
+    parser.add_argument("-i", "--info", default=False, action="store_true", help="Show benchmark info and exit")
     parser.add_argument("-r", "--remove", default=False, action="store_true", help="Remove old flow workdir")
 
     parser.add_argument("--scheduler", "-s", default=False, action="store_true", help="Run with the scheduler")
@@ -285,7 +324,8 @@ def bench_monkey_patch_options(options):
             Return the workdir of the benchmark.
             A default value if constructed from the name of the scrip if no cmd line arg.
             """
-            if options.workdir: return options.workdir
+            if options.workdir:
+                return options.workdir
             return "bench_" + os.path.basename(_file_).replace(".py", "")
 
         opts.get_workdir = types.MethodType(get_workdir, opts)

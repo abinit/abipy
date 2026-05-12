@@ -6,12 +6,12 @@ Band structure flow with factory functions
 This example show how to build a flow to compute the band structure and the DOS of silicon.
 Input files are automatically generated with factory functions designed for automatic calculations.
 """
-import sys
-import os
-import abipy.data as abidata
-import abipy.flowtk as flowtk
 
-from abipy import abilab
+import os
+import sys
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
 
 
 def build_flow(options):
@@ -28,8 +28,9 @@ def build_flow(options):
 
     # Use the ebands_input factory function to build a MultiDataset.
     # keyword args are optional (default values are given or computed automatically, see docs).
-    multi = abilab.ebands_input(structure, pseudos, kppa=40, dos_kppa=80,
-                                nscf_nband=6, ndivsm=10, ecut=6, spin_mode="unpolarized")
+    multi = abilab.ebands_input(
+        structure, pseudos, kppa=40, dos_kppa=80, nscf_nband=6, ndivsm=10, ecut=6, spin_mode="unpolarized"
+    )
 
     work = flowtk.BandStructureWork(scf_input=multi[0], nscf_input=multi[1], dos_inputs=multi[2])
     flow.register_work(work)
@@ -42,6 +43,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

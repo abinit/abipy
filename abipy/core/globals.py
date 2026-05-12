@@ -1,13 +1,11 @@
-"""
-Global variables used to initialize AbiPy environment in notebooks.
-"""
-from __future__ import annotations
+"""Global variables used to initialize AbiPy environment in notebooks."""
 
-from monty.termcolor import cprint
+from __future__ import annotations
 
 import os
 import tempfile
 
+from monty.termcolor import cprint
 
 __IN_NOTEBOOK = False
 
@@ -24,17 +22,23 @@ def disable_notebook() -> None:
 
 
 def enable_notebook(with_seaborn=True) -> None:
-    """
-    Set ``in_notebook`` flag to True and activate seaborn settings for notebooks if ``with_seaborn``.
-    """
+    """Set ``in_notebook`` flag to True and activate seaborn settings for notebooks if ``with_seaborn``."""
     global __IN_NOTEBOOK
     __IN_NOTEBOOK = True
 
     # Use seaborn settings for plots (optional)
     if with_seaborn:
         import seaborn as sns
-        sns.set(context='notebook', style='darkgrid', palette='deep',
-                font='sans-serif', font_scale=1, color_codes=False, rc=None)
+
+        sns.set(
+            context="notebook",
+            style="darkgrid",
+            palette="deep",
+            font="sans-serif",
+            font_scale=1,
+            color_codes=False,
+            rc=None,
+        )
 
 
 def get_abinb_workdir() -> str:
@@ -48,7 +52,8 @@ def get_abinb_workdir() -> str:
 
     """
     wdir = os.path.join(os.getcwd(), "__abinb_workdir__")
-    if not os.path.exists(wdir): os.mkdir(wdir)
+    if not os.path.exists(wdir):
+        os.mkdir(wdir)
     return wdir
 
 
@@ -72,8 +77,10 @@ def abinb_mkstemp(force_abinb_workdir=False, use_relpath=False, **kwargs) -> tup
     if in_notebook() or force_abinb_workdir:
         d = kwargs.pop("dir", None)
         if d is not None:
-            cprint("Files should be created inside abipy_nbworkdir if we are inside jupyter or force_abinb_workdir",
-                   "yellow")
+            cprint(
+                "Files should be created inside abipy_nbworkdir if we are inside jupyter or force_abinb_workdir",
+                "yellow",
+            )
         fd, path = tempfile.mkstemp(dir=get_abinb_workdir(), **kwargs)
     else:
         fd, path = tempfile.mkstemp(**kwargs)
@@ -92,6 +99,7 @@ def get_workdir(workdir: str) -> str:
     if workdir is None:
         dir = os.getenv("ABIPY_TMPDIR", default=None)
         import tempfile
+
         workdir = tempfile.mkdtemp(dir=dir)
 
     return workdir

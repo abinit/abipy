@@ -1,17 +1,18 @@
 #!/usr/bin/env python
 """Analyze the parallel efficiency of the SIGMA code (one shot G0W0 with plasmon-pole model and gwpara==2)"""
-import sys
-import abipy.abilab as abilab
-import abipy.data as abidata
-import abipy.flowtk as flowtk
 
+import sys
 from itertools import product
-from abipy.benchmarks import bench_main, BenchmarkFlow
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
+from abipy.benchmarks import BenchmarkFlow, bench_main
 
 
 def make_inputs(paw=False):
-    pseudos = abidata.pseudos("14si.pspnc", "8o.pspnc") if not paw else \
-              abidata.pseudos("Si.GGA_PBE-JTH-paw.xml", "o.paw")
+    pseudos = (
+        abidata.pseudos("14si.pspnc", "8o.pspnc") if not paw else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml", "o.paw")
+    )
 
     structure = abidata.structure_from_ucell("SiO2-alpha")
 
@@ -20,26 +21,29 @@ def make_inputs(paw=False):
     ecut = 24
     multi.set_vars(
         ecut=ecut,
-        pawecutdg=ecut*2 if paw else None,
+        pawecutdg=ecut * 2 if paw else None,
         paral_kgb=0,
         istwfk="*1",
         timopt=-1,
     )
 
-    multi.set_kmesh(ngkpt=[4,4,3], shiftk=[0.0, 0.0, 0.0])
+    multi.set_kmesh(ngkpt=[4, 4, 3], shiftk=[0.0, 0.0, 0.0])
 
     gs, nscf, scr, sigma = multi.split_datasets()
 
     # Dataset 1 (GS run)
-    gs.set_vars(tolvrs=1e-6,
-                nband=28,)
+    gs.set_vars(
+        tolvrs=1e-6,
+        nband=28,
+    )
 
     # Dataset 2 (NSCF run)
-    nscf.set_vars(iscf=-2,
-                  tolwfr=1e-4,
-                  nband=600,
-                  nbdbuf=200,
-                  )
+    nscf.set_vars(
+        iscf=-2,
+        tolwfr=1e-4,
+        nband=600,
+        nbdbuf=200,
+    )
 
     # Dataset3: Calculation of the screening.
     scr.set_vars(
@@ -90,15 +94,16 @@ def build_flow(options):
         if options.mpi_list is None:
             # Cannot call autoparal here because we need a WFK file.
             print("Using hard coded values for mpi_list")
-            mpi_list = [np for np in range(1, nband+1) if abs(nband % np) < 1]
-        if options.verbose: print("Using nband %d and mpi_list: %s" % (nband, mpi_list))
+            mpi_list = [np for np in range(1, nband + 1) if abs(nband % np) < 1]
+        if options.verbose:
+            print("Using nband %d and mpi_list: %s" % (nband, mpi_list))
 
         for mpi_procs, omp_threads in product(mpi_list, options.omp_list):
-            if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
+            if not options.accept_mpi_omp(mpi_procs, omp_threads):
+                continue
             inp = sigma_inp.new_with_vars(nband=nband)
             manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
-            sigma_work.register_sigma_task(inp, manager=manager,
-                                           deps={bands.nscf_task: "WFK", scr_work[0]: "SCR"})
+            sigma_work.register_sigma_task(inp, manager=manager, deps={bands.nscf_task: "WFK", scr_work[0]: "SCR"})
         flow.register_work(sigma_work)
 
     return flow.allocate()
@@ -109,7 +114,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return
+        return None
     return build_flow(options)
 
 

@@ -1,14 +1,14 @@
-"""
-Low-level tools used in abipy.ml module
-"""
+"""Low-level tools used in abipy.ml module"""
+
 from __future__ import annotations
 
 import os
 import warnings
-import numpy as np
-
 from fnmatch import fnmatch
+
+import numpy as np
 from monty.string import list_strings
+
 from abipy.core.structure import Structure
 from abipy.dynamics.hist import HistFile
 
@@ -48,11 +48,12 @@ def get_structures_labels_from_file(filepath: str) -> tuple[list[Structure], dic
                 "energies": energies_per_atom,
                 "forces": cart_forces,
                 "stresses": stress_cart_tensors,
-                #"magmoms": None,
+                # "magmoms": None,
             }
 
     elif fnmatch(basename, "vasprun*.xml*"):
         from pymatgen.io.vasp.outputs import Vasprun
+
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             vasprun = Vasprun(filepath)
@@ -69,7 +70,7 @@ def get_structures_labels_from_file(filepath: str) -> tuple[list[Structure], dic
             "energies": energies_per_atom,
             "forces": forces,
             "stresses": stresses,
-            #"magmoms": None,
+            # "magmoms": None,
         }
 
     else:
@@ -90,10 +91,11 @@ def get_structures_labels_from_files(filepaths) -> tuple[list[Structure], dict]:
         else:
             structures += this_structures
             for k in labels:
-                if labels[k] is None: continue
+                if labels[k] is None:
+                    continue
                 labels[k] += this_labels[k]
 
-    #for s in structures: print(s)
-    #for k, v in labels.items(): print(k, v)
+    # for s in structures: print(s)
+    # for k, v in labels.items(): print(k, v)
 
     return structures, labels

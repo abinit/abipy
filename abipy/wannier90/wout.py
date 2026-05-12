@@ -1,13 +1,14 @@
-# coding: utf-8
 """Interface to the wout output file produced by Wannier90."""
+
 from __future__ import annotations
+
+from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
-
-from collections import OrderedDict
 from monty.string import marquee
 from monty.termcolor import cprint
+
 from abipy.core.mixins import BaseFile, Has_Structure, NotebookWriter
 from abipy.core.structure import Structure
 from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt
@@ -29,13 +30,18 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: WoutFile
     """
+
     def __init__(self, filepath: PathLike):
+        """
+        Args:
+            filepath: Path to the .wout file.
+        """
         super().__init__(filepath)
         self.warnings = []
         self.use_disentangle = False
         self.conv_df, self.dis_df = None, None
 
-        with open(self.filepath, "rt") as fh:
+        with open(self.filepath) as fh:
             self.lines = fh.readlines()
 
         self._parse_dims()
@@ -53,7 +59,8 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
 
     def to_string(self, verbose: int = 0) -> str:
         """String representation."""
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
 
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
@@ -65,7 +72,7 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
         app("K-grid: %s" % self.grid_size)
         if self.use_disentangle:
             app("Using DISENTANGLE algorithm")
-            #for k, v in self.params_section["DISENTANGLE"].items():
+            # for k, v in self.params_section["DISENTANGLE"].items():
             #    app("%s: %s" % (k, v))
         app("")
 
@@ -94,7 +101,7 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
             for i, w in enumerate(self.warnings):
                 app("[%d] %s" % (i, w))
 
-        #if verbose:
+        # if verbose:
 
         return "\n".join(lines)
 
@@ -104,18 +111,17 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
         return self._structure
 
     def _parse_dims(self) -> None:
-        """
-        Parse basic dimensions and get structure from the header of the file.
-        """
+        """Parse basic dimensions and get structure from the header of the file."""
         self.version, self._structure, self.grid_size = None, None, None
         # Init dictionary with parameters.
-        self.params_section = OrderedDict([(s, OrderedDict()) for s in
-            ("MAIN", "WANNIERISE", "PLOTTING", "DISENTANGLE")])
+        self.params_section = OrderedDict(
+            [(s, OrderedDict()) for s in ("MAIN", "WANNIERISE", "PLOTTING", "DISENTANGLE")]
+        )
         params_done = False
 
         for iln, line in enumerate(self.lines):
             # Check for any warnings
-            if 'Warning' in line:
+            if "Warning" in line:
                 self.warnings.append(line)
                 continue
 
@@ -135,7 +141,7 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
                 #    a_1     0.000000   2.715473   2.715473
                 #    a_2     2.715473   0.000000   2.715473
                 #    a_3     2.715473   2.715473   0.000000
-                lattice = np.array([list(map(float, self.lines[iln+j].split()[1:])) for j in range(1, 4)])
+                lattice = np.array([list(map(float, self.lines[iln + j].split()[1:])) for j in range(1, 4)])
                 continue
 
             # Parse atoms.
@@ -150,7 +156,8 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
                 i = iln + 2
                 while True:
                     l = self.lines[i].strip()
-                    if l.startswith("*"): break
+                    if l.startswith("*"):
+                        break
                     i += 1
                     tokens = l.replace("|", " ").split()
                     species.append(tokens[0])
@@ -167,10 +174,10 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
                 continue
 
             if not params_done and any(sname in line for sname in self.params_section):
-                #*---------------------------------- MAIN ------------------------------------*
-                #|  Number of Wannier Functions               :                 4             |
-                #|  Wavefunction spin channel                 :                up             |
-                #*----------------------------------------------------------------------------*
+                # *---------------------------------- MAIN ------------------------------------*
+                # |  Number of Wannier Functions               :                 4             |
+                # |  Wavefunction spin channel                 :                up             |
+                # *----------------------------------------------------------------------------*
                 # Use params_done to avoid parsing the second section with WANNIERISE
                 key = line.replace("*", "").replace("-", "").strip()
                 i = iln + 1
@@ -194,7 +201,8 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
         Return: 0 if success.
         """
         # Don't parse it again if already done.
-        if self.conv_df is not None: return 0
+        if self.conv_df is not None:
+            return 0
 
         if self.use_disentangle:
             # Parse Disentanglement cycles
@@ -206,13 +214,13 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
             # <<<      Delta < 1.000E-10  over  3 iterations     >>>
             # <<< Disentanglement convergence criteria satisfied >>>
             in_diis = 0
-            data = OrderedDict([(s, []) for s in
-                ("iter", "omegaI_im1", "omegaI_i", "delta_frac", "time")])
+            data = OrderedDict([(s, []) for s in ("iter", "omegaI_im1", "omegaI_i", "delta_frac", "time")])
 
             for line in self.lines:
                 line = line.strip()
                 if not line.endswith("<-- DIS"):
-                    if in_diis: break
+                    if in_diis:
+                        break
                     continue
                 in_diis += 1
                 if in_diis >= 4:
@@ -224,21 +232,34 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
 
         # Parse Wannierization cycles.
         for start, line in enumerate(self.lines):
-            if "Initial State" in line: break
+            if "Initial State" in line:
+                break
         else:
             return 1
 
         self.wf_centers = [[] for _ in range(self.nwan)]
         self.wf_spreads = [[] for _ in range(self.nwan)]
-        data = OrderedDict([(s, []) for s in
-            ("iter",  "delta_spread", "rms_gradient", "spread", "time",
-             "O_D", "O_OD", "O_TOT",
-            )])
+        data = OrderedDict(
+            [
+                (s, [])
+                for s in (
+                    "iter",
+                    "delta_spread",
+                    "rms_gradient",
+                    "spread",
+                    "time",
+                    "O_D",
+                    "O_OD",
+                    "O_TOT",
+                )
+            ]
+        )
 
         lines = self.lines[start:][:]
         while lines:
             line = lines.pop(0).strip()
-            if not line.startswith("Initial State") and not line.startswith("Cycle:"): continue
+            if not line.startswith("Initial State") and not line.startswith("Cycle:"):
+                continue
             step = int(line.split()[-1]) if line.startswith("Cycle:") else 0
             for iw in range(self.nwan + 1):
                 # WF centre and spread    1  (  0.042127,  0.071712, -0.424794 )    10.42287858
@@ -291,6 +312,7 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
 
         Args:
             fontsize: legend and label fontsize.
+            **kwargs: Keyword arguments (currently unused).
 
         Returns: |matplotlib-Figure|
         """
@@ -308,15 +330,17 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
             ncols = 2
             nrows = (num_plots // ncols) + (num_plots % ncols)
 
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=False, squeeze=False)
+        ax_list, fig, plt = get_axarray_fig_plt(
+            None, nrows=nrows, ncols=ncols, sharex=True, sharey=False, squeeze=False
+        )
         ax_list = ax_list.ravel()
 
         # Don't show the last ax if num_plots is odd.
-        if num_plots % ncols != 0: ax_list[-1].axis("off")
+        if num_plots % ncols != 0:
+            ax_list[-1].axis("off")
 
         marker = "."
-        for ax, item in zip(ax_list, items):
+        for ax, item in zip(ax_list, items, strict=False):
             ax.grid(True)
             ax.set_xlabel("Iteration Step")
             ax.set_ylabel(item)
@@ -325,6 +349,7 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
                 # Plot Disentanglement cycles
                 ax.plot(self.dis_df.iter[s:], self.dis_df[item][s:], marker=marker)
                 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+
                 ax2 = inset_axes(ax, width="60%", height="40%", loc="upper right")
                 ax2.grid(True)
                 ax2.set_title("delta_frac", fontsize=fontsize)
@@ -343,6 +368,7 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
 
         Args:
             fontsize: legend and label fontsize.
+            **kwargs: Keyword arguments (currently unused).
 
         Returns: |matplotlib-Figure|
         """
@@ -357,12 +383,14 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
             ncols = 2
             nrows = (num_plots // ncols) + (num_plots % ncols)
 
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=False, squeeze=False)
+        ax_list, fig, plt = get_axarray_fig_plt(
+            None, nrows=nrows, ncols=ncols, sharex=True, sharey=False, squeeze=False
+        )
         ax_list = ax_list.ravel()
 
         # Don't show the last ax if num_plots is odd.
-        if num_plots % ncols != 0: ax_list[-1].axis("off")
+        if num_plots % ncols != 0:
+            ax_list[-1].axis("off")
 
         marker = "."
         for iax in range(num_plots):
@@ -373,13 +401,16 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
             if iax < self.nwan:
                 ax.set_ylabel("Center of WF #%s" % (iax + 1))
                 for idir in range(3):
-                    ax.plot(self.conv_df.iter[s:], self.wf_centers[iax, s:, idir], marker=marker,
-                            label={0: "x", 1: "y", 2: "z"}[idir] if iax == 0 else None)
+                    ax.plot(
+                        self.conv_df.iter[s:],
+                        self.wf_centers[iax, s:, idir],
+                        marker=marker,
+                        label={0: "x", 1: "y", 2: "z"}[idir] if iax == 0 else None,
+                    )
             else:
                 ax.set_ylabel("WF Spread")
                 for iw in range(self.nwan):
-                    ax.plot(self.conv_df.iter[s:], self.wf_spreads[iw, s:], marker=marker,
-                            label="WF#%d" % (iw + 1))
+                    ax.plot(self.conv_df.iter[s:], self.wf_spreads[iw, s:], marker=marker, label="WF#%d" % (iw + 1))
 
             if iax in (0, self.nwan):
                 ax.legend(loc="best", shadow=True, fontsize=fontsize)
@@ -387,9 +418,7 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
         return fig
 
     def yield_figs(self, **kwargs):  # pragma: no cover
-        """
-        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
-        """
+        """This function *generates* a predefined list of matplotlib figures with minimal input from the user."""
         yield self.plot(show=False)
         yield self.plot_centers_spread(show=False)
 
@@ -400,13 +429,15 @@ class WoutFile(BaseFile, Has_Structure, NotebookWriter):
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        nb.cells.extend([
-            #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("wout = abilab.abiopen('%s')" % self.filepath),
-            nbv.new_code_cell("print(wout)"),
-            nbv.new_code_cell("wout.structure.plot();"),
-            nbv.new_code_cell("wout.plot();"),
-            nbv.new_code_cell("wout.plot_centers_spread();"),
-        ])
+        nb.cells.extend(
+            [
+                # nbv.new_markdown_cell("# This is a markdown cell"),
+                nbv.new_code_cell("wout = abilab.abiopen('%s')" % self.filepath),
+                nbv.new_code_cell("print(wout)"),
+                nbv.new_code_cell("wout.structure.plot();"),
+                nbv.new_code_cell("wout.plot();"),
+                nbv.new_code_cell("wout.plot_centers_spread();"),
+            ]
+        )
 
         return self._write_nb_nbpath(nb, nbpath)

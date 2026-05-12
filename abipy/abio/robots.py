@@ -1,34 +1,43 @@
-# coding: utf-8
 """
 This module defines the Robot base class.
 Robots operate on multiple files and provide helper functions to plot data,
 perform convergence studies and build pandas dataframes.
 """
+
 from __future__ import annotations
 
-import sys
-import os
 import inspect
 import itertools
 import json
+import os
+import sys
+from collections import deque
+from collections.abc import Callable
+from functools import wraps
+from typing import Any
+
 import numpy as np
 import pandas as pd
-
-from collections import deque
-from typing import Callable, Any
-from functools import wraps
+from monty.json import MontyEncoder
 from monty.string import is_string, list_strings
 from monty.termcolor import cprint
-from monty.json import MontyEncoder
-from abipy.tools.serialization import pmg_serialize
-from abipy.tools.iotools import make_executable
-from abipy.core.structure import Structure
+
 from abipy.core.mixins import NotebookWriter
-from abipy.tools.numtools import sort_and_groupby
+from abipy.core.structure import Structure
 from abipy.tools import duck
+from abipy.tools.iotools import make_executable
+from abipy.tools.numtools import sort_and_groupby
+from abipy.tools.plotting import (
+    ConvergenceAnalyzer,
+    add_fig_kwargs,
+    get_ax_fig_plt,
+    get_axarray_fig_plt,
+    plot_xy_with_hue,
+    rotate_ticklabels,
+    set_visible,
+)
+from abipy.tools.serialization import pmg_serialize
 from abipy.tools.typing import Figure
-from abipy.tools.plotting import (plot_xy_with_hue, add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt,
-    rotate_ticklabels, set_visible, ConvergenceAnalyzer)
 
 
 class Robot(NotebookWriter):
@@ -45,13 +54,21 @@ class Robot(NotebookWriter):
             for label, abifile in self.items():
                 print(label)
     """
+
     # filepaths are relative to `start`. None for absolute paths. This flag is set in trim_paths
     start = None
 
     # Used in iter_lineopt to generate matplotlib linestyles.
     _LINE_COLORS = ["b", "r", "g", "m", "y", "k", "c"]
-    _LINE_STYLES = ["-", ":", "--", "-.",]
-    _LINE_WIDTHS = [2, ]
+    _LINE_STYLES = [
+        "-",
+        ":",
+        "--",
+        "-.",
+    ]
+    _LINE_WIDTHS = [
+        2,
+    ]
 
     # matplotlib option to fill convergence window.
     HATCH = "/"
@@ -59,7 +76,7 @@ class Robot(NotebookWriter):
     def __init__(self, *args):
         """
         Args:
-            args is a list of tuples (label, filepath)
+            *args: list of tuples (label, filepath) or (label, abipy_file)
         """
         self._abifiles, self._do_close = {}, {}
         self._exceptions = deque(maxlen=100)
@@ -72,6 +89,7 @@ class Robot(NotebookWriter):
         """List of strings with extensions supported by Robot subclasses."""
         # This is needed to have all subclasses.
         from abipy.abilab import Robot
+
         return sorted([cls.EXT for cls in Robot.__subclasses__()])
 
     @classmethod
@@ -84,11 +102,13 @@ class Robot(NotebookWriter):
         # anaddb.nc does not follow the extension rule...
         if ext.lower() == "anaddb":
             from abipy.dfpt.anaddbnc import AnaddbNcRobot as subcls
+
             return subcls
 
-        raise ValueError("Cannot find Robot subclass associated to extension %s\n" % ext +
-                         "The list of supported extensions (case insensitive) is:\n%s" %
-                         str(cls.get_supported_extensions()))
+        raise ValueError(
+            "Cannot find Robot subclass associated to extension %s\n" % ext
+            + "The list of supported extensions (case insensitive) is:\n%s" % str(cls.get_supported_extensions())
+        )
 
     @classmethod
     def from_dir(cls, top: str, walk: bool = True, abspath: bool = False) -> Robot:
@@ -104,17 +124,17 @@ class Robot(NotebookWriter):
             abspath: True if paths in index should be absolute. Default: Relative to `top`.
         """
         new = cls(*cls._open_files_in_dir(top, walk))
-        if not abspath: new.trim_paths(start=top)
+        if not abspath:
+            new.trim_paths(start=top)
         return new
 
     @classmethod
-    def from_dirs(cls, dirpaths: list[str],
-                  walk: bool = True,
-                  abspath: bool = False) -> Robot:
+    def from_dirs(cls, dirpaths: list[str], walk: bool = True, abspath: bool = False) -> Robot:
         """
         Similar to `from_dir` but accepts a list of directories instead of a single directory.
 
         Args:
+            dirpaths: List of directories.
             walk: if True, directories inside `top` are included as well.
             abspath: True if paths in index should be absolute. Default: Relative to `top`.
         """
@@ -122,14 +142,12 @@ class Robot(NotebookWriter):
         for top in list_strings(dirpaths):
             items.extend(cls._open_files_in_dir(top, walk))
         new = cls(*items)
-        if not abspath: new.trim_paths(start=os.getcwd())
+        if not abspath:
+            new.trim_paths(start=os.getcwd())
         return new
 
     @classmethod
-    def from_dir_glob(cls,
-                      pattern: str,
-                      walk: bool = True,
-                      abspath: bool = False) -> Robot:
+    def from_dir_glob(cls, pattern: str, walk: bool = True, abspath: bool = False) -> Robot:
         """
         Build a robot by scanning all files located within the directories
         matching `pattern` as implemented by glob.glob
@@ -143,11 +161,13 @@ class Robot(NotebookWriter):
             abspath: True if paths in index should be absolute. Default: Relative to getcwd().
         """
         import glob
+
         items = []
         for top in filter(os.path.isdir, glob.iglob(pattern)):
             items += cls._open_files_in_dir(top, walk=walk)
         new = cls(*items)
-        if not abspath: new.trim_paths(start=os.getcwd())
+        if not abspath:
+            new.trim_paths(start=os.getcwd())
         return new
 
     @classmethod
@@ -158,18 +178,21 @@ class Robot(NotebookWriter):
         if not os.path.isdir(top):
             raise ValueError(f"{top=}: no such directory")
         from abipy.abilab import abiopen
+
         items = []
         if walk:
             for dirpath, dirnames, filenames in os.walk(top):
                 filenames = sorted([f for f in filenames if cls.class_handles_filename(f)])
                 for f in filenames:
                     abifile = abiopen(os.path.join(dirpath, f))
-                    if abifile is not None: items.append((abifile.filepath, abifile))
+                    if abifile is not None:
+                        items.append((abifile.filepath, abifile))
         else:
             filenames = [f for f in os.listdir(top) if cls.class_handles_filename(f)]
             for f in filenames:
                 abifile = abiopen(os.path.join(top, f))
-                if abifile is not None: items.append((abifile.filepath, abifile))
+                if abifile is not None:
+                    items.append((abifile.filepath, abifile))
 
         return items
 
@@ -182,8 +205,7 @@ class Robot(NotebookWriter):
         if cls.EXT == "anaddb" and os.path.basename(filename).lower() == "anaddb.nc":
             return True
 
-        return (filename.endswith("_" + cls.EXT + ".nc") or
-                filename.endswith("." + cls.EXT))  # This for .abo
+        return filename.endswith("_" + cls.EXT + ".nc") or filename.endswith("." + cls.EXT)  # This for .abo
 
     @classmethod
     def from_label_file_dict(cls, label_file_dict: dict) -> Robot:
@@ -200,24 +222,22 @@ class Robot(NotebookWriter):
             })
 
         """
-        return cls.from_files(list(label_file_dict.values()),
-                              labels=list(label_file_dict.keys()))
+        return cls.from_files(list(label_file_dict.values()), labels=list(label_file_dict.keys()))
 
     @classmethod
-    def from_files(cls,
-                   filenames: list[str],
-                   labels: list[str] | None = None,
-                   abspath: bool = False) -> Robot:
+    def from_files(cls, filenames: list[str], labels: list[str] | None = None, abspath: bool = False) -> Robot:
         """
         Build a Robot from a list of `filenames`.
 
         Args:
+            filenames: List of filenames.
             labels: List of labels associated to filenammes.
                 If None, labels are automatically generated from absolute paths.
             abspath: True if paths in index should be absolute. Default: Relative to `top`.
         """
         filenames = list_strings(filenames)
         from abipy.abilab import abiopen
+
         filenames = [f for f in filenames if cls.class_handles_filename(f)]
         items = []
         for i, f in enumerate(filenames):
@@ -233,7 +253,8 @@ class Robot(NotebookWriter):
                 items.append((label, abifile))
 
         new = cls(*items)
-        if labels is None and not abspath: new.trim_paths(start=None)
+        if labels is None and not abspath:
+            new.trim_paths(start=None)
         return new
 
     @classmethod
@@ -242,6 +263,7 @@ class Robot(NotebookWriter):
         Build Robot from a file in json format.
         """
         from abipy.tools.serialization import mjson_load
+
         new = mjson_load(filepath)
         return new
 
@@ -252,7 +274,6 @@ class Robot(NotebookWriter):
         and matching json_basename.
 
         Example:
-
             gwr_robot = Robot.from_top_and_json_basename(".", "gwr_robot.json")
         """
         json_paths = []
@@ -273,7 +294,7 @@ class Robot(NotebookWriter):
         robot_filepaths = []
         _module, _class = None, None
         for path in json_paths:
-            with open(path, "rt") as fh:
+            with open(path) as fh:
                 d = json.load(fh)
 
             if "filepaths" not in d:
@@ -291,8 +312,9 @@ class Robot(NotebookWriter):
                     raise ValueError(f'{_class=} != {d["@class"]=}')
 
         # Build Robot instance from string in json format.
-        #print("Merged filepaths:", robot_filepaths)
+        # print("Merged filepaths:", robot_filepaths)
         from abipy.tools.serialization import mjson_loads
+
         data = {"filepaths": robot_filepaths, "@class": _class, "@module": _module}
         return mjson_loads(json.dumps(data))
 
@@ -365,7 +387,7 @@ class Robot(NotebookWriter):
     def __len__(self):
         return len(self._abifiles)
 
-    #def __iter__(self):
+    # def __iter__(self):
     #    return iter(self._abifiles)
 
     def __getitem__(self, key):
@@ -380,9 +402,11 @@ class Robot(NotebookWriter):
         self.close()
 
     def keys(self):
+        """Return the labels of the files in the robot."""
         return self._abifiles.keys()
 
     def items(self):
+        """Return (label, abifile) pairs."""
         return self._abifiles.items()
 
     def add_extfile_of_node(self, node, nids=None, task_class=None) -> None:
@@ -395,7 +419,8 @@ class Robot(NotebookWriter):
             task_class: Task class or string with class name used to select the tasks in the flow.
                 None implies no filtering.
         """
-        if nids and node.node_id not in nids: return
+        if nids and node.node_id not in nids:
+            return
         filepath = node.outdir.has_abiext(self.EXT)
         if not filepath:
             # Look in run.abi directory.
@@ -414,7 +439,7 @@ class Robot(NotebookWriter):
 
             # Filter by task_class (class or string with class name)
             if task_class is not None and not node.isinstance(task_class):
-                return None
+                return
 
             self.add_file(label, filepath)
 
@@ -448,6 +473,7 @@ class Robot(NotebookWriter):
         """
         if is_string(abifile):
             from abipy.abilab import abiopen
+
             print(f"{abifile=}")
             abifile = abiopen(abifile)
             if filter_abifile is not None and not filter_abifile(abifile):
@@ -482,14 +508,14 @@ class Robot(NotebookWriter):
         """
         Write json file with paths needed to rebuild the robot.
         """
-        with open(filepath, "wt") as fh:
+        with open(filepath, "w") as fh:
             fh.write(self.to_json(indent=4))
 
     def get_pyscript(self, filepath: str) -> RobotPythonScript:
         """Return RobotPythonScript to be used as context manager."""
         return RobotPythonScript(self, filepath)
 
-    #def pop_filepath(self, filepath: str) -> None:
+    # def pop_filepath(self, filepath: str) -> None:
     #    """
     #    Remove the file with the given `filepath`.
     #    """
@@ -499,7 +525,7 @@ class Robot(NotebookWriter):
 
     def iter_lineopt(self):
         """Generates matplotlib linestyles."""
-        for o in itertools.product( self._LINE_WIDTHS,  self._LINE_STYLES, self._LINE_COLORS):
+        for o in itertools.product(self._LINE_WIDTHS, self._LINE_STYLES, self._LINE_COLORS):
             yield {"linewidth": o[0], "linestyle": o[1], "color": o[2]}
 
     @staticmethod
@@ -508,7 +534,7 @@ class Robot(NotebookWriter):
         set_2 = frozenset(list_2)
         return [x for x in list_1 if x in set_2]
 
-    #def _get_ointersection_i(self, iattrname):
+    # def _get_ointersection_i(self, iattrname):
     #    if len(self.abifiles) == 0: return []
     #    values = list(range(getattr(self.abifiles[0], iattrname)))
     #    if len(self.abifiles) == 1: return values
@@ -558,7 +584,7 @@ class Robot(NotebookWriter):
         if not dryrun:
             old_abifiles, self._abifiles = self._abifiles, {}
         new2old = {}
-        for old, new in zip(old_labels, new_labels):
+        for old, new in zip(old_labels, new_labels, strict=False):
             new2old[new] = old
             if not dryrun:
                 self._abifiles[new] = old_abifiles[old]
@@ -582,7 +608,9 @@ class Robot(NotebookWriter):
         new_labels = [function(abifile) for abifile in self.abifiles]
         # Labels must be unique and hashable.
         if len(set(new_labels)) != len(new_labels):
-            raise ValueError("Duplicated labels are not allowed. Change input function.\nnew_labels %s" % str(new_labels))
+            raise ValueError(
+                "Duplicated labels are not allowed. Change input function.\nnew_labels %s" % str(new_labels)
+            )
 
         return self.change_labels(new_labels, dryrun=dryrun)
 
@@ -619,8 +647,10 @@ class Robot(NotebookWriter):
     def get_label_files_str(self):
         """Return string with [label, filepath]."""
         from tabulate import tabulate
-        return tabulate([(label, abifile.relpath) for label, abifile in self.items()],
-                        headers=["Label", "Relpath"]) + "\n"
+
+        return (
+            tabulate([(label, abifile.relpath) for label, abifile in self.items()], headers=["Label", "Relpath"]) + "\n"
+        )
 
     def show_files(self, stream=sys.stdout) -> None:
         """Show label --> file path"""
@@ -663,7 +693,7 @@ class Robot(NotebookWriter):
         def get_obj_list(what: str):
             if what == "abifiles":
                 return self.abifiles
-            elif what == "r":
+            if what == "r":
                 return [abifile.r for abifile in self.abifiles]
 
             raise ValueError(f"Invalid {what=}")
@@ -708,7 +738,8 @@ class Robot(NotebookWriter):
             site_indices: List of site indices that are supposed to be equal.
                 None to compare all sites.
         """
-        if len(self) <= 1: return ""
+        if len(self) <= 1:
+            return ""
         formulas = set([af.structure.composition.formula for af in self.abifiles])
         if len(formulas) != 1:
             return "Found structures with different full formulas: %s" % str(formulas)
@@ -753,7 +784,7 @@ class Robot(NotebookWriter):
         if hasattr(ref_abifile, aname):
             val1, val2 = getattr(ref_abifile, aname), getattr(other_abifile, aname)
 
-        elif hasattr(ref_abifile , "r") and hasattr(ref_abifile.r, aname):
+        elif hasattr(ref_abifile, "r") and hasattr(ref_abifile.r, aname):
             val1, val2 = getattr(ref_abifile.r, aname), getattr(other_abifile.r, aname)
 
         else:
@@ -790,24 +821,29 @@ class Robot(NotebookWriter):
             return True
 
         except Exception:
-            if not raise_exc: return False
+            if not raise_exc:
+                return False
             attrs = []
             for key, obj in inspect.getmembers(self.abifiles[0]):
                 # Ignores anything starting with underscore
-                if key.startswith('_') or callable(obj) or hasattr(obj, "__len__"): continue
+                if key.startswith("_") or callable(obj) or hasattr(obj, "__len__"):
+                    continue
                 attrs.append(key)
 
             # Add all keys in params dict.
             if hasattr(self.abifiles[0], "params") and hasattr(self.abifiles[0].params, "keys"):
                 attrs.extend(self.abifiles[0].params.keys())
 
-            raise AttributeError("""\
+            raise AttributeError(
+                """\
 `%s` object has no attribute `%s`. Choose among:
 
     %s
 
 Note that this list is automatically generated.
-Not all entries are sortable (please select number-like quantities)""" % (self.__class__.__name__, aname, str(attrs)))
+Not all entries are sortable (please select number-like quantities)"""
+                % (self.__class__.__name__, aname, str(attrs))
+            )
 
     def _sortby_labelfile_list(self, labelfile_list, func_or_string, reverse=False, unpack=False):
         """
@@ -819,10 +855,9 @@ Not all entries are sortable (please select number-like quantities)""" % (self._
             items = [(label, abifile, label) for (label, abifile) in labelfile_list]
             if not unpack:
                 return items
-            else:
-                return [t[0] for t in items], [t[1] for t in items], [t[2] for t in items]
+            return [t[0] for t in items], [t[1] for t in items], [t[2] for t in items]
 
-        elif callable(func_or_string):
+        if callable(func_or_string):
             items = [(label, abifile, func_or_string(abifile)) for (label, abifile) in labelfile_list]
 
         else:
@@ -830,27 +865,27 @@ Not all entries are sortable (please select number-like quantities)""" % (self._
             # try in abifile.params if not hasattrd(abifile, func_or_string)
             self.is_sortable(func_or_string, raise_exc=True)
             if duck.hasattrd(self.abifiles[0], func_or_string):
-                items = [(label, abifile, duck.getattrd(abifile, func_or_string)) for (label, abifile) in labelfile_list]
+                items = [
+                    (label, abifile, duck.getattrd(abifile, func_or_string)) for (label, abifile) in labelfile_list
+                ]
 
-            #elif hasattr(self.abifiles[0], "reader") and duck.hasattrd(self.abifiles[0].reader, func_or_string):
+            # elif hasattr(self.abifiles[0], "reader") and duck.hasattrd(self.abifiles[0].reader, func_or_string):
             #    items = [(label, abifile, duck.getattrd(abifile.reader, func_or_string)) for (label, abifile) in labelfile_list]
 
-            #elif hasattr(self.abifiles[0], "r") and duck.hasattrd(self.abifiles[0].r, func_or_string):
-            #elif hasattr(self.abifiles[0], "r"):
+            # elif hasattr(self.abifiles[0], "r") and duck.hasattrd(self.abifiles[0].r, func_or_string):
+            # elif hasattr(self.abifiles[0], "r"):
             #    items = [(label, abifile, duck.getattrd(abifile.r, func_or_string)) for (label, abifile) in labelfile_list]
 
             else:
-                #print("Cannot find", func_or_string, " in self.abifiles[0]")
+                # print("Cannot find", func_or_string, " in self.abifiles[0]")
                 items = [(label, abifile, abifile.params[func_or_string]) for (label, abifile) in labelfile_list]
 
         items = sorted(items, key=lambda t: t[2], reverse=reverse)
         if not unpack:
             return items
-        else:
-            return [t[0] for t in items], [t[1] for t in items], [t[2] for t in items]
+        return [t[0] for t in items], [t[1] for t in items], [t[2] for t in items]
 
-    def sortby(self, func_or_string: Callable | str | None,
-               reverse: bool = False, unpack: bool = False) -> list[tuple]:
+    def sortby(self, func_or_string: Callable | str | None, reverse: bool = False, unpack: bool = False) -> list[tuple]:
         """
         Sort files in the robot by ``func_or_string``.
 
@@ -868,9 +903,7 @@ Not all entries are sortable (please select number-like quantities)""" % (self._
         labelfile_list = list(self.items())
         return self._sortby_labelfile_list(labelfile_list, func_or_string, reverse=reverse, unpack=unpack)
 
-    def group_and_sortby(self,
-                         hue: Callable | str,
-                         func_or_string: Callable | str | None = None) -> list[HueGroup]:
+    def group_and_sortby(self, hue: Callable | str, func_or_string: Callable | str | None = None) -> list[HueGroup]:
         """
         Group files by ``hue`` and, inside each group sort items by ``func_or_string``.
 
@@ -892,18 +925,19 @@ Not all entries are sortable (please select number-like quantities)""" % (self._
 
         if callable(hue):
             key = lambda t: hue(t[1])
+        # Assume string.
+        elif duck.hasattrd(self.abifiles[0], hue):
+            key = lambda t: duck.getattrd(t[1], hue)
+        # Try in abifile.params
+        elif hasattr(self.abifiles[0], "params") and hue in self.abifiles[0].params:
+            key = lambda t: t[1].params[hue]
         else:
-            # Assume string.
-            if duck.hasattrd(self.abifiles[0], hue):
-                key = lambda t: duck.getattrd(t[1], hue)
-            else:
-                # Try in abifile.params
-                if hasattr(self.abifiles[0], "params") and hue in self.abifiles[0].params:
-                    key = lambda t: t[1].params[hue]
-                else:
-                    raise TypeError("""\
+            raise TypeError(
+                """\
 Cannot interpret hue argument of type `%s` and value `%s`.
-Expecting callable or attribute name or key in abifile.params""" % (type(hue), str(hue)))
+Expecting callable or attribute name or key in abifile.params"""
+                % (type(hue), str(hue))
+            )
 
         groups = []
         for hvalue, labelfile_list in sort_and_groupby(items, key=key):
@@ -929,7 +963,8 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         """
         Execute list of callable functions. Each function receives arg as argument.
         """
-        if not isinstance(funcs, (list, tuple)): funcs = [funcs]
+        if not isinstance(funcs, (list, tuple)):
+            funcs = [funcs]
         d = {}
         for func in funcs:
             try:
@@ -953,11 +988,14 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
             abspath: True if paths in index should be absolute. Default: Relative to getcwd().
             filter_abifile: Function that receives an ``abifile`` object and returns
                 True if the file should be added to the plotter.
+            **kwargs: Keyword arguments passed to dataframes_from_structures.
         """
         from abipy.core.structure import dataframes_from_structures
+
         if "index" not in kwargs:
             index = list(self._abifiles.keys())
-            if not abspath: index = self._to_relpaths(index)
+            if not abspath:
+                index = self._to_relpaths(index)
             kwargs["index"] = index
 
         abifiles = self.abifiles if filter_abifile is not None else list(filter(filter_abifile, self.abifiles))
@@ -985,6 +1023,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         for label, abifile in self.items():
             if not hasattr(abifile, "params"):
                 import warnings
+
                 warnings.warn("%s does not have `params` attribute" % type(abifile))
                 break
             rows.append(abifile.params)
@@ -1000,6 +1039,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
     @staticmethod
     @wraps(plot_xy_with_hue)
     def plot_xy_with_hue(*args, **kwargs) -> Figure:
+        """Helper function to plot xy data with hue."""
         return plot_xy_with_hue(*args, **kwargs)
 
     @staticmethod
@@ -1010,18 +1050,16 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         """
         if func_or_string is None:
             return ""
-        elif callable(func_or_string):
+        if callable(func_or_string):
             if getattr(func_or_string, "__doc__", ""):
                 return func_or_string.__doc__.strip()
-            else:
-                return func_or_string.__name__
-        else:
-            return str(func_or_string)
+            return func_or_string.__name__
+        return str(func_or_string)
 
     @add_fig_kwargs
-    def plot_convergence(self, item: str | Callable,
-                         sortby=None, hue=None, abs_conv=None,
-                         ax=None, fontsize=8, **kwargs) -> Figure:
+    def plot_convergence(
+        self, item: str | Callable, sortby=None, hue=None, abs_conv=None, ax=None, fontsize=8, **kwargs
+    ) -> Figure:
         """
         Plot the convergence of ``item`` wrt the ``sortby`` parameter.
         Values can optionally be grouped by ``hue``.
@@ -1048,7 +1086,6 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         Returns: |matplotlib-Figure|
 
         Example:
-
              robot.plot_convergence("energy")
              robot.plot_convergence("energy", sortby="nkpt")
              robot.plot_convergence("pressure", sortby="nkpt", hue="tsmear")
@@ -1063,8 +1100,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
             ax2 = None
         else:
             # Plot f(x) and |f(x) - f(x_inf)| in log scale.
-            (ax1, ax2), fig, plt = get_axarray_fig_plt(ax, nrows=2, ncols=1,
-                                                       sharex=True, sharey=False, squeeze=True)
+            (ax1, ax2), fig, plt = get_axarray_fig_plt(ax, nrows=2, ncols=1, sharex=True, sharey=False, squeeze=True)
             ax2.grid(True)
 
         if hue is None:
@@ -1073,8 +1109,9 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
             ax1.plot(xs, yvals, **kwargs)
 
             if ax2:
-                self.plot_abs_conv(ax1, ax2, xs, yvals, abs_conv, self._get_label(sortby),
-                                   fontsize, self.HATCH, **kwargs)
+                self.plot_abs_conv(
+                    ax1, ax2, xs, yvals, abs_conv, self._get_label(sortby), fontsize, self.HATCH, **kwargs
+                )
 
         else:
             groups = self.group_and_sortby(hue, sortby)
@@ -1084,12 +1121,14 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
                 ax1.plot(g.xvalues, yvals, label=label, **kwargs)
 
                 if ax2:
-                    self.plot_abs_conv(ax1, ax2, g.xvalues, yvals, abs_conv, self._get_label(sortby),
-                                       fontsize, self.HATCH, **kwargs)
+                    self.plot_abs_conv(
+                        ax1, ax2, g.xvalues, yvals, abs_conv, self._get_label(sortby), fontsize, self.HATCH, **kwargs
+                    )
 
         ax1.grid(True)
         ax1.set_xlabel("%s" % self._get_label(sortby))
-        if sortby is None: rotate_ticklabels(ax1, 15)
+        if sortby is None:
+            rotate_ticklabels(ax1, 15)
         ax1.set_ylabel("%s" % self._get_label(item))
 
         if hue is not None:
@@ -1098,13 +1137,9 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         return fig
 
     @add_fig_kwargs
-    def plot_convergence_items(self,
-                               items: list[str | Callable],
-                               sortby=None,
-                               hue=None,
-                               abs_conv=None,
-                               fontsize=8,
-                               **kwargs) -> Figure:
+    def plot_convergence_items(
+        self, items: list[str | Callable], sortby=None, hue=None, abs_conv=None, fontsize=8, **kwargs
+    ) -> Figure:
         """
         Plot the convergence of a list of ``items`` wrt to the ``sortby`` parameter.
         Values can optionally be grouped by the ``hue`` parameter.
@@ -1134,8 +1169,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
 
         # Build grid plot.
         nrows, ncols = len(items), 1 if abs_conv is None else 2
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=False, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols, sharex=True, sharey=False, squeeze=False)
 
         # Sort and group files if hue.
         if hue is None:
@@ -1146,7 +1180,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
         if "marker" not in kwargs:
             kwargs["marker"] = "o"
 
-        for i, (ax_row, item) in enumerate(zip(ax_mat, items)):
+        for i, (ax_row, item) in enumerate(zip(ax_mat, items, strict=False)):
             ax1 = ax_row[0]
             ax2 = ax_row[1] if abs_conv is not None else None
 
@@ -1158,8 +1192,7 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
 
                 if ax2:
                     xlabel = self._get_label(sortby) if i == len(items) - 1 else None
-                    self.plot_abs_conv(ax1, ax2, xs, yvals, abs_conv[item], xlabel, fontsize, self.HATCH,
-                                       **kwargs)
+                    self.plot_abs_conv(ax1, ax2, xs, yvals, abs_conv[item], xlabel, fontsize, self.HATCH, **kwargs)
 
             else:
                 for g in groups:
@@ -1170,8 +1203,9 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
                     ax1.plot(g.xvalues, yvals, label=label, **kwargs)
 
                     if ax2:
-                        self.plot_abs_conv(ax1, ax2, g.xvalues, yvals, abs_conv[item], None,
-                                       fontsize, self.HATCH, **kwargs)
+                        self.plot_abs_conv(
+                            ax1, ax2, g.xvalues, yvals, abs_conv[item], None, fontsize, self.HATCH, **kwargs
+                        )
 
             ax1.grid(True)
             ax1.set_ylabel(self._get_label(item))
@@ -1180,16 +1214,15 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
 
             if i == len(items) - 1:
                 ax1.set_xlabel("%s" % self._get_label(sortby))
-                if sortby is None: rotate_ticklabels(ax1, 15)
+                if sortby is None:
+                    rotate_ticklabels(ax1, 15)
 
             if i == 0 and hue is not None:
                 ax1.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
-    def get_convergence_analyzer(self,
-                                 xname: str,
-                                 ytols_dict: dict) -> ConvergenceAnalyzer:
+    def get_convergence_analyzer(self, xname: str, ytols_dict: dict) -> ConvergenceAnalyzer:
         """
         The main difference is that ConvergenceAnalyze supports multiple convergence tolerances
         for a given y-value.
@@ -1226,16 +1259,17 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
                 If callable, the output of hue(abifile) is used.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: legend and label fontsize.
+            **kwargs: Keyword arguments passed to matplotlib plot method.
 
         Returns: |matplotlib-Figure|
 
         Example:
-
              robot.plot_lattice_convergence()
              robot.plot_lattice_convergence(sortby="nkpt")
              robot.plot_lattice_convergence(sortby="nkpt", hue="tsmear")
         """
-        if not self.abifiles: return None
+        if not self.abifiles:
+            return None
 
         # The majority of AbiPy files have a structure object
         # whereas Hist.nc defines final_structure. Use geattr and key to extract structure object.
@@ -1248,25 +1282,31 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
 
         # Define callbacks. docstrings will be used as ylabels.
         def a(abi_file):
-            "a (Ang)"
+            """A (Ang)"""
             return getattr(abi_file, key).lattice.a
+
         def b(abi_file):
-            "b (Ang)"
+            """B (Ang)"""
             return getattr(abi_file, key).lattice.b
+
         def c(abi_file):
-            "c (Ang)"
+            """C (Ang)"""
             return getattr(abi_file, key).lattice.c
+
         def volume(abi_file):
-            r"$V$"
+            r"""$V$"""
             return getattr(abi_file, key).lattice.volume
+
         def alpha(abi_file):
-            r"$\alpha$"
+            r"""$\alpha$"""
             return getattr(abi_file, key).lattice.alpha
+
         def beta(abi_file):
-            r"$\beta$"
+            r"""$\beta$"""
             return getattr(abi_file, key).lattice.beta
+
         def gamma(abi_file):
-            r"$\gamma$"
+            r"""$\gamma$"""
             return getattr(abi_file, key).lattice.gamma
 
         items = [a, b, c, volume, alpha, beta, gamma]
@@ -1276,11 +1316,12 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
 
         # Build plot grid.
         nrows, ncols = len(items), 1
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=False, squeeze=False)
+        ax_list, fig, plt = get_axarray_fig_plt(
+            None, nrows=nrows, ncols=ncols, sharex=True, sharey=False, squeeze=False
+        )
 
         marker = kwargs.pop("marker", "o")
-        for i, (ax, item) in enumerate(zip(ax_list.ravel(), items)):
+        for i, (ax, item) in enumerate(zip(ax_list.ravel(), items, strict=False)):
             self.plot_convergence(item, sortby=sortby, hue=hue, ax=ax, fontsize=fontsize, marker=marker, show=False)
             if i != 0:
                 set_visible(ax, False, "legend")
@@ -1310,14 +1351,15 @@ Expecting callable or attribute name or key in abifile.params""" % (type(hue), s
     @staticmethod
     def get_yvals_item_abifiles(item: Any, abifiles: list) -> np.ndarray:
         """Extract values for a list of Abinit files."""
+
         def _float(obj):
-            if obj is None: return obj
+            if obj is None:
+                return obj
             return float(obj)
 
         if callable(item):
             return np.array([_float(item(a)) for a in abifiles])
-        else:
-            return np.array([_float(duck.getattrd(a, item)) for a in abifiles])
+        return np.array([_float(duck.getattrd(a, item)) for a in abifiles])
 
     @staticmethod
     def plot_xvals_or_xstr_ax(ax, xs, yvals, fontsize, **kwargs) -> list:
@@ -1379,7 +1421,7 @@ class HueGroup:
 
     def __iter__(self):
         """Iterate over (label, abifile, xvalue)."""
-        return zip(self.labels, self.abifiles, self.xvalues)
+        return zip(self.labels, self.abifiles, self.xvalues, strict=False)
 
 
 class RobotPythonScript:
@@ -1400,6 +1442,7 @@ class RobotPythonScript:
     """
 
     def __init__(self, robot: Robot, filepath_py: str):
+        """Initialize the object with robot and file path."""
         self.robot = robot
         self.filepath_py = filepath_py
 
@@ -1442,9 +1485,9 @@ print(robot)
         """
         Write python script and json file with the list of files in the Robot.
         """
-        with open(self.filepath_py, "wt") as fh:
+        with open(self.filepath_py, "w") as fh:
             fh.write(self.pytext)
         make_executable(self.filepath_py)
 
-        with open(self.filepath_json, "wt") as fh:
+        with open(self.filepath_json, "w") as fh:
             fh.write(self.robot.to_json())

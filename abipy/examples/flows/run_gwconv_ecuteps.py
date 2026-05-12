@@ -5,13 +5,14 @@ G0W0 convergence study
 
 G0W0 convergence study wrt ecuteps and the number of bands in W.
 """
-import sys
+
 import os
+import sys
+
 import numpy as np
 
-import abipy.abilab as abilab
 import abipy.data as abidata
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def make_inputs(paral_kgb=1):
@@ -20,8 +21,9 @@ def make_inputs(paral_kgb=1):
     These files are then used as templates for the convergence study
     wrt ecuteps and the number of bands in W.
     """
-    multi = abilab.MultiDataset(abidata.structure_from_ucell("SiC"),
-                                pseudos=abidata.pseudos("14si.pspnc", "6c.pspnc"), ndtset=4)
+    multi = abilab.MultiDataset(
+        abidata.structure_from_ucell("SiC"), pseudos=abidata.pseudos("14si.pspnc", "6c.pspnc"), ndtset=4
+    )
 
     ecut = 12
     global_vars = dict(
@@ -39,14 +41,14 @@ def make_inputs(paral_kgb=1):
     # SCF
     multi[0].set_vars(
         nband=10,
-        tolvrs=1.e-8,
+        tolvrs=1.0e-8,
         paral_kgb=paral_kgb,
     )
 
     # NSCF
     multi[1].set_vars(
         nband=25,
-        tolwfr=1.e-8,
+        tolwfr=1.0e-8,
         iscf=-2,
         paral_kgb=paral_kgb,
     )
@@ -65,11 +67,11 @@ def make_inputs(paral_kgb=1):
         nband=20,
         ecutwfn=ecut,
         ecutsigx=ecut,
-        #ecutsigx=(4*ecut), ! This is problematic
+        # ecutsigx=(4*ecut), ! This is problematic
         ecuteps=ecuteps,
-        )
+    )
 
-    multi[3].set_kptgw(kptgw=[[0,0,0], [0.5, 0, 0]], bdgw=[1, 8])
+    multi[3].set_kptgw(kptgw=[[0, 0, 0], [0.5, 0, 0]], bdgw=[1, 8])
 
     return multi.split_datasets()
 
@@ -109,8 +111,7 @@ def build_flow(options):
     sigma_inputs = list(sig_inp.generate(ecuteps=ecuteps_list))
 
     for scr_task in scr_work:
-        sigma_conv = flowtk.SigmaConvWork(wfk_node=bands.nscf_task, scr_node=scr_task,
-                                          sigma_inputs=sigma_inputs)
+        sigma_conv = flowtk.SigmaConvWork(wfk_node=bands.nscf_task, scr_node=scr_task, sigma_inputs=sigma_inputs)
         flow.register_work(sigma_conv)
 
     return flow
@@ -121,6 +122,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

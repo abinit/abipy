@@ -6,6 +6,7 @@ G0W0 spectral function
 This examples shows how to plot the G0W0 spectral functions A(w) at the gamma point.
 See also lesson tgw2_4
 """
+
 import abipy.data as abidata
 from abipy.abilab import abiopen
 
@@ -16,6 +17,6 @@ sigres = abiopen(abidata.ref_file("al_g0w0_sigmaw_SIGRES.nc"))
 sigres.plot_spectral_functions()
 
 # Only bands in [0, 1, 2]
-sigres.plot_spectral_functions(spin=0, kpoint=(0, 0, 0), include_bands=range(0, 3))
+sigres.plot_spectral_functions(spin=0, kpoint=(0, 0, 0), include_bands=range(3))
 
 sigres.close()

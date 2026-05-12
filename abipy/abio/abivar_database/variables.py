@@ -1,13 +1,10 @@
-# coding: utf-8
-from __future__ import print_function, division, unicode_literals, absolute_import
-
-import sys
-import os
 import json
-
-from functools import cached_property
+import os
+import sys
 from collections import OrderedDict, defaultdict
+from functools import cached_property
 from itertools import groupby
+
 
 def is_string(s):
     """True if s behaves like a string (duck typing test)."""
@@ -35,8 +32,8 @@ def list_strings(arg):
     """
     if is_string(arg):
         return [arg]
-    else:
-        return arg
+    return arg
+
 
 def splitall(path):
     """Return list with all components of a path."""
@@ -46,37 +43,36 @@ def splitall(path):
         if parts[0] == path:  # sentinel for absolute paths
             allparts.insert(0, parts[0])
             break
-        elif parts[1] == path: # sentinel for relative paths
+        if parts[1] == path:  # sentinel for relative paths
             allparts.insert(0, parts[1])
             break
-        else:
-            path = parts[0]
-            allparts.insert(0, parts[1])
+        path = parts[0]
+        allparts.insert(0, parts[1])
     return allparts
 
 
 # Unit names supported in Abinit input.
 ABI_UNITS = [
-    'au',
-    'Angstr',
-    'Angstrom',
-    'Angstroms',
-    'Bohr',
-    'Bohrs',
-    'eV',
-    'Ha',
-    'Hartree',
-    'Hartrees',
-    'K',
-    'Ry',
-    'Rydberg',
-    'Rydbergs',
-    'T',
-    'Tesla',
+    "au",
+    "Angstr",
+    "Angstrom",
+    "Angstroms",
+    "Bohr",
+    "Bohrs",
+    "eV",
+    "Ha",
+    "Hartree",
+    "Hartrees",
+    "K",
+    "Ry",
+    "Rydberg",
+    "Rydbergs",
+    "T",
+    "Tesla",
 ]
 
 # Operators supported by parser
-ABI_OPS = ['sqrt', 'end', '*', '/']
+ABI_OPS = ["sqrt", "end", "*", "/"]
 
 
 # List of strings with possible character of variables.
@@ -95,16 +91,18 @@ ABI_CHARACTERISTICS = [
 
 # external parametersare not input variables,
 # but are used in the documentation of other variables.
-ABI_EXTERNAL_PARAMS = OrderedDict([
-    ("AUTO_FROM_PSP", "Means that the value is read from the PSP file"),
-    ("CUDA", "True if CUDA is enabled (compilation)"),
-    ("ETSF_IO", "True if ETSF_IO is enabled (compilation)"),
-    ("FFTW3", "True if FFTW3 is enabled (compilation)"),
-    ("MPI_IO", "True if MPI_IO is enabled (compilation)"),
-    ("NPROC", "Number of processors used for Abinit"),
-    ("PARALLEL", "True if the code is compiled with MPI"),
-    ("SEQUENTIAL", "True if the code is compiled without MPI"),
-])
+ABI_EXTERNAL_PARAMS = OrderedDict(
+    [
+        ("AUTO_FROM_PSP", "Means that the value is read from the PSP file"),
+        ("CUDA", "True if CUDA is enabled (compilation)"),
+        ("ETSF_IO", "True if ETSF_IO is enabled (compilation)"),
+        ("FFTW3", "True if FFTW3 is enabled (compilation)"),
+        ("MPI_IO", "True if MPI_IO is enabled (compilation)"),
+        ("NPROC", "Number of processors used for Abinit"),
+        ("PARALLEL", "True if the code is compiled with MPI"),
+        ("SEQUENTIAL", "True if the code is compiled without MPI"),
+    ]
+)
 
 # List of topics
 ABI_TOPICS = [
@@ -193,46 +191,50 @@ ABI_TOPICS = [
 ]
 
 # Relevance associated to the topic
-ABI_RELEVANCES = OrderedDict([
-    ("compulsory", 'Compulsory input variables'),
-    ("basic", 'Basic input variables'),
-    ("useful", 'Useful input variables'),
-    ("internal", 'Relevant internal variables'),
-    ("prpot", 'Printing input variables for potentials'),
-    ("prfermi", 'Printing input variables for fermi level or surfaces'),
-    ("prden", 'Printing input variables for density, eigenenergies, k-points and wavefunctions'),
-    ("prgeo", 'Printing input variables for geometry'),
-    ("prdos", "Printing DOS-related input variables"),
-    ("prgs", 'Printing other ground-state input variables'),
-    ("prngs", 'Printing non-ground-state input variables'),
-    ("prmisc", 'Printing miscellaneous files'),
-    ("expert",  'Input variables for experts'),
-])
+ABI_RELEVANCES = OrderedDict(
+    [
+        ("compulsory", "Compulsory input variables"),
+        ("basic", "Basic input variables"),
+        ("useful", "Useful input variables"),
+        ("internal", "Relevant internal variables"),
+        ("prpot", "Printing input variables for potentials"),
+        ("prfermi", "Printing input variables for fermi level or surfaces"),
+        ("prden", "Printing input variables for density, eigenenergies, k-points and wavefunctions"),
+        ("prgeo", "Printing input variables for geometry"),
+        ("prdos", "Printing DOS-related input variables"),
+        ("prgs", "Printing other ground-state input variables"),
+        ("prngs", "Printing non-ground-state input variables"),
+        ("prmisc", "Printing miscellaneous files"),
+        ("expert", "Input variables for experts"),
+    ]
+)
 
 
-class Variable(object):
+class Variable:
     """
     This object gathers information about a single variable. name, associated topics, description etc
     It's constructed from the variables_CODENANE.py modules but client code usually
     interact with variables via the :class:`VarDatabase` dictionary.
     """
-    def __init__(self,
-                 abivarname=None,
-                 varset=None,
-                 vartype=None,
-                 topics=None,
-                 dimensions=None,
-                 defaultval=None,
-                 mnemonics=None,
-                 characteristics=None,
-                 excludes=None,
-                 requires=None,
-                 commentdefault=None,
-                 commentdims=None,
-                 added_in_version=None,
-                 alternative_name=None,
-                 text=None,
-                ):
+
+    def __init__(
+        self,
+        abivarname=None,
+        varset=None,
+        vartype=None,
+        topics=None,
+        dimensions=None,
+        defaultval=None,
+        mnemonics=None,
+        characteristics=None,
+        excludes=None,
+        requires=None,
+        commentdefault=None,
+        commentdims=None,
+        added_in_version=None,
+        alternative_name=None,
+        text=None,
+    ):
         """
         Args:
             abivarname (str): Name of the variable (including @code if not abinit e.g asr@anaddb).
@@ -248,8 +250,8 @@ class Variable(object):
             characteristics (list): List of characteristics or None
             excludes (str): String with variables that are exluded if this variable is given.
             requires (str): String with variables that are required.
-            commentdefault=None,
-            commentdims=None,
+            commentdefault (str): Optional comment for the default value.
+            commentdims (str): Optional comment for the dimensions.
             added_in_version (str): String with the Abinit version in which this variable was added.
                 None if variable is present in Abinit <= 8.6.3
             alternative_name: alias name (used if a new variable with a different name was introduced, in place
@@ -286,7 +288,7 @@ class Variable(object):
 
     @cached_property
     def executable(self):
-        """string with the name of the code associated to this variable."""
+        """String with the name of the code associated to this variable."""
         if "@" in self.abivarname:
             code = self.abivarname.split("@")[1]
             assert code == self.varset
@@ -300,32 +302,32 @@ class Variable(object):
         The absolute URL associated to this variable on the Abinit website.
         """
         # This is gonna be the official API on the server
-        #docs.abinit.org/vardocs/CODENAME/VARNAME?version=8.6.2
-        #return "https://docs.abinit.org/vardocs/%s/%s" % (self.executable, self.name)
+        # docs.abinit.org/vardocs/CODENAME/VARNAME?version=8.6.2
+        # return "https://docs.abinit.org/vardocs/%s/%s" % (self.executable, self.name)
 
         # For the time being, we have to use:
         # variables/eph/#asr
         # variables/anaddb#asr
         if self.executable == "abinit":
             return "https://docs.abinit.org/variables/%s#%s" % (self.varset, self.name)
-        else:
-            return "https://docs.abinit.org/variables/%s#%s" % (self.executable, self.name)
+        return "https://docs.abinit.org/variables/%s#%s" % (self.executable, self.name)
 
     @cached_property
     def topic2relevances(self) -> dict:
-        """topic --> list of tribes"""
+        """Topic --> list of tribes"""
         assert self.topics is not None
         od = {}
         for tok in self.topics:
             topic, tribe = [s.strip() for s in tok.split("_")]
-            if topic not in od: od[topic] = []
+            if topic not in od:
+                od[topic] = []
             od[topic].append(tribe)
         return od
 
     @cached_property
     def is_internal(self):
         """True if this is an internal variable."""
-        return self.characteristics is not None and '[[INTERNAL_ONLY]]' in self.characteristics
+        return self.characteristics is not None and "[[INTERNAL_ONLY]]" in self.characteristics
 
     @cached_property
     def wikilink(self):
@@ -348,7 +350,8 @@ class Variable(object):
         return hash(self.abivarname)
 
     def __eq__(self, other):
-        if other is None: return False
+        if other is None:
+            return False
         return self.abivarname == other.abivarname
 
     def __ne__(self, other):
@@ -358,11 +361,20 @@ class Variable(object):
     def info(self):
         """String with extra info on the variable."""
         attrs = [
-            "vartype", "characteristics",  "mnemonics", "dimensions", "defaultval",
-            "abivarname", "commentdefault", "commentdims", "varset",
-            "requires", "excludes",
-            "added_in_version", "alternative_name",
-            ]
+            "vartype",
+            "characteristics",
+            "mnemonics",
+            "dimensions",
+            "defaultval",
+            "abivarname",
+            "commentdefault",
+            "commentdims",
+            "varset",
+            "requires",
+            "excludes",
+            "added_in_version",
+            "alternative_name",
+        ]
 
         def astr(obj):
             return str(obj).replace("[[", "").replace("]]", "")
@@ -380,19 +392,19 @@ class Variable(object):
         if markdown is None:
             html = "<h2>Default value:</h2>" + my_unicode(self.defaultval) + "<br/><h2>Description</h2>" + self.text
             return html.replace("[[", "<b>").replace("]]", "</b>")
-        else:
-            md = self.text.replace("[[", "<b>").replace("]]", "</b>")
-            return markdown.markdown("""
+        md = self.text.replace("[[", "<b>").replace("]]", "</b>")
+        return markdown.markdown(f"""
 ## Default value:
-{defaultval}
+{my_unicode(self.defaultval)}
 
 ## Description:
-{md}
-""".format(defaultval=my_unicode(self.defaultval), md=my_unicode(md)))
+{my_unicode(md)}
+""")
 
     def browse(self):
         """Open variable documentation in browser."""
         import webbrowser
+
         return webbrowser.open(self.website_url)
 
     @cached_property
@@ -406,13 +418,16 @@ class Variable(object):
 
         Args: dimname: String of :class:`Variable` object.
         """
-        if not self.isarray: return False
-        if isinstance(dimname, Variable): dimname = dimname.name
+        if not self.isarray:
+            return False
+        if isinstance(dimname, Variable):
+            dimname = dimname.name
         # This test is not very robust and can fail.
         # Assume no space between `[` and name (there should be a test for this...)
         key = "[[%s]]" % dimname
         for d in self.dimensions:
-            if key in str(d): return True
+            if key in str(d):
+                return True
         return False
 
     def html_link(self, label=None):
@@ -426,14 +441,15 @@ class Variable(object):
         i.e. the variables that are connected to this variable
         (either because they are present in dimensions on in requires).
         """
-        #if hasattr(self, ...
+        # if hasattr(self, ...
         import re
+
         parent_names = []
-        WIKILINK_RE = r'\[\[([\w0-9_ -]+)\]\]'
+        WIKILINK_RE = r"\[\[([\w0-9_ -]+)\]\]"
         # TODO
         #  parent = self[parent]
         # KeyError: "'nzchempot'
-        #WIKILINK_RE = r'\[\[([^\[]+)\]\]'
+        # WIKILINK_RE = r'\[\[([^\[]+)\]\]'
         if isinstance(self.dimensions, (list, tuple)):
             for dim in self.dimensions:
                 dim = str(dim)
@@ -460,19 +476,18 @@ class Variable(object):
     def format_dimensions(dimensions):
         """Pretty print dimensions."""
         if dimensions is None:
-            s = ''
+            s = ""
         elif dimensions == "scalar":
-            s = 'scalar'
+            s = "scalar"
+        # s = str(dimensions)
+        elif isinstance(dimensions, (list, tuple)):
+            s = "("
+            for dim in dimensions:
+                s += str(dim) + ","
+            s = s[:-1]
+            s += ")"
         else:
-            #s = str(dimensions)
-            if isinstance(dimensions, (list, tuple)):
-                s = '('
-                for dim in dimensions:
-                    s += str(dim) + ','
-                s = s[:-1]
-                s += ')'
-            else:
-                s = str(dimensions)
+            s = str(dimensions)
 
         return s
 
@@ -480,7 +495,8 @@ class Variable(object):
         """
         Return markdown string Can use Abinit markdown extensions.
         """
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
 
         app("## **%s** \n\n" % self.name)
         app("*Mnemonics:* %s  " % str(self.mnemonics))
@@ -515,8 +531,14 @@ class Variable(object):
                 frequency = "Moderately used"
 
             info = "%s, [%d/%d] in all %s tests, [%d/%d] in %s tutorials" % (
-                frequency, len(self.tests), tests_info["num_all_tests"], self.executable,
-                tests_info["num_tests_in_tutorial"], tests_info["num_all_tutorial_tests"], self.executable)
+                frequency,
+                len(self.tests),
+                tests_info["num_all_tests"],
+                self.executable,
+                tests_info["num_tests_in_tutorial"],
+                tests_info["num_all_tutorial_tests"],
+                self.executable,
+            )
 
             # Use https://facelessuser.github.io/pymdown-extensions/extensions/details/
             # Truncate list of tests if we have more that `max_ntests` entries.
@@ -530,16 +552,19 @@ class Variable(object):
                 d[suite_name] = ipaths
 
             for suite_name, ipaths in d.items():
-                if count > max_ntests: ipaths = ipaths[:min(3, len(ipaths))]
+                if count > max_ntests:
+                    ipaths = ipaths[: min(3, len(ipaths))]
                 s = "- " + suite_name + ":  " + ", ".join("[[%s|%s]]" % (p, os.path.basename(p)) for p in ipaths)
-                if count > max_ntests: s += " ..."
+                if count > max_ntests:
+                    s += " ..."
                 app("    " + s)
             app("\n\n")
 
         # Add text with description.
         app(2 * "\n")
         app(self.text)
-        if with_hr: app("* * *" + 2*"\n")
+        if with_hr:
+            app("* * *" + 2 * "\n")
 
         return "\n".join(lines)
 
@@ -559,7 +584,7 @@ class Variable(object):
 
         if self.vartype is None:
             eapp("Variable `%s` has no vartype" % svar)
-        elif not self.vartype in ("integer", "real", "string"):
+        elif self.vartype not in ("integer", "real", "string"):
             eapp("%s must have vartype in ['integer', 'real', 'string'].")
 
         if self.topics is None:
@@ -572,7 +597,7 @@ class Variable(object):
                 if relevance not in ABI_RELEVANCES:
                     eapp("%s delivers relevance `%s` that does not belong to the allowed list" % (sname, relevance))
 
-	# Compare the characteristics of this variable with the refs to detect possible typos.
+        # Compare the characteristics of this variable with the refs to detect possible typos.
         if self.characteristics is not None:
             if not isinstance(self.characteristics, list):
                 eapp("The field characteristics of %s is not a list" % svar)
@@ -583,14 +608,13 @@ class Variable(object):
 
         if self.dimensions is None:
             eapp("%s does not have a dimension. If it is a *scalar*, it must be declared so." % svar)
-        else:
-            if self.dimensions != "scalar":
-                if not isinstance(self.dimensions, (list, ValueWithConditions)):
-                    eapp('The dimensions field of %s is not a list neither a valuewithconditions' % svar)
+        elif self.dimensions != "scalar":
+            if not isinstance(self.dimensions, (list, ValueWithConditions)):
+                eapp("The dimensions field of %s is not a list neither a valuewithconditions" % svar)
 
         if self.varset is None:
-            eapp('`%s` does not have a varset' % svar)
-        #else:
+            eapp("`%s` does not have a varset" % svar)
+        # else:
         #    if not isinstance(self.varset, str) or self.varset not in ref_varset:
         #        print('The field varset of %s should be one of the valid varsets' % str(self))
 
@@ -600,11 +624,14 @@ class Variable(object):
         if errors:
             raise ValueError("\n".join(errors))
 
-class ValueWithUnit(object):
+
+class ValueWithUnit:
     """
     This type allows to specify values with units:
     """
+
     def __init__(self, value=None, units=None):
+        """Initialize the object with value and units."""
         self.value = value
         self.units = units
 
@@ -614,14 +641,17 @@ class ValueWithUnit(object):
     def __repr__(self):
         return str(self)
 
-class Range(object):
+
+class Range:
     """
     Specifies a range (start:stop:step)
     """
+
     start = None
     stop = None
 
     def __init__(self, start=None, stop=None):
+        """Initialize the object with start and stop values."""
         self.start = start
         self.stop = stop
 
@@ -643,8 +673,7 @@ class Range(object):
             return "[ " + str(self.start) + "; ->"
         if self.stop is not None:
             return "<-;" + str(self.stop) + " ]"
-        else:
-            return None
+        return None
 
 
 class ValueWithConditions(dict):
@@ -657,37 +686,41 @@ class ValueWithConditions(dict):
 
         Means that the variable is set to 6 if paral_kgb == 1 else 2
     """
+
     def __repr__(self):
-        s = ''
+        s = ""
         for key in self:
-            if key != 'defaultval':
-                s += str(self[key]) + ' if ' + str(key) + ',\n'
-        s += str(self["defaultval"]) + ' otherwise.\n'
+            if key != "defaultval":
+                s += str(self[key]) + " if " + str(key) + ",\n"
+        s += str(self["defaultval"]) + " otherwise.\n"
         return s
 
     def __str__(self):
         return self.__repr__()
 
 
-class MultipleValue(object):
+class MultipleValue:
     """
     Used for variables that can assume multiple values.
     This is the equivalent to the X * Y syntax in the Abinit parser.
     If X is null, it means that you want to do ``*Y`` (all Y)
     """
+
     def __init__(self, number=None, value=None):
+        """Initialize the object with number and value."""
         self.number = number
         self.value = value
 
     def __repr__(self):
         if self.number is None:
             return "*" + str(self.value)
-        else:
-            return str(self.number) + " * " + str(self.value)
+        return str(self.number) + " * " + str(self.value)
+
 
 def my_unicode(s):
     """Convert string to unicode (needed for py2.7 DOH!)"""
     return unicode(s) if sys.version_info[0] <= 2 else str(s)
+
 
 ##############
 # Public API #
@@ -695,13 +728,15 @@ def my_unicode(s):
 
 _VARS = None
 
+
 def get_codevars():
     """
     Return the database of variables indexed by code name and cache it.
     Main entry point for client code.
     """
     global _VARS
-    if _VARS is None: _VARS = VarDatabase.from_pyfiles()
+    if _VARS is None:
+        _VARS = VarDatabase.from_pyfiles()
     return _VARS
 
 
@@ -722,8 +757,9 @@ class VarDatabase(OrderedDict):
         """
         if dirpath is None:
             dirpath = os.path.dirname(os.path.abspath(__file__))
-        pyfiles = [os.path.join(dirpath, f) for f in os.listdir(dirpath) if
-                   f.startswith("variables_") and f.endswith(".py")]
+        pyfiles = [
+            os.path.join(dirpath, f) for f in os.listdir(dirpath) if f.startswith("variables_") and f.endswith(".py")
+        ]
         new = cls()
         for pyf in pyfiles:
             vd = InputVariables.from_pyfile(pyf)
@@ -753,7 +789,7 @@ class VarDatabase(OrderedDict):
             for vname, var in var.items():
                 # This is the internal convention used to build the mkdocs site.
                 d[vname] = "/variables/%s/%s#%s" % (codename, var.varset, var.name)
-	# TODO: version and change mkdocs.yml
+        # TODO: version and change mkdocs.yml
         return version, code_urls
 
     def update_json_endpoints(self, json_path, indent=4):
@@ -761,13 +797,13 @@ class VarDatabase(OrderedDict):
         Update the json file with the mapping varname --> relative url
         used by the webserve to implement the `vardocs` API.
         """
-        with open(json_path, "rt") as fh:
+        with open(json_path) as fh:
             oldd = json.load(fh)
 
         new_version, newd = self.get_version_endpoints()
         assert new_version not in oldd
         oldd[new_version] = newd
-        with open(json_path, "wt") as fh:
+        with open(json_path, "w") as fh:
             json.dump(oldd, fh, indent=indent)
 
     def _write_pymods(self, dirpath="."):
@@ -776,19 +812,22 @@ class VarDatabase(OrderedDict):
         """
         dirpath = os.path.abspath(dirpath)
         from pprint import pformat
+
         def nones2arg(obj, must_be_string=False):
             if obj is None:
                 if must_be_string:
                     raise TypeError("obj must be string.")
                 return None
-            elif isinstance(obj, str):
+            if isinstance(obj, str):
                 s = str(obj).rstrip()
-                if "\n" in s: return '"""%s"""' % s
-                if "'" in s: return '"%s"' % s
-                if '"' in s: return "'%s'" % s
+                if "\n" in s:
+                    return '"""%s"""' % s
+                if "'" in s:
+                    return '"%s"' % s
+                if '"' in s:
+                    return "'%s'" % s
                 return '"%s"' % s
-            else:
-                raise TypeError("%s: %s" % (type(obj), str(obj)))
+            raise TypeError("%s: %s" % (type(obj), str(obj)))
 
         def topics2arg(obj):
             if isinstance(obj, str):
@@ -796,39 +835,47 @@ class VarDatabase(OrderedDict):
                     obj = [s.strip() for s in obj.split(",")]
                 else:
                     obj = [obj]
-            if isinstance(obj, (list, tuple)): return pformat(obj)
+            if isinstance(obj, (list, tuple)):
+                return pformat(obj)
 
             raise TypeError("%s: %s" % (type(obj), str(obj)))
 
         def dimensions2arg(obj):
-            if isinstance(obj, str) and obj == "scalar": return '"scalar"'
+            if isinstance(obj, str) and obj == "scalar":
+                return '"scalar"'
             if isinstance(obj, (ValueWithUnit, MultipleValue, Range, ValueWithConditions)):
                 return "%s(%s)" % (obj.__class__.__name__, pformat(obj.__dict__))
-            if isinstance(obj, (list, tuple)): return pformat(obj)
+            if isinstance(obj, (list, tuple)):
+                return pformat(obj)
 
             raise TypeError("%s, %s" % (type(obj), str(obj)))
 
         def defaultval2arg(obj):
-            if obj is None: return obj
+            if obj is None:
+                return obj
             if isinstance(obj, (ValueWithUnit, MultipleValue, Range, ValueWithConditions)):
                 return "%s(%s)" % (obj.__class__.__name__, pformat(obj.__dict__))
-            if isinstance(obj, (list, tuple)): return pformat(obj)
-            if isinstance(obj, str): return '"%s"' % str(obj)
-            if isinstance(obj, (int, float)): return obj
+            if isinstance(obj, (list, tuple)):
+                return pformat(obj)
+            if isinstance(obj, str):
+                return '"%s"' % str(obj)
+            if isinstance(obj, (int, float)):
+                return obj
 
             raise TypeError("%s, %s" % (type(obj), str(obj)))
 
         for code in self:
             varsd = self[code]
 
-            lines = ["""\
+            lines = [
+                """\
 from __future__ import print_function, division, unicode_literals, absolute_import
 
 from abimkdocs.variables import ValueWithUnit, MultipleValue, Range
 ValueWithConditions = dict
 
 Variable=dict\nvariables = ["""
-]
+            ]
             for name in sorted(varsd.keys()):
                 var = varsd[name]
                 text = '"""\n' + var.text.rstrip() + '\n"""'
@@ -850,29 +897,28 @@ Variable(
     alternative_name=None,
     text={text},
 ),
-""".format(vartype='"%s"' % var.vartype,
-          characteristics=None if var.characteristics is None else pformat(var.characteristics),
-          mnemonics=nones2arg(var.mnemonics, must_be_string=True),
-          requires=nones2arg(var.requires),
-          excludes=nones2arg(var.excludes),
-          dimensions=dimensions2arg(var.dimensions),
-          varset='"%s"' % var.varset,
-          abivarname='"%s"' % var.abivarname,
-          commentdefault=nones2arg(var.commentdefault),
-          topics=topics2arg(var.topics),
-          commentdims=nones2arg(var.commentdims),
-          defaultval=defaultval2arg(var.defaultval),
-	  added_in_version=var.added_in_version,
-	  alternative_name=var.alternative_name,
-          text=text,
-          )
+""".format(
+                    vartype='"%s"' % var.vartype,
+                    characteristics=None if var.characteristics is None else pformat(var.characteristics),
+                    mnemonics=nones2arg(var.mnemonics, must_be_string=True),
+                    requires=nones2arg(var.requires),
+                    excludes=nones2arg(var.excludes),
+                    dimensions=dimensions2arg(var.dimensions),
+                    varset='"%s"' % var.varset,
+                    abivarname='"%s"' % var.abivarname,
+                    commentdefault=nones2arg(var.commentdefault),
+                    topics=topics2arg(var.topics),
+                    commentdims=nones2arg(var.commentdims),
+                    defaultval=defaultval2arg(var.defaultval),
+                    text=text,
+                )
 
                 lines.append(s)
-                #print(s)
+                # print(s)
 
             lines.append("]")
             # Write file
-            with open(os.path.join(dirpath, "variables_%s.py" % code), "wt") as fh:
+            with open(os.path.join(dirpath, "variables_%s.py" % code), "w") as fh:
                 fh.write("\n".join(lines))
                 fh.write("\n")
 
@@ -883,14 +929,16 @@ class InputVariables(OrderedDict):
 
     .. attributes:
 
-	executable: Name of executable e.g. anaddb
+    executable: Name of executable e.g. anaddb
     """
+
     @classmethod
     def from_pyfile(cls, filepath):
         """Initialize the object from python file."""
-        #import imp
-        #module = imp.load_source(filepath, filepath)
+        # import imp
+        # module = imp.load_source(filepath, filepath)
         from importlib.machinery import SourceFileLoader
+
         module = SourceFileLoader(filepath, filepath).load_module()
 
         vlist = [Variable(**d) for d in module.variables]
@@ -928,7 +976,8 @@ class InputVariables(OrderedDict):
         """
         doc_vnames = []
         for name, var in self.items():
-            if not with_internal and var.is_internal: continue
+            if not with_internal and var.is_internal:
+                continue
             doc_vnames.append(name)
             if var.alternative_name is not None:
                 doc_vnames.append(var.alternative_name)
@@ -981,7 +1030,7 @@ class InputVariables(OrderedDict):
         Group a list of variable in sections.
 
         Args:
-	    names: string or list of strings with ABINIT variable names.
+        names: string or list of strings with ABINIT variable names.
 
         Return:
             Ordered dict mapping section_name to the list of variable names belonging to the section.
@@ -993,9 +1042,11 @@ class InputVariables(OrderedDict):
             try:
                 sec = self.name2varset[name]
                 d[sec].append(name)
-            except KeyError as exc:
-                msg = ("`%s` is not a registered variable of code `%s`.\nPerhaps you are using an old " +
-                       "version of the database with a more recent Abinit?") % (name, self.executable)
+            except KeyError:
+                msg = (
+                    "`%s` is not a registered variable of code `%s`.\nPerhaps you are using an old "
+                    "version of the database with a more recent Abinit?"
+                ) % (name, self.executable)
                 raise KeyError(msg)
 
         return OrderedDict([(sec, d[sec]) for sec in self.my_varset_list if d[sec]])
@@ -1004,10 +1055,12 @@ class InputVariables(OrderedDict):
         """Return the list of :class:`Variable` objects that are related` to the given varname"""
         var_list = []
         for v in self.values():
-            if (v.text and varname in v.text or
-               (v.dimensions is not None and varname in str(v.dimensions)) or
-               (v.requires is not None and varname in v.requires) or
-               (v.excludes is not None and varname in v.excludes)):
+            if (
+                (v.text and varname in v.text)
+                or (v.dimensions is not None and varname in str(v.dimensions))
+                or (v.requires is not None and varname in v.requires)
+                or (v.excludes is not None and varname in v.excludes)
+            ):
                 var_list.append(v)
 
         return var_list
@@ -1026,7 +1079,9 @@ class InputVariables(OrderedDict):
         if not varlist:
             # Preventive check because someone may change the Abinit varset
             # thus breaking client code.
-            raise ValueError("Empty varlist. Maybe someone changed varset again or wrong names in sections. %s" % str(sections))
+            raise ValueError(
+                "Empty varlist. Maybe someone changed varset again or wrong names in sections. %s" % str(sections)
+            )
 
         return varlist
 
@@ -1038,7 +1093,8 @@ class InputVariables(OrderedDict):
         chars = ["[[" + c + "]]" for c in list_strings(chars)]
         varlist = []
         for v in self.values():
-            if v.characteristics is None: continue
+            if v.characteristics is None:
+                continue
             if any(c in v.characteristics for c in chars):
                 varlist.append(v)
 
@@ -1061,17 +1117,19 @@ class InputVariables(OrderedDict):
 
         # https://www.graphviz.org/doc/info/
         from graphviz import Digraph
+
         graph = Digraph("task", engine="dot" if engine == "automatic" else engine)
-        #graph.attr(label=repr(var))
-        #graph.node_attr.update(color='lightblue2', style='filled')
-        #cluster_kwargs = dict(rankdir="LR", pagedir="BL", style="rounded", bgcolor="azure2")
+        # graph.attr(label=repr(var))
+        # graph.node_attr.update(color='lightblue2', style='filled')
+        # cluster_kwargs = dict(rankdir="LR", pagedir="BL", style="rounded", bgcolor="azure2")
 
         # These are the default attrs for graphviz
         default_graph_attr = {
-            'rankdir': 'LR',
+            "rankdir": "LR",
             #'size': "8.0, 12.0",
         }
-        if graph_attr is None: graph_attr = default_graph_attr
+        if graph_attr is None:
+            graph_attr = default_graph_attr
 
         default_node_attr = {
             #'shape': 'box',
@@ -1081,13 +1139,15 @@ class InputVariables(OrderedDict):
             #            'Arial, Helvetica, sans"',
             #'style': '"setlinewidth(0.5)"',
         }
-        if node_attr is None: node_attr = default_node_attr
+        if node_attr is None:
+            node_attr = default_node_attr
 
         default_edge_attr = {
             #'arrowsize': '0.5',
             #'style': '"setlinewidth(0.5)"',
         }
-        if edge_attr is None: edge_attr = default_edge_attr
+        if edge_attr is None:
+            edge_attr = default_edge_attr
 
         # Add input attributes.
         graph.graph_attr.update(**graph_attr)
@@ -1099,7 +1159,7 @@ class InputVariables(OrderedDict):
                 shape="box",
                 fontsize="10",
                 height="0.25",
-                #color=var.color_hex,
+                # color=var.color_hex,
                 label=str(var),
                 URL=var.website_url,
                 target="_top",
@@ -1112,26 +1172,30 @@ class InputVariables(OrderedDict):
         for parent in var.get_parent_names():
             parent = self[parent]
             graph.node(parent.name, **node_kwargs(parent))
-            graph.edge(parent.name, var.name, **edge_kwargs) #, label=edge_label, color=self.color_hex
+            graph.edge(parent.name, var.name, **edge_kwargs)  # , label=edge_label, color=self.color_hex
 
         with_children = True
-        if with_children: # > threshold
+        if with_children:  # > threshold
             # Connect task to children.
             for oname, ovar in self.items():
-                if oname == varname: continue
-                if varname not in ovar.get_parent_names(): continue
+                if oname == varname:
+                    continue
+                if varname not in ovar.get_parent_names():
+                    continue
                 graph.node(ovar.name, **node_kwargs(ovar))
-                graph.edge(var.name, ovar.name, **edge_kwargs) #, label=edge_label, color=self.color_hex
+                graph.edge(var.name, ovar.name, **edge_kwargs)  # , label=edge_label, color=self.color_hex
 
         return graph
 
-    def get_graphviz(self, varset=None, vartype=None, engine="automatic", graph_attr=None, node_attr=None, edge_attr=None):
+    def get_graphviz(
+        self, varset=None, vartype=None, engine="automatic", graph_attr=None, node_attr=None, edge_attr=None
+    ):
         """
         Generate graph in the DOT language (only parents and children of this task).
 
         Args:
             varset: Select variables with this `varset`. Include all if None
-	    vartype: Select variables with this `vartype`. Include all
+            vartype: Select variables with this `vartype`. Include all if None.
             engine: ['dot', 'neato', 'twopi', 'circo', 'fdp', 'sfdp', 'patchwork', 'osage']
             graph_attr: Mapping of (attribute, value) pairs for the graph.
             node_attr: Mapping of (attribute, value) pairs set for all nodes.
@@ -1141,17 +1205,19 @@ class InputVariables(OrderedDict):
         """
         # https://www.graphviz.org/doc/info/
         from graphviz import Digraph
+
         graph = Digraph("task", engine="dot" if engine == "automatic" else engine)
-        #graph.attr(label=repr(var))
-        #graph.node_attr.update(color='lightblue2', style='filled')
-        #cluster_kwargs = dict(rankdir="LR", pagedir="BL", style="rounded", bgcolor="azure2")
+        # graph.attr(label=repr(var))
+        # graph.node_attr.update(color='lightblue2', style='filled')
+        # cluster_kwargs = dict(rankdir="LR", pagedir="BL", style="rounded", bgcolor="azure2")
 
         # These are the default attrs for graphviz
         default_graph_attr = {
-            'rankdir': 'LR',
+            "rankdir": "LR",
             #'size': "8.0, 12.0",
         }
-        if graph_attr is None: graph_attr = default_graph_attr
+        if graph_attr is None:
+            graph_attr = default_graph_attr
 
         default_node_attr = {
             #'shape': 'box',
@@ -1161,13 +1227,15 @@ class InputVariables(OrderedDict):
             #            'Arial, Helvetica, sans"',
             #'style': '"setlinewidth(0.5)"',
         }
-        if node_attr is None: node_attr = default_node_attr
+        if node_attr is None:
+            node_attr = default_node_attr
 
         default_edge_attr = {
             #'arrowsize': '0.5',
             #'style': '"setlinewidth(0.5)"',
         }
-        if edge_attr is None: edge_attr = default_edge_attr
+        if edge_attr is None:
+            edge_attr = default_edge_attr
 
         # Add input attributes.
         graph.graph_attr.update(**graph_attr)
@@ -1179,7 +1247,7 @@ class InputVariables(OrderedDict):
                 shape="box",
                 fontsize="10",
                 height="0.25",
-                #color=var.color_hex,
+                # color=var.color_hex,
                 label=str(var),
                 URL=var.website_url,
                 target="_top",
@@ -1190,21 +1258,25 @@ class InputVariables(OrderedDict):
         with_children = False
 
         for name, var in self.items():
-            if vartype is not None and var.vartype != vartype: continue
-            if varset is not None and var.varset != varset: continue
+            if vartype is not None and var.vartype != vartype:
+                continue
+            if varset is not None and var.varset != varset:
+                continue
 
             graph.node(var.name, **node_kwargs(var))
             for parent in var.get_parent_names():
                 parent = self[parent]
                 graph.node(parent.name, **node_kwargs(parent))
-                graph.edge(parent.name, var.name, **edge_kwargs) #, label=edge_label, color=self.color_hex
+                graph.edge(parent.name, var.name, **edge_kwargs)  # , label=edge_label, color=self.color_hex
 
-            if with_children: # > threshold
+            if with_children:  # > threshold
                 # Connect task to children.
                 for oname, ovar in self.items():
-                    if oname == varname: continue
-                    if varname not in ovar.get_parent_names(): continue
+                    if oname == varname:
+                        continue
+                    if varname not in ovar.get_parent_names():
+                        continue
                     graph.node(ovar.name, **node_kwargs(ovar))
-                    graph.edge(var.name, ovar.name, **edge_kwargs) #, label=edge_label, color=self.color_hex
+                    graph.edge(var.name, ovar.name, **edge_kwargs)  # , label=edge_label, color=self.color_hex
 
         return graph

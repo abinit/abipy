@@ -13,12 +13,11 @@ overestimate the lattice parameters and ecut is way too low.
 If you replace GGA with LDA, you will observe that LDA tends to underestimate the parameters.
 """
 
-import sys
 import os
+import sys
 
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
 import abipy.data as abidata
+from abipy import abilab, flowtk
 
 
 def relax_input(tsmear, nksmall):
@@ -27,9 +26,10 @@ def relax_input(tsmear, nksmall):
     at fixed number of k-points and broadening.
     Similar to tbase4_1.in with minor modifications.
     """
-    #structure = abilab.Structure.fcc()
-    inp = abilab.AbinitInput(structure=abidata.ucells.structure_from_ucell("Al"),
-                             pseudos=abidata.pseudos("13al.981214.fhi"))
+    # structure = abilab.Structure.fcc()
+    inp = abilab.AbinitInput(
+        structure=abidata.ucells.structure_from_ucell("Al"), pseudos=abidata.pseudos("13al.981214.fhi")
+    )
 
     # Define k-point sampling.
     # nshiftk and shift are automatically selected from the lattice and the number of divisions
@@ -49,7 +49,7 @@ def relax_input(tsmear, nksmall):
         tsmear=tsmear,
         toldfe=1e-6,
         nstep=10,
-        optcell=1,    # Optimization of the lattice parameters
+        optcell=1,  # Optimization of the lattice parameters
         ionmov=2,
         ntime=10,
         dilatmx=1.05,
@@ -75,6 +75,7 @@ def build_flow(options):
     nksmall_list = (2, 4, 6)
 
     from itertools import product
+
     inputs = [relax_input(tsmear, nksmall) for tsmear, nksmall in product(tsmear_list, nksmall_list)]
 
     # Build flow form inputs.
@@ -93,6 +94,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 
@@ -128,7 +130,7 @@ if __name__ == "__main__":
 #
 # .. code-block:: bash
 #
-#	abirun.py flow_relax_vs_kpts_tsmear robot GSR
+# abirun.py flow_relax_vs_kpts_tsmear robot GSR
 #
 # to create a GSR robot for all the tasks in the flow and open an ipyton shell.
 #
@@ -136,12 +138,12 @@ if __name__ == "__main__":
 #
 # .. code-block:: ipython
 #
-#	 In [1]: %matplotlib
-#	 In [2]: df = robot.get_dataframe()
-#	 # Let's do some math with pandas to retrieve the Abinit acell from the a lattice parameter given in Ang.
-#	 In [3]: import math
-#	 In [4]: from abipy import abilab
-#	 In [5]: df["acell"] = df["a"] * math.sqrt(2) * abilab.units.ang_to_bohr
+# In [1]: %matplotlib
+# In [2]: df = robot.get_dataframe()
+# # Let's do some math with pandas to retrieve the Abinit acell from the a lattice parameter given in Ang.
+# In [3]: import math
+# In [4]: from abipy import abilab
+# In [5]: df["acell"] = df["a"] * math.sqrt(2) * abilab.units.ang_to_bohr
 
 #        In [7]: df["acell"]
 #        Out[7]:
@@ -160,7 +162,7 @@ if __name__ == "__main__":
 #        Name: acell, dtype: float64
 #
 #        # to plot the optimized acell vs nkpt for the different values of tsmear, use:
-#	 In [6]: robot.plot_xy_with_hue(df, "nkpt", "acell", hue="tsmear")
+# In [6]: robot.plot_xy_with_hue(df, "nkpt", "acell", hue="tsmear")
 #
 # .. image:: https://github.com/abinit/abipy_assets/blob/master/run_relax_vs_kpts_tsmear.png?raw=true
 #    :alt: optimized acell as function of nkpt and tsmear

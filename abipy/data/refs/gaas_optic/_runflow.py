@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 """Optical spectra with Optic."""
-from __future__ import print_function, division, unicode_literals, absolute_import
 
-import sys
 import os
+import sys
+
 import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def build_flow(options, paral_kgb=0):
@@ -20,14 +19,12 @@ def build_flow(options, paral_kgb=0):
     if not options.workdir:
         workdir = os.path.basename(__file__).replace(".py", "").replace("run_", "flow_")
 
-    multi = abilab.MultiDataset(structure=abidata.structure_from_ucell("GaAs"),
-                                pseudos=abidata.pseudos("31ga.pspnc", "33as.pspnc"), ndtset=2)
+    multi = abilab.MultiDataset(
+        structure=abidata.structure_from_ucell("GaAs"), pseudos=abidata.pseudos("31ga.pspnc", "33as.pspnc"), ndtset=2
+    )
 
     # Usa same shifts in all tasks.
-    shiftk= [[0.5, 0.5, 0.5],
-             [0.5, 0.0, 0.0],
-             [0.0, 0.5, 0.0],
-             [0.0, 0.0, 0.5]]
+    shiftk = [[0.5, 0.5, 0.5], [0.5, 0.0, 0.0], [0.0, 0.5, 0.0], [0.0, 0.0, 0.5]]
 
     # Global variables.
     multi.set_vars(ecut=2, paral_kgb=paral_kgb)
@@ -37,7 +34,7 @@ def build_flow(options, paral_kgb=0):
     multi[0].set_kmesh(ngkpt=[4, 4, 4], shiftk=shiftk)
 
     # NSCF run on k-path with large number of bands
-    multi[1].set_vars(iscf=-2, nband=20, tolwfr=1.e-9)
+    multi[1].set_vars(iscf=-2, nband=20, tolwfr=1.0e-9)
     multi[1].set_kpath(ndivsm=10)
 
     # Initialize the flow.
@@ -50,17 +47,17 @@ def build_flow(options, paral_kgb=0):
 
     # Build OpticInput used to compute optical properties.
     optic_input = abilab.OpticInput(
-        broadening=0.002,          # Value of the smearing factor, in Hartree
-        domega=0.0003,             # Frequency mesh.
+        broadening=0.002,  # Value of the smearing factor, in Hartree
+        domega=0.0003,  # Frequency mesh.
         maxomega=0.3,
-        scissor=0.000,             # Scissor shift if needed, in Hartree
-        tolerance=0.002,           # Tolerance on closeness of singularities (in Hartree)
-        num_lin_comp=2,            # Number of components of linear optic tensor to be computed
-        lin_comp=(11, 33),         # Linear coefficients to be computed (x=1, y=2, z=3)
-        num_nonlin_comp=2,         # Number of components of nonlinear optic tensor to be computed
-        nonlin_comp=(123, 222),    # Non-linear coefficients to be computed
-        num_linel_comp=1,          # Number of components of LEO tensor to be computed
-        linel_comp=(123),          # Non-linear coefficients to be computed
+        scissor=0.000,  # Scissor shift if needed, in Hartree
+        tolerance=0.002,  # Tolerance on closeness of singularities (in Hartree)
+        num_lin_comp=2,  # Number of components of linear optic tensor to be computed
+        lin_comp=(11, 33),  # Linear coefficients to be computed (x=1, y=2, z=3)
+        num_nonlin_comp=2,  # Number of components of nonlinear optic tensor to be computed
+        nonlin_comp=(123, 222),  # Non-linear coefficients to be computed
+        num_linel_comp=1,  # Number of components of LEO tensor to be computed
+        linel_comp=(123),  # Non-linear coefficients to be computed
     )
 
     # ddk_nband is fixed here, in principle it depends on nelect and the frequency range in chi(w).
@@ -76,8 +73,9 @@ def build_flow(options, paral_kgb=0):
         flow.register_work(ddks_work)
 
         # Build optic task to compute chi with this value of ddk_ngkpt.
-        optic_task = flowtk.OpticTask(optic_input, nscf_node=ddks_work.task_with_ks_energies,
-                                      ddk_nodes=ddks_work.ddk_tasks, use_ddknc=False)
+        optic_task = flowtk.OpticTask(
+            optic_input, nscf_node=ddks_work.task_with_ks_energies, ddk_nodes=ddks_work.ddk_tasks, use_ddknc=False
+        )
         ddks_work.register_task(optic_task)
 
     return flow
@@ -90,11 +88,12 @@ def main(options):
 
 if __name__ == "__main__":
     retcode = main()
-    if retcode != 0: sys.exit(retcode)
+    if retcode != 0:
+        sys.exit(retcode)
 
     rename_table = [
         #  src, dest
-        #"_runflow/w0/t1/outdata/out_GSR.nc",
+        # "_runflow/w0/t1/outdata/out_GSR.nc",
         ("_runflow/w1/t4/outdata/out_OPTIC.nc", "gaas_444_OPTIC.nc"),
         ("_runflow/w2/t4/outdata/out_OPTIC.nc", "gaas_888_OPTIC.nc"),
         ("_runflow/w3/t4/outdata/out_OPTIC.nc", "gaas_121212_OPTIC.nc"),
@@ -103,8 +102,9 @@ if __name__ == "__main__":
         ("_runflow/w1/t3/outdata/out_DDK.nc", "gaas_444_dir3_DDK.nc"),
     ]
     import shutil
+
     for old, new in rename_table:
         shutil.copyfile(old, new)
 
-    #shutil.rmtree("_runflow")
+    # shutil.rmtree("_runflow")
     sys.exit(0)

@@ -1,18 +1,19 @@
-# coding: utf-8
 """Interface to the abitk Fortran executable."""
+
 from __future__ import annotations
 
 import os
 import tempfile
-import numpy as np
-
 from functools import cached_property
+
+import numpy as np
 from monty.string import marquee
-from abipy.tools.numtools import is_diagonal
+
 from abipy.core.mixins import AbinitNcFile, Has_Structure
 from abipy.core.structure import Structure
 from abipy.electrons.ebands import ElectronsReader
 from abipy.flowtk.wrappers import Abitk
+from abipy.tools.numtools import is_diagonal
 
 
 class KmeshFile(AbinitNcFile, Has_Structure):
@@ -37,21 +38,24 @@ class KmeshFile(AbinitNcFile, Has_Structure):
         nshifk = len(shifts)
 
         def s(numbers):
-            return ', '.join(str(n) for n in np.array(numbers).flatten())
+            return ", ".join(str(n) for n in np.array(numbers).flatten())
 
         import shutil
+
         workdir = tempfile.mkdtemp()
         base = os.path.basename(ncpath_with_structure)
         target_path = os.path.join(workdir, base)
         shutil.copy(ncpath_with_structure, os.path.join(workdir, base))
-        #print("workdir", workdir)
+        # print("workdir", workdir)
 
-        exec_args = ["ibz", ncpath_with_structure,
-                     f"--ngkpt {s(ngkpt)}",
-                     f"--shiftk {s(shiftk)}",
-                     f"--kptopt {kptopt}",
-                     f"--chksymbreak {chksymbreak}"
-                    ]
+        exec_args = [
+            "ibz",
+            ncpath_with_structure,
+            f"--ngkpt {s(ngkpt)}",
+            f"--shiftk {s(shiftk)}",
+            f"--kptopt {kptopt}",
+            f"--chksymbreak {chksymbreak}",
+        ]
         abitk = Abitk(verbose=verbose)
         abitk.run(exec_args, workdir=workdir)
 
@@ -63,6 +67,7 @@ class KmeshFile(AbinitNcFile, Has_Structure):
         return cls(filepath)
 
     def __init__(self, filepath: str):
+        """Initialize the object from a file path."""
         super().__init__(filepath)
         self.r = r = ElectronsReader(filepath)
 
@@ -71,8 +76,8 @@ class KmeshFile(AbinitNcFile, Has_Structure):
         self.nkbz = r.read_dimvalue("nkbz")
 
         # Read IBZ, IBZ
-        #self.old_kptrlatt = r.read_value("kptrlatt")
-        #self.old_shiftk = r.read_value("shiftk")
+        # self.old_kptrlatt = r.read_value("kptrlatt")
+        # self.old_shiftk = r.read_value("shiftk")
         self.kptrlatt = r.read_value("new_kptrlatt")
         self.shiftk = r.read_value("new_shiftk")
 
@@ -87,6 +92,7 @@ class KmeshFile(AbinitNcFile, Has_Structure):
         self.bz2ibz[1] -= 1
 
     def ngkpt_and_shifts(self):
+        """Return k-mesh divisions and shifts."""
         ngkpt = None if not is_diagonal(self.kptrlatt) else np.diag(self.kptrlatt)
         return ngkpt, self.shiftk
 
@@ -97,6 +103,7 @@ class KmeshFile(AbinitNcFile, Has_Structure):
 
     @cached_property
     def params(self) -> dict:
+        """Dictionary with parameters that might be subject to convergence studies."""
         return {}
 
     def close(self) -> None:
@@ -109,7 +116,8 @@ class KmeshFile(AbinitNcFile, Has_Structure):
 
     def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level verbose."""
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
 
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))

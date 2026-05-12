@@ -1,31 +1,31 @@
-""""Basic tools and mixin classes for AbiPy panels."""
+"""Basic tools and mixin classes for AbiPy panels."""
+
 from __future__ import annotations
 
-import io
-import sys
-import tempfile
 import functools
+import io
+import shutil
+import tempfile
 import textwrap
 import time
 import traceback
-import shutil
-import param
+from functools import cached_property
+
+import bokeh.models.widgets as bkw
 import numpy as np
 import pandas as pd
-import bokeh.models.widgets as bkw
 import panel as pn
 import panel.widgets as pnw
-
-from functools import cached_property
+import param
 from monty.termcolor import cprint
+
 from abipy.core import abinit_units as abu
 from abipy.core.structure import Structure
-from abipy.tools.plotting import push_to_chart_studio
 from abipy.tools.decorators import Appender
-
-from abipy.tools.plotting import mpl_to_ply
+from abipy.tools.plotting import mpl_to_ply, push_to_chart_studio
 
 _ABINIT_TEMPLATE_NAME = "FastList"
+
 
 def set_abinit_template(template_name: str):
     global _ABINIT_TEMPLATE_NAME
@@ -33,24 +33,24 @@ def set_abinit_template(template_name: str):
 
 
 def get_abinit_template_cls_kwds() -> tuple:
-    cls =  get_template_cls_from_name(_ABINIT_TEMPLATE_NAME)
-    kwds = dict(header_background="#ff8c00", # Dark orange
-                favicon="/assets/img/abinit_favicon.ico",
-                logo="/assets/img/abipy_logo.png", # TODO: Need new panel version to fix logo alignment in FastLIst.
-                #sidebar_footer (str): Can be used to insert additional HTML.
-                #                      For example a menu, some additional info, links etc.
-                #enable_theme_toggle=False,  # If True a switch to toggle the Theme is shown. Default is True.
-                )
+    cls = get_template_cls_from_name(_ABINIT_TEMPLATE_NAME)
+    kwds = dict(
+        header_background="#ff8c00",  # Dark orange
+        favicon="/assets/img/abinit_favicon.ico",
+        logo="/assets/img/abipy_logo.png",  # TODO: Need new panel version to fix logo alignment in FastLIst.
+        # sidebar_footer (str): Can be used to insert additional HTML.
+        #                      For example a menu, some additional info, links etc.
+        # enable_theme_toggle=False,  # If True a switch to toggle the Theme is shown. Default is True.
+    )
 
     return cls, kwds
 
 
 def open_html(html_string: str, browser: str = None) -> None:
-    """
-    Open a string with an HTML document in browser.
-    """
+    """Open a string with an HTML document in browser."""
     import tempfile
     import webbrowser
+
     with tempfile.NamedTemporaryFile(mode="wt", suffix=".html", delete=False) as tmpfile:
         tmpfile.write(html_string)
         webbrowser.get(browser).open_new_tab(f"file://{tmpfile.name}")
@@ -71,57 +71,59 @@ def abipanel(panel_template: str = "FastList"):
 
     set_abinit_template(panel_template)
 
-    #pn.extension(loading_spinner='dots', loading_color='#00aa41')
+    # pn.extension(loading_spinner='dots', loading_color='#00aa41')
 
     pn.extension(notifications=True)
-    #pn.config.notifications = True
-    #pn.state.notifications.position = 'top-right'
+    # pn.config.notifications = True
+    # pn.state.notifications.position = 'top-right'
 
     extensions = [
         "plotly",
-        #"katex",
+        # "katex",
         "mathjax",
         "terminal",
         "tabulator",
-        "ace",   # NB: This enters in conflict with Abipy Book
-        #"gridstack",
-        #"ipywidgets",
+        "ace",  # NB: This enters in conflict with Abipy Book
+        # "gridstack",
+        # "ipywidgets",
     ]
 
     css_files = [
         # FIXME
-        #pn.io.resources.CSS_URLS['font-awesome'],
+        # pn.io.resources.CSS_URLS['font-awesome'],
     ]
 
-    #pn.extension(loading_spinner='petal', loading_color='#00aa41')
-    #print("loading extensions:", extensions)
+    # pn.extension(loading_spinner='petal', loading_color='#00aa41')
+    # print("loading extensions:", extensions)
 
-    #import os
-    #abipy_css = os.path.join(os.path.dirname(__file__), "assets", "css", "abipy.css")
+    # import os
+    # abipy_css = os.path.join(os.path.dirname(__file__), "assets", "css", "abipy.css")
 
-    pn.extension(*extensions, css_files=css_files) #, css_files=[abipy_css])
-    #pn.extension(template='fast', theme='dark')
+    pn.extension(*extensions, css_files=css_files)  # , css_files=[abipy_css])
+    # pn.extension(template='fast', theme='dark')
 
-    pn.config.js_files.update({
-        # This for copy to clipboard.
-        "clipboard": "https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js",
-        # This for the jsmol viewer.
-        "jsmol": "https://chemapps.stolaf.edu/jmol/jsmol/JSmol.min.js",
-    })
+    pn.config.js_files.update(
+        {
+            # This for copy to clipboard.
+            "clipboard": "https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js",
+            # This for the jsmol viewer.
+            "jsmol": "https://chemapps.stolaf.edu/jmol/jsmol/JSmol.min.js",
+        }
+    )
 
-    #pn.extension('ipywidgets')
+    # pn.extension('ipywidgets')
 
-    #pn.config.js_files.update({
+    # pn.config.js_files.update({
     #    'ngl': 'https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js',
-    #})
-    #pn.extension(comms='ipywidgets')
-    #pn.config.sizing_mode = "stretch_width"
+    # })
+    # pn.extension(comms='ipywidgets')
+    # pn.config.sizing_mode = "stretch_width"
 
-    #pn.config.css_files.extend([
+    # pn.config.css_files.extend([
     #    "https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css",
-    #])
+    # ])
 
-    #css = """
+    # css = """
     #    .pnx-file-upload-area input[type=file] {
     #        width: 100%;
     #        height: 100%;
@@ -131,10 +133,10 @@ def abipanel(panel_template: str = "FastList"):
     #        text-align: left;
     #        margin: auto;
     #    }
-    #"""
+    # """
 
-    #css = open(abipy_css, "rt").read()
-    #pn.config.raw_css.append(css)
+    # css = open(abipy_css, "rt").read()
+    # pn.config.raw_css.append(css)
 
     return pn
 
@@ -148,12 +150,12 @@ def gen_id(n: int = 1, pre: str = "uuid-"):
     # ID and NAME tokens must begin with a letter ([A-Za-z]) and may be followed by any number of letters,
     # digits ([0-9]), hyphens ("-"), underscores ("_"), colons (":"), and periods (".").
     import uuid
+
     if n == 1:
         return pre + str(uuid.uuid4())
-    elif n > 1:
+    if n > 1:
         return [pre + str(uuid.uuid4()) for i in range(n)]
-    else:
-        raise ValueError("n must be > 0 but got %s" % str(n))
+    raise ValueError("n must be > 0 but got %s" % str(n))
 
 
 def get_template_cls_from_name(name: str):
@@ -175,20 +177,22 @@ Possible templates are: {list(pn.template.__dict__.keys())}
 """)
 
 
-add_mp_rest_docstring = Appender("""
+add_mp_rest_docstring = Appender(
+    """
 NB: Requires a String API key for accessing the MaterialsProject REST interface.
 Please apply on the Materials Project website for one.
 If this is None, the code will check if there is a `PMG_MAPI_KEY` in your .pmgrc.yaml.
 If so, it will use that environment
 This makes easier for heavy users to simply add this environment variable to their setups and MPRester can
 then be called without any arguments.
-""", indents=0)
+""",
+    indents=0,
+)
 
 
-def depends_on_btn_click(btn_name: str,
-                         show_doc: bool = True,
-                         show_shared_wdg_warning: bool = True,
-                         show_exc: bool = True):
+def depends_on_btn_click(
+    btn_name: str, show_doc: bool = True, show_shared_wdg_warning: bool = True, show_exc: bool = True
+):
     """
     This decorator is used for callbacks triggered by a button of name `btn_name`
 
@@ -198,6 +202,7 @@ def depends_on_btn_click(btn_name: str,
         show_shared_warning:
         show_exc: If True, a Markdown pane with the backtrace is returned if an exception is raised.
     """
+
     def decorator(func):
         @functools.wraps(func)
         def decorated(*args, **kwargs):
@@ -210,20 +215,20 @@ def depends_on_btn_click(btn_name: str,
                         doc = f"\nNo docstring found for function `{func.__name__}`\n"
                     doc = textwrap.dedent(doc)
                     doc = f"## Description\n\n{doc}\n\n"
-                    #print(doc)
+                    # print(doc)
                     objects = [my_md(doc)]
                     if show_shared_wdg_warning and self._enable_show_shared_wdg_warning:
                         warning = pn.pane.Alert(SHARED_WIDGETS_WARNING, alert_type="danger")
                         objects.append(warning)
                     return pn.Column(*objects, sizing_mode="stretch_width")
-                else:
-                    return None
+                return None
 
             with ButtonContext(btn):
                 return func(*args, **kwargs)
 
         f = pn.depends(f"{btn_name}.clicks")(decorated)
-        if show_exc: f = show_exception(f)
+        if show_exc:
+            f = show_exception(f)
         return f
 
     return decorator
@@ -234,11 +239,12 @@ def show_exception(func):
     This decorator returns a Markdown pane with the backtrace
     if the function raises an exception.
     """
+
     @functools.wraps(func)
     def decorated(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except Exception as exc:
+        except Exception:
             s = traceback.format_exc()
             print(s)
             return pn.pane.Markdown(f"```shell\n{s}\n```", sizing_mode="stretch_both")
@@ -255,12 +261,18 @@ class HTMLwithClipboardBtn(pn.pane.HTML):
 
     # This counter is shared by all the instances.
     # We use it so that the js script is included only once.
-    #_init_counter = [0]
+    # _init_counter = [0]
 
     def __init__(self, object=None, btn_cls=None, **params):
+        """
+        Args:
+            object: HTML content.
+            btn_cls: CSS class for the button.
+            params: Parameters passed to the parent class.
+        """
         super().__init__(object=object, **params)
 
-        #self._init_counter[0] += 1
+        # self._init_counter[0] += 1
         my_id = gen_id()
         btn_cls = "bk bk-btn bk-btn-default" if btn_cls is None else str(btn_cls)
 
@@ -272,8 +284,8 @@ class HTMLwithClipboardBtn(pn.pane.HTML):
 <hr>
 
 """
-        if True: # self._init_counter[0] == 1:
-            #new_text += " <script> $(document).ready(function() {new ClipboardJS('.clip-btn')}) </script> "
+        if True:  # self._init_counter[0] == 1:
+            # new_text += " <script> $(document).ready(function() {new ClipboardJS('.clip-btn')}) </script> "
             # $(document).ready(function() {
             new_text += """ <script>
 if (typeof abipy_clipboard === 'undefined') {
@@ -297,24 +309,26 @@ if (typeof abipy_notyf === 'undefined') {
         self.object = new_text
 
 
-def mpl(fig, sizing_mode='stretch_width', with_controls=False, with_divider=True, **kwargs) -> pn.Column:
+def mpl(fig, sizing_mode="stretch_width", with_controls=False, with_divider=True, **kwargs) -> pn.Column:
     """
     Helper function returning a panel Column with a matplotly pane followed by
     a divider and (optionally) controls to customize the figure.
     """
-    col = pn.Column(sizing_mode=sizing_mode); ca = col.append
+    col = pn.Column(sizing_mode=sizing_mode)
+    ca = col.append
 
-    #try:
+    # try:
     #    import ipympl
     #    has_ipympl = True
-    #except ImportError:
+    # except ImportError:
     #    has_ipympl = False
 
-    #if "interactive" not in kwargs and has_ipympl: # "ipympl" in sys.modules:
+    # if "interactive" not in kwargs and has_ipympl: # "ipympl" in sys.modules:
     #    print("mpl in interactive mode")
     #    kwargs["interactive"] = True
 
-    if "tight" not in kwargs: kwargs["tight"] = True
+    if "tight" not in kwargs:
+        kwargs["tight"] = True
 
     mpl_pane = pn.pane.Matplotlib(fig, **kwargs)
     ca(mpl_pane)
@@ -328,17 +342,20 @@ def mpl(fig, sizing_mode='stretch_width', with_controls=False, with_divider=True
 
     return col
 
-def ply(fig, sizing_mode='stretch_both', with_chart_studio=False, with_help=False,
-        with_divider=True, with_controls=False) -> pn.Column:
+
+def ply(
+    fig, sizing_mode="stretch_both", with_chart_studio=False, with_help=False, with_divider=True, with_controls=False
+) -> pn.Column:
     """
     Helper function returning a panel Column with a plotly pane,  buttons to push the figure
     to plotly chart studio and, optionally, controls to customize the figure.
     """
-    col = pn.Column(sizing_mode=sizing_mode); ca = col.append
+    col = pn.Column(sizing_mode=sizing_mode)
+    ca = col.append
 
     config = dict(
         responsive=True,
-        #showEditInChartStudio=True,
+        # showEditInChartStudio=True,
         showLink=True,
         plotlyServerURL="https://chart-studio.plotly.com",
     )
@@ -390,31 +407,41 @@ If everything is properly configured, a new window is automatically created in y
     return col
 
 
-def dfc(df: pd.DataFrame,
-        #wdg_type: str = "dataframe",
-        wdg_type: str ="tabulator",  # More recent version. Still problematic
-        with_export_btn=True, with_controls=False, with_divider=True, transpose=False, **kwargs):
+def dfc(
+    df: pd.DataFrame,
+    # wdg_type: str = "dataframe",
+    wdg_type: str = "tabulator",  # More recent version. Still problematic
+    with_export_btn=True,
+    with_controls=False,
+    with_divider=True,
+    transpose=False,
+    **kwargs,
+):
     """
     Helper function returning a panel Column with a DataFrame or Tabulator widget followed by
     a divider and (optionally) controls to customize the figure.
 
     Note that not all the options work as exected. See comments below.
     """
-    if "disabled" not in kwargs: kwargs["disabled"] = True
-    #if "sizing_mode" not in kwargs: kwargs["sizing_mode"] = "stretch_both"
-    if "sizing_mode" not in kwargs: kwargs["sizing_mode"] = "scale_width"
+    if "disabled" not in kwargs:
+        kwargs["disabled"] = True
+    # if "sizing_mode" not in kwargs: kwargs["sizing_mode"] = "stretch_both"
+    if "sizing_mode" not in kwargs:
+        kwargs["sizing_mode"] = "scale_width"
     if transpose:
         df = df.transpose()
 
     if wdg_type == "dataframe":
-        if "auto_edit" not in kwargs: kwargs["auto_edit"] = False
+        if "auto_edit" not in kwargs:
+            kwargs["auto_edit"] = False
         w = pnw.DataFrame(df, **kwargs)
     elif wdg_type == "tabulator":
         w = pnw.Tabulator(df, **kwargs)
     else:
         raise ValueError(f"Don't know how to handle widget type: `{wdg_type}`")
 
-    col = pn.Column(sizing_mode='stretch_both'); ca = col.append
+    col = pn.Column(sizing_mode="stretch_both")
+    ca = col.append
     ca(w)
 
     if with_export_btn:
@@ -425,7 +452,7 @@ def dfc(df: pd.DataFrame,
             NB: This requires xlsxwriter package else pandas raises ModuleNotFoundError.
             """
             output = io.BytesIO()
-            writer = pd.ExcelWriter(output, engine='xlsxwriter')
+            writer = pd.ExcelWriter(output, engine="xlsxwriter")
             df.to_excel(writer, sheet_name="DataFrame")
             writer.save()  # Important!
             output.seek(0)
@@ -457,15 +484,21 @@ def dfc(df: pd.DataFrame,
             tex=pnw.FileDownload(filename="data.tex", callback=to_latex),
             md=pnw.FileDownload(filename="data.md", callback=to_md),
             json=pnw.FileDownload(filename="data.json", callback=to_json),
-            )
+        )
 
         # For the time being we use a Row with buttons.
-        #ca(pn.Row(*d.values(), sizing_mode="scale_width"))
-        ca(pn.Card(*d.values(), title="Export table", collapsed=True,
-                   sizing_mode='stretch_width', header_color="blue",
-        ))
+        # ca(pn.Row(*d.values(), sizing_mode="scale_width"))
+        ca(
+            pn.Card(
+                *d.values(),
+                title="Export table",
+                collapsed=True,
+                sizing_mode="stretch_width",
+                header_color="blue",
+            )
+        )
 
-        #def download(event):
+        # def download(event):
         #    file_download = d[event.new]
         #    #print(f'Clicked menu item: "{event.new}"')
         #    print(file_download)
@@ -474,9 +507,9 @@ def dfc(df: pd.DataFrame,
         #    return file_download.callback()
 
         # FIXME: Menu button occupies less space but the upload does not work
-        #menu_btn = pnw.MenuButton(name='Export table', items=list(d.keys()))
-        #menu_btn.on_click(download)
-        #ca(menu_btn)
+        # menu_btn = pnw.MenuButton(name='Export table', items=list(d.keys()))
+        # menu_btn.on_click(download)
+        # ca(menu_btn)
 
     if with_controls:
         ca(pn.Accordion(("dataframe controls", w.controls(jslink=True))))
@@ -498,8 +531,10 @@ def my_md(string: str, **kwargs) -> pn.pane.Markdown:
         The anaddb variable [[dipdip@anaddb]] has the same meaning as the Abinit variable [[dipdip]].
     """
     import re
-    WIKILINK_RE = r'\[\[([^\[]+)\]\]'
+
+    WIKILINK_RE = r"\[\[([^\[]+)\]\]"
     from abipy.abio.abivar_database.variables import get_codevars
+
     vars_code = get_codevars()
 
     def repl(match):
@@ -507,7 +542,7 @@ def my_md(string: str, **kwargs) -> pn.pane.Markdown:
         codename = "abinit"
         i = var_name.find("@")
         if i != -1:
-            var_name, codename = var_name[:i], var_name[i+1:]
+            var_name, codename = var_name[:i], var_name[i + 1 :]
         try:
             var = vars_code[codename][var_name]
             return var.html_link()
@@ -518,10 +553,10 @@ def my_md(string: str, **kwargs) -> pn.pane.Markdown:
 
     # TODO: Latex
     extra_extensions = [
-         "markdown.extensions.admonition",
-         #'pymdownx.arithmatex',
-         #'pymdownx.details',
-         #"pymdownx.tabbed",
+        "markdown.extensions.admonition",
+        #'pymdownx.arithmatex',
+        #'pymdownx.details',
+        # "pymdownx.tabbed",
     ]
 
     md = pn.pane.Markdown(string, **kwargs)
@@ -530,7 +565,7 @@ def my_md(string: str, **kwargs) -> pn.pane.Markdown:
     return md
 
 
-class ButtonContext():
+class ButtonContext:
     """
     A context manager for buttons triggering computations on the server.
 
@@ -551,6 +586,10 @@ class ButtonContext():
     """
 
     def __init__(self, btn: pnw.Button):
+        """
+        Args:
+            btn: The button to wrap with context.
+        """
         self.btn = btn
         self.prev_name, self.prev_type = btn.name, btn.button_type
 
@@ -577,15 +616,20 @@ class ButtonContext():
         self.btn.name, self.btn.button_type = self.prev_name, self.prev_type
 
 
-class Loading():
-    """
-    A context manager for setting the loading attribute of a panel object.
-    """
+class Loading:
+    """A context manager for setting the loading attribute of a panel object."""
 
     def __init__(self, panel_obj, err_wdg=None, width=70):
+        """
+        Args:
+            panel_obj: The panel object to set loading for.
+            err_wdg: Optional error widget to display exceptions.
+            width: Width for text wrapping.
+        """
         self.panel_obj = panel_obj
         self.err_wdg = err_wdg
-        if err_wdg is not None: self.err_wdg.object = ""
+        if err_wdg is not None:
+            self.err_wdg.object = ""
         self.width = int(width)
 
     def __enter__(self):
@@ -600,15 +644,20 @@ class Loading():
                 self.err_wdg.object = "```sh\n%s\n```" % textwrap.fill(str(exc_value), width=self.width)
 
 
-class ActiveBar():
-    """
-    A context manager that sets progress.active to True on entry and False when we exit.
-    """
+class ActiveBar:
+    """A context manager that sets progress.active to True on entry and False when we exit."""
 
     def __init__(self, progress, err_wdg=None, width=70):
+        """
+        Args:
+            progress: The progress bar widget.
+            err_wdg: Optional error widget to display exceptions.
+            width: Width for text wrapping.
+        """
         self.progress = progress
         self.err_wdg = err_wdg
-        if err_wdg is not None: self.err_wdg.object = ""
+        if err_wdg is not None:
+            self.err_wdg.object = ""
         self.width = int(width)
 
     def __enter__(self):
@@ -624,6 +673,7 @@ class ActiveBar():
 
             if self.err_wdg is not None:
                 from textwrap import fill
+
                 self.err_wdg.object = "```sh\n%s\n```" % fill(str(exc_value), width=self.width)
 
 
@@ -633,9 +683,9 @@ If you change the value of a variables in the active tab,
 the same value will **automagically** appear in all the other tabs sharing the same
 widget yet results/figures are not automatically recomputed."""
 
-#In other words, if you change some variable in the active tab and then you move to another tab,
-#the results/figures (if any) are stil computed with the **old input** hence you will have to
-#recompute the new results by clicking the button."""
+# In other words, if you change some variable in the active tab and then you move to another tab,
+# the results/figures (if any) are stil computed with the **old input** hence you will have to
+# recompute the new results by clicking the button."""
 
 
 class AbipyParameterized(param.Parameterized):
@@ -647,9 +697,10 @@ class AbipyParameterized(param.Parameterized):
     verbose = param.Integer(0, bounds=(0, None), doc="Verbosity Level")
     mpi_procs = param.Integer(1, bounds=(1, None), doc="Number of MPI processes used for running Fortran code.")
 
-    plotly_template = param.ObjectSelector(default="plotly",
-                                           objects=["plotly", "plotly_white", "plotly_dark", "ggplot2",
-                                                    "seaborn", "simple_white", "none"])
+    plotly_template = param.ObjectSelector(
+        default="plotly",
+        objects=["plotly", "plotly_white", "plotly_dark", "ggplot2", "seaborn", "simple_white", "none"],
+    )
 
     # This flag is set to True if we are serving apps from the Abinit server.
     # It is used to impose limitations on what users can do and select the options that should be exposed.
@@ -660,7 +711,10 @@ class AbipyParameterized(param.Parameterized):
     warning = pn.pane.Markdown(SHARED_WIDGETS_WARNING, name="warning")
 
     def __init__(self, **params):
-
+        """
+        Args:
+            params: Parameters passed to the parent class.
+        """
         super().__init__(**params)
         if self.has_remote_server:
             self.param.mpi_procs.bounds = (1, 1)
@@ -671,7 +725,7 @@ class AbipyParameterized(param.Parameterized):
         self._enable_show_doc = True
         self._enable_show_shared_wdg_warning = True
 
-    #def abiopen(self, filepath):
+    # def abiopen(self, filepath):
     #    from abipy.abilab import abiopen
     #    try:
     #        abiobj = abiopen(filepath)
@@ -688,10 +742,12 @@ class AbipyParameterized(param.Parameterized):
 
         """
         from abipy.tools.context_managers import temporary_change_attributes
-        return temporary_change_attributes(self,
-                                           _enable_show_doc=show_doc,
-                                           _enable_show_shared_wdg_warning=show_shared_wdg_warning,
-                                           )
+
+        return temporary_change_attributes(
+            self,
+            _enable_show_doc=show_doc,
+            _enable_show_shared_wdg_warning=show_shared_wdg_warning,
+        )
 
     @pn.depends("plotly_template")
     def on_plotly_template(self):
@@ -702,6 +758,7 @@ class AbipyParameterized(param.Parameterized):
         internal use.
         """
         import plotly.io as pio
+
         pio.templates.default = self.plotly_template
 
     @cached_property
@@ -710,12 +767,15 @@ class AbipyParameterized(param.Parameterized):
         return dict(show=False, fig_close=True)
 
     def pws_col(self, keys, **kwargs) -> pn.Column:
+        """Return a pn.Column with widgets/parameters for the given keys."""
         return pn.Column(*self.pws(keys), **kwargs)
 
     def pws_row(self, keys, **kwargs) -> pn.Row:
+        """Return a pn.Row with widgets/parameters for the given keys."""
         return pn.Row(*self.pws(keys), **kwargs)
 
     def wdg_box(self, keys, **kwargs) -> pn.WidgetBox:
+        """Return a pn.WidgetBox with widgets/parameters for the given keys."""
         return pn.WidgetBox(*self.pws(keys), **kwargs)
 
     def pws(self, keys):
@@ -733,39 +793,41 @@ class AbipyParameterized(param.Parameterized):
                 elif k.startswith("#"):
                     # Markdown string
                     items.append(k)
-                    #items.append(pn.layout.Divider(margin=(-20, 0, 0, 0)))
+                    # items.append(pn.layout.Divider(margin=(-20, 0, 0, 0)))
                 else:
                     miss.append(k)
             else:
                 # Assume widget instance.
                 items.append(k)
 
-        #for item in items: print("item", item, "of type:", type(item))
+        # for item in items: print("item", item, "of type:", type(item))
         if miss:
-            raise ValueError(f"Cannot find `{str(miss)}` in param or in attribute space")
+            raise ValueError(f"Cannot find `{miss!s}` in param or in attribute space")
 
         return items
 
     def get_summary_view_for_abiobj(self, abiobj, **kwargs):
+        """Returns a terminal view with the summary of the abinit object."""
         text = abiobj.to_string(verbose=self.verbose)
 
-        view = pnw.Terminal(output=f"\n\n{text}",
-            #height=1200, # Need this one else the terminal is not show properly
-            sizing_mode='stretch_both',
+        view = pnw.Terminal(
+            output=f"\n\n{text}",
+            # height=1200, # Need this one else the terminal is not show properly
+            sizing_mode="stretch_both",
         )
-        #view = pn.Row(bkw.PreText(text=text, sizing_mode="scale_both"))
+        # view = pn.Row(bkw.PreText(text=text, sizing_mode="scale_both"))
         return view
 
-    def wdg_exts_with_get_panel(self, name='File extensions supported:'):
-        """
-        Return Select widget with the list of file extensions implementing a get_panel method.
-        """
+    def wdg_exts_with_get_panel(self, name="File extensions supported:"):
+        """Return Select widget with the list of file extensions implementing a get_panel method."""
         from abipy.abilab import extcls_supporting_panel
+
         exts = [e[0] for e in extcls_supporting_panel(as_table=False)]
         return pnw.Select(name=name, options=exts)
 
     @staticmethod
     def html_with_clipboard_btn(html_str: str, **kwargs):
+        """Returns an HTML pane with a clipboard button."""
         if hasattr(html_str, "_repr_html_"):
             html_str = html_str._repr_html_()
 
@@ -775,14 +837,17 @@ class AbipyParameterized(param.Parameterized):
     def get_software_stack() -> pn.Column:
         """Return column with version of python packages in tabular format."""
         from abipy.abilab import software_stack
-        return pn.Column("## Software stack:",
-                         #pn.layout.Divider(margin=(-20, 0, 0, 0)),
-                         dfc(software_stack(as_dataframe=True), with_export_btn=False),
-                         sizing_mode="scale_width",
-                         )
+
+        return pn.Column(
+            "## Software stack:",
+            # pn.layout.Divider(margin=(-20, 0, 0, 0)),
+            dfc(software_stack(as_dataframe=True), with_export_btn=False),
+            sizing_mode="scale_width",
+        )
 
     @staticmethod
     def get_fileinput_section(file_input) -> pn.Column:
+        """Returns a styled FileInput section."""
         # All credits go to:
         # https://github.com/MarcSkovMadsen/awesome-panel/blob/master/application/pages/styling/fileinput_area.py
         #
@@ -799,12 +864,16 @@ class AbipyParameterized(param.Parameterized):
         }
         </style>"""
 
-        return pn.Column(pn.pane.HTML(css_style, width=0, height=0, sizing_mode="stretch_width", margin=0),
-                         file_input, sizing_mode="stretch_width")
+        return pn.Column(
+            pn.pane.HTML(css_style, width=0, height=0, sizing_mode="stretch_width", margin=0),
+            file_input,
+            sizing_mode="stretch_width",
+        )
 
     @staticmethod
     def get_abifile_from_file_input(file_input, use_structure=False):
-        #print("filename", file_input.filename, "\nvalue", file_input.value)
+        """Returns an Abinit file object from a FileInput widget."""
+        # print("filename", file_input.filename, "\nvalue", file_input.value)
         workdir = tempfile.mkdtemp()
 
         fd, tmp_path = tempfile.mkstemp(suffix=file_input.filename)
@@ -812,6 +881,7 @@ class AbipyParameterized(param.Parameterized):
             fh.write(file_input.value)
 
         from abipy.abilab import abiopen
+
         abifile = abiopen(tmp_path)
         if use_structure:
             abifile = Structure.as_structure(abifile)
@@ -828,13 +898,16 @@ class AbipyParameterized(param.Parameterized):
         """
         with self.get_abifile_from_file_input(file_input) as abifile:
             ebands = getattr(abifile, "ebands", None)
-        if remove: abifile.remove()
+        if remove:
+            abifile.remove()
         return ebands
 
     @staticmethod
     def get_alert_data_transfer() -> pn.pane.Alert:
+        """Returns an alert message about large data transfer."""
         # https://discourse.holoviz.org/t/max-upload-size/2121/5
-        return pn.pane.Alert("""
+        return pn.pane.Alert(
+            """
 Please note that this web interface is not designed to handle **large data transfer**.
 To post-process the data stored in a big file e.g. a WFK.nc file,
 we strongly suggest executing the **abigui.py**  script on the same machine where the file is hosted.
@@ -844,13 +917,17 @@ Also, note that examples of post-processing scripts are available in the
 Last but not least, keep in mind that **the file extension matters** when uploading a file
 so don't change the default extension used by ABINIT.
 Also, use `.abi` for ABINIT input files and `.abo` for the main output file.
-""", alert_type="info")
+""",
+            alert_type="info",
+        )
 
     @staticmethod
     def get_template_cls_from_name(template):
+        """Returns the template class from the given name."""
         return get_template_cls_from_name(template)
 
     def get_abinit_template_cls_kwds(self):
+        """Returns the default keywords for Abinit templates."""
         return get_abinit_template_cls_kwds()
 
     def get_template_from_tabs(self, tabs, template, **tabs_kwargs):
@@ -859,33 +936,34 @@ Also, use `.abi` for ABINIT input files and `.abo` for the main output file.
         include them in a template and return the template instance.
         """
         if isinstance(tabs, dict):
-            if "sizing_mode" not in tabs_kwargs: tabs_kwargs["sizing_mode"] = "stretch_width"
+            if "sizing_mode" not in tabs_kwargs:
+                tabs_kwargs["sizing_mode"] = "stretch_width"
             tabs = pn.Tabs(*tabs.items(), **tabs_kwargs)
 
         if template is None or str(template) == "None":
-            #tabs.append(return_to_top_html())
+            # tabs.append(return_to_top_html())
             return tabs
 
         cls = get_template_cls_from_name(template)
-        #cls, kwargs = get_abinit_template_cls_kwds()
+        # cls, kwargs = get_abinit_template_cls_kwds()
 
         kwargs = dict(
             # A title to show in the header. Also added to the document head meta settings and as the browser tab title.
             title=self.__class__.__name__,
-            header_background="#ff8c00", # Dark orange
+            header_background="#ff8c00",  # Dark orange
             favicon="/assets/img/abinit_favicon.ico",
-            logo="/assets/img/abipy_logo.png", # TODO: Need new panel version to fix logo alignment in FastLIst.
-            #sidebar_footer (str): Can be used to insert additional HTML. For example a menu, some additional info, links etc.
-            #enable_theme_toggle=False,  # If True a switch to toggle the Theme is shown. Default is True.
+            logo="/assets/img/abipy_logo.png",  # TODO: Need new panel version to fix logo alignment in FastLIst.
+            # sidebar_footer (str): Can be used to insert additional HTML. For example a menu, some additional info, links etc.
+            # enable_theme_toggle=False,  # If True a switch to toggle the Theme is shown. Default is True.
         )
 
         template = cls(**kwargs)
         if hasattr(template.main, "append"):
             template.main.append(tabs)
-            #template.main.append(return_to_top_html())
+            # template.main.append(return_to_top_html())
         else:
             # Assume main area acts like a GridSpec
-            template.main[:,:] = tabs
+            template.main[:, :] = tabs
 
         return template
 
@@ -893,7 +971,7 @@ Also, use `.abi` for ABINIT input files and `.abo` for the main output file.
 def return_to_top_html():
     print("In return to top")
 
-    #<a id="button"></a>
+    # <a id="button"></a>
 
     html = r"""
 <!--
@@ -971,16 +1049,19 @@ $(function() {
 
 
 class PanelWithStructure(AbipyParameterized):
-    """
-    A paremeterized object with a |Structure| object.
-    """
+    """A paremeterized object with a |Structure| object."""
 
-    structure_viewer = param.ObjectSelector(default="jsmol",
-                                            objects=["jsmol", "vesta", "xcrysden", "vtk", "crystalk", "ngl",
-                                                     "matplotlib", "plotly", "ase_atoms", "mayavi"])
+    structure_viewer = param.ObjectSelector(
+        default="jsmol",
+        objects=["jsmol", "vesta", "xcrysden", "vtk", "crystalk", "ngl", "matplotlib", "plotly", "ase_atoms", "mayavi"],
+    )
 
     def __init__(self, structure: Structure, **params):
-
+        """
+        Args:
+            structure: |Structure| object.
+            params: Parameters passed to the parent class.
+        """
         super().__init__(**params)
         self.structure = structure
 
@@ -988,9 +1069,9 @@ class PanelWithStructure(AbipyParameterized):
             # Change the list of allowed visualizers.
             self.param.structure_viewer.objects = ["jsmol", "crystalk", "ngl", "matplotlib", "plotly", "ase_atoms"]
 
-        self.view_structure_btn = pnw.Button(name="View structure", button_type='primary')
+        self.view_structure_btn = pnw.Button(name="View structure", button_type="primary")
 
-    @depends_on_btn_click('view_structure_btn', show_shared_wdg_warning=False)
+    @depends_on_btn_click("view_structure_btn", show_shared_wdg_warning=False)
     def on_view_structure(self):
         """Visualize input structure."""
         v = self.structure_viewer
@@ -998,20 +1079,20 @@ class PanelWithStructure(AbipyParameterized):
         if v == "jsmol":
             return jsmol_html(self.structure)
 
-            #pn.extension(comms='ipywidgets') #, js_files=js_files)
-            #view = self.structure.get_jsmol_view()
-            #from ipywidgets_bokeh import IPyWidget
-            #view = IPyWidget(widget=view) #, width=800, height=300)
-            #import ipywidgets as ipw
-            #from IPython.display import display
-            #display(view)
-            #return pn.Row(display(view))
-            #return pn.ipywidget(view)
-            #return pn.panel(view)
-            #return pn.pane.IPyWidget(view)
-            #print(view)
-            #view = pn.Column(view, sizing_mode='stretch_width')
-            #return view
+            # pn.extension(comms='ipywidgets') #, js_files=js_files)
+            # view = self.structure.get_jsmol_view()
+            # from ipywidgets_bokeh import IPyWidget
+            # view = IPyWidget(widget=view) #, width=800, height=300)
+            # import ipywidgets as ipw
+            # from IPython.display import display
+            # display(view)
+            # return pn.Row(display(view))
+            # return pn.ipywidget(view)
+            # return pn.panel(view)
+            # return pn.pane.IPyWidget(view)
+            # print(view)
+            # view = pn.Column(view, sizing_mode='stretch_width')
+            # return view
 
         if v == "crystalk":
             view = self.structure.get_crystaltk_view()
@@ -1021,29 +1102,27 @@ class PanelWithStructure(AbipyParameterized):
             return ply(self.structure.plotly(show=False))
 
         if v == "ngl":
-            from pymatgen.io.babel import BabelMolAdaptor
-            from pymatgen.io.xyz import XYZ
             # string_data = self.structure.to(fmt="xyz")
 
-            #writer = BabelMolAdaptor(self)
-            #string_data = str(XYZ(self.structure))
-            #adapt = BabelMolAdaptor.from_string(string_data, file_format="xyz")
+            # writer = BabelMolAdaptor(self)
+            # string_data = str(XYZ(self.structure))
+            # adapt = BabelMolAdaptor.from_string(string_data, file_format="xyz")
             ##pdb_string =
-            #print(pdb_string)
+            # print(pdb_string)
 
-            #from awesome_panel_extesions.pane.widgets.ngl_viewer import NGLViewer
-            #view = NGLViewer()
+            # from awesome_panel_extesions.pane.widgets.ngl_viewer import NGLViewer
+            # view = NGLViewer()
 
-            #view.pdb_string = pdb_string
+            # view.pdb_string = pdb_string
             return view
 
-            #js_files = {'ngl': 'https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js'}
-            #pn.extension(comms='ipywidgets', js_files=js_files)
-            #view = self.structure.get_ngl_view()
-            #return pn.panel(view)
+            # js_files = {'ngl': 'https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js'}
+            # pn.extension(comms='ipywidgets', js_files=js_files)
+            # view = self.structure.get_ngl_view()
+            # return pn.panel(view)
 
-            #pn.config.js_files["ngl"]="https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js"
-            #pn.extension()
+            # pn.config.js_files["ngl"]="https://cdn.jsdelivr.net/gh/arose/ngl@v2.0.0-dev.33/dist/ngl.js"
+            # pn.extension()
 
             html = """<div id="viewport" style="width:100%; height:100%;"></div>
             <script>
@@ -1055,9 +1134,9 @@ class PanelWithStructure(AbipyParameterized):
             return pn.Row(ngl_pane)
             view = self.structure.get_ngl_view()
 
-        #return self.structure.crystaltoolkitview()
-        #import nglview as nv
-        #view = nv.demo(gui=False)
+        # return self.structure.crystaltoolkitview()
+        # import nglview as nv
+        # view = nv.demo(gui=False)
 
         if v == "ase_atoms":
             return mpl(self.structure.plot_atoms(rotations="default", **self.mpl_kwargs))
@@ -1065,58 +1144,62 @@ class PanelWithStructure(AbipyParameterized):
         return self.structure.visualize(appname=self.structure_viewer)
 
     def get_structure_view(self) -> pn.Row:
-        """
-        Return Row with widgets to visualize the structure.
-        """
+        """Return Row with widgets to visualize the structure."""
         return pn.Row(
-            self.pws_col(["## Visualize structure",
-                          "structure_viewer",
-                          "view_structure_btn",
-                          ]),
-            pn.Column(self.on_view_structure, self.get_structure_info())
+            self.pws_col(
+                [
+                    "## Visualize structure",
+                    "structure_viewer",
+                    "view_structure_btn",
+                ]
+            ),
+            pn.Column(self.on_view_structure, self.get_structure_info()),
         )
 
     def get_structure_info(self) -> pn.Column:
-        """
-        Return Column with lattice parameters, angles and atomic positions grouped by type.
-        """
+        """Return Column with lattice parameters, angles and atomic positions grouped by type."""
         return get_structure_info(self.structure)
 
 
 def get_structure_info(structure: Structure) -> pn.Column:
-    """
-    Return Column with lattice parameters, angles and atomic positions grouped by type.
-    """
-    col = pn.Column(sizing_mode='scale_width'); ca = col.append; cext = col.extend
+    """Return Column with lattice parameters, angles and atomic positions grouped by type."""
+    col = pn.Column(sizing_mode="scale_width")
+    ca = col.append
+    cext = col.extend
 
     d = structure.get_dict4pandas(with_spglib=True)
 
-    keys = index = [#"formula", "natom", "volume",
-                    "abi_spg_number",
-                    "spglib_symb", "spglib_num",  "spglib_lattice_type"]
+    keys = index = [  # "formula", "natom", "volume",
+        "abi_spg_number",
+        "spglib_symb",
+        "spglib_num",
+        "spglib_lattice_type",
+    ]
     df_spg = pd.Series(data=d, index=index).to_frame()
     cext(["# Spacegroup:", dfc(df_spg, with_export_btn=False)])
 
     # Build dataframe with lattice lenghts.
-    rows = []; keys = ("a", "b", "c")
+    rows = []
+    keys = ("a", "b", "c")
     rows.append({k: d[k] * abu.Ang_Bohr for k in keys})
     rows.append({k: d[k] for k in keys})
     df_len = pd.DataFrame(rows, index=["Å", "Bohr"]).transpose().rename_axis("Lattice lenghts")
 
     # Build dataframe with lattice angles.
-    rows = []; keys = ("alpha", "beta", "gamma")
+    rows = []
+    keys = ("alpha", "beta", "gamma")
     rows.append({k: d[k] for k in keys})
     rows.append({k: np.radians(d[k]) for k in keys})
     df_ang = pd.DataFrame(rows, index=["Degrees", "Radians"]).transpose().rename_axis("Lattice angles")
 
     cext(["# Lattice lengths:", dfc(df_len, with_export_btn=False)])
     cext(["# Lattice angles:", dfc(df_ang, with_export_btn=False)])
-    #row = pn.Row(dfc(df_len, with_export_btn=False), dfc(df_ang, with_export_btn=False), sizing_mode="scale_width")
-    #ca(row)
+    # row = pn.Row(dfc(df_len, with_export_btn=False), dfc(df_ang, with_export_btn=False), sizing_mode="scale_width")
+    # ca(row)
 
     # Build dataframe with atomic positions grouped by element symbol.
     symb2df = structure.get_symb2coords_dataframe()
-    accord = pn.Accordion(sizing_mode='stretch_width')
+    accord = pn.Accordion(sizing_mode="stretch_width")
     for symb, df in symb2df.items():
         accord.append((f"Coordinates of {symb} sites:", dfc(df, with_export_btn=False)))
     ca(accord)
@@ -1134,52 +1217,55 @@ class NcFileViewer(AbipyParameterized):
     nc_path = param.String("/", doc="nc group")
 
     def __init__(self, ncfile, **params):
+        """
+        Args:
+            ncfile: |AbinitNcFile| object.
+            params: Parameters passed to the parent class.
+        """
         super().__init__(**params)
         self.ncfile = ncfile
-        self.netcdf_info_btn = pnw.Button(name="Show info", button_type='primary')
+        self.netcdf_info_btn = pnw.Button(name="Show info", button_type="primary")
 
     def get_ncfile_view(self) -> pn.Column:
+        """Return a view with netcdf file information."""
         return pn.Column(
-                self.netcdf_info_btn,
-                self.on_netcdf_info_btn,
-                sizing_mode='stretch_width',
+            self.netcdf_info_btn,
+            self.on_netcdf_info_btn,
+            sizing_mode="stretch_width",
         )
 
-    @depends_on_btn_click('netcdf_info_btn')
+    @depends_on_btn_click("netcdf_info_btn")
     def on_netcdf_info_btn(self) -> pn.Column:
-        """
-        This Tab allows one to
-        """
+        """This Tab allows one to"""
         # TODO: Finalize the implementation.
-        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+        col = pn.Column(sizing_mode="stretch_width")
+        ca = col.append
 
-        #nc_grpname = pnw.Select(name="nc group name", options=["/"])
+        # nc_grpname = pnw.Select(name="nc group name", options=["/"])
         input_string = self.ncfile.get_input_string()
-        ca(f"## Input String")
+        ca("## Input String")
         ca(bkw.PreText(text=input_string))
 
-        #ca(f"## Global attributes")
+        # ca(f"## Global attributes")
 
         # Get dataframe with dimensions.
         dims_df = self.ncfile.get_dims_dataframe(path=self.nc_path)
         ca(f"## Dimensions in nc group: {self.nc_path}")
         ca(dfc(dims_df))
-        #ca(f"## Variables")
+        # ca(f"## Variables")
 
         return col
 
 
 class PanelWithElectronBands(PanelWithStructure):
-    """
-    Provide widgets and views for operating on |ElectronBands| object.
-    """
+    """Provide widgets and views for operating on |ElectronBands| object."""
 
     # Bands plot
     with_gaps = param.Boolean(False)
     with_kpoints_plot = param.Boolean(False)
 
-    #ebands_ylims
-    #ebands_e0
+    # ebands_ylims
+    # ebands_e0
     # e0: Option used to define the zero of energy in the band structure plot. Possible values:
     #     - `fermie`: shift all eigenvalues to have zero energy at the Fermi energy (`self.fermie`).
     #     -  Number e.g e0=0.5: shift all eigenvalues to have zero energy at 0.5 eV
@@ -1187,10 +1273,11 @@ class PanelWithElectronBands(PanelWithStructure):
     set_fermie_to_vbm = param.Boolean(False, label="Set Fermi energy to VBM")
 
     # e-DOS plot.
-    edos_method = param.ObjectSelector(default="gaussian", label="Integration method for e-DOS",
-                                       objects=["gaussian", "tetra"])
-    edos_step_ev = param.Number(0.1, bounds=(1e-6, None), step=0.1, label='e-DOS step in eV')
-    edos_width_ev = param.Number(0.2, step=0.05, bounds=(1e-6, None), label='e-DOS Gaussian broadening in eV')
+    edos_method = param.ObjectSelector(
+        default="gaussian", label="Integration method for e-DOS", objects=["gaussian", "tetra"]
+    )
+    edos_step_ev = param.Number(0.1, bounds=(1e-6, None), step=0.1, label="e-DOS step in eV")
+    edos_width_ev = param.Number(0.2, step=0.05, bounds=(1e-6, None), label="e-DOS Gaussian broadening in eV")
 
     # SKW interpolation of the KS band energies (Abipy version).
     skw_lpratio = param.Integer(5, bounds=(1, None), label="SKW lpratio")
@@ -1202,19 +1289,30 @@ class PanelWithElectronBands(PanelWithStructure):
     fs_viewer = param.ObjectSelector(default="matplotlib", objects=["matplotlib", "xcrysden"])
 
     # Ifermi UI.
-    ifermi_wigner_seitz = param.Boolean(True, label="Use Wigner Seitz cell",
-                                        doc="Controls whether the cell is the Wigner-Seitz cell" +
-                                            "or the reciprocal unit cell parallelepiped.")
-    ifermi_interpolation_factor = param.Integer(default=8, label="Interpolation factor", bounds=(1, None),
-                                                doc="The factor by which the band structure will be interpolated.")
+    ifermi_wigner_seitz = param.Boolean(
+        True,
+        label="Use Wigner Seitz cell",
+        doc="Controls whether the cell is the Wigner-Seitz cellor the reciprocal unit cell parallelepiped.",
+    )
+    ifermi_interpolation_factor = param.Integer(
+        default=8,
+        label="Interpolation factor",
+        bounds=(1, None),
+        doc="The factor by which the band structure will be interpolated.",
+    )
 
-    ifermi_eref = param.ObjectSelector(default="fermie", label="Energy reference",
-                                       objects=["fermie", "cbm", "vbm"])
+    ifermi_eref = param.ObjectSelector(default="fermie", label="Energy reference", objects=["fermie", "cbm", "vbm"])
 
-    ifermi_with_velocities = param.Boolean(True, label="Compute group velocities",
-            doc="Generate the Fermi surface and calculate the group velocity at the center of each triangular face")
-    ifermi_offset_eV = param.Number(default=0.0, label="Energy offset (eV) from energy reference",
-                                    doc="Energy offset from the Fermi energy at which the isosurface is calculated.")
+    ifermi_with_velocities = param.Boolean(
+        True,
+        label="Compute group velocities",
+        doc="Generate the Fermi surface and calculate the group velocity at the center of each triangular face",
+    )
+    ifermi_offset_eV = param.Number(
+        default=0.0,
+        label="Energy offset (eV) from energy reference",
+        doc="Energy offset from the Fermi energy at which the isosurface is calculated.",
+    )
     ifermi_plot_type = param.ObjectSelector(default="plotly", label="Plot type", objects=["plotly", "matplotlib"])
 
     # These are used to implement plots in which we need to upload an additional file
@@ -1230,69 +1328,75 @@ class PanelWithElectronBands(PanelWithStructure):
     effmass_spin = param.ObjectSelector(default=0, objects=[0, 1], label="Spin index")
 
     def __init__(self, ebands, **params):
-
+        """
+        Args:
+            ebands: |ElectronBands| object.
+            params: Parameters passed to the parent class.
+        """
         self.ebands = ebands
         PanelWithStructure.__init__(self, structure=ebands.structure, **params)
 
         # Create buttons
-        self.plot_ebands_btn = pnw.Button(name="Plot e-bands", button_type='primary')
-        self.plot_edos_btn = pnw.Button(name="Plot e-DOS", button_type='primary')
-        self.plot_skw_btn = pnw.Button(name="Plot SKW interpolant", button_type='primary')
+        self.plot_ebands_btn = pnw.Button(name="Plot e-bands", button_type="primary")
+        self.plot_edos_btn = pnw.Button(name="Plot e-DOS", button_type="primary")
+        self.plot_skw_btn = pnw.Button(name="Plot SKW interpolant", button_type="primary")
 
         # Fermi surface plotter.
-        #objects = [None, "matplotlib", "xcrysden"]
-        #if self.has_remote_server: objects = [None, "matplotlib"]
-        #self.plot_fs_viewer_btn = pnw.Button(name="Plot SKW interpolant", button_type='primary')
+        # objects = [None, "matplotlib", "xcrysden"]
+        # if self.has_remote_server: objects = [None, "matplotlib"]
+        # self.plot_fs_viewer_btn = pnw.Button(name="Plot SKW interpolant", button_type='primary')
 
-        self.plot_ifermi_btn = pnw.Button(name="Plot Fermi surface", button_type='primary')
-        #self.ifermi_plane_normal = pnw.LiteralInput(name='Plane normal (list)', value=[0, 0, 0], type=list,
+        self.plot_ifermi_btn = pnw.Button(name="Plot Fermi surface", button_type="primary")
+        # self.ifermi_plane_normal = pnw.LiteralInput(name='Plane normal (list)', value=[0, 0, 0], type=list,
         #                                            placeholder="Enter normal in reduced coordinates")
-        #self.ifermi_distance = pn.widgets.RangeSlider(
+        # self.ifermi_distance = pn.widgets.RangeSlider(
         #        name='distance', start=0, end=2 * max(ebands.structure.reciprocal_lattice.abc),
         #        value=(0, 0), step=0.01)
 
-        #ebands_kpath_fileinput = pnw.FileInput(accept=".nc")
-        #ebands_kmesh_fileinput = pnw.FileInput(accept=".nc")
+        # ebands_kpath_fileinput = pnw.FileInput(accept=".nc")
+        # ebands_kmesh_fileinput = pnw.FileInput(accept=".nc")
 
-        self.plot_effmass_btn = pnw.Button(name="Plot effective masses", button_type='primary')
+        self.plot_effmass_btn = pnw.Button(name="Plot effective masses", button_type="primary")
         if ebands.nsppol != 2:
             self.param.effmass_spin.objects = [0]
 
     @staticmethod
     def _get_ebands_from_bstring(bstring):
         from abipy.electrons import ElectronBands
+
         return ElectronBands.from_binary_string(bstring)
 
     @pn.depends("ebands_kpath_fileinput", watch=True)
     def get_ebands_kpath(self):
-        """
-        Receives the netcdf file selected by the user as binary string.
-        """
+        """Receives the netcdf file selected by the user as binary string."""
         self.ebands_kpath = self._get_ebands_from_bstring(self.ebands_kpath_fileinput)
 
     @pn.depends("ebands_kmesh_fileinput", watch=True)
     def get_ebands_kmesh(self):
-        """
-        Receives the netcdf file selected by the user as binary string.
-        """
+        """Receives the netcdf file selected by the user as binary string."""
         self.ebands_kmesh = self._get_ebands_from_bstring(self.ebands_kmesh_fileinput)
 
     @pn.depends("skw_ebands_kpath_fileinput", watch=True)
     def get_skw_ebands_kpath(self):
-        """
-        Receives the netcdf file selected by the user as binary string.
-        """
+        """Receives the netcdf file selected by the user as binary string."""
         self.skw_ebands_kpath = self._get_ebands_from_bstring(self.skw_ebands_kpath_fileinput)
 
     def get_plot_ebands_view(self) -> pn.Row:
+        """Return a view with options to plot electronic bands."""
         return pn.Row(
-            self.pws_col(["### e-Bands Plot Options",
-                          "with_gaps", "set_fermie_to_vbm", "with_kpoints_plot", "plot_ebands_btn",
-                         ]),
-            self.on_plot_ebands_btn
+            self.pws_col(
+                [
+                    "### e-Bands Plot Options",
+                    "with_gaps",
+                    "set_fermie_to_vbm",
+                    "with_kpoints_plot",
+                    "plot_ebands_btn",
+                ]
+            ),
+            self.on_plot_ebands_btn,
         )
 
-    @depends_on_btn_click('plot_ebands_btn')
+    @depends_on_btn_click("plot_ebands_btn")
     def on_plot_ebands_btn(self) -> pn.Column:
         """
         This Tab allows one to plot the KS energies stored in the netcdf file
@@ -1302,7 +1406,8 @@ class PanelWithElectronBands(PanelWithStructure):
             self.ebands.set_fermie_to_vbm()
 
         sz_mode = "stretch_width"
-        col = pn.Column(sizing_mode=sz_mode); ca = col.append
+        col = pn.Column(sizing_mode=sz_mode)
+        ca = col.append
         ca("## Electronic band structure:")
         fig1 = self.ebands.plotly(e0="fermie", ylims=None, with_gaps=self.with_gaps, max_phfreq=None, show=False)
         ca(ply(fig1))
@@ -1324,48 +1429,56 @@ class PanelWithElectronBands(PanelWithStructure):
         return col
 
     def get_plot_edos_view(self) -> pn.Row:
+        """Return a view with options to plot electronic DOS."""
         return pn.Row(
-                self.pws_col(["## E-DOS Options", "edos_method", "edos_step_ev",
-                              "edos_width_ev", "plot_edos_btn"]),
-                self.on_plot_edos_btn
-                )
+            self.pws_col(["## E-DOS Options", "edos_method", "edos_step_ev", "edos_width_ev", "plot_edos_btn"]),
+            self.on_plot_edos_btn,
+        )
 
-    @depends_on_btn_click('plot_edos_btn')
+    @depends_on_btn_click("plot_edos_btn")
     def on_plot_edos_btn(self) -> pn.Row:
-        """
-        Button triggering edos plot.
-        """
+        """Button triggering edos plot."""
         edos = self.ebands.get_edos(method=self.edos_method, step=self.edos_step_ev, width=self.edos_width_ev)
 
-        return pn.Row(ply(edos.plotly(show=False)), sizing_mode='scale_width')
+        return pn.Row(ply(edos.plotly(show=False)), sizing_mode="scale_width")
 
     def get_skw_view(self) -> pn.Row:
-        """
-        Column with widgets to use SKW.
-        """
+        """Column with widgets to use SKW."""
         wdg = pn.Param(
-            self.param['skw_ebands_kpath_fileinput'],
-            widgets={'skw_ebands_kpath_fileinput': pn.widgets.FileInput}
+            self.param["skw_ebands_kpath_fileinput"], widgets={"skw_ebands_kpath_fileinput": pn.widgets.FileInput}
         )
 
         return pn.Row(
-            self.pws_col(["## SKW options",
-                          "skw_lpratio", "skw_line_density", "with_gaps",
-                          "## Upload GSR.nc file with *ab-initio* energies along a k-path to compare with", wdg,
-                          "plot_skw_btn",
-                          ]),
-            self.on_plot_skw_btn)
+            self.pws_col(
+                [
+                    "## SKW options",
+                    "skw_lpratio",
+                    "skw_line_density",
+                    "with_gaps",
+                    "## Upload GSR.nc file with *ab-initio* energies along a k-path to compare with",
+                    wdg,
+                    "plot_skw_btn",
+                ]
+            ),
+            self.on_plot_skw_btn,
+        )
 
-    @depends_on_btn_click('plot_skw_btn')
+    @depends_on_btn_click("plot_skw_btn")
     def on_plot_skw_btn(self) -> pn.Column:
-        """
-        Button triggering SKW plot.
-        """
-        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+        """Button triggering SKW plot."""
+        col = pn.Column(sizing_mode="stretch_width")
+        ca = col.append
 
-        intp = self.ebands.interpolate(lpratio=self.skw_lpratio, line_density=self.skw_line_density,
-                                       kmesh=None, is_shift=None, bstart=0, bstop=None, filter_params=None,
-                                       verbose=self.verbose)
+        intp = self.ebands.interpolate(
+            lpratio=self.skw_lpratio,
+            line_density=self.skw_line_density,
+            kmesh=None,
+            is_shift=None,
+            bstart=0,
+            bstop=None,
+            filter_params=None,
+            verbose=self.verbose,
+        )
 
         ca("## SKW interpolated bands along an automatically selected high-symmetry **k**-path")
         ca(ply(intp.ebands_kpath.plotly(with_gaps=self.with_gaps, show=False)))
@@ -1379,9 +1492,17 @@ class PanelWithElectronBands(PanelWithStructure):
             for kpt in self.skw_ebands_kpath.kpoints:
                 vertices_names.append((kpt.frac_coords, kpt.name))
 
-            intp = self.ebands.interpolate(lpratio=self.skw_lpratio, vertices_names=vertices_names, line_density=0,
-                                            kmesh=None, is_shift=None, bstart=0, bstop=None, filter_params=None,
-                                            verbose=self.verbose)
+            intp = self.ebands.interpolate(
+                lpratio=self.skw_lpratio,
+                vertices_names=vertices_names,
+                line_density=0,
+                kmesh=None,
+                is_shift=None,
+                bstart=0,
+                bstop=None,
+                filter_params=None,
+                verbose=self.verbose,
+            )
 
             plotter = self.skw_ebands_kpath.get_plotter_with("Input", "Interpolated", intp.ebands_kpath)
             ca("## Input bands vs SKW interpolated bands:")
@@ -1390,20 +1511,21 @@ class PanelWithElectronBands(PanelWithStructure):
         return col
 
     def get_effmass_view(self) -> pn.Row:
-        """
-        Return Row with widgets to compute effective masses with finite diff.
-        """
+        """Return Row with widgets to compute effective masses with finite diff."""
         return pn.Row(
-            self.pws_col(["### Effective masses options",
-                          "effmass_accuracy",
-                          "effmass_degtol_ev",
-                          "effmass_spin",
-                          "plot_effmass_btn",
-                         ]),
-            self.on_plot_effmass_btn
+            self.pws_col(
+                [
+                    "### Effective masses options",
+                    "effmass_accuracy",
+                    "effmass_degtol_ev",
+                    "effmass_spin",
+                    "plot_effmass_btn",
+                ]
+            ),
+            self.on_plot_effmass_btn,
         )
 
-    @depends_on_btn_click('plot_effmass_btn')
+    @depends_on_btn_click("plot_effmass_btn")
     def on_plot_effmass_btn(self) -> pn.Column:
         """
         Compute and visualize effective masses with finite differences.
@@ -1417,7 +1539,8 @@ class PanelWithElectronBands(PanelWithStructure):
         degtol_ev = self.effmass_degtol_ev
         spin = self.effmass_spin
 
-        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+        col = pn.Column(sizing_mode="stretch_width")
+        ca = col.append
 
         if emana.select_vbm():
             ca(f"## Effective masses at the VBM with accuracy {acc}:")
@@ -1438,18 +1561,22 @@ class PanelWithElectronBands(PanelWithStructure):
         return col
 
     def get_ifermi_view(self):
-        """
-        Widgets to visualize the Fermi surface with ifermi package.
-        """
-        controls = self.pws_col([
-                          "ifermi_offset_eV", "ifermi_eref", "ifermi_wigner_seitz", "ifermi_interpolation_factor",
-                          "ifermi_with_velocities", # "ifermi_plane_normal", "ifermi_distance",
-                          "ifermi_plot_type", "plot_ifermi_btn",
-                          ])
+        """Widgets to visualize the Fermi surface with ifermi package."""
+        controls = self.pws_col(
+            [
+                "ifermi_offset_eV",
+                "ifermi_eref",
+                "ifermi_wigner_seitz",
+                "ifermi_interpolation_factor",
+                "ifermi_with_velocities",  # "ifermi_plane_normal", "ifermi_distance",
+                "ifermi_plot_type",
+                "plot_ifermi_btn",
+            ]
+        )
 
         return pn.Row(pn.Column("## ifermi options", controls), self.on_plot_ifermi_btn)
 
-    @depends_on_btn_click('plot_ifermi_btn')
+    @depends_on_btn_click("plot_ifermi_btn")
     def on_plot_ifermi_btn(self):
         """
         This Tab allows you to interpolate KS energies defined in the IBZ
@@ -1462,13 +1589,14 @@ class PanelWithElectronBands(PanelWithStructure):
         * for hole pockets in semiconductors, use `vbm` and a  negative offset e.g. -0.1 eV.
         """
         # interpolate the energies onto a dense k-point mesh
-        r = self.ebands.get_ifermi_fs(interpolation_factor=self.ifermi_interpolation_factor,
-                                      mu=self.ifermi_offset_eV,
-                                      eref=self.ifermi_eref,
-                                      wigner_seitz=self.ifermi_wigner_seitz,
-                                      calculate_dimensionality=False,
-                                      with_velocities=self.ifermi_with_velocities,
-                                      )
+        r = self.ebands.get_ifermi_fs(
+            interpolation_factor=self.ifermi_interpolation_factor,
+            mu=self.ifermi_offset_eV,
+            eref=self.ifermi_eref,
+            wigner_seitz=self.ifermi_wigner_seitz,
+            calculate_dimensionality=False,
+            with_velocities=self.ifermi_with_velocities,
+        )
 
         plt = r.fs_plotter.get_plot(plot_type=self.ifermi_plot_type)
 
@@ -1500,8 +1628,8 @@ class PanelWithElectronBands(PanelWithStructure):
         ca(ply(fig, sizing_mode="stretch_both"))
 
         # TODO: This requires more testing
-        #ifermi_plane_normal = self.ifermi_plane_normal.value
-        #if any(c != 0 for c in ifermi_plane_normal):
+        # ifermi_plane_normal = self.ifermi_plane_normal.value
+        # if any(c != 0 for c in ifermi_plane_normal):
         #    print("fs_plane normal:", ifermi_plane_normal)
         #    print("abc reciprocal", self.ebands.structure.reciprocal_lattice.abc)
         #    from ifermi.plot import FermiSlicePlotter
@@ -1516,13 +1644,13 @@ class PanelWithElectronBands(PanelWithStructure):
         #        fig = mpl(fig)
         #        ca(fig)
 
-        #ca(pn.layout.Divider())
-        #ca("## Powered by [ifermi](https://fermisurfaces.github.io/IFermi/)")
+        # ca(pn.layout.Divider())
+        # ca("## Powered by [ifermi](https://fermisurfaces.github.io/IFermi/)")
 
         return col
 
-    #@depends_on_btn_click('plot_fs_viewer_btn')
-    #def on_plot_fs_viewer_btn(self):
+    # @depends_on_btn_click('plot_fs_viewer_btn')
+    # def on_plot_fs_viewer_btn(self):
 
     #    # Get eb3d (memoized)
     #    eb3d = self._eb3d = self.ebands.get_ebands3d()
@@ -1544,7 +1672,7 @@ class PanelWithElectronBands(PanelWithStructure):
     #    else:
     #        raise ValueError(f"Invalid choice for fs_viewer: {self.fs_viewer}")
 
-    #def get_fsviewer_view(self):
+    # def get_fsviewer_view(self):
     #    """
     #    Widgets to visualize the Fermi surface with ifermi
     #    """
@@ -1559,23 +1687,25 @@ class PanelWithElectronBands(PanelWithStructure):
 
 
 class BaseRobotPanel(AbipyParameterized):
-    """
-    Base class for panels with AbiPy robot.
-    """
+    """Base class for panels with AbiPy robot."""
 
     def __init__(self, robot, **params):
+        """
+        Args:
+            robot: |Robot| object.
+            params: Parameters passed to the parent class.
+        """
         self.robot = robot
-        self.compare_params_btn = pnw.Button(name="Compare structures", button_type='primary')
-        self.transpose_params = pnw.Checkbox(name='Transpose table', value=True)
+        self.compare_params_btn = pnw.Button(name="Compare structures", button_type="primary")
+        self.transpose_params = pnw.Checkbox(name="Transpose table", value=True)
 
         super().__init__(**params)
 
     @depends_on_btn_click("compare_params_btn")
     def on_compare_params_btn(self):
-        """
-        Compare lattice parameters and atomic positions.
-        """
-        col = pn.Column(sizing_mode='stretch_width'); ca = col.append
+        """Compare lattice parameters and atomic positions."""
+        col = pn.Column(sizing_mode="stretch_width")
+        ca = col.append
         transpose = self.transpose_params.value
 
         dfs = self.robot.get_structure_dataframes()
@@ -1585,7 +1715,7 @@ class BaseRobotPanel(AbipyParameterized):
         ca("# Parameters dataframe")
         ca(dfc(self.robot.get_params_dataframe(), transpose=transpose))
 
-        accord = pn.Accordion(sizing_mode='stretch_width')
+        accord = pn.Accordion(sizing_mode="stretch_width")
         accord.append(("Atomic positions", dfc(dfs.coords, transpose=transpose)))
         ca(accord)
 
@@ -1593,41 +1723,43 @@ class BaseRobotPanel(AbipyParameterized):
 
     # TODO: widgets to change robot labels.
     def get_compare_params_widgets(self):
-        """
-        """
-        return pn.Row(pn.Column(
-            self.compare_params_btn, self.transpose_params),
+        """ """
+        return pn.Row(
+            pn.Column(self.compare_params_btn, self.transpose_params),
             self.on_compare_params_btn,
-            sizing_mode="scale_both")
+            sizing_mode="scale_both",
+        )
 
 
 class PanelWithEbandsRobot(BaseRobotPanel):
-    """
-    Mixin class for panels with a robot that owns a list of of |ElectronBands|.
-    """
+    """Mixin class for panels with a robot that owns a list of of |ElectronBands|."""
 
     def __init__(self, robot, **params):
-
+        """
+        Args:
+            robot: |Robot| object.
+            params: Parameters passed to the parent class.
+        """
         BaseRobotPanel.__init__(self, robot=robot, **params)
 
         # Widgets to plot ebands.
-        self.ebands_plotter_mode = pnw.Select(name="Plot Mode", value="gridplot",
-                                              options=["gridplot", "combiplot", "boxplot", "combiboxplot"]) # "animate",
-        self.ebands_plotter_btn = pnw.Button(name="Plot", button_type='primary')
-        self.ebands_df_checkbox = pnw.Checkbox(name='With Ebands DataFrame', value=False)
+        self.ebands_plotter_mode = pnw.Select(
+            name="Plot Mode", value="gridplot", options=["gridplot", "combiplot", "boxplot", "combiboxplot"]
+        )  # "animate",
+        self.ebands_plotter_btn = pnw.Button(name="Plot", button_type="primary")
+        self.ebands_df_checkbox = pnw.Checkbox(name="With Ebands DataFrame", value=False)
 
         # Widgets to plot edos.
         self.edos_plotter_mode = pnw.Select(name="Plot Mode", value="gridplot", options=["gridplot", "combiplot"])
-        self.edos_plotter_btn = pnw.Button(name="Plot", button_type='primary')
+        self.edos_plotter_btn = pnw.Button(name="Plot", button_type="primary")
 
     def get_ebands_plotter_widgets(self) -> pn.Column:
+        """Return a Column with widgets to plot electronic bands."""
         return pn.Column(self.ebands_plotter_mode, self.ebands_df_checkbox, self.ebands_plotter_btn)
 
     @depends_on_btn_click("ebands_plotter_btn")
     def on_ebands_plotter_btn(self) -> pn.Row:
-        """
-        Plot the electronic density of states.
-        """
+        """Plot the electronic density of states."""
         ebands_plotter = self.robot.get_ebands_plotter()
         plot_mode = self.ebands_plotter_mode.value
         plot_func = getattr(ebands_plotter, plot_mode, None)
@@ -1635,22 +1767,21 @@ class PanelWithEbandsRobot(BaseRobotPanel):
             raise ValueError("Don't know how to handle plot_mode: %s" % plot_mode)
 
         fig = plot_func(**self.mpl_kwargs)
-        col = pn.Column(mpl(fig), sizing_mode='scale_width')
+        col = pn.Column(mpl(fig), sizing_mode="scale_width")
 
         if self.ebands_df_checkbox.value:
             df = ebands_plotter.get_ebands_frame(with_spglib=True)
             col.append(dfc(df))
 
-        return pn.Row(col, sizing_mode='scale_width')
+        return pn.Row(col, sizing_mode="scale_width")
 
     def get_edos_plotter_widgets(self) -> pn.Column:
+        """Return a Column with widgets to plot electronic DOS."""
         return pn.Column(self.edos_plotter_mode, self.edos_plotter_btn)
 
     @depends_on_btn_click("edos_plotter_btn")
     def on_edos_plotter_btn(self) -> pn.Row:
-        """
-        Plot the electronic density of states.
-        """
+        """Plot the electronic density of states."""
         edos_plotter = self.robot.get_edos_plotter()
         plot_mode = self.edos_plotter_mode.value
         plot_func = getattr(edos_plotter, plot_mode, None)
@@ -1659,25 +1790,26 @@ class PanelWithEbandsRobot(BaseRobotPanel):
 
         fig = plot_func(**self.mpl_kwargs)
 
-        return pn.Row(pn.Column(mpl(fig)), sizing_mode='scale_width')
+        return pn.Row(pn.Column(mpl(fig)), sizing_mode="scale_width")
 
 
-def jsmol_html(structure, supercell=(1, 1, 1), width=700, height=700, color="black", spin="false")  -> pn.Column:
+def jsmol_html(structure, supercell=(1, 1, 1), width=700, height=700, color="black", spin="false") -> pn.Column:
 
-    cif_str = structure.write_cif_with_spglib_symms(None, ret_string=True) #, symprec=symprec
+    cif_str = structure.write_cif_with_spglib_symms(None, ret_string=True)  # , symprec=symprec
 
     # There's a bug in boken when we use strings with several '" quotation marks
     # To bypass the problem I create a json list of strings and then I use a js variable
     # to recreate the cif file by joining the tokens with: var string = elements.join('\n');
     import json
+
     lines = cif_str.split("\n")
     lines = json.dumps(lines, indent=4)
-    #print("lines:", lines)
+    # print("lines:", lines)
 
     jsmol_div_id = gen_id()
     jsmol_app_name = "js1"
     supercell = "{" + ",".join(str(s) for s in supercell) + "}"
-    #supercell = "{2, 2, 2}"
+    # supercell = "{2, 2, 2}"
 
     # http://wiki.jmol.org/index.php/Jmol_JavaScript_Object/Functions#getAppletHtml
 
@@ -1711,5 +1843,5 @@ def jsmol_html(structure, supercell=(1, 1, 1), width=700, height=700, color="bla
 <div id="{jsmol_div_id}" style="height: 100%; width: 100%; position: relative;"></div>
 """
 
-    #print(html)
+    # print(html)
     return pn.Column(pn.pane.HTML(html, sizing_mode="stretch_width"), sizing_mode="stretch_width")

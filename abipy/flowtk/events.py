@@ -1,47 +1,49 @@
-# coding: utf-8
 """
 This module defines the events signaled by abinit during the execution. It also
 provides a parser to extract these events form the main output file and the log file.
 """
+
 from __future__ import annotations
 
-import sys
-import os.path
-import datetime
+import abc
 import collections
 import dataclasses
-import abc
+import datetime
 import logging
+import os.path
+import sys
+from collections.abc import Iterator
+from io import StringIO
+
 import numpy as np
 import pandas as pd
-import ruamel.yaml as yaml
-
-from io import StringIO
-from typing import Union, Iterator
-from ruamel.yaml import YAML, yaml_object
-from monty.string import indent, is_string, list_strings
 from monty.fnmatch import WildCard
-from monty.termcolor import colored
 from monty.inspect import all_subclasses
 from monty.json import MontyDecoder, MSONable
+from monty.string import indent, is_string, list_strings
+from monty.termcolor import colored
 from pymatgen.core.structure import Structure
-from abipy.tools.typing import Figure
+from ruamel import yaml
+from ruamel.yaml import YAML, yaml_object
+
+from abipy.tools.iotools import yaml_unsafe_load
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, rotate_ticklabels, set_grid_legend
 from abipy.tools.serialization import pmg_serialize
-from abipy.tools.iotools import yaml_safe_load, yaml_unsafe_load
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend, rotate_ticklabels
+from abipy.tools.typing import Figure
+
 from .abiinspect import YamlTokenizer
 
 logger = logging.getLogger(__name__)
 
 __all__ = [
-    "EventsParser",
-    "get_event_handler_classes",
-    "ScfConvergenceWarning",
-    "NscfConvergenceWarning",
-    "RelaxConvergenceWarning",
     "Correction",
     "DilatmxError",
     "DilatmxErrorHandler",
+    "EventsParser",
+    "NscfConvergenceWarning",
+    "RelaxConvergenceWarning",
+    "ScfConvergenceWarning",
+    "get_event_handler_classes",
 ]
 
 
@@ -51,15 +53,16 @@ _yaml = YAML()
 def straceback() -> str:
     """Returns a string with the traceback."""
     import traceback
+
     return traceback.format_exc()
 
 
-#class PstatData(yaml.YAMLObject):
+# class PstatData(yaml.YAMLObject):
 #    yaml_tag = '!PstatData'
 
 
 class AbinitEvent(yaml.YAMLObject):
-#class AbinitEvent(yaml.YAMLObject, MSONable):
+    # class AbinitEvent(yaml.YAMLObject, MSONable):
     """
     Example (YAML syntax)::
 
@@ -102,6 +105,7 @@ class AbinitEvent(yaml.YAMLObject):
           the class attribute yaml_tag so that yaml.safe_load will know how to
           build the instance.
     """
+
     color = None
 
     def __init__(self, src_file: str, src_line: int, message: str):
@@ -113,7 +117,7 @@ class AbinitEvent(yaml.YAMLObject):
             src_line Integer giving the line number in src_file.
             message: String with human-readable message providing info on the event.
         """
-        #print("src_file", src_file, "src_line", src_line)
+        # print("src_file", src_file, "src_line", src_line)
         self.message = message
         self.src_file = src_file
         self.src_line = src_line
@@ -122,12 +126,12 @@ class AbinitEvent(yaml.YAMLObject):
     def as_dict(self) -> dict:
         # This is needed because the events printed in the main output file do not define scr_file and src_line
 
-        #d = super().as_dict()
-        #if not d.get("src_file"):
+        # d = super().as_dict()
+        # if not d.get("src_file"):
         #    d["src_file"] = "Unknown"
-        #if not d.get("src_line"):
+        # if not d.get("src_line"):
         #    d["src_line"] = 0
-        #return d
+        # return d
 
         src_file = getattr(self, "src_file", "Unknown")
         src_line = getattr(self, "src_line", 0)
@@ -153,7 +157,8 @@ class AbinitEvent(yaml.YAMLObject):
         return "\n".join((self.header, self.message))
 
     def __eq__(self, other):
-        if other is None: return False
+        if other is None:
+            return False
         return self.message == other.message
 
     def __ne__(self, other):
@@ -191,14 +196,16 @@ class AbinitEvent(yaml.YAMLObject):
 @yaml_object(_yaml)
 class AbinitComment(AbinitEvent):
     """Base class for Comment events"""
-    yaml_tag = '!COMMENT'
+
+    yaml_tag = "!COMMENT"
     color = "blue"
 
 
 @yaml_object(_yaml)
 class AbinitError(AbinitEvent):
     """Base class for Error events"""
-    yaml_tag = '!ERROR'
+
+    yaml_tag = "!ERROR"
     color = "red"
 
 
@@ -212,7 +219,8 @@ class AbinitYamlError(AbinitError):
 @yaml_object(_yaml)
 class AbinitBug(AbinitEvent):
     """Base class for Bug events"""
-    yaml_tag = '!BUG'
+
+    yaml_tag = "!BUG"
     color = "red"
 
 
@@ -223,7 +231,8 @@ class AbinitWarning(AbinitEvent):
     Developers should subclass this class to define the different exceptions
     raised by the code and the possible actions that can be performed.
     """
-    yaml_tag = '!WARNING'
+
+    yaml_tag = "!WARNING"
     color = "magenta"
 
 
@@ -236,6 +245,7 @@ class AbinitYamlWarning(AbinitCriticalWarning):
     Raised if the YAML parser cannot parse the document and the doc tas is a Warning.
     """
 
+
 ###############################
 # Warnings triggering restart #
 ###############################
@@ -244,23 +254,26 @@ class AbinitYamlWarning(AbinitCriticalWarning):
 @yaml_object(_yaml)
 class ScfConvergenceWarning(AbinitCriticalWarning):
     """Warning raised when the GS SCF cycle did not converge."""
-    yaml_tag = '!ScfConvergenceWarning'
+
+    yaml_tag = "!ScfConvergenceWarning"
 
 
 @yaml_object(_yaml)
 class NscfConvergenceWarning(AbinitCriticalWarning):
     """Warning raised when the GS NSCF cycle did not converge."""
-    yaml_tag = '!NscfConvergenceWarning'
+
+    yaml_tag = "!NscfConvergenceWarning"
 
 
 @yaml_object(_yaml)
 class RelaxConvergenceWarning(AbinitCriticalWarning):
     """Warning raised when the structural relaxation did not converge."""
-    yaml_tag = '!RelaxConvergenceWarning'
+
+    yaml_tag = "!RelaxConvergenceWarning"
 
 
 # TODO: for the time being we don't discern between GS and PhononCalculations.
-#class PhononConvergenceWarning(AbinitCriticalWarning):
+# class PhononConvergenceWarning(AbinitCriticalWarning):
 #    """Warning raised when the phonon calculation did not converge."""
 #    yaml_tag = u'!PhononConvergenceWarning'
 
@@ -268,13 +281,15 @@ class RelaxConvergenceWarning(AbinitCriticalWarning):
 @yaml_object(_yaml)
 class QPSConvergenceWarning(AbinitCriticalWarning):
     """Warning raised when the QPS iteration (GW) did not converge."""
-    yaml_tag = '!QPSConvergenceWarning'
+
+    yaml_tag = "!QPSConvergenceWarning"
 
 
 @yaml_object(_yaml)
 class HaydockConvergenceWarning(AbinitCriticalWarning):
     """Warning raised when the Haydock method (BSE) did not converge."""
-    yaml_tag = '!HaydockConvergenceWarning'
+
+    yaml_tag = "!HaydockConvergenceWarning"
 
 
 # Error classes providing a correct method.
@@ -296,6 +311,7 @@ class EventReport(collections.abc.Iterable, MSONable):
 
         stat: information about a file as returned by os.stat
     """
+
     def __init__(self, filename: str, events=None):
         """
         List of ABINIT events.
@@ -324,11 +340,11 @@ class EventReport(collections.abc.Iterable, MSONable):
     def __iter__(self) -> Iterator[AbinitEvent]:
         return self._events.__iter__()
 
-    def __getitem__(self, slice) -> Union[AbinitEvent, list[AbinitEvent]]:
+    def __getitem__(self, slice) -> AbinitEvent | list[AbinitEvent]:
         return self._events[slice]
 
     def __str__(self) -> str:
-        #has_colours = stream_has_colours(stream)
+        # has_colours = stream_has_colours(stream)
         has_colours = True
 
         lines = []
@@ -337,13 +353,15 @@ class EventReport(collections.abc.Iterable, MSONable):
         app("Events found in %s\n" % self.filename)
         for i, event in enumerate(self):
             if has_colours:
-                app("[%d] %s" % (i+1, colored(event.header, color=event.color)))
+                app("[%d] %s" % (i + 1, colored(event.header, color=event.color)))
                 app(indent(event.message, 4))
             else:
-                app("[%d] %s" % (i+1, str(event)))
+                app("[%d] %s" % (i + 1, str(event)))
 
-        app("num_errors: %s, num_warnings: %s, num_comments: %s, completed: %s\n" % (
-            self.num_errors, self.num_warnings, self.num_comments, self.run_completed))
+        app(
+            "num_errors: %s, num_warnings: %s, num_comments: %s, completed: %s\n"
+            % (self.num_errors, self.num_warnings, self.num_comments, self.run_completed)
+        )
 
         return "\n".join(lines)
 
@@ -389,7 +407,7 @@ class EventReport(collections.abc.Iterable, MSONable):
         return self.select(AbinitComment)
 
     @property
-    def errors(self) -> list[Union[AbinitError, AbinitBug]]:
+    def errors(self) -> list[AbinitError | AbinitBug]:
         """List of errors + bugs found."""
         return self.select(AbinitError) + self.select(AbinitBug)
 
@@ -422,7 +440,8 @@ class EventReport(collections.abc.Iterable, MSONable):
     def filter_types(self, event_types):
         events = []
         for ev in self:
-            if type(ev) in event_types: events.append(ev)
+            if type(ev) in event_types:
+                events.append(ev)
         return self.__class__(filename=self.filename, events=events)
 
     def get_events_of_type(self, event_class):
@@ -446,6 +465,7 @@ class EventsParser:
     """
     Parses the output or the log file produced by ABINIT and extract the list of events.
     """
+
     Error = EventsParserError
 
     def parse(self, filename: str, verbose: int = 0) -> EventReport:
@@ -457,26 +477,26 @@ class EventsParser:
         report = EventReport(filename)
 
         w = WildCard("*Error|*Warning|*Comment|*Bug|*ERROR|*WARNING|*COMMENT|*BUG")
-        #import warnings
-        #warnings.simplefilter('ignore', yaml.error.UnsafeLoaderWarning)
+        # import warnings
+        # warnings.simplefilter('ignore', yaml.error.UnsafeLoaderWarning)
 
         with YamlTokenizer(filename) as tokens:
             for doc in tokens:
                 if w.match(doc.tag):
-                    #print("got doc.tag", doc.tag,"--")
+                    # print("got doc.tag", doc.tag,"--")
                     try:
-                        doc.text  = doc.text.replace('\n    \n', '\n')
-                        #print(doc.text)
+                        doc.text = doc.text.replace("\n    \n", "\n")
+                        # print(doc.text)
                         # OLD VERSION
-                        #event = yaml.load(doc.text)   # Can't use ruamel safe_load!
+                        # event = yaml.load(doc.text)   # Can't use ruamel safe_load!
 
-                        #event = yaml_safe_load(doc.text)   # Can't use ruamel safe_load!
-                        event = yaml_unsafe_load(doc.text)   # Can't use ruamel safe_load!
+                        # event = yaml_safe_load(doc.text)   # Can't use ruamel safe_load!
+                        event = yaml_unsafe_load(doc.text)  # Can't use ruamel safe_load!
                         # FIXME: This new (recommend) API does not reproduce yaml.load behavior. bug in ruamel?
-                        #event = yaml.YAML(typ='unsafe', pure=True).load(dox.text)
-                        #print(event.yaml_tag, type(event))
+                        # event = yaml.YAML(typ='unsafe', pure=True).load(dox.text)
+                        # print(event.yaml_tag, type(event))
                     except Exception:
-                        #raise
+                        # raise
                         # Wrong YAML doc. Check that doc tag and instantiate the proper event.
                         message = "In EventsParser.parse(): Malformatted YAML document at line: %d\n" % doc.lineno
                         message += doc.text
@@ -496,10 +516,10 @@ class EventsParser:
 
                 # Check whether the calculation completed.
                 if doc.tag == "!FinalSummary":
-                    #print(doc)
+                    # print(doc)
                     run_completed = True
                     d = doc.as_dict()
-                    #print(d)
+                    # print(d)
                     start_datetime, end_datetime = d["start_datetime"], d["end_datetime"]
 
         report.set_run_completed(run_completed, start_datetime, end_datetime)
@@ -540,7 +560,7 @@ class EventHandler(MSONable, metaclass=abc.ABCMeta):
     The default handlers are those that do not change the physics,
     other handlers can be installed by the user when constructing with the flow with
 
-        TODO
+    Todo:
 
     .. warning::
 
@@ -553,7 +573,7 @@ class EventHandler(MSONable, metaclass=abc.ABCMeta):
     event_class = AbinitEvent
     """AbinitEvent subclass associated to this handler."""
 
-    #can_change_physics
+    # can_change_physics
 
     FIXED = 1
     NOT_FIXED = 0
@@ -625,11 +645,12 @@ class EventHandler(MSONable, metaclass=abc.ABCMeta):
 
         def vars_dict(d):
             """
-            make a simple dictionary and convert numpy arrays to lists
+            Make a simple dictionary and convert numpy arrays to lists
             """
             new_d = {}
             for key, value in d.items():
-                if isinstance(value, np.ndarray): value = value.tolist()
+                if isinstance(value, np.ndarray):
+                    value = value.tolist()
                 new_d[key] = value
 
             return new_d
@@ -647,23 +668,33 @@ class EventHandler(MSONable, metaclass=abc.ABCMeta):
 
         log_diff = {}
         if added_keys:
-            log_diff['_set'] = {k: new_vars[k] for k in added_keys}
+            log_diff["_set"] = {k: new_vars[k] for k in added_keys}
 
         if changed_keys:
-            log_diff['_update'] = ({k: {'new': new_vars[k], 'old': old_vars[k]} for k in changed_keys})
+            log_diff["_update"] = {k: {"new": new_vars[k], "old": old_vars[k]} for k in changed_keys}
 
         if new_input.structure != old_input.structure:
-            log_diff['_change_structure'] = new_input.structure.as_dict()
+            log_diff["_change_structure"] = new_input.structure.as_dict()
 
         if removed_keys:
-            log_diff['_pop'] = {k: old_vars[k] for k in removed_keys}
+            log_diff["_pop"] = {k: old_vars[k] for k in removed_keys}
 
         return log_diff
 
 
 class Correction(MSONable):
+    """
+    This object stores information on a correction applied by an |EventHandler|.
+    """
 
     def __init__(self, handler, actions, event, reset=False):
+        """
+        Args:
+            handler: The |EventHandler| that applied the correction.
+            actions: Dictionary with the actions applied.
+            event: The |AbinitEvent| that triggered the correction.
+            reset: True if the task should be restarted from scratch.
+        """
         self.handler = handler
         self.actions = actions
         self.event = event
@@ -671,29 +702,41 @@ class Correction(MSONable):
 
     @pmg_serialize
     def as_dict(self) -> dict:
+        """Return a MSONable dictionary."""
         return dict(handler=self.handler.as_dict(), actions=self.actions, event=self.event.as_dict(), reset=self.reset)
 
     @classmethod
     def from_dict(cls, d: dict) -> Correction:
+        """Build an instance from a dictionary."""
         dec = MontyDecoder()
-        return cls(handler=dec.process_decoded(d['handler']), actions=d['actions'],
-                   event=dec.process_decoded(d['event']), reset=d['reset'])
+        return cls(
+            handler=dec.process_decoded(d["handler"]),
+            actions=d["actions"],
+            event=dec.process_decoded(d["event"]),
+            reset=d["reset"],
+        )
 
 
-#class WarningHandler(EventHandler):
+# class WarningHandler(EventHandler):
 #    """Base class for handlers associated to ABINIT warnings."""
 #    event_class = AbinitWarning
 #
-#class BugHandler(EventHandler):
+# class BugHandler(EventHandler):
 #    """Base class for handlers associated to ABINIT bugs."""
 #    event_class = AbinitBug
 
+
 class ErrorHandler(EventHandler):
     """Base class for handlers associated to ABINIT errors."""
+
     event_class = AbinitError
 
 
-_ABC_EVHANDLER_CLASSES = set([ErrorHandler,])
+_ABC_EVHANDLER_CLASSES = set(
+    [
+        ErrorHandler,
+    ]
+)
 
 
 # Public API
@@ -704,7 +747,8 @@ def autodoc_event_handlers(stream=sys.stdout) -> None:
     """
     lines = []
     for cls in all_subclasses(EventHandler):
-        if cls in _ABC_EVHANDLER_CLASSES: continue
+        if cls in _ABC_EVHANDLER_CLASSES:
+            continue
         event_class = cls.event_class
         lines.extend(cls.cls2str().split("\n"))
 
@@ -729,7 +773,8 @@ def as_event_class(obj):
     """
     if is_string(obj):
         for c in all_subclasses(AbinitEvent):
-            if c.__name__ == obj or c.yaml_tag == obj: return c
+            if c.__name__ == obj or c.yaml_tag == obj:
+                return c
         raise ValueError("Cannot find event class associated to %s" % obj)
 
     # Assume class.
@@ -741,12 +786,14 @@ def as_event_class(obj):
 ########## Concrete classes ################
 ############################################
 
+
 class DilatmxError(AbinitError):
     """
     This Error occurs in variable cell calculations when the increase in the
     unit cell volume is too large.
     """
-    yaml_tag = '!DilatmxError'
+
+    yaml_tag = "!DilatmxError"
 
 
 class DilatmxErrorHandler(ErrorHandler):
@@ -754,35 +801,45 @@ class DilatmxErrorHandler(ErrorHandler):
     Handle DilatmxError. Abinit produces a netcdf file with the last structure before aborting
     The handler changes the structure in the input with the last configuration and modify the value of dilatmx.
     """
+
     event_class = DilatmxError
 
     can_change_physics = False
 
     def __init__(self, max_dilatmx=1.3):
+        """
+        Args:
+            max_dilatmx: Maximum value of dilatmx allowed.
+        """
         self.max_dilatmx = max_dilatmx
 
     @pmg_serialize
     def as_dict(self) -> dict:
-        return {'max_dilatmx': self.max_dilatmx}
+        """Return a MSONable dictionary."""
+        return {"max_dilatmx": self.max_dilatmx}
 
     @classmethod
     def from_dict(cls, d: dict) -> DilatmxErrorHandler:
-        return cls(max_dilatmx=d['max_dilatmx'])
+        """Build an instance from a dictionary."""
+        return cls(max_dilatmx=d["max_dilatmx"])
 
     def handle_task_event(self, task, event):
+        """Handle DilatmxError in a Task."""
         # Read the last structure dumped by ABINIT before aborting.
         filepath = task.outdir.has_abiext("DILATMX_STRUCT.nc")
         last_structure = Structure.from_file(filepath)
 
         task._change_structure(last_structure)
 
-        #read the suggested dilatmx
+        # read the suggested dilatmx
         # new_dilatmx = 1.05
         # if new_dilatmx > self.max_dilatmx:
         #     msg = "Suggested dilatmx ({}) exceeds maximux configured value ({}).".format(new_dilatmx, self.max_dilatmx)
         #     return self.NOT_FIXED
         # task.strategy.abinit_input.set_vars(dilatmx=new_dilatmx)
-        msg = "Take last structure from DILATMX_STRUCT.nc, will try to restart with dilatmx %s" % task.get_inpvar("dilatmx")
+        msg = "Take last structure from DILATMX_STRUCT.nc, will try to restart with dilatmx %s" % task.get_inpvar(
+            "dilatmx"
+        )
         task.log_correction(event, msg)
         # Note that we change the structure but we don't try restart from the previous WFK|DEN file
         # because Abinit called mpi_abort and therefore no final WFK|DEN file has been produced.
@@ -790,17 +847,18 @@ class DilatmxErrorHandler(ErrorHandler):
         return self.FIXED
 
     def handle_input_event(self, abi_input, outdir, event):
+        """Handle DilatmxError in an AbinitInput."""
         try:
             old_abiinput = abi_input.deepcopy()
             # Read the last structure dumped by ABINIT before aborting.
             filepath = outdir.has_abiext("DILATMX_STRUCT.nc")
             last_structure = Structure.from_file(filepath)
             abi_input.set_structure(last_structure)
-            #FIXME restart from DEN files not always working with interpolation
+            # FIXME restart from DEN files not always working with interpolation
             return Correction(self, self.compare_inputs(abi_input, old_abiinput), event, reset=True)
             # return Correction(self, self.compare_inputs(abi_input, old_abiinput), event, event=False)
         except Exception as exc:
-            logger.warning('Error while trying to apply the handler {}.'.format(str(self)), exc)
+            logger.warning(f"Error while trying to apply the handler {self!s}.", exc)
             return None
 
 
@@ -812,13 +870,15 @@ class TolSymError(AbinitError):
     We increase the value of tolsym in the input file (default 1-8) so that Abinit can find the space group
     and re-symmetrize the input structure.
     """
-    yaml_tag = '!TolSymError'
+
+    yaml_tag = "!TolSymError"
 
 
 class TolSymErrorHandler(ErrorHandler):
     """
     Increase the value of tolsym in the input file.
     """
+
     event_class = TolSymError
 
     can_change_physics = False
@@ -828,11 +888,11 @@ class TolSymErrorHandler(ErrorHandler):
 
     @pmg_serialize
     def as_dict(self) -> dict:
-        return {'max_nfixes': self.max_nfixes}
+        return {"max_nfixes": self.max_nfixes}
 
     @classmethod
     def from_dict(cls, d: dict) -> TolSymErrorHandler:
-        return cls(max_nfixes=d['max_nfixes'])
+        return cls(max_nfixes=d["max_nfixes"])
 
     def handle_task_event(self, task, event):
         # TODO: Add limit on the number of fixes one can do for the same error
@@ -848,6 +908,7 @@ class TolSymErrorHandler(ErrorHandler):
         return self.FIXED
 
     def handle_input_event(self, abi_input, outdir, event):
+        """Handle TolSymError in an AbinitInput."""
         try:
             old_abiinput = abi_input.deepcopy()
             old_tolsym = abi_input["tolsym"]
@@ -855,7 +916,7 @@ class TolSymErrorHandler(ErrorHandler):
             abi_input.set_vars(tolsym=new_tolsym)
             return Correction(self, self.compare_inputs(abi_input, old_abiinput), event, reset=False)
         except Exception as exc:
-            logger.warning('Error while trying to apply the handler {}.'.format(str(self)), exc)
+            logger.warning(f"Error while trying to apply the handler {self!s}.", exc)
             return None
 
 
@@ -865,13 +926,15 @@ class MemanaError(AbinitError):
     Class of errors raised by the memory analyzer.
     (the section that estimates the memory requirements from the input parameters).
     """
-    yaml_tag = '!MemanaError'
+
+    yaml_tag = "!MemanaError"
 
 
 class MemanaErrorHandler(ErrorHandler):
     """
     Set mem_test to 0 to bypass the memory check.
     """
+
     event_class = MemanaError
 
     can_change_physics = False
@@ -882,12 +945,13 @@ class MemanaErrorHandler(ErrorHandler):
         return self.FIXED
 
     def handle_input_event(self, abi_input, outdir, event):
+        """Handle MemanaError in an AbinitInput."""
         try:
             old_abiinput = abi_input.deepcopy()
             abi_input.set_vars(mem_test=0)
             return Correction(self, self.compare_inputs(abi_input, old_abiinput), event, reset=False)
         except Exception as exc:
-            logger.warning('Error while trying to apply the handler {}.'.format(str(self)), exc)
+            logger.warning(f"Error while trying to apply the handler {self!s}.", exc)
             return None
 
 
@@ -897,13 +961,15 @@ class MemoryError(AbinitError):
     This error occurs when a checked allocation fails in Abinit
     The only way to go is to increase memory
     """
-    yaml_tag = '!MemoryError'
+
+    yaml_tag = "!MemoryError"
 
 
 class MemoryErrorHandler(ErrorHandler):
     """
     Handle MemoryError. Increase the resources requirements
     """
+
     event_class = MemoryError
 
     can_change_physics = False
@@ -914,10 +980,10 @@ class MemoryErrorHandler(ErrorHandler):
 
     def handle_input_event(self, abi_input, outdir, event):
         """
-        Shouldn't do anything on the input
+        Handle MemoryError in an AbinitInput.
+        Shouldn't do anything on the input.
         """
-        return None
-
+        return
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -937,6 +1003,7 @@ class _TimeRecord:
 
 def str2sec(time_str: str) -> float:
     import re
+
     time_str = time_str.strip()
 
     # [days] format: e.g., 1-02:03:04 [days]
@@ -974,17 +1041,18 @@ class MemLogParser:
 
         # NB: pstat is only supported by Linux.
         self.docs = []
-        _yaml = YAML(typ='safe', pure=True)
+        _yaml = YAML(typ="safe", pure=True)
         pstat_tag = "!PstatData"
         with YamlTokenizer(filepath) as tokens:
             for doc in tokens:
-                if doc.tag != pstat_tag: continue
+                if doc.tag != pstat_tag:
+                    continue
                 doc = _yaml.load(doc.text.replace(pstat_tag, ""))
                 self.docs.append(doc)
 
         # Extract lines with MEM or TIME info.
         mem_lines, time_lines = [], []
-        with open(self.filepath, "rt") as fh:
+        with open(self.filepath) as fh:
             for line in fh:
                 line = line.strip()
                 if line.endswith(self.MEM_TAG):
@@ -997,7 +1065,8 @@ class MemLogParser:
 
     def _parse_mem_lines(self, mem_lines) -> None:
         self.mem_records = []
-        if not mem_lines: return
+        if not mem_lines:
+            return
 
         # Parse line in the form.
         # `Local memory for chi_q(g',r) matrices: 63.5  [Mb] <<< MEM`
@@ -1017,15 +1086,17 @@ class MemLogParser:
 
     def _parse_time_lines(self, time_lines) -> None:
         self.time_records = []
-        if not time_lines: return
+        if not time_lines:
+            return
 
         # Parse line in the form.
         #   `Chi my_ir [500/3375] (tot: 3375) , wall:  0.00 [s] , cpu:  0.00 [s] <<< TIME`
         import re
+
         pattern = (
-            r'^(?P<label>.*?),\s*'
-            r'wall:\s*(?P<wall_str>[\d:.]+\s*\[\w+\])\s*,\s*'
-            r'cpu:\s*(?P<cpu_str>[\d:.]+\s*\[\w+\])'
+            r"^(?P<label>.*?),\s*"
+            r"wall:\s*(?P<wall_str>[\d:.]+\s*\[\w+\])\s*,\s*"
+            r"cpu:\s*(?P<cpu_str>[\d:.]+\s*\[\w+\])"
         )
 
         for lineno, line in enumerate(time_lines):
@@ -1033,7 +1104,7 @@ class MemLogParser:
 
             if match := re.match(pattern, line):
                 label, wall_str, cpu_str = match.group("label"), match.group("wall_str"), match.group("cpu_str")
-                #print(f"{label=}, {wall_str=}, {cpu_str=}")
+                # print(f"{label=}, {wall_str=}, {cpu_str=}")
                 wall, cpu = str2sec(wall_str), str2sec(cpu_str)
                 self.time_records.append(_TimeRecord(lineno=lineno, label=label, wall=wall, cpu=cpu))
             else:
@@ -1048,6 +1119,7 @@ class MemLogParser:
     def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level `verbose`."""
         strio = StringIO()
+
         def _p(*args, **kwargs):
             print(*args, file=strio, **kwargs)
 
@@ -1102,20 +1174,19 @@ class MemLogParser:
 
         for doc in self.docs:
             filename = doc["file"]
-            if filenames is not None and filename not in filenames: continue
+            if filenames is not None and filename not in filenames:
+                continue
             ys_file[filename].append(float(doc[what]))
             xs_file[filename].append("@%s" % (doc["line"]))
 
         nrows, ncols = len(ys_file), 1
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=False, sharey=True, squeeze=True)
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols, sharex=False, sharey=True, squeeze=True)
         ax_list = ax_list.ravel()
 
         for ix, (ax, (file_name, ys)) in enumerate(zip(ax_list, ys_file.items(), strict=True)):
             xs = xs_file[file_name]
             ax.plot(xs, ys, marker="o")
-            #rotate_ticklabels(ax, 15)
-            set_grid_legend(ax, fontsize, ylabel=what if ix == 0 else None,
-                            title=file_name)
+            # rotate_ticklabels(ax, 15)
+            set_grid_legend(ax, fontsize, ylabel=what if ix == 0 else None, title=file_name)
 
         return fig

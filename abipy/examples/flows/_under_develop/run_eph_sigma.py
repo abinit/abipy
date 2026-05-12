@@ -9,31 +9,35 @@ The final results (out_DDB, out_DVDB) will be produced automatically at the end 
 and saved in the ``outdata/`` directory of work[1].
 """
 
-import sys
 import os
-import abipy.abilab as abilab
-import abipy.data as abidata
+import sys
 
-from abipy import flowtk
+from abipy import abilab, flowtk
 
 
 def make_scf_input():
     """
     This function constructs the input file for the GS calculation:
     """
-
     # Initialize MgO structure from abinit variables.
     structure = abilab.Structure.from_abivars(
         acell=3 * [4.252718 * abilab.units.ang_to_bohr],
-        rprim=[0.0000000000, 0.5000000000, 0.5000000000,
-               0.5000000000, 0.0000000000, 0.5000000000,
-               0.5000000000, 0.5000000000, 0.0000000000],
+        rprim=[
+            0.0000000000,
+            0.5000000000,
+            0.5000000000,
+            0.5000000000,
+            0.0000000000,
+            0.5000000000,
+            0.5000000000,
+            0.5000000000,
+            0.0000000000,
+        ],
         natom=2,
         ntypat=2,
         typat=[1, 2],
         znucl=[12, 8],
-        xred=[0.0000000000, 0.0000000000, 0.0000000000,
-              0.5000000000, 0.5000000000, 0.5000000000]
+        xred=[0.0000000000, 0.0000000000, 0.0000000000, 0.5000000000, 0.5000000000, 0.5000000000],
     )
 
     # NC pseudos assumed in currect working directory.
@@ -45,16 +49,16 @@ def make_scf_input():
     gs_inp.set_vars(
         nband=16,
         paral_kgb=0,
-        ecut=35.0,        # Too low. Should be ~50
+        ecut=35.0,  # Too low. Should be ~50
         ngkpt=[4, 4, 4],  # Too coarse
-        #nshiftk=1,
-        shiftk=[0, 0, 0], # Gamma-centered mesh. Important to have the CBM/VBM!
+        # nshiftk=1,
+        shiftk=[0, 0, 0],  # Gamma-centered mesh. Important to have the CBM/VBM!
         tolvrs=1.0e-10,
         diemac=9.0,
         nstep=150,
         nbdbuf=4,
-        #prtpot=1,       # Print potential for Sternheimer
-        iomode=3,        # Produce output files in netcdf format.
+        # prtpot=1,       # Print potential for Sternheimer
+        iomode=3,  # Produce output files in netcdf format.
     )
 
     return gs_inp
@@ -92,8 +96,8 @@ def build_flow(options):
     nscf_eph_inp = gs_inp.new_with_vars(
         tolwfr=1e-16,
         iscf=-2,
-        prtpot=1,         # Needed for the Sternheimer.
-                          # This POT file is actually a copy of the GS POT file.
+        prtpot=1,  # Needed for the Sternheimer.
+        # This POT file is actually a copy of the GS POT file.
     )
 
     eph_ngkpt = [32, 32, 32]
@@ -105,7 +109,7 @@ def build_flow(options):
     nscf_eph_work = work[-1]
 
     # Q-mesh for phonons. In this case k-mesh == q-mesh
-    #ngkpt = [32, 32, 32]
+    # ngkpt = [32, 32, 32]
     ngqpt = [4, 4, 4]
 
     # Create work for phonon calculationwith a [4, 4, 4] q-mesh.
@@ -118,20 +122,20 @@ def build_flow(options):
     # The k-points must be in the WFK file
     #
     eph_inp = gs_inp.new_with_vars(
-        optdriver=7,             # Enter EPH driver.
-        eph_task=4,              # Activate computation of EPH self-energy.
-        eph_stern=1,             # Use the sternheimer equations
+        optdriver=7,  # Enter EPH driver.
+        eph_task=4,  # Activate computation of EPH self-energy.
+        eph_stern=1,  # Use the sternheimer equations
         ngkpt=eph_ngkpt,
-        ddb_ngqpt=ngqpt,         # q-mesh used to produce the DDB file (must be consistent with DDB data)
-        symsigma=1,              # Use symmetries in self-energy integration (IBZ_k instead of BZ)
+        ddb_ngqpt=ngqpt,  # q-mesh used to produce the DDB file (must be consistent with DDB data)
+        symsigma=1,  # Use symmetries in self-energy integration (IBZ_k instead of BZ)
         # For more k-points...
         nkptgw=1,
         kptgw=[0, 0, 0],
         bdgw=[9, 9],
-        #gw_qprange=-4,
+        # gw_qprange=-4,
         nfreqsp=8000,
         freqspmax="8.0 eV",
-        tmesh=[0, 200, 1],    # (start, step, num)
+        tmesh=[0, 200, 1],  # (start, step, num)
         zcut="0.01 eV",
     )
 
@@ -143,49 +147,47 @@ def build_flow(options):
 
     # Convergence of the q-mesh grid
     # For each q-mesh check the frequency mesh and thus the time mesh density to obtain a stable spectral function
-    for eph_ngqpt_fine in [ [8, 8, 8], [16, 16, 16], [32, 32, 32]]:
+    for eph_ngqpt_fine in [[8, 8, 8], [16, 16, 16], [32, 32, 32]]:
         # Create empty work to contain EPH tasks with this value of eph_ngqpt_fine
         eph_work = flow.register_work(flowtk.Work())
 
         for nfreq in [1000, 2000, 3000, 4000]:
-
             # EPH part requires the GS WFK, the DDB file with all perturbations
             # and the database of DFPT potentials (already merged by PhononWork)
             deps = {nscf_eph_work: ["WFK", "POT"], ph_work: ["DDB", "DVDB"]}
             new_inp = eph_inp.new_with_vars(eph_ngqpt_fine=eph_ngqpt_fine, nfreqsp=nfreq)
             eph_work.register_eph_task(new_inp, deps=deps)
 
-            ce_inp = new_inp.new_with_vars(
-                eph_task=9,
-                tolcum=1e-3
-            )
+            ce_inp = new_inp.new_with_vars(eph_task=9, tolcum=1e-3)
             # Cumulant expansion requires the SIGEPH output file obtained from the EPH calculation
             deps = {nscf_eph_work: ["WFK", "POT"], ph_work: ["DDB", "DVDB"], eph_work[-1]: "SIGEPH"}
 
             eph_work.register_eph_task(ce_inp, deps=deps)
 
     # Create workflow for the EPH task
-    #eph_work.register_eph_task(eph_inp, deps=deps)
+    # eph_work.register_eph_task(eph_inp, deps=deps)
 
-    #ce_inp = eph_inp.new_with_vars(
+    # ce_inp = eph_inp.new_with_vars(
     #        eph_task=9,
     #        tolcum=1e-3
     #        )
 
-    #deps = {nscf_eph_work: ["WFK","POT"], ph_work: ["DDB", "DVDB"], eph_work[0]: "SIGEPH"}
+    # deps = {nscf_eph_work: ["WFK","POT"], ph_work: ["DDB", "DVDB"], eph_work[0]: "SIGEPH"}
 
-    #eph_work.register_eph_task(ce_inp, deps=deps)
+    # eph_work.register_eph_task(ce_inp, deps=deps)
 
     flow.allocate()
     flow.use_smartio()
 
     return flow
 
+
 # This block generates the thumbnails in the AbiPy gallery.
 # You can safely REMOVE this part if you are using this script for production runs.
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 
@@ -202,5 +204,3 @@ def main(options):
 
 if __name__ == "__main__":
     sys.exit(main())
-
-

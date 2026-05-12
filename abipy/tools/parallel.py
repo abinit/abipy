@@ -1,20 +1,16 @@
-"""
-Tools used to parallelize sections of python code with multiprocessing or threads.
-"""
+"""Tools used to parallelize sections of python code with multiprocessing or threads."""
+
 from __future__ import annotations
 
 import os
 
 from monty.collections import dict2namedtuple
 
-
 _MAX_NPROCS = os.cpu_count()
 
 
 def get_max_nprocs() -> int:
-    """
-    Return the maximum number of procs that can be used by AbiPy.
-    """
+    """Return the maximum number of procs that can be used by AbiPy."""
     return _MAX_NPROCS
 
 
@@ -43,8 +39,9 @@ def pool_nprocs_pmode(nprocs: int | None, pmode: str):
                "processes" for multiprocessing Pool.
                "seq" for sequential execution (debugging)
     """
-    from multiprocessing.pool import ThreadPool
     from multiprocessing import Pool
+    from multiprocessing.pool import ThreadPool
+
     max_nprocs = get_max_nprocs()
 
     if pmode == "seq":
@@ -65,7 +62,8 @@ def pool_nprocs_pmode(nprocs: int | None, pmode: str):
     else:
         raise ValueError(f"Invalid value of {pmode=}, it should be in ['seq', 'threads', 'processes']")
 
-    return dict2namedtuple(nprocs=nprocs or max_nprocs,
-                           pool_cls=pool_cls,
-                           using_msg=f"using {nprocs=} with {pmode=} and Pool class: {pool_cls.__name__} ...",
-                           )
+    return dict2namedtuple(
+        nprocs=nprocs or max_nprocs,
+        pool_cls=pool_cls,
+        using_msg=f"using {nprocs=} with {pmode=} and Pool class: {pool_cls.__name__} ...",
+    )

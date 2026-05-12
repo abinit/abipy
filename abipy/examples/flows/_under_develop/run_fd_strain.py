@@ -16,12 +16,12 @@ the efield variable sets the strength (in atomic units) and direction of the fie
 Based on tutorespfn/Input/tpolarization_6.abi
 """
 
-import sys
 import os
-import abipy.flowtk as flowtk
+import sys
 
-from abipy.core.structure import Structure
+from abipy import flowtk
 from abipy.abio.inputs import AbinitInput
+from abipy.core.structure import Structure
 from abipy.flowtk.finitediff import FiniteStrainWork
 
 
@@ -55,14 +55,14 @@ xred
 
     # Get NC pseudos from pseudodojo.
     from abipy.flowtk.psrepos import get_oncvpsp_pseudos
-    pseudos = get_oncvpsp_pseudos(xc_name="LDA", version="0.4",
-                                  relativity_type="SR", accuracy="standard")
-    #nspinor = 1
-    #nsppol, nspden = 1, 4
-    #if nspinor == 1:
+
+    pseudos = get_oncvpsp_pseudos(xc_name="LDA", version="0.4", relativity_type="SR", accuracy="standard")
+    # nspinor = 1
+    # nsppol, nspden = 1, 4
+    # if nspinor == 1:
     #    nsppol, nspden  = 2, 2
 
-    #nband 4
+    # nband 4
     # nband is restricted here to the number of filled bands only, no empty bands. The theory of
     # the Berrys phase polarization formula assumes filled bands only. Our pseudopotential choice
     # includes 5 valence electrons on P, 3 on Al, for 8 total in the primitive unit cell, hence
@@ -75,23 +75,32 @@ xred
         ecut=5,
         nband=4,
         tolvrs=1.0e-8,
-        #toldfe=1.0e-15,
-        #nspinor=nspinor,
-        #nsppol=nsppol,
-        #nspden=nspden,
-        #nstep=7,         # Maximal number of SCF cycles from the tutorial
-        nstep=50,         # Maximal number of SCF cycles
+        # toldfe=1.0e-15,
+        # nspinor=nspinor,
+        # nsppol=nsppol,
+        # nspden=nspden,
+        # nstep=7,         # Maximal number of SCF cycles from the tutorial
+        nstep=50,  # Maximal number of SCF cycles
         ecutsm=0.5,
         dilatmx=1.05,
         paral_kgb=0,
     )
 
-    shiftk = [0.5, 0.5, 0.5,
-              0.5, 0.0, 0.0,
-              0.0, 0.5, 0.0,
-              0.0, 0.0, 0.5,
+    shiftk = [
+        0.5,
+        0.5,
+        0.5,
+        0.5,
+        0.0,
+        0.0,
+        0.0,
+        0.5,
+        0.0,
+        0.0,
+        0.0,
+        0.5,
     ]
-    #scf_input.set_kmesh(ngkpt=[6, 6, 6], shiftk=shiftk)
+    # scf_input.set_kmesh(ngkpt=[6, 6, 6], shiftk=shiftk)
     scf_input.set_kmesh(ngkpt=[1, 1, 1], shiftk=[0, 0, 0])
 
     # Initialize the flow.
@@ -108,7 +117,7 @@ xred
         shear_step=0.03,
         relax_ions=relax_ions,
         relax_ions_opts=relax_ions_opts,
-        #extra_abivars=dict(berryopt=-1),  # This to compute the polarization at E = 0
+        # extra_abivars=dict(berryopt=-1),  # This to compute the polarization at E = 0
     )
 
     # Add the work to the flow.
@@ -122,6 +131,7 @@ xred
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

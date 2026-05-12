@@ -1,20 +1,21 @@
-# coding: utf-8
 """Work related to GS calculations."""
+
 from __future__ import annotations
 
 import json
 
 from pymatgen.analysis.eos import EOS
-from abipy.core.structure import Structure
-from abipy.core.kpoints import Kpath
+
 from abipy.abio.inputs import AbinitInput
+from abipy.core.kpoints import Kpath
+from abipy.core.structure import Structure
 from abipy.electrons.gsr import GsrRobot
+
 from .works import Work
 
 __all__ = [
-    "GsKmeshConvWork"
-    "GsKmeshTsmearConvWork",
     "EosWork",
+    "GsKmeshConvWorkGsKmeshTsmearConvWork",
 ]
 
 
@@ -30,9 +31,7 @@ class GsKmeshConvWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls,
-                       scf_input: AbinitInput,
-                       nksmall_list: list) -> GsKmeshConvWork:
+    def from_scf_input(cls, scf_input: AbinitInput, nksmall_list: list) -> GsKmeshConvWork:
         """
         Build the work from a `scf_input` for a GS SCF run and a list
         with the smallest number of divisions for the k-mesh.
@@ -45,7 +44,7 @@ class GsKmeshConvWork(Work):
 
         return work
 
-    def on_all_ok(self): # pragma: no cover
+    def on_all_ok(self):  # pragma: no cover
         """
         This method is called when all tasks in the GsKmeshTsmearConvWork have reached S_OK.
         """
@@ -71,7 +70,6 @@ robot.plot_convergence_items(items, sortby="nkpt", abs_conv=abs_conv)
         return super().on_all_ok()
 
 
-
 class GsKmeshTsmearConvWork(Work):
     """
     This work performs convergence studies of GS properties
@@ -84,10 +82,7 @@ class GsKmeshTsmearConvWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls,
-                       scf_input: AbinitInput,
-                       nksmall_list: list,
-                       tsmear_list: list) -> GsKmeshTsmearConvWork:
+    def from_scf_input(cls, scf_input: AbinitInput, nksmall_list: list, tsmear_list: list) -> GsKmeshTsmearConvWork:
         """
         Build the work from a `scf_input` for a GS SCF run including `occopt`
         and a list with the smallest number of divisions for the k-mesh.
@@ -98,13 +93,13 @@ class GsKmeshTsmearConvWork(Work):
 
         work = cls()
         for tsmear, nksmall in itertools.product(tsmear_list, nksmall_list):
-           new_inp = scf_input.new_with_vars(tsmear=tsmear)
-           new_inp.set_autokmesh(nksmall)
-           work.register_scf_task(new_inp)
+            new_inp = scf_input.new_with_vars(tsmear=tsmear)
+            new_inp.set_autokmesh(nksmall)
+            work.register_scf_task(new_inp)
 
         return work
 
-    def on_all_ok(self): # pragma: no cover
+    def on_all_ok(self):  # pragma: no cover
         """
         This method is called when all tasks in the GsKmeshTsmearConvWork have reached S_OK.
         """
@@ -153,13 +148,15 @@ class EosWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls,
-                       scf_input: AbinitInput,
-                       npoints: int = 4,
-                       deltap_vol: float = 0.25,
-                       ecutsm: float = 0.5,
-                       move_atoms: bool = True,
-                       manager=None) -> EosWork:
+    def from_scf_input(
+        cls,
+        scf_input: AbinitInput,
+        npoints: int = 4,
+        deltap_vol: float = 0.25,
+        ecutsm: float = 0.5,
+        move_atoms: bool = True,
+        manager=None,
+    ) -> EosWork:
         """
         Build an EosWork from an AbinitInput for GS-SCF.
 
@@ -186,8 +183,10 @@ class EosWork(Work):
         new_work.input_volumes = [v0 + ipt * dvol for ipt in range(2 * npoints + 1)]
 
         if "ecutsm" not in scf_input:
-            print("Input does not define ecutsm input variable.\n",
-                  "A default value of %s will be added to all the EOS inputs" % ecutsm)
+            print(
+                "Input does not define ecutsm input variable.\n",
+                "A default value of %s will be added to all the EOS inputs" % ecutsm,
+            )
 
         for vol in new_work.input_volumes:
             # Build structure with new volume and generate new input.
@@ -233,12 +232,11 @@ class EosWork(Work):
                 energies_ev.append(float(gsr.energy))
                 volumes.append(float(gsr.structure.volume))
 
-        eos_data = {"input_volumes_ang3": self.input_volumes,
-                    "volumes_ang3": volumes,
-                    "energies_ev": energies_ev}
+        eos_data = {"input_volumes_ang3": self.input_volumes, "volumes_ang3": volumes, "energies_ev": energies_ev}
 
         for model in EOS.MODELS:
-            if model in ("deltafactor", "numerical_eos"): continue
+            if model in ("deltafactor", "numerical_eos"):
+                continue
             try:
                 fit = EOS(model).fit(volumes, energies_ev)
                 eos_data[model] = {k: float(v) for k, v in fit.results.items()}
@@ -246,12 +244,12 @@ class EosWork(Work):
                 eos_data[model] = {"exception": str(exc)}
 
         if write_json:
-            with open(self.outdir.path_in("eos_data.json"), "wt") as fh:
+            with open(self.outdir.path_in("eos_data.json"), "w") as fh:
                 json.dump(eos_data, fh, indent=4, sort_keys=True)
 
         return eos_data
 
-    def on_all_ok(self): # pragma: no cover
+    def on_all_ok(self):  # pragma: no cover
         """
         This method is called when all tasks have reached S_OK.
         It reads the energies and the volumes from the GSR file, computes the EOS
@@ -270,13 +268,15 @@ class SpinSpiralWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls,
-                       scf_input: AbinitInput,
-                       constraints: dict | None = None,
-                       line_density: int = 10,
-                       connect: bool = True,
-                       qnames: list or None = None,
-                       manager=None) -> SpinSpiralWork:
+    def from_scf_input(
+        cls,
+        scf_input: AbinitInput,
+        constraints: dict | None = None,
+        line_density: int = 10,
+        connect: bool = True,
+        qnames: list or None = None,
+        manager=None,
+    ) -> SpinSpiralWork:
         """
         Build a SpinSpiralWork from an AbinitInput for GS-SCF.
 
@@ -309,19 +309,18 @@ class SpinSpiralWork(Work):
         Here we read the atomic magnetization from the initial task
         """
         if sender == self.initial_task:
-            #with self.initial_task.open_gsr() as gsr:
+            # with self.initial_task.open_gsr() as gsr:
             #    data = gsr.get_mag_results()
 
             scf_input = self.initial_task.input
 
             # Loop over q-path lines to improve parallelism.
-            #for line in enumerate(self.qpath.lines):
+            # for line in enumerate(self.qpath.lines):
             #    for iql in line:
             #        qpt = self.qpath[iql]
 
             for iq, qpt in enumerate(self.qpath):
-
-                parent = self[iq-1] if iq > 0 else self.initial_task
+                parent = self[iq - 1] if iq > 0 else self.initial_task
                 if qpt.is_gamma():
                     parent = self.initial_task
 

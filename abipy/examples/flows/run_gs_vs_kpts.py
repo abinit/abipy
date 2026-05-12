@@ -5,12 +5,12 @@ Convergence study with different k-meshes
 
 In this example,
 """
-import sys
-import os
 
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+import os
+import sys
+
 import abipy.data as abidata
+from abipy import abilab, flowtk
 
 
 def build_flow(options):
@@ -27,19 +27,19 @@ def build_flow(options):
     scf_input = abilab.AbinitInput(structure, pseudos)
 
     scf_input.set_vars(
-        ecut=15,       # Too low.
-        nstep=50,      # Increase default
+        ecut=15,  # Too low.
+        nstep=50,  # Increase default
         tolvrs=1e-8,
     )
 
     flow = flowtk.Flow(workdir=options.workdir)
 
     from abipy.flowtk.gs_works import GsKmeshConvWork
+
     nksmall_list = [2, 4, 6, 8]
     flow.register_work(GsKmeshConvWork.from_scf_input(scf_input, nksmall_list))
 
     return flow
-
 
 
 # This block generates the thumbnails in the AbiPy gallery.
@@ -47,6 +47,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 
@@ -63,4 +64,3 @@ def main(options):
 
 if __name__ == "__main__":
     sys.exit(main())
-

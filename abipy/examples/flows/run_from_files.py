@@ -6,17 +6,17 @@ Starting a Flow from external files
 This example shows how to build a flow for NSCF calculations
 in which the dependency is given by an external density file.
 """
-import sys
+
 import os
+import sys
+
 import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def make_scf_nscf_inputs(paral_kgb=1):
     """Returns two input files: GS run and NSCF on a high symmetry k-mesh."""
-    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"),
-                                pseudos=abidata.pseudos("14si.pspnc"), ndtset=2)
+    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"), pseudos=abidata.pseudos("14si.pspnc"), ndtset=2)
 
     # Global variables
     ecut = 6
@@ -28,7 +28,7 @@ def make_scf_nscf_inputs(paral_kgb=1):
     )
 
     if multi.ispaw:
-        global_vars.update(pawecutdg=2*ecut)
+        global_vars.update(pawecutdg=2 * ecut)
 
     multi.set_vars(global_vars)
 
@@ -38,9 +38,9 @@ def make_scf_nscf_inputs(paral_kgb=1):
 
     # Dataset 2 (NSCF run)
     kptbounds = [
-        [0.5, 0.0, 0.0], # L point
-        [0.0, 0.0, 0.0], # Gamma point
-        [0.0, 0.5, 0.5], # X point
+        [0.5, 0.0, 0.0],  # L point
+        [0.0, 0.0, 0.0],  # Gamma point
+        [0.0, 0.5, 0.5],  # X point
     ]
 
     multi[1].set_kpath(ndivsm=6, kptbounds=kptbounds)
@@ -79,6 +79,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

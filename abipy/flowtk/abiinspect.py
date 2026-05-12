@@ -2,26 +2,33 @@
 This module provides objects to inspect the status of the Abinit tasks at run-time.
 by extracting information from the main output file (text format).
 """
+
 from __future__ import annotations
 
 import os
-import numpy as np
-
 from collections import OrderedDict
 from collections.abc import Iterable, Iterator, Mapping
-from typing import Union
 from functools import cached_property
+
+import numpy as np
 from monty.collections import AttrDict
 from tabulate import tabulate
+
 from abipy.tools.iotools import yaml_safe_load
-from abipy.tools.plotting import (add_fig_kwargs, get_axarray_fig_plt,
-    get_figs_plotly, plotly_set_lims, add_plotly_fig_kwargs)
+from abipy.tools.plotting import (
+    add_fig_kwargs,
+    add_plotly_fig_kwargs,
+    get_axarray_fig_plt,
+    get_figs_plotly,
+    plotly_set_lims,
+)
 from abipy.tools.typing import Figure
 
 
 def straceback() -> str:
     """Returns a string with the traceback."""
     import traceback
+
     return traceback.format_exc()
 
 
@@ -66,7 +73,7 @@ def _magic_parser(stream, magic: str) -> dict:
             # print("Try to parse line:", line)
             tokens = list(map(float, line.split()[1:]))
             assert len(tokens) == len(keys)
-            for l, v in zip(fields.values(), tokens):
+            for l, v in zip(fields.values(), tokens, strict=False):
                 l.append(v)
 
     # Convert values to numpy arrays.
@@ -117,7 +124,7 @@ class ScfCycle(Mapping):
     to list of floats containing the data at the different iterations.
     """
 
-    MAGIC = "Must be defined by the subclass." ""
+    MAGIC = "Must be defined by the subclass."
 
     def __init__(self, fields: dict) -> None:
         """
@@ -160,11 +167,11 @@ class ScfCycle(Mapping):
     @classmethod
     def from_file(cls, filepath: str) -> ScfCycle:
         """Read the first occurrence of ScfCycle from file."""
-        with open(filepath, "rt") as stream:
+        with open(filepath) as stream:
             return cls.from_stream(stream)
 
     @classmethod
-    def from_stream(cls, stream) -> Union[ScfCycle, None]:
+    def from_stream(cls, stream) -> ScfCycle | None:
         """
         Read the first occurrence of ScfCycle from stream.
 
@@ -205,7 +212,7 @@ class ScfCycle(Mapping):
         iter_num = np.array(list(range(self.num_iterations))) + 1
         label = kwargs.pop("label", None)
 
-        for i, ((key, values), ax) in enumerate(zip(self.items(), ax_list)):
+        for i, ((key, values), ax) in enumerate(zip(self.items(), ax_list, strict=False)):
             ax.grid(True)
             ax.set_xlabel("Iteration Step")
             ax.set_xticks(iter_num, minor=False)
@@ -330,7 +337,7 @@ class CyclesPlotter:
 
     def items(self):
         """To iterate over (label, cycle)."""
-        return zip(self.labels, self.cycles)
+        return zip(self.labels, self.cycles, strict=False)
 
     def add_label_cycle(self, label, cycle):
         """Add new cycle to the plotter with label `label`."""
@@ -387,7 +394,7 @@ class Relaxation(Iterable):
 
     def __init__(self, cycles: list[GroundStateScfCycle]) -> None:
         """
-        Args
+        Args:
             cycles: list of `GroundStateScfCycle` objects.
         """
         self.cycles = cycles
@@ -399,7 +406,7 @@ class Relaxation(Iterable):
     def __len__(self) -> int:
         return self.cycles.__len__()
 
-    def __getitem__(self, slice) -> Union[GroundStateScfCycle, list[GroundStateScfCycle]]:
+    def __getitem__(self, slice) -> GroundStateScfCycle | list[GroundStateScfCycle]:
         return self.cycles[slice]
 
     def __str__(self) -> str:
@@ -417,13 +424,13 @@ class Relaxation(Iterable):
         return "\n".join(lines)
 
     @classmethod
-    def from_file(cls, filepath: str) -> Union[Relaxation, None]:
+    def from_file(cls, filepath: str) -> Relaxation | None:
         """Initialize the object from the Abinit main output file."""
-        with open(filepath, "rt") as stream:
+        with open(filepath) as stream:
             return cls.from_stream(stream)
 
     @classmethod
-    def from_stream(cls, stream) -> Union[Relaxation, None]:
+    def from_stream(cls, stream) -> Relaxation | None:
         """
         Extract data from stream. Returns None if some error occurred.
         """
@@ -439,7 +446,7 @@ class Relaxation(Iterable):
     @cached_property
     def history(self) -> dict:
         """
-        dictionary of lists with the evolution of
+        Dictionary of lists with the evolution of
         the data as function of the relaxation step.
         """
         history = {}
@@ -501,7 +508,7 @@ class Relaxation(Iterable):
         iter_num = np.array(list(range(self.num_iterations))) + 1
         label = kwargs.pop("label", None)
 
-        for i, ((key, values), ax) in enumerate(zip(history.items(), ax_list)):
+        for i, ((key, values), ax) in enumerate(zip(history.items(), ax_list, strict=False)):
             ax.grid(True)
             ax.set_xlabel("Relaxation Step")
             ax.set_xticks(iter_num, minor=False)
@@ -604,14 +611,14 @@ class YamlTokenizer(Iterator):
         self.filename = filename
 
         try:
-            self.stream = open(filename, "rt")  # pylint: disable=R1732
-        except IOError as exc:
+            self.stream = open(filename)  # pylint: disable=R1732
+        except OSError as exc:
             # Look for associated error file.
             root, ext = os.path.splitext(self.filename)
             errfile = root + ".err"
             if os.path.exists(errfile) and errfile != self.filename:
                 print("Found error file: %s" % errfile)
-                with open(errfile, "rt") as fh:
+                with open(errfile) as fh:
                     print(fh.read())
             raise exc
 
@@ -769,9 +776,9 @@ class YamlDoc:
     """
 
     __slots__ = [
-        "text",
         "lineno",
         "tag",
+        "text",
     ]
 
     def __init__(self, text: str, lineno: int, tag=None):

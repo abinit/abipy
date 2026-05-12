@@ -1,12 +1,12 @@
-# coding: utf-8
 """Duck-typing tests"""
+
 from __future__ import annotations
 
 import collections
 import warnings
-import numpy as np
-
 from typing import Any
+
+import numpy as np
 
 
 def is_string(s: Any) -> bool:
@@ -19,22 +19,19 @@ def is_string(s: Any) -> bool:
 
 
 def is_intlike(obj: Any) -> bool:
-    """
-    True if obj represents an integer (floats such as 1.0 are included as well).
-    """
+    """True if obj represents an integer (floats such as 1.0 are included as well)."""
     # isinstance(i, numbers.Integral)
     try:
         # This to get rid of warnings about casting complex to real.
         if np.iscomplexobj(obj) and np.isreal(obj):
             return int(obj.real) == obj
-        else:
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                #print("hello", int(obj) == obj)
-                return int(obj) == obj
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            # print("hello", int(obj) == obj)
+            return int(obj) == obj
 
-    except (ValueError, TypeError) as exc:
-        #print(exc)
+    except (ValueError, TypeError):
+        # print(exc)
         return False
 
     return False
@@ -51,10 +48,13 @@ def is_number_like(obj: Any) -> bool:
 
 def is_listlike(obj: Any) -> bool:
     """True if obj is list-like."""
-    #if isinstance(branch, (list, tuple, np.ndarray)):
-    if isinstance(obj, np.ndarray): return True
-    if not isinstance(obj, collections.abc.Sequence): return False
-    if is_string(obj): return False
+    # if isinstance(branch, (list, tuple, np.ndarray)):
+    if isinstance(obj, np.ndarray):
+        return True
+    if not isinstance(obj, collections.abc.Sequence):
+        return False
+    if is_string(obj):
+        return False
 
     try:
         obj[:0]
@@ -91,16 +91,15 @@ def torange(obj: Any) -> range:
     if is_intlike(obj):
         return range(obj, obj + 1)
 
-    elif isinstance(obj, slice):
+    if isinstance(obj, slice):
         start = obj.start if obj.start is not None else 0
         step = obj.step if obj.step is not None else 1
         return range(start, obj.stop, step)
 
-    else:
-        try:
-            return obj.__iter__()
-        except Exception:
-            raise TypeError("Don't know how to convert %s into a range object" % str(obj))
+    try:
+        return obj.__iter__()
+    except Exception:
+        raise TypeError("Don't know how to convert %s into a range object" % str(obj))
 
 
 def as_slice(obj: Any) -> slice:
@@ -111,14 +110,17 @@ def as_slice(obj: Any) -> slice:
     >>> assert as_slice("[1:4]") == slice(1, 4, 1)
     >>> assert as_slice("1::2") == slice(1, None, 2)
     """
-    if isinstance(obj, slice) or obj is None: return obj
+    if isinstance(obj, slice) or obj is None:
+        return obj
 
     try:
         # integer.
-        if int(obj) == float(obj): return slice(int(obj), int(obj)+1, 1)
+        if int(obj) == float(obj):
+            return slice(int(obj), int(obj) + 1, 1)
     except Exception:
         # assume string defining a python slice [start:stop:step]
-        if not obj: return None
+        if not obj:
+            return None
         if obj.count("[") + obj.count("]") not in (0, 2):
             raise ValueError("Invalid string %s" % obj)
 
@@ -126,11 +128,13 @@ def as_slice(obj: Any) -> slice:
         n = obj.count(":")
         if n == 0:
             obj = int(obj)
-            return slice(obj, obj+1)
+            return slice(obj, obj + 1)
 
         tokens = [int(f) if f else None for f in obj.split(":")]
-        if len(tokens) == 2: tokens.append(1)
-        if tokens[2] is None: tokens[2] = 1
+        if len(tokens) == 2:
+            tokens.append(1)
+        if tokens[2] is None:
+            tokens[2] = 1
 
         return slice(*tokens)
 
@@ -138,7 +142,7 @@ def as_slice(obj: Any) -> slice:
 
 
 class NoDefaultProvided:
-    pass
+    """Sentinel object used for defaults."""
 
 
 def hasattrd(obj: Any, name: str) -> bool:
@@ -164,6 +168,7 @@ def getattrd(obj: Any, name: str, default=NoDefaultProvided) -> Any:
     Discussed in: http://stackoverflow.com/questions/11975781
     """
     from functools import reduce
+
     try:
         return reduce(getattr, name.split("."), obj)
     except AttributeError:

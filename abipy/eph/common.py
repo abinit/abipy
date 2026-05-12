@@ -1,14 +1,15 @@
-# coding: utf-8
 """
 Objects and functions common to other eph modules.
 """
-from __future__ import annotations
 
-import numpy as np
-import abipy.core.abinit_units as abu
+from __future__ import annotations
 
 from collections import OrderedDict
 from functools import cached_property
+
+import numpy as np
+
+import abipy.core.abinit_units as abu
 from abipy.electrons.ebands import ElectronsReader
 
 # Phonon frequency in Ha below which e-ph matrix elements are set to zero.
@@ -46,11 +47,13 @@ class BaseEphReader(ElectronsReader):
         """
         Read basic parameters (scalars) from the netcdf files produced by the EPH code and cache them
         """
-        od = OrderedDict([
-            ("ddb_nqbz", np.prod(self.ddb_ngqpt)),
-            ("eph_nqbz_fine", np.prod(self.eph_ngqpt_fine)),
-            ("ph_nqbz", np.prod(self.ph_ngqpt)),
-        ])
+        od = OrderedDict(
+            [
+                ("ddb_nqbz", np.prod(self.ddb_ngqpt)),
+                ("eph_nqbz_fine", np.prod(self.eph_ngqpt_fine)),
+                ("ph_nqbz", np.prod(self.ph_ngqpt)),
+            ]
+        )
 
         for vname in ["eph_intmeth", "eph_fsewin", "eph_fsmear", "eph_extrael", "eph_fermie"]:
             value = self.read_value(vname)
@@ -63,8 +66,17 @@ class BaseEphReader(ElectronsReader):
         return od
 
 
-def glr_frohlich(qpoint, becs_cart, epsinf_cart, phdispl_cart_bohr, phfreqs_ha, structure,
-                 qdamp=None, eph_wtol=EPH_WTOL, tol_qnorm=1e-6):
+def glr_frohlich(
+    qpoint,
+    becs_cart,
+    epsinf_cart,
+    phdispl_cart_bohr,
+    phfreqs_ha,
+    structure,
+    qdamp=None,
+    eph_wtol=EPH_WTOL,
+    tol_qnorm=1e-6,
+):
     """
     Compute the long-range part of the e-ph matrix element with the simplified Frohlich model
     i.e. we include only G = 0 and the <k+q,b1|e^{i(q+G).r}|b2,k> coefficient is replaced by delta_{b1, b2}
@@ -94,7 +106,8 @@ def glr_frohlich(qpoint, becs_cart, epsinf_cart, phdispl_cart_bohr, phfreqs_ha, 
     # Acoustic modes are included --> assume BECS fulfill charge neutrality.
     glr_nu = np.empty(natom3, dtype=complex)
     for nu in range(natom3):
-        if phfreqs_ha[nu] < EPH_WTOL or q_eps_q < tol_qnorm: continue
+        if phfreqs_ha[nu] < EPH_WTOL or q_eps_q < tol_qnorm:
+            continue
         num = 0.0j
         for iat in range(natom):
             cdd = phdispl_cart_bohr[nu, iat] * np.exp(-2.0j * np.pi * np.dot(qpoint.frac_coords, xred[iat]))
@@ -102,5 +115,6 @@ def glr_frohlich(qpoint, becs_cart, epsinf_cart, phdispl_cart_bohr, phfreqs_ha, 
         glr_nu[nu] = num / (q_eps_q * np.sqrt(2.0 * phfreqs_ha[nu]))
 
     fact = 1
-    if qdamp is not None: fact = np.exp(-qpoint.norm ** 2 / (4 * qdamp))
+    if qdamp is not None:
+        fact = np.exp(-(qpoint.norm**2) / (4 * qdamp))
     return fact * glr_nu * 4j * np.pi / (structure.volume * abu.Ang_Bohr**3)

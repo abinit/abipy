@@ -6,8 +6,9 @@ Multiple Structural relaxations
 This example shows how to analyze the results of multiple
 structure relaxations with the HIST robot.
 """
-from abipy import abilab
+
 import abipy.data as abidata
+from abipy import abilab
 
 files = [
     abidata.ref_file("sic_relax_HIST.nc"),

@@ -3,16 +3,17 @@
 Gold with 107 atoms. Gamma-point.
 GS calculations with paral_kgb == 1 and wfoptalg in [default, 1]
 """
-import sys
-import operator
-import numpy as np
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
-import abipy.data as abidata
 
+import operator
+import sys
 from functools import reduce
 from itertools import product
-from abipy.benchmarks import bench_main, BenchmarkFlow
+
+import numpy as np
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
+from abipy.benchmarks import BenchmarkFlow, bench_main
 
 
 def make_input():
@@ -23,7 +24,8 @@ def make_input():
     pseudos = abidata.pseudos("au.paw")
 
     # Atomic Positions.
-    xred = np.fromstring("""
+    xred = np.fromstring(
+        """
 0.0000000000E+00  1.6326095981E-01  1.6326095981E-01
 1.6326095981E-01  0.0000000000E+00  1.6326095981E-01
 1.6326095981E-01  1.6326095981E-01  0.0000000000E+00
@@ -131,48 +133,45 @@ def make_input():
 8.3403087614E-01  6.6786431989E-01  8.3403087614E-01
 8.3403087614E-01  8.3403087614E-01  6.6786431989E-01
 6.6697112171E-01  6.6697112171E-01  6.6697112171E-01
-""", sep=" ").reshape((-1,3))
+""",
+        sep=" ",
+    ).reshape((-1, 3))
 
     # Crystal structure.
     structure = abilab.Structure.from_abivars(
-        acell=3*[23.01],
+        acell=3 * [23.01],
         rprim=np.eye(3),
-        typat=107*[1],
-        znucl=79.,
+        typat=107 * [1],
+        znucl=79.0,
         xred=xred,
     )
 
     inp = abilab.AbinitInput(structure, pseudos)
     inp.set_vars(
         # Basis set.
-        ecut=10.,
-        pawecutdg=20.,
-
+        ecut=10.0,
+        pawecutdg=20.0,
         # SCF algorithm
         paral_kgb=1,
         wfoptalg=1,
         fftalg=402,
-        #fftalg=302,  # To use FFTW instead of ABINIT FFT
-
+        # fftalg=302,  # To use FFTW instead of ABINIT FFT
         # SCF cycle
-        toldfe=1.e-5,
+        toldfe=1.0e-5,
         nstep=20,
-
         # K-points and symmetries.
         nkpt=1,
-        kpt=3*[0.],
+        kpt=3 * [0.0],
         kptopt=0,
         istwfk="*1",
         nsym=0,
         chksymbreak=0,
         chkprim=0,
-
         # Bands and occupation scheme
         nband=650,
         occopt=3,
         tsmear=0.002,
         nbdbuf=20,
-
         # IO
         optforces=2,
         optstress=1,
@@ -192,19 +191,21 @@ def build_flow(options):
 
     # Processor distribution.
     pconfs = [
-       dict(npkpt=1, npband=13, npfft=10), # 130
-       dict(npkpt=1, npband=26, npfft=10), # 260
-       dict(npkpt=1, npband=65, npfft=8),  # 520
-       dict(npkpt=1, npband=65, npfft=16), # 1040
+        dict(npkpt=1, npband=13, npfft=10),  # 130
+        dict(npkpt=1, npband=26, npfft=10),  # 260
+        dict(npkpt=1, npband=65, npfft=8),  # 520
+        dict(npkpt=1, npband=65, npfft=16),  # 1040
     ]
 
     for wfoptalg in [None, 1]:
         work = flowtk.Work()
         for d, omp_threads in product(pconfs, options.omp_list):
             mpi_procs = reduce(operator.mul, d.values(), 1)
-            if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
+            if not options.accept_mpi_omp(mpi_procs, omp_threads):
+                continue
             manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
-            if options.verbose: print("wfoptalg:", wfoptalg, "done with MPI_PROCS:", mpi_procs, "and:", d)
+            if options.verbose:
+                print("wfoptalg:", wfoptalg, "done with MPI_PROCS:", mpi_procs, "and:", d)
             inp = template.new_with_vars(d, wfoptalg=wfoptalg)
             work.register_scf_task(inp, manager=manager)
 
@@ -218,7 +219,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return
+        return None
 
     return build_flow(options)
 

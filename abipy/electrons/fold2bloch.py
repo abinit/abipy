@@ -1,24 +1,25 @@
-# coding: utf-8
 """Interface to the Fold2Bloch netcdf file."""
+
 from __future__ import annotations
 
 import os
-import numpy as np
-import pymatgen.core.units as units
-
 from functools import cached_property
-from monty.string import marquee
+
+import numpy as np
 from monty.collections import dict2namedtuple
+from monty.string import marquee
 from monty.termcolor import cprint
+from pymatgen.core import units
 from pymatgen.core.lattice import Lattice
-from abipy.core.structure import Structure
-from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.core.kpoints import KpointList, is_diagonal, find_points_along_path
+
 from abipy.core.globals import get_workdir
-from abipy.tools.plotting import set_axlims, add_fig_kwargs, get_ax_fig_plt
-from abipy.tools.typing import Figure
+from abipy.core.kpoints import KpointList, find_points_along_path, is_diagonal
+from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Header, Has_Structure, NotebookWriter
+from abipy.core.structure import Structure
 from abipy.electrons.ebands import ElectronBands, ElectronsReader
 from abipy.tools.numtools import gaussian
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_axlims
+from abipy.tools.typing import Figure
 
 
 class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter):
@@ -51,6 +52,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         """
         # Build a simple manager to run the job in a shell subprocess
         from abipy import flowtk
+
         manager = flowtk.TaskManager.as_manager(manager).to_shell_manager(mpi_procs=mpi_procs)
         fold2bloch = flowtk.Fold2Bloch(manager=manager, verbose=verbose)
 
@@ -66,6 +68,10 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         return cls(ncpath)
 
     def __init__(self, filepath: str):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
         self.r = ElectronsReader(filepath)
 
@@ -95,7 +101,8 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
 
     def to_string(self, verbose: int = 0) -> str:
         """String representation with verbosity level `verbose`."""
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
 
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
@@ -137,7 +144,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
 
     @cached_property
     def params(self) -> dict:
-        """dict with parameters that might be subject to convergence studies."""
+        """Dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         return od
 
@@ -176,7 +183,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
                     e = self.uf_eigens[spin, ik, band]
                     sfw[spin, ik] += self.uf_weights[spin, ik, band] * gaussian(mesh, width, center=e)
 
-        try :
+        try:
             from scipy.integrate import cumulative_trapezoid as cumtrapz
         except ImportError:
             from scipy.integrate import cumtrapz
@@ -186,8 +193,19 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         return dict2namedtuple(mesh=mesh, sfw=sfw, int_sfw=int_sfw)
 
     @add_fig_kwargs
-    def plot_unfolded(self, kbounds, klabels, ylims=None, dist_tol=1e-12, verbose=0,
-                      colormap="afmhot", facecolor="black", ax=None, fontsize=8, **kwargs) -> Figure:
+    def plot_unfolded(
+        self,
+        kbounds,
+        klabels,
+        ylims=None,
+        dist_tol=1e-12,
+        verbose=0,
+        colormap="afmhot",
+        facecolor="black",
+        ax=None,
+        fontsize=8,
+        **kwargs,
+    ) -> Figure:
         r"""
         Plot unfolded band structure with spectral weights.
 
@@ -207,13 +225,15 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
 
         Returns: |matplotlib-Figure|
         """
-        cart_bounds = [self.pc_lattice.reciprocal_lattice.get_cartesian_coords(c)
-                       for c in np.reshape(kbounds, (-1, 3))]
+        cart_bounds = [self.pc_lattice.reciprocal_lattice.get_cartesian_coords(c) for c in np.reshape(kbounds, (-1, 3))]
         uf_cart = self.uf_kpoints.get_cart_coords()
 
         p = find_points_along_path(cart_bounds, uf_cart, dist_tol)
         if len(p.ikfound) == 0:
-            cprint("Warning: find_points_along_path returned zero points along the path. Try to increase dist_tol.", "yellow")
+            cprint(
+                "Warning: find_points_along_path returned zero points along the path. Try to increase dist_tol.",
+                "yellow",
+            )
             return None
 
         if verbose:
@@ -233,17 +253,26 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         for spin in range(self.nss):
             ys = self.uf_eigens[spin, p.ikfound, :] - e0
             ws = self.uf_weights[spin, p.ikfound, :]
-            s = ax.scatter(xs, ys.T, s=fact * ws.T, c=ws.T,
-                           marker=marker_spin[spin], label=None if self.nss == 1 else "spin %s" % spin,
-                           linewidth=1, edgecolors='none', cmap=plt.get_cmap(colormap))
-            plt.colorbar(s, ax=ax, orientation='vertical')
+            s = ax.scatter(
+                xs,
+                ys.T,
+                s=fact * ws.T,
+                c=ws.T,
+                marker=marker_spin[spin],
+                label=None if self.nss == 1 else "spin %s" % spin,
+                linewidth=1,
+                edgecolors="none",
+                cmap=plt.get_cmap(colormap),
+            )
+            plt.colorbar(s, ax=ax, orientation="vertical")
 
         ax.set_xticks(p.path_ticks, minor=False)
         ax.set_xticklabels(klabels, fontdict=None, minor=False, size=kwargs.pop("klabel_size", "large"))
         ax.grid(True)
-        ax.set_ylabel('Energy (eV)')
+        ax.set_ylabel("Energy (eV)")
         set_axlims(ax, ylims, "y")
-        if self.nss == 2: ax.legend(loc="best", fontsize=fontsize, shadow=True)
+        if self.nss == 2:
+            ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
@@ -261,15 +290,17 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        nb.cells.extend([
-            nbv.new_code_cell("f2b = abilab.abiopen('%s')" % self.filepath),
-            nbv.new_code_cell("print(f2b)"),
-            nbv.new_code_cell("f2b.ebands.plot();"),
-            nbv.new_code_cell("#f2b.unfolded_kpoints.plot();"),
-            nbv.new_code_cell(r"""\
+        nb.cells.extend(
+            [
+                nbv.new_code_cell("f2b = abilab.abiopen('%s')" % self.filepath),
+                nbv.new_code_cell("print(f2b)"),
+                nbv.new_code_cell("f2b.ebands.plot();"),
+                nbv.new_code_cell("#f2b.unfolded_kpoints.plot();"),
+                nbv.new_code_cell(r"""\
 # kbounds = [0, 1/2, 0, 0, 0, 0, 0, 0, 1/2]
 # klabels = ["Y", "$\Gamma$", "X"]
 # f2b.plot_unfolded(kbounds, klabels);"""),
-        ])
+            ]
+        )
 
         return self._write_nb_nbpath(nb, nbpath)

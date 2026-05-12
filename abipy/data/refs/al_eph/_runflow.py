@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 """Electron-phonon calculations."""
-from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 import sys
-import numpy as np
+
 import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def build_flow(options):
@@ -24,10 +22,8 @@ def build_flow(options):
     pseudos = abidata.pseudos("Al.oncvpsp")
 
     structure = abilab.Structure.from_abivars(
-        acell=3*[7.5],
-        rprim=[0.0, 0.5, 0.5,
-               0.5, 0.0, 0.5,
-               0.5, 0.5, 0.0],
+        acell=3 * [7.5],
+        rprim=[0.0, 0.5, 0.5, 0.5, 0.0, 0.5, 0.5, 0.5, 0.0],
         typat=1,
         xred=[0.0, 0.0, 0.0],
         ntypat=1,
@@ -40,7 +36,7 @@ def build_flow(options):
         istwfk="*1",
         ecut=12.0,
         nband=5,
-        occopt=7,    # include metallic occupation function with a small smearing
+        occopt=7,  # include metallic occupation function with a small smearing
         tsmear=0.04,
         tolvrs=1e-7,
         timopt=-1,
@@ -50,7 +46,7 @@ def build_flow(options):
     gs_inp.set_kmesh(
         ngkpt=[12, 12, 12],
         shiftk=[0.0, 0.0, 0.0],
-        #kptopt=3,
+        # kptopt=3,
     )
 
     flow = flowtk.Flow(workdir, manager=options.manager, remove=options.remove)
@@ -66,10 +62,10 @@ def build_flow(options):
     # Build input file for E-PH run.
     eph_inp = gs_inp.new_with_vars(
         optdriver=7,
-        ddb_ngqpt=ddb_ngqpt,       # q-mesh used to produce the DDB file (must be consistent with DDB data)
-        eph_intmeth=2,             # Tetra method
-        eph_fsewin="0.8 eV",       # Energy window around Ef
-        eph_mustar=0.12,           # mustar parameter
+        ddb_ngqpt=ddb_ngqpt,  # q-mesh used to produce the DDB file (must be consistent with DDB data)
+        eph_intmeth=2,  # Tetra method
+        eph_fsewin="0.8 eV",  # Energy window around Ef
+        eph_mustar=0.12,  # mustar parameter
     )
 
     # Set q-path for phonons and phonon linewidths.
@@ -92,7 +88,7 @@ def build_flow(options):
     flow.allocate()
 
     # EPH does not support autoparal (yet)
-    #for eph_task in eph_work:
+    # for eph_task in eph_work:
     #    eph_task.with_fixed_mpi_omp(1, 1)
 
     return flow
@@ -105,18 +101,20 @@ def main(options):
 
 if __name__ == "__main__":
     retcode = main()
-    if retcode != 0: sys.exit(retcode)
+    if retcode != 0:
+        sys.exit(retcode)
 
     rename_table = [
         #  src, dest
-        ("_runflow/w1/outdata/out_DDB",  "out_444q_DDB"),
+        ("_runflow/w1/outdata/out_DDB", "out_444q_DDB"),
         ("_runflow/w2/t0/outdata/out_A2F.nc", "al_888k_161616q_A2F.nc"),
         ("_runflow/w2/t1/outdata/out_A2F.nc", "al_888k_161616q_vinterp_A2F.nc"),
         ("_runflow/w2/t2/outdata/out_PHDOS.nc", "al_161616q_PHDOS.nc"),
     ]
     import shutil
+
     for old, new in rename_table:
-        #print(old, new)
+        # print(old, new)
         shutil.copyfile(old, new)
-    #shutil.rmtree("_runflow")
+    # shutil.rmtree("_runflow")
     sys.exit(0)

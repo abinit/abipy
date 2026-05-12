@@ -1,17 +1,19 @@
-# coding: utf-8
 """
 Flow subclasses related to DFPT.
 """
+
 from __future__ import annotations
 
 import dataclasses
+
 import numpy as np
 
-from abipy.tools.typing import TYPE_CHECKING, PathLike
-from abipy.tools.serialization import Serializable
 from abipy.dfpt.ddb import DdbRobot
-from .works import Work, PhononWork
+from abipy.tools.serialization import Serializable
+from abipy.tools.typing import TYPE_CHECKING, PathLike
+
 from .flows import Flow
+from .works import PhononWork, Work
 
 if TYPE_CHECKING:  # needed to avoid circular imports
     from abipy.abio.inputs import AbinitInput
@@ -25,14 +27,16 @@ class ConvBecsEpsFlow(Flow):
     """
 
     @classmethod
-    def from_scf_input(cls,
-                       workdir: PathLike,
-                       scf_input: AbinitInput,
-                       ngkpt_list: list,
-                       with_becs: bool = True,
-                       with_quad: bool = True,
-                       with_flexoe: bool = False,
-                       manager=None) -> ConvBecsEpsinfFlow:
+    def from_scf_input(
+        cls,
+        workdir: PathLike,
+        scf_input: AbinitInput,
+        ngkpt_list: list,
+        with_becs: bool = True,
+        with_quad: bool = True,
+        with_flexoe: bool = False,
+        manager=None,
+    ) -> ConvBecsEpsinfFlow:
         """
         Build a flow for convergence studies wrt ngkpt from an |AbinitInput| representing a GS-SCF calculation.
 
@@ -89,13 +93,17 @@ class ConvBecsEpsFlow(Flow):
             for nscf_task in self.nscf_tasks:
                 # Important: Remove iscf -2 from the input before passing it to from_scf_task
                 nscf_task.input.set_vars(iscf=None, irdden=None)
-                work = PhononWork.from_scf_task(nscf_task,
-                    qpoints, is_ngqpt=False,
-                    with_becs=self.with_becs, with_quad=self.with_quad,
-                    with_flexoe=self.with_flexoe, with_dvdb=False,
-                    #tolerance=None, ddk_tolerance=None, ndivsm=0, qptopt=1,
-                    #prtwf=-1, prepgkk=0, manager=None,
-                    )
+                work = PhononWork.from_scf_task(
+                    nscf_task,
+                    qpoints,
+                    is_ngqpt=False,
+                    with_becs=self.with_becs,
+                    with_quad=self.with_quad,
+                    with_flexoe=self.with_flexoe,
+                    with_dvdb=False,
+                    # tolerance=None, ddk_tolerance=None, ndivsm=0, qptopt=1,
+                    # prtwf=-1, prepgkk=0, manager=None,
+                )
                 self.register_work(work)
                 self.conv_works.append(work)
 
@@ -104,10 +112,11 @@ class ConvBecsEpsFlow(Flow):
 
         if self.on_all_ok_num_calls == 3:
             # Write json file with metadata and the location of the DDB file.
-            data = dict(ngkpt_list=self.ngkpt_list,
-                        with_becs=self.with_becs,
-                        with_quad=self.with_quad,
-                        with_flexoe=self.with_flexoe,
+            data = dict(
+                ngkpt_list=self.ngkpt_list,
+                with_becs=self.with_becs,
+                with_quad=self.with_quad,
+                with_flexoe=self.with_flexoe,
             )
             data["ddb_paths"] = [work.outdir.path_in("out_DDB") for work in self.conv_works]
 
@@ -122,6 +131,7 @@ class ConvBecsEpsResults(Serializable):
     """
     Stores the paths to the DDB files produced with different k-meshes.
     """
+
     with_becs: bool
     with_quad: bool
     with_flexoe: bool

@@ -9,13 +9,12 @@ Each screening calculation is automatically parallelized over q-points and the
 partial SCR files are then merged with the mrgscr utility.
 The total SCR file is available in the outdata directory of the ScreeningWork.
 """
-import sys
-import os
-import numpy as np
 
-import abipy.abilab as abilab
+import os
+import sys
+
 import abipy.data as abidata
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def build_flow(options):
@@ -23,7 +22,6 @@ def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
         options.workdir = os.path.basename(sys.argv[0]).replace(".py", "").replace("run_", "flow_")
-
 
     # Initialize structure from string and a minimalistic variables:
     # natom, acell, rprimd and xred_symbols.
@@ -43,11 +41,11 @@ xred_symbols
     # Build the SCF input.
     scf_inp = abilab.AbinitInput(structure=structure, pseudos=abidata.pseudos("14si.pspnc"))
 
-    #nscf_nband_list = np.arange(2, 8, 2)
+    # nscf_nband_list = np.arange(2, 8, 2)
     nscf_nband_list = [25]
     max_nscf_nband = max(nscf_nband_list)
 
-    #ecuteps_list = np.arange(2, 8, 2)
+    # ecuteps_list = np.arange(2, 8, 2)
     ecuteps_list = [2]
     max_ecuteps = max(ecuteps_list)
 
@@ -59,30 +57,29 @@ xred_symbols
         ngkpt=[4, 4, 4],
         shiftk=[0, 0, 0],
         tolvrs=1e-8,
-        timopt=-1,   # TODO: Add abirun.py option to extract timing data.
-        #paral_kgb=1,
-        #iomode=3,
+        timopt=-1,  # TODO: Add abirun.py option to extract timing data.
+        # paral_kgb=1,
+        # iomode=3,
     )
 
-    #ebands_inp = scf_inp.make_ebands_input(ndivsm=15)
+    # ebands_inp = scf_inp.make_ebands_input(ndivsm=15)
 
     # Build NSCF input on a k-mesh including empty states.
     nscf_inp = scf_inp.new_with_vars(
         nband=max_nscf_nband,
-        #nbdbuf=10
-        tolwfr=1e-20,   # Too high. Should be ~1e-20
-        iscf=-2
+        # nbdbuf=10
+        tolwfr=1e-20,  # Too high. Should be ~1e-20
+        iscf=-2,
     )
 
     flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)
 
     # Band structure work to produce the WFK file with a NSCF run + empty states.
-    bands_work = flowtk.BandStructureWork(scf_inp, nscf_inp) # dos_inputs=[nscf_inp])
+    bands_work = flowtk.BandStructureWork(scf_inp, nscf_inp)  # dos_inputs=[nscf_inp])
     flow.register_work(bands_work)
 
     for ecuteps in ecuteps_list:
         for nscf_nband in nscf_nband_list:
-
             scr_inp = nscf_inp.new_with_vars(
                 optdriver=3,
                 ecuteps=ecuteps,
@@ -96,7 +93,7 @@ xred_symbols
             #   If you alredy have a WFK file and you want to skip the SCF + NSCF part
             #   build the scr_work using `from_wkf_filepath` instead of `from_nscf_task` e.g.:
 
-            #scr_work = ScreeningWork.from_wfk_file(wfk_filepath, scr_inp)
+            # scr_work = ScreeningWork.from_wfk_file(wfk_filepath, scr_inp)
 
             flow.register_work(scr_work)
 
@@ -114,6 +111,7 @@ xred_symbols
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

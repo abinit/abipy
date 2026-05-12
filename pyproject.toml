@@ -4,14 +4,14 @@
 #requires = ["hatchling"]
 #build-backend = "hatchling.build"
 
-[build-system]
-requires = [
-    # pin NumPy version used in the build
-    #"oldest-supported-numpy",
-    "setuptools>=65.0.0",
-]
+#[build-system]
+#requires = [
+#    # pin NumPy version used in the build
+#    #"oldest-supported-numpy",
+#    "setuptools>=65.0.0",
+#]
 
-build-backend = "setuptools.build_meta"
+#build-backend = "setuptools.build_meta"
 
 [project]
 name = "abipy"
@@ -43,6 +43,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: Chemistry",
     "Topic :: Scientific/Engineering :: Information Analysis",
     "Topic :: Scientific/Engineering :: Physics",
@@ -72,7 +73,7 @@ dependencies = [
     "tabulate",
     "tqdm",
 ]
-version = "0.9.8"
+version = "1.0.0"
 
 [project.urls]
 Homepage = "https://github.com/abinit/abipy"
@@ -158,16 +159,18 @@ pydocstyle.convention = "google"
 #[tool.ruff.format]
 #docstring-code-format = true
 #
-#[tool.ruff.lint.per-file-ignores]
-#"__init__.py" = ["F401"] # unused-import
-#"tests/**" = [
-#    "ANN201", # missing-return-type-undocumented-public-function
-#    "D", # pydocstyle
-#    "PLR0124", # comparison-with-itself
-#    "PLR2004", # magic-value-comparison
-#    "PLR6301", # no-self-use
-#    "S101", # Use of "assert"
-#]
+[tool.ruff.lint.per-file-ignores]
+"abipy/abilab.py" = ["F401"]
+"__init__.py" = ["F401"] # unused-import
+"**/tests/**" = [
+    "ANN201", # missing-return-type-undocumented-public-function
+    "D", # pydocstyle
+    "PLR0124", # comparison-with-itself
+    "PLR2004", # magic-value-comparison
+    "PLR6301", # no-self-use
+    "S101", # Use of "assert"
+]
+"**/test_*.py" = ["S101"]
 
 #[tool.pytest.ini_options]
 #addopts = "--durations=30 --quiet -r xXs --color=yes --import-mode=importlib"

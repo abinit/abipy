@@ -6,8 +6,9 @@ AlAs Phonon bands
 This example shows how to plot the phonon band structure of AlAs.
 See tutorial/lesson_rf2.html
 """
-from abipy.abilab import abiopen
+
 import abipy.data as abidata
+from abipy.abilab import abiopen
 
 # Open PHBST file produced by anaddb and extract the phonon bands object.
 # (alternatively one can use the shell and `abiopen.py OUT_PHBST.nc -nb`
@@ -23,7 +24,7 @@ phbands.plot(units="cm-1", title="AlAs without LO-TO splitting")
 # that defines the mapping reduced_coordinates --> name of the q-point.
 #
 qlabels = {
-    (0,0,0): r"$\Gamma$",
+    (0, 0, 0): r"$\Gamma$",
     (0.375, 0.375, 0.7500): "K",
     (0.5, 0.5, 1.0): "X",
     (0.5, 0.5, 0.5): "L",
@@ -32,5 +33,4 @@ qlabels = {
 }
 
 # and pass it to the plot method:
-phbands.plot(title="AlAs without LO-TO splitting and qlabels",
-             qlabels=qlabels)
+phbands.plot(title="AlAs without LO-TO splitting and qlabels", qlabels=qlabels)

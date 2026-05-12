@@ -7,8 +7,9 @@ This example shows how to interpolate the GW corrections and use the interpolate
 values to correct the KS band structure computed on a high symmetry k-path and
 the KS energies of a k-mesh. Finally, the KS and the GW results are plotted with matplotlib.
 """
+
 import abipy.data as abidata
-from abipy.abilab import abiopen, ElectronBandsPlotter
+from abipy.abilab import ElectronBandsPlotter, abiopen
 
 # Get quasiparticle results from the SIGRES.nc database.
 sigres = abiopen(abidata.ref_file("si_g0w0ppm_nband30_SIGRES.nc"))
@@ -31,10 +32,7 @@ ks_edos = ks_ebands_kmesh.get_edos()
 # Note that the KS energies are optional but this is the recommended approach
 # because the code will interpolate the corrections instead of the QP energies.
 
-r = sigres.interpolate(lpratio=5,
-                       ks_ebands_kpath=ks_ebands_kpath,
-                       ks_ebands_kmesh=ks_ebands_kmesh
-                       )
+r = sigres.interpolate(lpratio=5, ks_ebands_kpath=ks_ebands_kpath, ks_ebands_kmesh=ks_ebands_kmesh)
 
 qp_edos = r.qp_ebands_kmesh.get_edos()
 
@@ -43,13 +41,13 @@ qp_edos = r.qp_ebands_kmesh.get_edos()
 # This part is optional
 points = sigres.get_points_from_ebands(r.qp_ebands_kpath, size=24)
 r.qp_ebands_kpath.plot(points=points, with_gaps=True)
-#raise ValueError()
+# raise ValueError()
 
 # Shortcut: pass the name of the GSR files directly.
-#r = sigres.interpolate(ks_ebands_kpath=abidata.ref_file("si_nscf_GSR.nc"),
+# r = sigres.interpolate(ks_ebands_kpath=abidata.ref_file("si_nscf_GSR.nc"),
 #                       ks_ebands_kmesh=abidata.ref_file("si_scf_GSR.nc"))
-#ks_edos = r.ks_ebands_kmesh.get_edos()
-#qp_edos = r.qp_ebands_kmesh.get_edos()
+# ks_edos = r.ks_ebands_kmesh.get_edos()
+# qp_edos = r.qp_ebands_kmesh.get_edos()
 
 # Use ElectronBandsPlotter to plot the KS and the QP band structure with matplotlib.
 plotter = ElectronBandsPlotter()
@@ -57,8 +55,8 @@ plotter.add_ebands("LDA", ks_ebands_kpath, edos=ks_edos)
 plotter.add_ebands("GW (interpolated)", r.qp_ebands_kpath, edos=qp_edos)
 
 # Get pandas dataframe with band structure parameters.
-#df = plotter.get_ebands_frame()
-#print(df)
+# df = plotter.get_ebands_frame()
+# print(df)
 
 # By default, the two band energies are shifted wrt to *their* fermi level.
 # Use e=0 if you don't want to shift the eigenvalus

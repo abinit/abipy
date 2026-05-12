@@ -1,11 +1,13 @@
 """Tests for structure module"""
-import numpy as np
-import sys
-import abipy.data as abidata
-import abipy.core.abinit_units as abu
 
+import sys
+
+import numpy as np
 from pymatgen.core.lattice import Lattice
 from pymatgen.core.units import bohr_to_ang
+
+import abipy.core.abinit_units as abu
+import abipy.data as abidata
 from abipy.core.structure import *
 from abipy.core.testing import AbipyTest
 
@@ -15,9 +17,8 @@ class TestStructure(AbipyTest):
 
     def test_structure_from_ncfiles(self):
         """Initialize Structure from Netcdf data files"""
-
         for filename in abidata.WFK_NCFILES + abidata.GSR_NCFILES:
-            #print("About to read file %s" % filename)
+            # print("About to read file %s" % filename)
             structure = Structure.from_file(filename)
             str(structure)
             structure.to_string(verbose=2)
@@ -36,9 +37,9 @@ class TestStructure(AbipyTest):
             assert geo_dict["abispg_num"] is not None
 
             # Export data in Xcrysden format.
-            #structure.export(self.get_tmpname(text=True, suffix=".xsf"))
-            #visu = structure.visualize(appname="vesta")
-            #assert callable(visu)
+            # structure.export(self.get_tmpname(text=True, suffix=".xsf"))
+            # visu = structure.visualize(appname="vesta")
+            # assert callable(visu)
 
             if self.has_matplotlib():
                 assert structure.plot(show=False)
@@ -62,12 +63,11 @@ class TestStructure(AbipyTest):
         assert si.has_abi_spacegroup
         assert si.abi_spacegroup.spgid == 227
         kfrac_coords = si.get_kcoords_from_names(["G", "X", "L", "Gamma"])
-        self.assert_equal(kfrac_coords,
-            ([[0. , 0. , 0. ], [0.5, 0. , 0.5], [0.5, 0.5, 0.5], [0. , 0. , 0. ]]))
+        self.assert_equal(kfrac_coords, ([[0.0, 0.0, 0.0], [0.5, 0.0, 0.5], [0.5, 0.5, 0.5], [0.0, 0.0, 0.0]]))
 
         d = si.get_symb2coords_dataframe(with_cart_coords=True)
         assert "Si" in d
-        df =  d["Si"]
+        df = d["Si"]
         assert "frac_coords" in df and len(df.frac_coords) == 2
         for i in range(2):
             self.assert_equal(si.frac_coords[i], df.frac_coords.values[i])
@@ -82,8 +82,8 @@ class TestStructure(AbipyTest):
             si_wfk.spgset_abi_spacegroup(has_timerev=True)
 
         # K and U are equivalent. [5/8, 1/4, 5/8] should return U
-        assert si_wfk.findname_in_hsym_stars([3/8, 3/8, 3/4]) == "K"
-        assert si_wfk.findname_in_hsym_stars([5/8, 1/4, 5/8]) == "U"
+        assert si_wfk.findname_in_hsym_stars([3 / 8, 3 / 8, 3 / 4]) == "K"
+        assert si_wfk.findname_in_hsym_stars([5 / 8, 1 / 4, 5 / 8]) == "U"
 
         # TODO: Fix order of atoms in supercells.
         # Test __mul__, __rmul__ (should return Abipy structures)
@@ -102,18 +102,32 @@ class TestStructure(AbipyTest):
         znse = Structure.from_file(abidata.ref_file("refs/znse_phonons/ZnSe_hex_qpt_DDB"))
         assert len(znse) == 4
         assert znse.formula == "Zn2 Se2"
-        self.assert_almost_equal(znse.frac_coords.flat, [
-            0.33333333333333,  0.66666666666667, 0.99962203020000,
-            0.66666666666667,  0.33333333333333, 0.49962203020000,
-            0.33333333333333,  0.66666666666667, 0.62537796980000,
-            0.66666666666667,  0.33333333333333, 0.12537796980000])
+        self.assert_almost_equal(
+            znse.frac_coords.flat,
+            [
+                0.33333333333333,
+                0.66666666666667,
+                0.99962203020000,
+                0.66666666666667,
+                0.33333333333333,
+                0.49962203020000,
+                0.33333333333333,
+                0.66666666666667,
+                0.62537796980000,
+                0.66666666666667,
+                0.33333333333333,
+                0.12537796980000,
+            ],
+        )
 
         from abipy.core.structure import diff_structures
+
         diff_structures([si_abi, znse], headers=["si_abi", "znse"], fmt="abivars", mode="table")
         diff_structures([si_abi, znse], headers=["si_abi", "znse"], fmt="abivars", mode="diff")
 
         # From pickle file.
         import pickle
+
         tmp_path = self.get_tmpname(suffix=".pickle")
         with open(tmp_path, "wb") as fh:
             pickle.dump(znse, fh)
@@ -131,6 +145,7 @@ class TestStructure(AbipyTest):
         oxi_znse = znse.get_oxi_state_decorated()
         assert len(oxi_znse.abi_string)
         from pymatgen.core.periodic_table import Specie
+
         assert Specie("Zn", 2) in oxi_znse.composition.elements
         assert Specie("Se", -2) in oxi_znse.composition.elements
 
@@ -148,12 +163,12 @@ class TestStructure(AbipyTest):
             assert si.plot_bz(show=False)
             assert si.plot_bz(pmg_path=False, show=False)
             assert si.plot(show=False)
-            if sys.version[0:3] > '2.7':
+            if sys.version[0:3] > "2.7":
                 # pmg broke py compatibility
                 assert si.plot_xrd(show=False)
 
         if self.has_mayavi():
-            #assert si.plot_vtk(show=False)  # Disabled due to (core dumped) on travis
+            # assert si.plot_vtk(show=False)  # Disabled due to (core dumped) on travis
             assert si.plot_mayaview(show=False)
 
         if self.has_panel():
@@ -169,7 +184,7 @@ class TestStructure(AbipyTest):
         kptbounds = si.calc_kptbounds()
         ksamp = si.calc_ksampling(nksmall=10)
 
-        shiftk = [[ 0.5,  0.5,  0.5], [ 0.5,  0. ,  0. ], [ 0. ,  0.5,  0. ], [ 0. ,  0. ,  0.5]]
+        shiftk = [[0.5, 0.5, 0.5], [0.5, 0.0, 0.0], [0.0, 0.5, 0.0], [0.0, 0.0, 0.5]]
         self.assert_equal(si.calc_ngkpt(nksmall=2), [2, 2, 2])
         self.assert_equal(si.calc_shiftk(), shiftk)
         self.assert_equal(ksamp.ngkpt, [10, 10, 10])
@@ -196,7 +211,7 @@ xred       0.0000000000    0.0000000000    0.0000000000
 """)
         assert lif.formula == "Li1 F1"
         same = Structure.rocksalt(7.7030079150, ["Li", "F"], units="ang")
-        self.assert_almost_equal(lif.lattice.a,  same.lattice.a)
+        self.assert_almost_equal(lif.lattice.a, same.lattice.a)
 
         # Test string with Abinit simplified format (structure variable in abivars format)
         mgb2 = Structure.from_abistring("""
@@ -217,7 +232,7 @@ xred_symbols
         assert len(mgb2) == 3
         assert mgb2.formula == "Mg1 B2"
         self.assert_almost_equal(mgb2.lattice.angles, (90.0, 90.0, 120.00000000000001))
-        self.assert_almost_equal(mgb2.lattice.volume * abu.Ang_Bohr ** 3, 196.07928976151663)
+        self.assert_almost_equal(mgb2.lattice.volume * abu.Ang_Bohr**3, 196.07928976151663)
 
         if self.test_mprester():
             si = Structure.from_mpid("mp-149")
@@ -232,7 +247,7 @@ xred_symbols
             assert d["abi_bravais"] == "Bravais cF (face-center cubic)"
 
             # Temporarily disables as webserver is down.
-            #if self.is_url_reachable("www.crystallography.net"):
+            # if self.is_url_reachable("www.crystallography.net"):
             mgb2_cod = Structure.from_cod_id(1526507, primitive=True)
             assert mgb2_cod.formula == "Mg1 B2"
             assert mgb2_cod.spget_lattice_type() == "hexagonal"
@@ -254,7 +269,7 @@ xred_symbols
 
         s2coords = mgb2.get_symbol2coords()
         self.assert_equal(s2coords["Mg"], [[0, 0, 0]])
-        self.assert_equal(s2coords["B"],  [[1/3, 2/3, 0.5], [2/3, 1/3, 0.5]])
+        self.assert_equal(s2coords["B"], [[1 / 3, 2 / 3, 0.5], [2 / 3, 1 / 3, 0.5]])
 
         new_mgb2 = mgb2.scale_lattice(mgb2.volume * 1.1)
         self.assert_almost_equal(new_mgb2.volume, mgb2.volume * 1.1)
@@ -271,28 +286,29 @@ xred_symbols
 
         pseudos = abidata.pseudos("12mg.pspnc", "5b.pspnc")
         nv = mgb2.num_valence_electrons(pseudos)
-        assert nv == 8 and isinstance(nv , int)
+        assert nv == 8 and isinstance(nv, int)
         assert mgb2.valence_electrons_per_atom(pseudos) == [2, 3, 3]
-        self.assert_equal(mgb2.calc_shiftk() , [[0.0, 0.0, 0.5]])
+        self.assert_equal(mgb2.calc_shiftk(), [[0.0, 0.0, 0.5]])
 
         bmol = Structure.boxed_molecule(pseudos, cart_coords=[[0, 0, 0], [5, 5, 5]], acell=[10, 10, 10])
         self.assert_almost_equal(bmol.volume, (10 * bohr_to_ang) ** 3)
 
         # FIXME This is buggy
-        #acell = np.array([10, 20, 30])
-        #batom = Structure.boxed_atom(abidata.pseudo("12mg.pspnc"), cart_coords=[1, 2, 3], acell=acell)
-        #assert isinstance(batom, Structure)
-        #assert len(batom.cart_coords) == 1
-        #self.assert_equal(batom.cart_coords[0], [1, 2, 3])
+        # acell = np.array([10, 20, 30])
+        # batom = Structure.boxed_atom(abidata.pseudo("12mg.pspnc"), cart_coords=[1, 2, 3], acell=acell)
+        # assert isinstance(batom, Structure)
+        # assert len(batom.cart_coords) == 1
+        # self.assert_equal(batom.cart_coords[0], [1, 2, 3])
 
         # Function to compute cubic a0 from primitive v0 (depends on struct_type)
-        vol2a = {"fcc": lambda vol: (4 * vol) ** (1/3.),
-                 "bcc": lambda vol: (2 * vol) ** (1/3.),
-                 "zincblende": lambda vol: (4 * vol) ** (1/3.),
-                 "rocksalt": lambda vol: (4 * vol) ** (1/3.),
-                 "ABO3": lambda vol: vol ** (1/3.),
-                 "hH": lambda vol: (4 * vol) ** (1/3.),
-                 }
+        vol2a = {
+            "fcc": lambda vol: (4 * vol) ** (1 / 3.0),
+            "bcc": lambda vol: (2 * vol) ** (1 / 3.0),
+            "zincblende": lambda vol: (4 * vol) ** (1 / 3.0),
+            "rocksalt": lambda vol: (4 * vol) ** (1 / 3.0),
+            "ABO3": lambda vol: vol ** (1 / 3.0),
+            "hH": lambda vol: (4 * vol) ** (1 / 3.0),
+        }
 
         a = 10
         bcc_prim = Structure.bcc(a, ["Si"], primitive=True)
@@ -322,7 +338,6 @@ xred_symbols
 
     def test_znucl_typat(self):
         """Test the order of typat and znucl in the Abinit input and enforce_typat, enforce_znucl."""
-
         # Ga  Ga1  1  0.33333333333333  0.666666666666667  0.500880  1.0
         # Ga  Ga2  1  0.66666666666667  0.333333333333333  0.000880  1.0
         # N  N3  1  0.333333333333333  0.666666666666667  0.124120  1.0
@@ -337,7 +352,7 @@ xred_symbols
         self.assert_equal(def_typat, [1, 1, 2, 2])
 
         # But it's possible to enforce a particular value of typat and znucl.
-        enforce_znucl = [7 ,31]
+        enforce_znucl = [7, 31]
         enforce_typat = [2, 2, 1, 1]
         enf_vars = gan2.to_abivars(enforce_znucl=enforce_znucl, enforce_typat=enforce_typat)
         self.assert_equal(enf_vars["znucl"], enforce_znucl)
@@ -346,8 +361,8 @@ xred_symbols
 
         assert [s.symbol for s in gan2.species_by_znucl] == ["Ga", "N"]
 
-        for itype1, itype2 in zip(def_typat, enforce_typat):
-            assert def_znucl[itype1 - 1] == enforce_znucl[itype2 -1]
+        for itype1, itype2 in zip(def_typat, enforce_typat, strict=False):
+            assert def_znucl[itype1 - 1] == enforce_znucl[itype2 - 1]
 
         with self.assertRaises(Exception):
             gan2.to_abivars(enforce_znucl=enforce_znucl, enforce_typat=None)
@@ -369,58 +384,77 @@ xred_symbols
     def test_frozen_phonon_methods(self):
         """Testing frozen phonon methods (This is not a real test, just to show how to use it!)"""
         rprimd = np.array([[0.5, 0.5, 0], [0.5, 0, 0.5], [0, 0.5, 0.5]])
-        #rprimd = rprimd*6.7468
+        # rprimd = rprimd*6.7468
         rprimd = rprimd * 10.60 * 0.529
         lattice = Lattice(rprimd)
         structure = Structure(lattice, ["Ga", "As"], [[0, 0, 0], [0.25, 0.25, 0.25]])
         old_structure = structure.copy()
 
-        #print(old_structure.lattice._matrix)
+        # print(old_structure.lattice._matrix)
         for site in old_structure:
             _ = structure.lattice.get_cartesian_coords(site.frac_coords)
 
         # TODO: Check all this stuff more carefully
-        #qpoint = [0, 0, 0]
-        qpoint = [1/2, 1/2, 1/2]
+        # qpoint = [0, 0, 0]
+        qpoint = [1 / 2, 1 / 2, 1 / 2]
         mx_sc = [2, 2, 2]
         scale_matrix = structure.get_smallest_supercell(qpoint, max_supercell=mx_sc)
         scale_matrix = 2 * np.eye(3)
-        #print("Scale_matrix = ", scale_matrix)
-        #scale_matrix = 2*np.eye(3)
-        natoms = int(np.round(2*np.linalg.det(scale_matrix)))
+        # print("Scale_matrix = ", scale_matrix)
+        # scale_matrix = 2*np.eye(3)
+        natoms = int(np.round(2 * np.linalg.det(scale_matrix)))
 
-        structure.write_vib_file(sys.stdout, qpoint, 0.1*np.array([[1, 1, 1], [1, 1, 1]]),
-                                 do_real=True, frac_coords=False, max_supercell=mx_sc, scale_matrix=scale_matrix)
+        structure.write_vib_file(
+            sys.stdout,
+            qpoint,
+            0.1 * np.array([[1, 1, 1], [1, 1, 1]]),
+            do_real=True,
+            frac_coords=False,
+            max_supercell=mx_sc,
+            scale_matrix=scale_matrix,
+        )
 
         displ = np.array([[1, 1, 1], [-1, -1, -1]])
-        structure.write_vib_file(sys.stdout, qpoint, 0.1 * displ,
-                                 do_real=True, frac_coords=False, max_supercell=mx_sc, scale_matrix=scale_matrix)
+        structure.write_vib_file(
+            sys.stdout,
+            qpoint,
+            0.1 * displ,
+            do_real=True,
+            frac_coords=False,
+            max_supercell=mx_sc,
+            scale_matrix=scale_matrix,
+        )
 
-        structure.write_vib_file(sys.stdout, qpoint, 0.1 * displ,
-                                 do_real=True, frac_coords=False, max_supercell=mx_sc, scale_matrix=None)
+        structure.write_vib_file(
+            sys.stdout, qpoint, 0.1 * displ, do_real=True, frac_coords=False, max_supercell=mx_sc, scale_matrix=None
+        )
 
-        fp_data = structure.frozen_phonon(qpoint, 0.1 * displ, eta=0.5, frac_coords=False,
-                                          max_supercell=mx_sc, scale_matrix=scale_matrix)
+        fp_data = structure.frozen_phonon(
+            qpoint, 0.1 * displ, eta=0.5, frac_coords=False, max_supercell=mx_sc, scale_matrix=scale_matrix
+        )
 
         max_displ = np.linalg.norm(displ, axis=1).max()
-        self.assert_almost_equal(fp_data.structure[0].coords,
-                                    structure[0].coords + 0.5*displ[0]/max_displ)
-        self.assert_almost_equal(fp_data.structure[8].coords,
-                                    structure[1].coords + 0.5*displ[1]/max_displ)
+        self.assert_almost_equal(fp_data.structure[0].coords, structure[0].coords + 0.5 * displ[0] / max_displ)
+        self.assert_almost_equal(fp_data.structure[8].coords, structure[1].coords + 0.5 * displ[1] / max_displ)
 
         displ2 = np.array([[1, 0, 0], [0, 1, 1]])
 
-        f2p_data = structure.frozen_2phonon(qpoint, 0.05 * displ, 0.02*displ2, eta=0.5, frac_coords=False,
-                                            max_supercell=mx_sc, scale_matrix=scale_matrix)
+        f2p_data = structure.frozen_2phonon(
+            qpoint,
+            0.05 * displ,
+            0.02 * displ2,
+            eta=0.5,
+            frac_coords=False,
+            max_supercell=mx_sc,
+            scale_matrix=scale_matrix,
+        )
 
-        d_tot = 0.05 *displ + 0.02 * displ2
+        d_tot = 0.05 * displ + 0.02 * displ2
         max_displ = np.linalg.norm(d_tot, axis=1).max()
-        self.assert_almost_equal(f2p_data.structure[0].coords,
-                                    structure[0].coords + 0.5*d_tot[0]/max_displ)
-        self.assert_almost_equal(f2p_data.structure[8].coords,
-                                    structure[1].coords + 0.5*d_tot[1]/max_displ)
+        self.assert_almost_equal(f2p_data.structure[0].coords, structure[0].coords + 0.5 * d_tot[0] / max_displ)
+        self.assert_almost_equal(f2p_data.structure[8].coords, structure[1].coords + 0.5 * d_tot[1] / max_displ)
 
-        #print("Structure = ", structure)
-        #print(structure.lattice._matrix)
-        #for site in structure:
+        # print("Structure = ", structure)
+        # print(structure.lattice._matrix)
+        # for site in structure:
         #    print(structure.lattice.get_cartesian_coords(site.frac_coords))

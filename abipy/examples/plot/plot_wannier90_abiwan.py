@@ -8,9 +8,10 @@ the ABIWAN.nc netcdf file produced by Abinit when calling wannier90 in library m
 Use `abiopen FILE.wout` for a command line interface and
 the `--expose` option to generate matplotlib figures automatically.
 """
-import os
-import abipy.data as abidata
 
+import os
+
+import abipy.data as abidata
 from abipy.abilab import abiopen
 
 # Open the ABIWAN file
@@ -35,5 +36,5 @@ ebands_wan_kpath.plot_with_edos(edos, title="Wannier-interpolated bands and DOS"
 # pass a file with the ab-initio bands to the get_plotter_from_ebands method
 # that will return an ElectronBandsPlotter object.
 
-#plotter = abiwan.get_plotter_from_ebands("out_GSR.nc")
-#plotter.combiplot()
+# plotter = abiwan.get_plotter_from_ebands("out_GSR.nc")
+# plotter.combiplot()

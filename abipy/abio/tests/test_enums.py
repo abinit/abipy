@@ -2,12 +2,11 @@
 
 import pytest
 
+from abipy.abio.enums import GWR_TASK, RUNL
 from abipy.core.testing import AbipyTest
-from abipy.abio.enums import GWR_TASK, WFK_TASK, RUNL
 
 
 class TestEnums(AbipyTest):
-
     def test_api(self):
         assert RUNL.GSTATE == 0
         assert str(RUNL.GSTATE) == "0"

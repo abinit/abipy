@@ -10,11 +10,11 @@ The flow uses DFPT to compute the effective masses at the band edges
 BECS, eps_inf and phonon frequencies at Gamma.
 """
 
-import sys
 import os
+import sys
+
 import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def make_scf_input(usepaw=0):
@@ -24,13 +24,8 @@ def make_scf_input(usepaw=0):
 
     structure = dict(
         acell=3 * [9.136],
-        xred=[
-           0.0000000000, 0.0000000000, 0.0000000000,
-           0.5000000000, 0.5000000000, 0.5000000000],
-        rprim=[
-           0  , 0.5, 0.5,
-           0.5, 0  , 0.5,
-           0.5, 0.5, 0],
+        xred=[0.0000000000, 0.0000000000, 0.0000000000, 0.5000000000, 0.5000000000, 0.5000000000],
+        rprim=[0, 0.5, 0.5, 0.5, 0, 0.5, 0.5, 0.5, 0],
         typat=[1, 2],
         natom=2,
         ntypat=2,
@@ -43,13 +38,21 @@ def make_scf_input(usepaw=0):
         nband=12,
         nbdbuf=2,
         diemac=6,
-        ecut=30,               # Underconverged ecut.
-        #ecut=15,
+        ecut=30,  # Underconverged ecut.
+        # ecut=15,
         nstep=100,
         tolvrs=1e-16,
-        kptrlatt=[-2,  2,  2,  # In cartesian coordinates, this grid is simple cubic
-                   2, -2,  2,
-                   2,  2, -2],
+        kptrlatt=[
+            -2,
+            2,
+            2,  # In cartesian coordinates, this grid is simple cubic
+            2,
+            -2,
+            2,
+            2,
+            2,
+            -2,
+        ],
     )
 
     return scf_input
@@ -65,8 +68,8 @@ def build_flow(options):
 
     # Build the flow.
     from abipy.flowtk.effmass_works import FrohlichZPRFlow
-    flow = FrohlichZPRFlow.from_scf_input(options.workdir, scf_input, ndivsm=4, tolwfr=1e-16,
-                                          manager=options.manager)
+
+    flow = FrohlichZPRFlow.from_scf_input(options.workdir, scf_input, ndivsm=4, tolwfr=1e-16, manager=options.manager)
 
     return flow
 
@@ -76,6 +79,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

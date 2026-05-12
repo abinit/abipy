@@ -1,29 +1,28 @@
-# coding: utf-8
 """Test for Robots"""
-import sys
-import os
-import abipy.data as abidata
-import abipy.abilab as abilab
 
-from abipy.core.testing import AbipyTest
+from abipy import abilab
 from abipy.abio.robots import Robot
+from abipy.core.testing import AbipyTest
 
 
 class RobotTest(AbipyTest):
-
     def test_base_robot_class(self):
         """Testing base robot class"""
+
         # This is for the abstract interface.
         class MyRobot(Robot):
             EXT = "FOOBAR.nc"
+
             def write_notebook(self, nbpath=None):
-                raise NotImplementedError()
+                raise NotImplementedError
+
             def yield_figs(self, **kwargs):  # pragma: no cover
-                raise NotImplementedError()
+                raise NotImplementedError
 
         # With context.
         with MyRobot() as robot:
-            repr(robot); str(robot)
+            repr(robot)
+            str(robot)
             assert robot.to_string(verbose=2)
             assert robot._repr_html_()
             assert len(robot) == 0 and not robot.exceptions

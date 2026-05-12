@@ -1,12 +1,14 @@
-# coding: utf-8
 """
 Interface to the ESKW.nc file storing the (star-function) interpolated band structure produced by Abinit.
 """
+
 from functools import cached_property
+
 from monty.string import marquee
+
+from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Structure, NotebookWriter
 from abipy.core.structure import Structure
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.electrons.ebands import ElectronsReader, ElectronBands
+from abipy.electrons.ebands import ElectronBands, ElectronsReader
 
 
 class EskwFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
@@ -24,24 +26,32 @@ class EskwFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: EskwFile
     """
+
     @classmethod
     def from_file(cls, filepath: str):
         """Initialize the object from a netcdf_ file."""
         return cls(filepath)
 
     def __init__(self, filepath):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
         self.reader = ElectronsReader(filepath)
 
     @cached_property
     def einterp(self):
+        """Array with interpolated energies."""
         return self.reader.read_value("einterp")
 
     @cached_property
     def band_block(self):
+        """Initial and final band index to be interpolated (0-based)."""
         # band_block(2)=Initial and final band index to be interpolated. [0, 0] if all bands are used.
         band_block = self.reader.read_value("band_block")
-        if all(band_block != [0, 0]): band_block -= 1
+        if all(band_block != [0, 0]):
+            band_block -= 1
         return band_block
 
     def __str__(self):
@@ -50,7 +60,8 @@ class EskwFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     def to_string(self, verbose: int = 0) -> str:
         """String representation."""
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
 
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
@@ -64,6 +75,7 @@ class EskwFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         return "\n".join(lines)
 
     def close(self):
+        """Close the file."""
         self.reader.close()
 
     @property
@@ -78,7 +90,7 @@ class EskwFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
     @cached_property
     def params(self) -> dict:
-        """dictionary with parameters that might be subject to convergence studies."""
+        """Dictionary with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         od["einterp"] = self.interp
         od["einterp"] = self.einterp
@@ -88,8 +100,9 @@ class EskwFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
-        #for fig in self.yield_structure_figs(**kwargs): yield fig
-        for fig in self.yield_ebands_figs(**kwargs): yield fig
+        # for fig in self.yield_structure_figs(**kwargs): yield fig
+        for fig in self.yield_ebands_figs(**kwargs):
+            yield fig
 
     def write_notebook(self, nbpath=None):
         """
@@ -98,15 +111,17 @@ class EskwFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        nb.cells.extend([
-            nbv.new_code_cell("eskw = abilab.abiopen('%s')" % self.filepath),
-            nbv.new_code_cell("print(eskw)"),
-            nbv.new_code_cell("eskw.ebands.plot();"),
-            nbv.new_code_cell("eskw.ebands.kpoints.plot();"),
-            nbv.new_code_cell("# eskw.ebands.plot_transitions(omega_ev=3.0, qpt=(0, 0, 0), atol_ev=0.1);"),
-            nbv.new_code_cell("""\
+        nb.cells.extend(
+            [
+                nbv.new_code_cell("eskw = abilab.abiopen('%s')" % self.filepath),
+                nbv.new_code_cell("print(eskw)"),
+                nbv.new_code_cell("eskw.ebands.plot();"),
+                nbv.new_code_cell("eskw.ebands.kpoints.plot();"),
+                nbv.new_code_cell("# eskw.ebands.plot_transitions(omega_ev=3.0, qpt=(0, 0, 0), atol_ev=0.1);"),
+                nbv.new_code_cell("""\
 if eskw.ebands.kpoints.is_ibz:
     eskw.ebands.get_edos().plot();"""),
-        ])
+            ]
+        )
 
         return self._write_nb_nbpath(nb, nbpath)

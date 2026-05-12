@@ -1,38 +1,37 @@
-# coding: utf-8
 """
 Interface to the GSR.nc_ file storing the Ground-state results and the electron band structure.
 """
+
 from __future__ import annotations
 
-import sys
 import dataclasses
+import sys
+from collections import OrderedDict
+from functools import cached_property
+
 import numpy as np
 import pandas as pd
-import pymatgen.core.units as units
-import abipy.core.abinit_units as abu
-
-from collections import OrderedDict
-from typing import Optional
-from functools import cached_property
-from tabulate import tabulate
+from monty.collections import AttrDict, dict2namedtuple
 from monty.string import list_strings, marquee
 from monty.termcolor import cprint
-from monty.collections import AttrDict, dict2namedtuple
+from pymatgen.core import units
 from pymatgen.core.units import ArrayWithUnit
 from pymatgen.entries.computed_entries import ComputedEntry, ComputedStructureEntry
-from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.core.structure import Structure
-from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt, get_ax_fig_plt, set_grid_legend, set_ax_xylabels
-from abipy.tools.typing import Figure
-from abipy.abio.robots import Robot
-from abipy.electrons.ebands import ElectronsReader, RobotWithEbands, ElectronBands
+from tabulate import tabulate
 
+import abipy.core.abinit_units as abu
+from abipy.abio.robots import Robot
+from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Header, Has_Structure, NotebookWriter
+from abipy.core.structure import Structure
+from abipy.electrons.ebands import ElectronBands, ElectronsReader, RobotWithEbands
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend
+from abipy.tools.typing import Figure
 
 __all__ = [
     "GsrFile",
 ]
 
-_INVALID_STRESS_TENSOR = 9999999999e+99
+_INVALID_STRESS_TENSOR = 9999999999e99
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -40,7 +39,7 @@ class MagneticData:
     spinat: np.ndarray
     use_gbt: int
     qgbt: np.ndarray | None
-    #from pymatgen.electronic_structure.core import Magmom
+    # from pymatgen.electronic_structure.core import Magmom
 
     @classmethod
     def from_gsr(cls, gsr) -> MagneticData:
@@ -90,6 +89,10 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         return cls(filepath)
 
     def __init__(self, filepath: str):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
         self.r = self.reader = GsrReader(filepath)
 
@@ -103,7 +106,8 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     def to_string(self, verbose: int = 0) -> str:
         """String representation."""
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
 
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
@@ -112,7 +116,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         if self.is_scf_run:
             app("")
             app("Stress tensor (Cartesian coordinates in GPa):\n%s" % self.cart_stress_tensor)
-            #if verbose:
+            # if verbose:
             #    app("Stress tensor (Cartesian coordinates in Ha/Bohr**3):\n%s" % self.cart_stress_tensor / abu.HaBohr3_GPa)
             app("")
             app("Pressure: %.3f (GPa)" % self.pressure)
@@ -138,8 +142,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         # In principle one should use iscf but it's not available in the GSR.
         if "kptopt" in self.r.rootgrp.variables:
             return int(self.r.read_value("kptopt")) >= 0
-        else:
-            return abs(self.cart_stress_tensor[0, 0] - _INVALID_STRESS_TENSOR) > 0.1
+        return abs(self.cart_stress_tensor[0, 0] - _INVALID_STRESS_TENSOR) > 0.1
 
     @cached_property
     def ecut(self):
@@ -181,7 +184,8 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         Max absolute cartesian force in eV/Ang. None if forces are not available.
         """
         cart_forces = self.cart_forces
-        if cart_forces is None: return None
+        if cart_forces is None:
+            return None
 
         fmods = np.sqrt([np.dot(force, force) for force in cart_forces])
         return fmods.max()
@@ -192,21 +196,24 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         Return None if forces are not available.
         """
         cart_forces = self.cart_forces
-        if cart_forces is None: return None
+        if cart_forces is None:
+            return None
 
         fmods = np.sqrt([np.dot(force, force) for force in cart_forces])
         imin, imax = fmods.argmin(), fmods.argmax()
 
-        s = "\n".join([
-            "fsum: %s" % cart_forces.sum(axis=0),
-            "mean: %s, std %s" % (fmods.mean(), fmods.std()),
-            "minimum at site %s, cart force: %s" % (self.structure.sites[imin], cart_forces[imin]),
-            "maximum at site %s, cart force: %s" % (self.structure.sites[imax], cart_forces[imax]),
-        ])
+        s = "\n".join(
+            [
+                "fsum: %s" % cart_forces.sum(axis=0),
+                "mean: %s, std %s" % (fmods.mean(), fmods.std()),
+                "minimum at site %s, cart force: %s" % (self.structure.sites[imin], cart_forces[imin]),
+                "maximum at site %s, cart force: %s" % (self.structure.sites[imax], cart_forces[imax]),
+            ]
+        )
 
         table = [["Site", "Cartesian Force", "Length"]]
         for i, fmod in enumerate(fmods):
-            #table.append([self.structure.sites[i], cart_forces[i], fmod])
+            # table.append([self.structure.sites[i], cart_forces[i], fmod])
             table.append([str(self.structure.sites[i]), str(cart_forces[i]), str(fmod)])
         s += "\n" + tabulate(table)
 
@@ -227,7 +234,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         Pressure in GPa. Return None if not available e.g. if NSCF run.
         """
         if self.is_scf_run:
-            pressure = - self.cart_stress_tensor.trace() / 3
+            pressure = -self.cart_stress_tensor.trace() / 3
             return units.FloatWithUnit(pressure, unit="GPa", unit_type="pressure")
         return None
 
@@ -262,26 +269,32 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         # rhomag(2, nspden) (Fortran array)
         #   in collinear case component 1 is total density and 2 is _magnetization_ up-down
         #   in non collinear case component 1 is total density, and 2:4 are the magnetization vector
-        rhomag = rhomag[:,0]
+        rhomag = rhomag[:, 0]
         mag = np.zeros(3)
-        if self.ebands.nspden == 2: mag[2] = rhomag[1]
-        if self.ebands.nspden == 4: mag = rhomag[1:]
+        if self.ebands.nspden == 2:
+            mag[2] = rhomag[1]
+        if self.ebands.nspden == 4:
+            mag = rhomag[1:]
         return mag
 
     @cached_property
     def params(self) -> dict:
-        """dict with parameters that might be subject to convergence studies."""
+        """Dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         od["ecut"] = float(self.ecut)
-        #if self.hdr.usepaw == 1
+        # if self.hdr.usepaw == 1
         #    od["pawecutdg"] = float(self.pawecutdg)
         return od
 
     def close(self) -> None:
+        """Close the file."""
         self.r.close()
 
     # FIXME: This is deprecated. Must keep it to avoid breaking ScfTask.get_results
     def as_dict(self) -> dict:
+        """
+        Required for Monty serialization. Returns an empty dict as it's deprecated.
+        """
         return {}
 
     def get_computed_entry(self, inc_structure=True, parameters=None, data=None):
@@ -303,13 +316,10 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             ComputedStructureEntry/ComputedEntry
         """
         # TODO
-        #param_names = {"is_hubbard", "hubbards", "potcar_symbols", "run_type"}
+        # param_names = {"is_hubbard", "hubbards", "potcar_symbols", "run_type"}
         if inc_structure:
-            return ComputedStructureEntry(self.structure, self.energy,
-                                          correction=0.0, parameters=parameters, data=data)
-        else:
-            return ComputedEntry(self.structure.composition, self.energy,
-                                 parameters=parameters, data=data)
+            return ComputedStructureEntry(self.structure, self.energy, correction=0.0, parameters=parameters, data=data)
+        return ComputedEntry(self.structure.composition, self.energy, parameters=parameters, data=data)
 
     def print_efg_results(self, precision=4, file=sys.stdout) -> None:
         """
@@ -319,6 +329,7 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             precision: print options precision.
             file: File handle for output.
         """
+
         # This code has been taken from efg_results.
         def _p(*args, **kwargs):
             return print(*args, file=file, **kwargs)
@@ -332,28 +343,30 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
             _p("Found no quadrupole moment data, using 0.0 for all atoms")
 
         from numpy.linalg import eigvals
-        atom_species = self.r.read_value('atom_species')
-        atom_species_names = self.r.read_value('atom_species_names')
 
-        #with np.set_printoptions(precision=precision):
+        atom_species = self.r.read_value("atom_species")
+        atom_species_names = self.r.read_value("atom_species_names")
+
+        # with np.set_printoptions(precision=precision):
         _p("Field gradient data")
         for iat in range(len(self.structure)):
             itypat = atom_species[iat]
             vpas = eigvals(efg[iat])
             vzz = vpas[np.argmax(np.abs(vpas))]
             vxx = vpas[np.argmin(np.abs(vpas))]
-            vyy = -vzz -vxx
+            vyy = -vzz - vxx
 
-            eta = (vxx - vyy) / vzz if abs(vzz) > 1.0E-8 else 0.0
+            eta = (vxx - vyy) / vzz if abs(vzz) > 1.0e-8 else 0.0
 
-            cq = vzz * quadmom[itypat-1] * scale_factor
-            _p('atom type '+ str(atom_species[iat]) + ' Cq(MHz): %7.3f   eta: %4.3f' % (cq, eta))
+            cq = vzz * quadmom[itypat - 1] * scale_factor
+            _p("atom type " + str(atom_species[iat]) + " Cq(MHz): %7.3f   eta: %4.3f" % (cq, eta))
 
     def get_panel(self, **kwargs):
         """
         Build panel with widgets to interact with the |GsrFile| either in a notebook or in panel app.
         """
         from abipy.panels.gsr import GsrFilePanel
+
         return GsrFilePanel(self).get_panel(**kwargs)
 
     def yield_figs(self, **kwargs):  # pragma: no cover
@@ -361,18 +374,22 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
         verbose = kwargs.get("verbose", 0)
-        for fig in self.yield_ebands_figs(**kwargs): yield fig
+        for fig in self.yield_ebands_figs(**kwargs):
+            yield fig
         if verbose:
-            for fig in self.yield_structure_figs(**kwargs): yield fig
+            for fig in self.yield_structure_figs(**kwargs):
+                yield fig
 
     def yield_plotly_figs(self, **kwargs):  # pragma: no cover
         """
         This function *generates* a predefined list of plotly figures with minimal input from the user.
         """
         verbose = kwargs.get("verbose", 0)
-        for fig in self.yield_ebands_plotly_figs(**kwargs): yield fig
+        for fig in self.yield_ebands_plotly_figs(**kwargs):
+            yield fig
         if verbose:
-            for fig in self.yield_structure_plotly_figs(**kwargs): yield fig
+            for fig in self.yield_structure_plotly_figs(**kwargs):
+                yield fig
 
     def write_notebook(self, nbpath=None):
         """
@@ -382,27 +399,28 @@ class GsrFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
         first_char = "" if self.has_panel() else "#"
 
-        nb.cells.extend([
-            nbv.new_code_cell("gsr = abilab.abiopen('%s')" % self.filepath),
-            nbv.new_code_cell("print(gsr)"),
-
-            # Add panel GUI but comment the python code if panel is not available.
-            nbv.new_markdown_cell("## Panel dashboard"),
-            nbv.new_code_cell(f"""\
+        nb.cells.extend(
+            [
+                nbv.new_code_cell("gsr = abilab.abiopen('%s')" % self.filepath),
+                nbv.new_code_cell("print(gsr)"),
+                # Add panel GUI but comment the python code if panel is not available.
+                nbv.new_markdown_cell("## Panel dashboard"),
+                nbv.new_code_cell(f"""\
 # Execute this cell to display the panel GUI (requires panel package).
 # To display the dashboard inside the browser use `abiopen.py FILE --panel`.
 
 {first_char}abilab.abipanel()
 {first_char}gsr.get_panel()
 """),
-            nbv.new_code_cell("gsr.ebands.plot();"),
-            nbv.new_code_cell("gsr.ebands.kpoints.plot();"),
-            nbv.new_code_cell("# gsr.ebands.plot_transitions(omega_ev=3.0, qpt=(0, 0, 0), atol_ev=0.1);"),
-            nbv.new_code_cell("""\
+                nbv.new_code_cell("gsr.ebands.plot();"),
+                nbv.new_code_cell("gsr.ebands.kpoints.plot();"),
+                nbv.new_code_cell("# gsr.ebands.plot_transitions(omega_ev=3.0, qpt=(0, 0, 0), atol_ev=0.1);"),
+                nbv.new_code_cell("""\
 if gsr.ebands.kpoints.is_ibz:
     gsr.ebands.get_edos().plot();"""),
-            #nbv.new_code_cell("emass = gsr.ebands.effective_masses(spin=0, band=0, acc=4)"),
-        ])
+                # nbv.new_code_cell("emass = gsr.ebands.effective_masses(spin=0, band=0, acc=4)"),
+            ]
+        )
 
         return self._write_nb_nbpath(nb, nbpath)
 
@@ -412,41 +430,51 @@ class EnergyTerms(AttrDict):
     Contributions to the total GS energy. See energies_type in m_energies.F90.
     """
 
-    _NAME2DOC = OrderedDict([
-        # (Name, help)
-        ("e_localpsp", "Local psp energy"),
-        ("e_eigenvalues", "Sum of the eigenvalues - Band energy\n" +
-                          "(valid for double-counting scheme dtset%optene == 1)"),
-        ("e_ewald",  "Ewald energy, store also the ion/ion energy for free boundary conditions."),
-        ("e_hartree", "Hartree part of the total energy"),
-        ("e_corepsp", "psp core-core energy"),
-        ("e_corepspdc", "psp core-core energy double-counting"),
-        ("e_kinetic", "Kinetic energy part of total energy. (valid for direct scheme, dtset%optene == 0"),
-        ("e_nonlocalpsp", "Nonlocal pseudopotential part of total energy."),
-        ("e_entropy", "Entropy energy due to the occupation number smearing (if metal)\n" +
-                      "Value is multiplied by dtset%tsmear, see %entropy for the entropy alone\n." +
-                      "(valid for metals, dtset%occopt>=3 .and. dtset%occopt<=8)"),
-        ("entropy", "Entropy term"),
-        ("e_xc", "Exchange-correlation energy"),
-        #("e_vdw_dftd2", "Dispersion energy from DFT-D2 Van der Waals correction"),
-        ("e_xcdc", "enxcdc=exchange-correlation double-counting energy"),
-        ("e_paw", "PAW spherical part energy"),
-        ("e_pawdc", "PAW spherical part double-counting energy"),
-        ("e_elecfield", "Electric enthalpy, by adding both ionic and electronic contributions"),
-        ("e_magfield", "Orbital magnetic enthalpy, by adding orbital contribution"),
-        ("e_fermie", "Fermie energy"),
-        ("e_sicdc", "Self-interaction energy double-counting"),
-        ("e_exactX", "Fock exact-exchange energy"),
-        ("h0", "h0=e_kinetic+e_localpsp+e_nonlocalpsp"),
-        ("e_electronpositron", "Electron-positron: electron-positron interaction energy"),
-        ("edc_electronpositron", "Electron-positron: double-counting electron-positron interaction energy"),
-        ("e0_electronpositron", "Electron-positron: energy only due to unchanged particles\n" +
-                                "(if calctype=1, energy due to electrons only)\n" +
-                                "(if calctype=2, energy due to positron only)\n"),
-        ("e_monopole", "Monopole correction to the total energy for charged supercells"),
-        # FIXME: Some names have been changed in Abinit8, I should recheck the code.
-        #("e_xc_vdw", "vdW-DF correction to the XC energy"),
-    ])
+    _NAME2DOC = OrderedDict(
+        [
+            # (Name, help)
+            ("e_localpsp", "Local psp energy"),
+            (
+                "e_eigenvalues",
+                "Sum of the eigenvalues - Band energy\n(valid for double-counting scheme dtset%optene == 1)",
+            ),
+            ("e_ewald", "Ewald energy, store also the ion/ion energy for free boundary conditions."),
+            ("e_hartree", "Hartree part of the total energy"),
+            ("e_corepsp", "psp core-core energy"),
+            ("e_corepspdc", "psp core-core energy double-counting"),
+            ("e_kinetic", "Kinetic energy part of total energy. (valid for direct scheme, dtset%optene == 0"),
+            ("e_nonlocalpsp", "Nonlocal pseudopotential part of total energy."),
+            (
+                "e_entropy",
+                "Entropy energy due to the occupation number smearing (if metal)\n"
+                "Value is multiplied by dtset%tsmear, see %entropy for the entropy alone\n."
+                "(valid for metals, dtset%occopt>=3 .and. dtset%occopt<=8)",
+            ),
+            ("entropy", "Entropy term"),
+            ("e_xc", "Exchange-correlation energy"),
+            # ("e_vdw_dftd2", "Dispersion energy from DFT-D2 Van der Waals correction"),
+            ("e_xcdc", "enxcdc=exchange-correlation double-counting energy"),
+            ("e_paw", "PAW spherical part energy"),
+            ("e_pawdc", "PAW spherical part double-counting energy"),
+            ("e_elecfield", "Electric enthalpy, by adding both ionic and electronic contributions"),
+            ("e_magfield", "Orbital magnetic enthalpy, by adding orbital contribution"),
+            ("e_fermie", "Fermie energy"),
+            ("e_sicdc", "Self-interaction energy double-counting"),
+            ("e_exactX", "Fock exact-exchange energy"),
+            ("h0", "h0=e_kinetic+e_localpsp+e_nonlocalpsp"),
+            ("e_electronpositron", "Electron-positron: electron-positron interaction energy"),
+            ("edc_electronpositron", "Electron-positron: double-counting electron-positron interaction energy"),
+            (
+                "e0_electronpositron",
+                "Electron-positron: energy only due to unchanged particles\n"
+                "(if calctype=1, energy due to electrons only)\n"
+                "(if calctype=2, energy due to positron only)\n",
+            ),
+            ("e_monopole", "Monopole correction to the total energy for charged supercells"),
+            # FIXME: Some names have been changed in Abinit8, I should recheck the code.
+            # ("e_xc_vdw", "vdW-DF correction to the XC energy"),
+        ]
+    )
 
     ALL_KEYS = list(_NAME2DOC.keys())
 
@@ -466,7 +494,7 @@ class EnergyTerms(AttrDict):
 
     @property
     def table(self):
-        """string with results in tabular form."""
+        """String with results in tabular form."""
         table = [["Term", "Value"]]
         for k, doc in self._NAME2DOC.items():
             table.append([k, self[k]])
@@ -479,7 +507,6 @@ class EnergyTerms(AttrDict):
 
 
 class EnergyTermsPlotter:
-
     @classmethod
     def from_label_file_dict(cls, label_file_dict: dict) -> EnergyTermsPlotter:
         """
@@ -509,7 +536,7 @@ class EnergyTermsPlotter:
         self.labels = labels
         self.eterms_list = eterms_list
 
-    #def add(self, label: str, gsr_path: str) -> None:
+    # def add(self, label: str, gsr_path: str) -> None:
     #   self.labels.append(label)
     #    if isinstance(path, GsrFile):
     #        self.eterms_list.append(path.eterms)
@@ -519,14 +546,14 @@ class EnergyTermsPlotter:
 
     def get_dataframe(self) -> pd.DataFrame:
         df_list = []
-        for label, eterms in zip(self.labels, self.eterms_list):
+        for label, eterms in zip(self.labels, self.eterms_list, strict=False):
             df = eterms.get_dataframe()
             df["label"] = label
             df_list.append(df)
 
         return pd.concat(df_list)
 
-    #def plot(self, what_list=("foo", "bar"), fontsize=8, **kwargs) -> Figure:
+    # def plot(self, what_list=("foo", "bar"), fontsize=8, **kwargs) -> Figure:
     #    df = self.get_dataframe()
     #    #keys = [k for k in df.keys() if k != "label")
     #    #nkeys = len(keys)
@@ -549,6 +576,7 @@ class GsrReader(ElectronsReader):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GsrReader
     """
+
     def read_cart_forces(self, unit="eV ang^-1"):
         """
         Read and return a |numpy-array| with the cartesian forces in unit ``unit``. Shape (natom, 3)
@@ -586,9 +614,10 @@ class GsrReader(ElectronsReader):
                 raise ValueError(f"Invalid {units=}")
 
         from abipy.tools.tensors import Stress
+
         return Stress(tensor)
 
-    def read_energy_terms(self, unit: str ="eV") -> EnergyTerms:
+    def read_energy_terms(self, unit: str = "eV") -> EnergyTerms:
         """
         Return a dictionary with the different contributions to the total electronic energy.
         """
@@ -611,6 +640,7 @@ class GsrRobot(Robot, RobotWithEbands):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GsrRobot
     """
+
     EXT = "GSR"
 
     def get_dataframe(self, with_geo=True, abspath=False, with_paths=True, funcs=None, **kwargs) -> pd.DataFrame:
@@ -632,9 +662,17 @@ class GsrRobot(Robot, RobotWithEbands):
         # Add attributes specified by the users
         # TODO add more columns
         attrs = [
-            "energy", "energy_per_atom", "pressure", "max_force",
-            "ecut", "pawecutdg", "tsmear", "nkpt",
-            "nsppol", "nspinor", "nspden",
+            "energy",
+            "energy_per_atom",
+            "pressure",
+            "max_force",
+            "ecut",
+            "pawecutdg",
+            "tsmear",
+            "nkpt",
+            "nsppol",
+            "nspinor",
+            "nspden",
         ] + kwargs.pop("attrs", [])
 
         rows, row_names = [], []
@@ -651,11 +689,13 @@ class GsrRobot(Robot, RobotWithEbands):
                     value = len(gsr.ebands.kpoints)
                 else:
                     value = getattr(gsr, aname, None)
-                    if value is None: value = getattr(gsr.ebands, aname, None)
+                    if value is None:
+                        value = getattr(gsr.ebands, aname, None)
                 d[aname] = value
 
             # Execute functions
-            if funcs is not None: d.update(self._exec_funcs(funcs, gsr))
+            if funcs is not None:
+                d.update(self._exec_funcs(funcs, gsr))
             rows.append(d)
 
         index = None
@@ -686,13 +726,14 @@ class GsrRobot(Robot, RobotWithEbands):
 
         # Order data by volumes if needed.
         if np.any(np.diff(volumes) < 0):
-            ves = sorted(zip(volumes, energies), key=lambda t: t[0])
+            ves = sorted(zip(volumes, energies, strict=False), key=lambda t: t[0])
             volumes = [t[0] for t in ves]
             energies = [t[1] for t in ves]
 
         # Note that eos.fit expects lengths in Angstrom, and energies in eV.
         # I'm also monkey-patching the plot method.
         from pymatgen.analysis.eos import EOS
+
         if eos_names == "all":
             # Use all the available models.
             eos_names = [n for n in EOS.MODELS if n not in ("deltafactor", "numerical_eos")]
@@ -711,13 +752,12 @@ class GsrRobot(Robot, RobotWithEbands):
             fit.plot = fit.plot_ax
             fits.append(fit)
             index.append(eos_name)
-            rows.append(OrderedDict([(aname, getattr(fit, aname)) for aname in
-                ("v0", "e0", "b0_GPa", "b1")]))
+            rows.append(OrderedDict([(aname, getattr(fit, aname)) for aname in ("v0", "e0", "b0_GPa", "b1")]))
 
         dataframe = pd.DataFrame(rows, index=index, columns=list(rows[0].keys()) if rows else None)
         return dict2namedtuple(fits=fits, dataframe=dataframe)
 
-    def get_energyterms_dataframe(self, iref: Optional[int] = None) -> pd.DataFrame:
+    def get_energyterms_dataframe(self, iref: int | None = None) -> pd.DataFrame:
         """
         Build and return dataframe with the different contributions to the total energy in eV.
 
@@ -763,22 +803,24 @@ class GsrRobot(Robot, RobotWithEbands):
             nrows = (num_plots // ncols) + (num_plots % ncols)
 
         # Build grid of plots.
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=False, sharey=False, squeeze=False)
+        ax_list, fig, plt = get_axarray_fig_plt(
+            None, nrows=nrows, ncols=ncols, sharex=False, sharey=False, squeeze=False
+        )
         ax_list = ax_list.ravel()
 
-        for i, (fit, ax) in enumerate(zip(r.fits, ax_list)):
+        for i, (fit, ax) in enumerate(zip(r.fits, ax_list, strict=False)):
             fit.plot_ax(ax=ax, fontsize=fontsize, label="", show=False)
 
         # Get around a bug in matplotlib
         if num_plots % ncols != 0:
-            ax_list[-1].axis('off')
+            ax_list[-1].axis("off")
 
         return fig
 
     @add_fig_kwargs
-    def plot_gsr_convergence(self, sortby=None, hue=None, fontsize=8,
-                             items=("energy", "pressure", "max_force"), **kwargs) -> Figure:
+    def plot_gsr_convergence(
+        self, sortby=None, hue=None, fontsize=8, items=("energy", "pressure", "max_force"), **kwargs
+    ) -> Figure:
         """
         Plot the convergence of the most important quantities available in the GSR file
         wrt to the ``sortby`` parameter. Values can be optionally grouped by ``hue``.
@@ -803,13 +845,13 @@ class GsrRobot(Robot, RobotWithEbands):
              gsr.plot_gsr_convergence(sortby="ecut")
              gsr.plot_gsr_convergence(sortby="nkpt", hue="tsmear")
         """
-        return self.plot_convergence_items(items, sortby=sortby, hue=hue,
-                                           fontsize=fontsize, show=False, **kwargs)
+        return self.plot_convergence_items(items, sortby=sortby, hue=hue, fontsize=fontsize, show=False, **kwargs)
 
-    def get_spin_spiral_df(self,
-                           with_params: bool = False,
-                           with_geo: bool = False,
-                           ) -> pd.DataFrame:
+    def get_spin_spiral_df(
+        self,
+        with_params: bool = False,
+        with_geo: bool = False,
+    ) -> pd.DataFrame:
         """
         Build and return a dataframe with the atomic magnetization/charge for each
         site, the total energy, and the GBT q-point.
@@ -829,7 +871,7 @@ class GsrRobot(Robot, RobotWithEbands):
 
         rows = []
         for iq, (label, gsr) in enumerate(self.items()):
-            #mag_data = MagneticData.from_gsr(gsr)
+            # mag_data = MagneticData.from_gsr(gsr)
             spinat = gsr.r.read_value("spinat")
             intgden = gsr.r.read_value("intgden")
             nspden = intgden.shape[1]
@@ -843,7 +885,7 @@ class GsrRobot(Robot, RobotWithEbands):
             energy_mev_pat = float(gsr.energy) * 1000 / len(gsr.structure)
 
             for iat, site in enumerate(gsr.structure):
-                magmom=intgden[iat, 1] - intgden[iat, 0] if nspden == 2 else intgden[iat, 1:]
+                magmom = intgden[iat, 1] - intgden[iat, 0] if nspden == 2 else intgden[iat, 1:]
                 d = dict(
                     site_idx=iat,
                     symbol=site.specie.symbol,
@@ -868,11 +910,14 @@ class GsrRobot(Robot, RobotWithEbands):
         return pd.DataFrame(rows)
 
     @add_fig_kwargs
-    def plot_spin_spiral_magmom(self,
-                                keys=("magmom_norm", "mx", "my", "mz", "charge_isph"),
-                                symbols: str | list[str] | None = None,
-                                site_inds: list[int] | None = None,
-                                fontsize=8, **kwargs) -> Figure:
+    def plot_spin_spiral_magmom(
+        self,
+        keys=("magmom_norm", "mx", "my", "mz", "charge_isph"),
+        symbols: str | list[str] | None = None,
+        site_inds: list[int] | None = None,
+        fontsize=8,
+        **kwargs,
+    ) -> Figure:
         """
         Plot the magnetic moments obtained with the generalized Bloch theorem
         as a function of the wave-vector q.
@@ -888,8 +933,9 @@ class GsrRobot(Robot, RobotWithEbands):
         df = self.get_spin_spiral_df()
 
         # Build grid of plots.
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=len(keys), ncols=1,
-                                                sharex=True, sharey=False, squeeze=False)
+        ax_list, fig, plt = get_axarray_fig_plt(
+            None, nrows=len(keys), ncols=1, sharex=True, sharey=False, squeeze=False
+        )
         ax_list = ax_list.ravel()
 
         structure0 = self.abifiles[0].structure
@@ -901,8 +947,10 @@ class GsrRobot(Robot, RobotWithEbands):
         for site_idx, site in enumerate(structure0):
             # Filtering on symbol or site index.
             symbol = site.specie.symbol
-            if symbols is not None and symbol not in symbols: continue
-            if site_inds is not None and site_idx not in site_inds: continue
+            if symbols is not None and symbol not in symbols:
+                continue
+            if site_inds is not None and site_idx not in site_inds:
+                continue
 
             # Select data for this site index.
             data = df[df["site_idx"] == site_idx]
@@ -911,14 +959,14 @@ class GsrRobot(Robot, RobotWithEbands):
                 # Get ticks and labels.
                 ticks, labels = data["iq"].values, data["qname"].values
                 # Filter and then unpack
-                filtered_pairs = [(x, y) for x, y in zip(ticks, labels) if y is not None]
-                ticks, labels = zip(*filtered_pairs)
+                filtered_pairs = [(x, y) for x, y in zip(ticks, labels, strict=False) if y is not None]
+                ticks, labels = zip(*filtered_pairs, strict=False)
 
             for ax, key in zip(ax_list, keys, strict=True):
                 if key in ("mx", "my", "mz"):
                     # Convert magmom column to (nq, 3) array and select the Cartesian component.
                     idx = {"mx": 0, "my": 1, "mz": 2}[key]
-                    ys = np.array([y for y in data["magmom"].values])[:,idx]
+                    ys = np.array([y for y in data["magmom"].values])[:, idx]
                 else:
                     ys = data[key]
 
@@ -984,8 +1032,14 @@ class GsrRobot(Robot, RobotWithEbands):
         ax.set_ylabel("Energy/atom (meV)")
         ax.set_title(f"Minimum at q: {qmin} {qmin_name}", fontsize=fontsize)
 
-        ticks, labels = zip(*[(i, qname) for i, qpt in enumerate(qpoints)
-            if (qname := structure0.findname_in_hsym_stars(qpt)) is not None])
+        ticks, labels = zip(
+            *[
+                (i, qname)
+                for i, qpt in enumerate(qpoints)
+                if (qname := structure0.findname_in_hsym_stars(qpt)) is not None
+            ],
+            strict=False,
+        )
 
         ax.set_xticks(ticks, minor=False)
         ax.set_xticklabels(labels, fontdict=None, minor=False, size=kwargs.get("qlabel_size", "large"))
@@ -1001,13 +1055,15 @@ class GsrRobot(Robot, RobotWithEbands):
         """
         yield self.plot_lattice_convergence(show=False)
         yield self.plot_gsr_convergence(show=False)
-        for fig in self.get_ebands_plotter().yield_figs(): yield fig
+        for fig in self.get_ebands_plotter().yield_figs():
+            yield fig
 
     def get_panel(self, **kwargs):
         """
         Build panel with widgets to interact with the |GsrRobot| either in a notebook or in panel app.
         """
         from abipy.panels.gsr import GsrRobotPanel
+
         return GsrRobotPanel(robot=self).get_panel(**kwargs)
 
     def write_notebook(self, nbpath=None) -> str:
@@ -1018,17 +1074,19 @@ class GsrRobot(Robot, RobotWithEbands):
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
         args = [(l, f.filepath) for l, f in self.items()]
-        nb.cells.extend([
-            #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("robot = abilab.GsrRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-            nbv.new_code_cell("ebands_plotter = robot.get_ebands_plotter()"),
-            nbv.new_code_cell("df = ebands_plotter.get_ebands_frame()\ndisplay(df)"),
-            nbv.new_code_cell("ebands_plotter.ipw_select_plot()"),
-            nbv.new_code_cell("#anim = ebands_plotter.animate();"),
-            nbv.new_code_cell("edos_plotter = robot.get_edos_plotter()"),
-            nbv.new_code_cell("edos_plotter.ipw_select_plot()"),
-            nbv.new_code_cell("#robot.gridplot_eos();"),
-        ])
+        nb.cells.extend(
+            [
+                # nbv.new_markdown_cell("# This is a markdown cell"),
+                nbv.new_code_cell("robot = abilab.GsrRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+                nbv.new_code_cell("ebands_plotter = robot.get_ebands_plotter()"),
+                nbv.new_code_cell("df = ebands_plotter.get_ebands_frame()\ndisplay(df)"),
+                nbv.new_code_cell("ebands_plotter.ipw_select_plot()"),
+                nbv.new_code_cell("#anim = ebands_plotter.animate();"),
+                nbv.new_code_cell("edos_plotter = robot.get_edos_plotter()"),
+                nbv.new_code_cell("edos_plotter.ipw_select_plot()"),
+                nbv.new_code_cell("#robot.gridplot_eos();"),
+            ]
+        )
 
         # Mixins
         nb.cells.extend(self.get_baserobot_code_cells())

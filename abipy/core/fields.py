@@ -1,29 +1,30 @@
-# coding: utf-8
 """This module contains the class describing densities in real space on uniform 3D meshes."""
+
 from __future__ import annotations
 
 import collections
 import os
 import typing
-import numpy as np
-import pandas as pd
-
 from collections import OrderedDict
 from functools import cached_property
+
+import numpy as np
+import pandas as pd
 from monty.collections import AttrDict
+from monty.inspect import all_subclasses
 from monty.string import is_string, marquee
 from monty.termcolor import cprint
-from monty.inspect import all_subclasses
-from pymatgen.core.units import bohr_to_angstrom, Ha_to_eV
-from abipy.core.structure import Structure
-from abipy.core.mesh3d import Mesh3D
+from pymatgen.core.units import Ha_to_eV, bohr_to_angstrom
+
 from abipy.core.func1d import Function1D
+from abipy.core.mesh3d import Mesh3D
 from abipy.core.mixins import Has_Structure
+from abipy.core.structure import Structure
+from abipy.iotools import ETSF_Reader, Visualizer, cube, xsf
 from abipy.tools import duck
 from abipy.tools.numtools import transpose_last3dims
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend
 from abipy.tools.typing import Figure
-from abipy.iotools import Visualizer, xsf, ETSF_Reader, cube
 
 if typing.TYPE_CHECKING:
     from pymatgen.io.vasp.outputs import Chgcar
@@ -31,10 +32,10 @@ if typing.TYPE_CHECKING:
 
 __all__ = [
     "Density",
-    "VxcPotential",
     "VhartreePotential",
     "VhxcPotential",
     "VksPotential",
+    "VxcPotential",
 ]
 
 
@@ -43,12 +44,13 @@ def latexlabel_ispden(ispden: int, nspden: int):
     if nspden == 1:
         return None
 
-    elif nspden == 2:
-        return {k: v.replace("myuparrow", "uparrow") for k, v in
-               {0: r"$\sigma=\myuparrow$", 1: r"$\sigma=\downarrow$"}.items()}[ispden]
+    if nspden == 2:
+        return {
+            k: v.replace("myuparrow", "uparrow")
+            for k, v in {0: r"$\sigma=\myuparrow$", 1: r"$\sigma=\downarrow$"}.items()
+        }[ispden]
 
-    else:
-        raise NotImplementedError()
+    raise NotImplementedError
 
 
 class _Field(Has_Structure):
@@ -64,6 +66,7 @@ class _Field(Has_Structure):
 
         latex_label: String used in plot to set the axis label.
     """
+
     netcdf_name = "Unknown"
 
     latex_label = " "
@@ -74,10 +77,9 @@ class _Field(Has_Structure):
         with FieldReader(filepath) as r:
             return r.read_denpot(varname=cls.netcdf_name, field_cls=cls)
 
-    def __init__(self, nspinor: int, nsppol: int, nspden: int,
-                 datar: np.ndarray,
-                 structure: Structure,
-                 iorder: str = "c"):
+    def __init__(
+        self, nspinor: int, nsppol: int, nspden: int, datar: np.ndarray, structure: Structure, iorder: str = "c"
+    ):
         """
         Args:
             nspinor: Number of spinorial components.
@@ -118,60 +120,99 @@ class _Field(Has_Structure):
             try:
                 return self.__class__, float(other)
             except Exception:
-                raise TypeError('object of class %s is not an instance of _Field and cannot be converted to float' %
-                    (other.__class__))
+                raise TypeError(
+                    "object of class %s is not an instance of _Field and cannot be converted to float"
+                    % (other.__class__)
+                )
 
-        if any([self.nspinor != other.nspinor, self.nsppol != other.nsppol, self.nspden != other.nspden,
-                self.structure != other.structure, self.mesh != other.mesh]):
-            raise ValueError('Incompatible scalar fields')
+        if any(
+            [
+                self.nspinor != other.nspinor,
+                self.nsppol != other.nsppol,
+                self.nspden != other.nspden,
+                self.structure != other.structure,
+                self.mesh != other.mesh,
+            ]
+        ):
+            raise ValueError("Incompatible scalar fields")
 
         new_cls = self.__class__ if isinstance(other, self.__class__) else _Field
 
         return new_cls, other.datar
 
     def __add__(self, other):
-        """self + other"""
+        """Self + other"""
         new_cls, datar = self._check_and_get_datar(other)
-        return new_cls(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
-                       datar=self.datar + datar,
-                       structure=self.structure, iorder="c")
+        return new_cls(
+            nspinor=self.nspinor,
+            nsppol=self.nsppol,
+            nspden=self.nspden,
+            datar=self.datar + datar,
+            structure=self.structure,
+            iorder="c",
+        )
 
     def __sub__(self, other):
-        """self - other"""
+        """Self - other"""
         new_cls, datar = self._check_and_get_datar(other)
-        return new_cls(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
-                       datar=self.datar - datar,
-                       structure=self.structure, iorder="c")
+        return new_cls(
+            nspinor=self.nspinor,
+            nsppol=self.nsppol,
+            nspden=self.nspden,
+            datar=self.datar - datar,
+            structure=self.structure,
+            iorder="c",
+        )
 
     def __mul__(self, other):
-        """self * other"""
+        """Self * other"""
         new_cls, datar = self._check_and_get_datar(other)
-        return new_cls(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
-                       datar=self.datar * datar,
-                       structure=self.structure, iorder="c")
+        return new_cls(
+            nspinor=self.nspinor,
+            nsppol=self.nsppol,
+            nspden=self.nspden,
+            datar=self.datar * datar,
+            structure=self.structure,
+            iorder="c",
+        )
 
     __rmul__ = __mul__
 
     def __truediv__(self, other):
-        """self / other"""
+        """Self / other"""
         new_cls, datar = self._check_and_get_datar(other)
-        return new_cls(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
-                       datar=self.datar / datar,
-                       structure=self.structure, iorder="c")
+        return new_cls(
+            nspinor=self.nspinor,
+            nsppol=self.nsppol,
+            nspden=self.nspden,
+            datar=self.datar / datar,
+            structure=self.structure,
+            iorder="c",
+        )
 
     __div__ = __truediv__
 
     def __neg__(self):
         """-self"""
-        return self.__class__(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
-                              datar=-self.datar,
-                              structure=self.structure, iorder="c")
+        return self.__class__(
+            nspinor=self.nspinor,
+            nsppol=self.nsppol,
+            nspden=self.nspden,
+            datar=-self.datar,
+            structure=self.structure,
+            iorder="c",
+        )
 
     def __abs__(self):
         """abs(self)"""
-        return self.__class__(nspinor=self.nspinor, nsppol=self.nsppol, nspden=self.nspden,
-                              datar=np.abs(self.datar),
-                              structure=self.structure, iorder="c")
+        return self.__class__(
+            nspinor=self.nspinor,
+            nsppol=self.nsppol,
+            nspden=self.nspden,
+            datar=np.abs(self.datar),
+            structure=self.structure,
+            iorder="c",
+        )
 
     @property
     def structure(self) -> Structure:
@@ -180,10 +221,14 @@ class _Field(Has_Structure):
 
     def to_string(self, verbose=0, title=None) -> str:
         """String representation"""
-        lines = []; app = lines.append
-        if title is not None: app(marquee(title), mark="=")
-        app("%s: nspinor: %i, nsppol: %i, nspden: %i" %
-            (self.__class__.__name__, self.nspinor, self.nsppol, self.nspden))
+        lines = []
+        app = lines.append
+        if title is not None:
+            app(marquee(title), mark="=")
+        app(
+            "%s: nspinor: %i, nsppol: %i, nspden: %i"
+            % (self.__class__.__name__, self.nspinor, self.nsppol, self.nspden)
+        )
         app(self.mesh.to_string(verbose=verbose))
         if verbose > 0:
             app(self.structure.to_string(verbose=verbose))
@@ -251,22 +296,16 @@ class _Field(Has_Structure):
         return space
 
     def mean(self, space="r", axis=0) -> np.ndarray:
-        """
-        Returns the average of the array elements along the given axis.
-        """
-        if "r" == self._check_space(space):
+        """Returns the average of the array elements along the given axis."""
+        if self._check_space(space) == "r":
             return self.datar.mean(axis=axis)
-        else:
-            return self.datag.mean(axis=axis)
+        return self.datag.mean(axis=axis)
 
     def std(self, space="r", axis=0):
-        """
-        Returns the standard deviation of the array elements along the given axis.
-        """
-        if "r" == self._check_space(space):
+        """Returns the standard deviation of the array elements along the given axis."""
+        if self._check_space(space) == "r":
             return self.datar.std(axis=axis)
-        else:
-            return self.datag.std(axis=axis)
+        return self.datag.std(axis=axis)
 
     def export(self, filename, visu=None, verbose=1):
         """
@@ -300,21 +339,21 @@ class _Field(Has_Structure):
             # dir = os.getcwd() is needed when we invoke the method from a notebook.
             # nbworkdir in cwd is needed when we invoke the method from a notebook.
             from abipy.core.globals import abinb_mkstemp
+
             _, filename = abinb_mkstemp(suffix="." + ext, text=True)
 
-        with open(filename, mode="wt") as fh:
+        with open(filename, mode="w") as fh:
             if ext == "xsf":
                 # xcrysden
                 xsf.xsf_write_structure(fh, self.structure)
                 xsf.xsf_write_data(fh, self.structure, self.datar, add_replicas=True)
-            #elif ext == "POSCAR":
+            # elif ext == "POSCAR":
             else:
                 raise NotImplementedError("extension %s is not supported." % ext)
 
         if visu is None:
             return Visualizer.from_file(filename)
-        else:
-            return visu(filename)
+        return visu(filename)
 
     def visualize(self, appname: str):
         """
@@ -332,21 +371,19 @@ class _Field(Has_Structure):
                 return self.export(ext, visu=visu)()
             except visu.Error:
                 pass
-        else:
-            raise visu.Error("Don't know how to export data for visualizer %s" % appname)
+        raise visu.Error("Don't know how to export data for visualizer %s" % appname)
 
     def get_interpolator(self):
-        """
-        Return an interpolator object that interpolates periodic functions in real space.
-        """
+        """Return an interpolator object that interpolates periodic functions in real space."""
         from abipy.tools.numtools import BlochRegularGridInterpolator
+
         return BlochRegularGridInterpolator(self.structure, self.datar)
 
-    #def fourier_interp(self, new_mesh):
-        #intp_datar = self.mesh.fourier_interp(self.datar, new_mesh, inspace="r")
-        #return self.__class__(self.nspinor, self.nsppol, self.nspden, self.structure, intp_datar)
+    # def fourier_interp(self, new_mesh):
+    # intp_datar = self.mesh.fourier_interp(self.datar, new_mesh, inspace="r")
+    # return self.__class__(self.nspinor, self.nsppol, self.nspden, self.structure, intp_datar)
 
-    #def braket_waves(self, bra_wave, ket_wave):
+    # def braket_waves(self, bra_wave, ket_wave):
     #    """
     #    Compute the matrix element of <bra_wave| self.datar |ket_wave> in real space.
     #    """
@@ -359,7 +396,7 @@ class _Field(Has_Structure):
     #    else:
     #        raise NotImplementedError("nspinor != 1 not implenented")
 
-    #def get_spin_mat(self):
+    # def get_spin_mat(self):
 
     @add_fig_kwargs
     def plot_line(self, point1, point2, num=200, cartesian=False, ax=None, fontsize=8, **kwargs) -> Figure:
@@ -377,6 +414,7 @@ class _Field(Has_Structure):
                 coordinates (if not integers). Use True to pass points in cartesian coordinates.
             ax: |matplotlib-Axes| or None if a new figure should be created.
             fontsize: legend and title fontsize.
+            **kwargs: Keyword arguments passed to matplotlib plot method.
         """
         # Interpolate along line.
         r = self.get_interpolator().eval_line(point1, point2, num=num, cartesian=cartesian)
@@ -423,23 +461,24 @@ class _Field(Has_Structure):
             return None
 
         # Sort sites by distance.
-        nn_list = list(sorted(nn_list, key=lambda t: t.nn_distance))
+        nn_list = sorted(nn_list, key=lambda t: t.nn_distance)
 
         if max_nn is not None and len(nn_list) > max_nn:
-            cprint("For radius %s, found %s neighbors but only max_nn %s sites are show." %
-                   (radius, len(nn_list), max_nn), "yellow")
+            cprint(
+                "For radius %s, found %s neighbors but only max_nn %s sites are show." % (radius, len(nn_list), max_nn),
+                "yellow",
+            )
             nn_list = nn_list[:max_nn]
 
         # Get grid of axes.
         nrows, ncols = len(nn_list), 1
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=True, squeeze=True)
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols, sharex=True, sharey=True, squeeze=True)
         ax_list = ax_list.ravel()
 
         interpolator = self.get_interpolator()
 
-        for i, (nn, ax) in enumerate(zip(nn_list, ax_list)):
-            #nn_site, nn_dist, nn_sc_index = nn
+        for i, (nn, ax) in enumerate(zip(nn_list, ax_list, strict=False)):
+            # nn_site, nn_dist, nn_sc_index = nn
             nn_site = nn
             nn_dist = nn.nn_distance
             nn_sc_index = nn.index
@@ -448,8 +487,7 @@ class _Field(Has_Structure):
             r = interpolator.eval_line(site.frac_coords, nn_site.frac_coords, num=num, kpoint=None)
 
             for ispden in range(self.nspden):
-                ax.plot(r.dist, r.values[ispden],
-                        label=latexlabel_ispden(ispden, self.nspden) if i == 0 else None)
+                ax.plot(r.dist, r.values[ispden], label=latexlabel_ispden(ispden, self.nspden) if i == 0 else None)
 
             ax.set_title(title, fontsize=fontsize)
             ax.grid(True)
@@ -478,19 +516,21 @@ class _Field(Has_Structure):
         # Initialize rcut_symbol map.
         if rcut_symbol is None:
             from pymatgen.analysis.molecule_structure_comparator import CovalentRadius
+
             rcut_symbol = {s: CovalentRadius.radius[s] for s in self.structure.symbol_set}
-            #rcut_symbol = {s: 2 for s in self.structure.symbol_set}
-            #rcut_symbol = {s: 1 for s in self.structure.symbol_set}
+            # rcut_symbol = {s: 2 for s in self.structure.symbol_set}
+            # rcut_symbol = {s: 1 for s in self.structure.symbol_set}
         elif duck.is_number_like(rcut_symbol):
             rcut_symbol = {s: float(rcut_symbol) for s in self.structure.symbol_set}
 
         # Spline bessel integrals.
         datag = np.reshape(self.datag, (self.nspden, -1))
-        #print("datag[0]", datag[0, 0] * self.structure.volume, datag.shape)
+        # print("datag[0]", datag[0, 0] * self.structure.volume, datag.shape)
         gvecs = self.mesh.gvecs
         gmods = self.mesh.gmods
         gmax = gmods.max()
         from abipy.tools import bessel
+
         splines = {s: bessel.spline_int_jlqr(0, gmax, rcut_symbol[s]) for s in self.structure.symbol_set}
 
         # 4 pi sum_G n(G) e^{iGRo} int_0^{rcut} r**2 j_l(Gr} dr
@@ -500,7 +540,7 @@ class _Field(Has_Structure):
             phases = np.exp(2j * np.pi * np.dot(gvecs, site.frac_coords))
             fg = datag * phases * splines[symbol](gmods)
             res_nspden = np.sum(fg, axis=1) * (4 * np.pi)
-            #print("result:", res_nspden, res_nspden.shape, (datag * fg).shape)
+            # print("result:", res_nspden, res_nspden.shape, (datag * fg).shape)
 
             # Compute densities and magnetization.
             ntot, nup, ndown, mx, my, mz = 6 * (None,)
@@ -513,21 +553,31 @@ class _Field(Has_Structure):
                     ntot, mz = nup + ndown, nup - ndown
 
             elif self.nspinor == 2:
-                raise NotImplementedError()
-                #ntot, mx, my, mz = scalvec_from_spinmat(res_nspden)
+                raise NotImplementedError
+                # ntot, mx, my, mz = scalvec_from_spinmat(res_nspden)
                 nup, ndown = 0.5 * (ntot + mz), 0.5 * (ntot - mz)
 
             # Fill DataFrame row.
-            rows.append(OrderedDict([
-                ("iatom", iatom), ("symbol", symbol),
-                ("ntot", ntot), ("nup", nup), ("ndown", ndown),
-                ("mx", mx), ("my", my), ("mz", mz),
-                ("rsph_ang", rcut_symbol[symbol]), ("frac_coords", site.frac_coords),
-            ]))
+            rows.append(
+                OrderedDict(
+                    [
+                        ("iatom", iatom),
+                        ("symbol", symbol),
+                        ("ntot", ntot),
+                        ("nup", nup),
+                        ("ndown", ndown),
+                        ("mx", mx),
+                        ("my", my),
+                        ("mz", mz),
+                        ("rsph_ang", rcut_symbol[symbol]),
+                        ("frac_coords", site.frac_coords),
+                    ]
+                )
+            )
 
         df = pd.DataFrame(rows, columns=list(rows[0].keys()))
         # Use iatom as index and remove columns with None.
-        df = df.set_index("iatom").dropna(axis="columns", how='any')
+        df = df.set_index("iatom").dropna(axis="columns", how="any")
 
         if out:
             print(self.structure)
@@ -583,9 +633,7 @@ class _Field(Has_Structure):
 
     @add_fig_kwargs
     def plot_planar_average(self, direction, spin=0, ax=None, fontsize=12, **kwargs) -> Figure:
-        """
-        Plot planar average
-        """
+        """Plot planar average."""
         dists, averages = self.get_planar_average(direction, spin)
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
@@ -610,26 +658,25 @@ def core_density_from_file(filepath: str) -> np.ndarray:
     """
     ext = os.path.splitext(filepath)[1]
 
-    if ext == '.fc':
-        with open(filepath, 'r') as f:
+    if ext == ".fc":
+        with open(filepath) as f:
             lines = f.readlines()
             r, rho = [], []
             for l in lines[1:]:
                 if not l.strip():
                     continue
-                if l.startswith('<JSON>'):
+                if l.startswith("<JSON>"):
                     break
                 l = l.split()
                 r.append(float(l[0]))
                 rho.append(float(l[1]))
-        return np.array(r) * bohr_to_angstrom, np.array(rho) / (4.0*np.pi) / (bohr_to_angstrom ** 3)
+        return np.array(r) * bohr_to_angstrom, np.array(rho) / (4.0 * np.pi) / (bohr_to_angstrom**3)
 
-    elif ext == '.rhoc':
+    if ext == ".rhoc":
         rhoc = np.loadtxt(filepath)
-        return rhoc[:, 0] * bohr_to_angstrom, rhoc[:,1] / (4.0*np.pi) / (bohr_to_angstrom ** 3)
+        return rhoc[:, 0] * bohr_to_angstrom, rhoc[:, 1] / (4.0 * np.pi) / (bohr_to_angstrom**3)
 
-    else:
-        raise ValueError('Exension not supported: {}'.format(ext))
+    raise ValueError(f"Exension not supported: {ext}")
 
 
 class Density(_DensityField):
@@ -643,13 +690,23 @@ class Density(_DensityField):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: Density
     """
+
     netcdf_name = "density"
     latex_label = "Density [$e/A^3$]"
 
     @classmethod
-    def ae_core_density_on_mesh(cls, valence_density, structure, rhoc,
-                                maxr=2.0, nelec=None, tol=0.01,
-                                method='get_sites_in_sphere', small_dist_mesh=(8, 8, 8), small_dist_factor=1.5):
+    def ae_core_density_on_mesh(
+        cls,
+        valence_density,
+        structure,
+        rhoc,
+        maxr=2.0,
+        nelec=None,
+        tol=0.01,
+        method="get_sites_in_sphere",
+        small_dist_mesh=(8, 8, 8),
+        small_dist_factor=1.5,
+    ):
         """
         Initialize the all electron core density of the structure from the pseudopotentials *rhoc* files.
         For points close to the atoms, the value at the grid point would be defined as the average on a finer grid
@@ -678,18 +735,18 @@ class Density(_DensityField):
                 switch to the finer grid method. Note that this is a factor, the distance is defined with respect
                 to the size of the cell.
         """
-        rhoc_atom_splines = [None]*len(structure)
+        rhoc_atom_splines = [None] * len(structure)
 
         if isinstance(rhoc, (list, tuple)):
             if len(structure) != len(rhoc):
-                raise ValueError('Number of rhoc files should be equal to the number of sites in the structure')
+                raise ValueError("Number of rhoc files should be equal to the number of sites in the structure")
         elif isinstance(rhoc, collections.abc.Mapping):
             atoms_symbols = [elmt.symbol for elmt in structure.composition]
             if not np.all([atom in rhoc for atom in atoms_symbols]):
-                raise ValueError('The rhoc files should be provided for all the atoms in the structure')
+                raise ValueError("The rhoc files should be provided for all the atoms in the structure")
             rhoc = [rhoc[site.specie.symbol] for site in structure]
         else:
-            raise ValueError('Unsuported format for rhoc')
+            raise ValueError("Unsuported format for rhoc")
 
         for ir, r in enumerate(rhoc):
             func1d = Function1D(r[0], r[1])
@@ -714,15 +771,19 @@ class Density(_DensityField):
         dvx = valence_density.mesh.dvx
         dvy = valence_density.mesh.dvy
         dvz = valence_density.mesh.dvz
-        maxdiag = max([np.linalg.norm(dvx+dvy+dvz),
-                       np.linalg.norm(dvx+dvy-dvz),
-                       np.linalg.norm(dvx-dvy+dvz),
-                       np.linalg.norm(dvx-dvy-dvz)])
-        smallradius = small_dist_factor*maxdiag
+        maxdiag = max(
+            [
+                np.linalg.norm(dvx + dvy + dvz),
+                np.linalg.norm(dvx + dvy - dvz),
+                np.linalg.norm(dvx - dvy + dvz),
+                np.linalg.norm(dvx - dvy - dvz),
+            ]
+        )
+        smallradius = small_dist_factor * maxdiag
 
         # The vectorized methods are faster. Keep the older methods for cross checks of the implementation for the
         # time being
-        if method == 'get_sites_in_sphere_legacy':
+        if method == "get_sites_in_sphere_legacy":
             for ix in range(valence_density.mesh.nx):
                 for iy in range(valence_density.mesh.ny):
                     for iz in range(valence_density.mesh.nz):
@@ -737,20 +798,20 @@ class Density(_DensityField):
                             else:
                                 total = 0.0
                                 nnx, nny, nnz = small_dist_mesh
-                                ddvx = dvx/nnx
-                                ddvy = dvy/nny
-                                ddvz = dvz/nnz
-                                rpi = rpoint - 0.5 * (dvx + dvy + dvz) + 0.5*ddvx + 0.5*ddvy + 0.5*ddvz
+                                ddvx = dvx / nnx
+                                ddvy = dvy / nny
+                                ddvz = dvz / nnz
+                                rpi = rpoint - 0.5 * (dvx + dvy + dvz) + 0.5 * ddvx + 0.5 * ddvy + 0.5 * ddvz
                                 for iix in range(nnx):
                                     for iiy in range(nny):
                                         for iiz in range(nnz):
-                                            rpoint2 = rpi + iix*ddvx + iiy*ddvy + iiz*ddvz
+                                            rpoint2 = rpi + iix * ddvx + iiy * ddvy + iiz * ddvz
                                             dist2 = np.linalg.norm(rpoint2 - site.coords)
                                             total += rhoc_atom_splines[site_index](dist2)
-                                total /= (nnx*nny*nnz)
+                                total /= nnx * nny * nnz
                                 core_den[0, ix, iy, iz] += total
 
-        elif method == 'mesh3d_dist_gridpoints_legacy':
+        elif method == "mesh3d_dist_gridpoints_legacy":
             site_coords = [site.coords for site in structure]
             dist_gridpoints_sites = valence_density.mesh.dist_gridpoints_in_spheres(points=site_coords, radius=maxr)
             for isite, dist_gridpoints_site in enumerate(dist_gridpoints_sites):
@@ -762,28 +823,31 @@ class Density(_DensityField):
                     else:
                         total = 0.0
                         nnx, nny, nnz = small_dist_mesh
-                        ddvx = dvx/nnx
-                        ddvy = dvy/nny
-                        ddvz = dvz/nnz
+                        ddvx = dvx / nnx
+                        ddvy = dvy / nny
+                        ddvz = dvz / nnz
                         rpoint = valence_density.mesh.rpoint(ix=igp[0], iy=igp[1], iz=igp[2])
-                        rpi = rpoint - 0.5 * (dvx + dvy + dvz) + 0.5*ddvx + 0.5*ddvy + 0.5*ddvz
+                        rpi = rpoint - 0.5 * (dvx + dvy + dvz) + 0.5 * ddvx + 0.5 * ddvy + 0.5 * ddvz
                         for iix in range(nnx):
                             for iiy in range(nny):
                                 for iiz in range(nnz):
-                                    rpoint2 = rpi + iix*ddvx + iiy*ddvy + iiz*ddvz
+                                    rpoint2 = rpi + iix * ddvx + iiy * ddvy + iiz * ddvz
                                     dist2 = np.linalg.norm(rpoint2 - site_coords[isite])
                                     total += rhoc_atom_splines[isite](dist2)
-                        total /= (nnx*nny*nnz)
+                        total /= nnx * nny * nnz
                         core_den[0, igp_uc[0], igp_uc[1], igp_uc[2]] += total
-        elif method == 'mesh3d_dist_gridpoints':
+        elif method == "mesh3d_dist_gridpoints":
             import time
+
             site_coords = [site.coords for site in structure]
             start = time.time()
             dist_gridpoints_sites = valence_density.mesh.dist_gridpoints_in_spheres(points=site_coords, radius=maxr)
             nnx, nny, nnz = small_dist_mesh
-            meshgrid = np.meshgrid(np.linspace(-0.5, 0.5, nnx, endpoint=False) + 0.5 / nnx,
-                                   np.linspace(-0.5, 0.5, nny, endpoint=False) + 0.5 / nny,
-                                   np.linspace(-0.5, 0.5, nnz, endpoint=False) + 0.5 / nnz)
+            meshgrid = np.meshgrid(
+                np.linspace(-0.5, 0.5, nnx, endpoint=False) + 0.5 / nnx,
+                np.linspace(-0.5, 0.5, nny, endpoint=False) + 0.5 / nny,
+                np.linspace(-0.5, 0.5, nnz, endpoint=False) + 0.5 / nnz,
+            )
             coords_grid = np.outer(meshgrid[0], dvx) + np.outer(meshgrid[1], dvy) + np.outer(meshgrid[2], dvz)
             for isite, dist_gridpoints_site in enumerate(dist_gridpoints_sites):
                 for igp_uc, dist, igp in dist_gridpoints_site:
@@ -795,23 +859,25 @@ class Density(_DensityField):
                         total = 0.0
                         rpoint = valence_density.mesh.rpoint(ix=igp[0], iy=igp[1], iz=igp[2])
                         grid_loc = rpoint + coords_grid
-                        distances = np.linalg.norm(grid_loc-site_coords[isite], axis=1)
+                        distances = np.linalg.norm(grid_loc - site_coords[isite], axis=1)
                         total = np.sum(rhoc_atom_splines[isite](distances))
-                        total /= (nnx*nny*nnz)
+                        total /= nnx * nny * nnz
                         core_den[0, igp_uc[0], igp_uc[1], igp_uc[2]] += total
 
-        elif method == 'get_sites_in_sphere':
+        elif method == "get_sites_in_sphere":
             nnx, nny, nnz = small_dist_mesh
-            meshgrid = np.meshgrid(np.linspace(-0.5, 0.5, nnx, endpoint=False) + 0.5 / nnx,
-                                   np.linspace(-0.5, 0.5, nny, endpoint=False) + 0.5 / nny,
-                                   np.linspace(-0.5, 0.5, nnz, endpoint=False) + 0.5 / nnz)
+            meshgrid = np.meshgrid(
+                np.linspace(-0.5, 0.5, nnx, endpoint=False) + 0.5 / nnx,
+                np.linspace(-0.5, 0.5, nny, endpoint=False) + 0.5 / nny,
+                np.linspace(-0.5, 0.5, nnz, endpoint=False) + 0.5 / nnz,
+            )
             coords_grid = np.outer(meshgrid[0], dvx) + np.outer(meshgrid[1], dvy) + np.outer(meshgrid[2], dvz)
             for ix in range(valence_density.mesh.nx):
                 for iy in range(valence_density.mesh.ny):
                     for iz in range(valence_density.mesh.nz):
                         rpoint = valence_density.mesh.rpoint(ix=ix, iy=iy, iz=iz)
                         sites = structure.get_sites_in_sphere(pt=rpoint, r=maxr, include_index=True)
-                        #for site, dist, site_index in sites:
+                        # for site, dist, site_index in sites:
                         for site in sites:
                             dist, site_index = site.nn_distance, site.index
                             if dist > smallradius:
@@ -823,22 +889,30 @@ class Density(_DensityField):
                                 grid_loc = rpoint + coords_grid
                                 distances = np.linalg.norm(grid_loc - site.coords, axis=1)
                                 total = np.sum(rhoc_atom_splines[site_index](distances))
-                                total /= (nnx * nny * nnz)
+                                total /= nnx * nny * nnz
                                 core_den[0, ix, iy, iz] += total
 
         else:
-            raise ValueError('Method "{}" is not allowed'.format(method))
+            raise ValueError(f'Method "{method}" is not allowed')
 
         if nelec is not None:
             sum_elec = np.sum(core_den) * valence_density.mesh.dv
-            diff = np.abs(sum_elec-nelec) / nelec
+            diff = np.abs(sum_elec - nelec) / nelec
             if diff > tol:
-                raise ValueError('Summed electrons is different from the actual number of electrons by '
-                                 'more than {:.2f}% : {:.2f}%'.format(tol*100, diff*100))
+                raise ValueError(
+                    "Summed electrons is different from the actual number of electrons by "
+                    f"more than {tol * 100:.2f}% : {diff * 100:.2f}%"
+                )
             core_den = core_den / sum_elec * nelec
 
-        return cls(nspinor=valence_density.nspinor, nsppol=valence_density.nsppol, nspden=valence_density.nspden,
-                   datar=core_den, structure=structure, iorder='c')
+        return cls(
+            nspinor=valence_density.nspinor,
+            nsppol=valence_density.nsppol,
+            nspden=valence_density.nspden,
+            datar=core_den,
+            structure=structure,
+            iorder="c",
+        )
 
     def get_nelect(self, spin=None):
         """
@@ -849,30 +923,28 @@ class Density(_DensityField):
         if self.is_collinear:
             nelect = self.mesh.integrate(self.datar)
             return np.sum(nelect) if spin is None else nelect[spin]
-        else:
-            raise NotImplementedError()
-            return self.mesh.integrate(self.datar[0])
+        raise NotImplementedError
+        return self.mesh.integrate(self.datar[0])
 
     @cached_property
     def total_rhor(self) -> np.ndarray:
-        """
-        |numpy-array| with the total density in real space on the FFT mesh.
-        """
+        """|numpy-array| with the total density in real space on the FFT mesh."""
         if self.is_collinear:
             if self.nsppol == 1:
-                if self.nspden == 2: raise NotImplementedError()
+                if self.nspden == 2:
+                    raise NotImplementedError
                 return self.datar[0]
-            elif self.nsppol == 2:
+            if self.nsppol == 2:
                 return self.datar[0] + self.datar[1]
-            else:
-                raise ValueError("You should not be here")
+            raise ValueError("You should not be here")
 
         raise NotImplementedError("Non collinear case.")
 
     def total_rhor_as_density(self):
         """Return a :class:`Density` object with the total density."""
-        return self.__class__(nspinor=1, nsppol=1, nspden=1, datar=self.total_rhor,
-                              structure=self.structure, iorder="c")
+        return self.__class__(
+            nspinor=1, nsppol=1, nspden=1, datar=self.total_rhor, structure=self.structure, iorder="c"
+        )
 
     @cached_property
     def total_rhog(self) -> np.ndarray:
@@ -893,12 +965,10 @@ class Density(_DensityField):
             if self.nsppol == 1 and self.nspden == 1:
                 # zero magnetization by definition.
                 return self.mesh.zeros()
-            else:
-                # spin_up - spin_down.
-                return self.datar[0] - self.datar[1]
-        else:
-            # mx, my, mz
-            return self.datar[1:]
+            # spin_up - spin_down.
+            return self.datar[0] - self.datar[1]
+        # mx, my, mz
+        return self.datar[1:]
 
     @cached_property
     def magnetization(self):
@@ -918,8 +988,9 @@ class Density(_DensityField):
             return None, None
 
         if self.nsppol == 1:
-            if self.nspden == 2: raise NotImplementedError()
-            nup = ndown = self.mesh.integrate(self.datar[0]/2)
+            if self.nspden == 2:
+                raise NotImplementedError
+            nup = ndown = self.mesh.integrate(self.datar[0] / 2)
         else:
             nup = self.mesh.integrate(self.datar[0])
             ndown = self.mesh.integrate(self.datar[1])
@@ -928,12 +999,10 @@ class Density(_DensityField):
 
     @cached_property
     def zeta(self) -> np.ndarray:
-        """
-        |numpy-array| with Magnetization(r) / total_density(r)
-        """
+        """|numpy-array| with Magnetization(r) / total_density(r)."""
         return self.magnetization * np.where(self.total_rhor > 1e-16, 1 / self.total_rhor, 0.0)
 
-    #def vhartree(self):
+    # def vhartree(self):
     #    """
     #    Solve the Poisson's equation in reciprocal space.
 
@@ -964,35 +1033,33 @@ class Density(_DensityField):
     #    vhr = self.mesh.fft_g2r(vhg, fg_ishifted=False)
     #    return vhr, vhg
 
-    def export_to_cube(self, filename, spin='total') -> None:
-        """
-        Export real space density to CUBE file ``filename``.
-        """
-        if spin != 'total':
+    def export_to_cube(self, filename, spin="total") -> None:
+        """Export real space density to CUBE file ``filename``."""
+        if spin != "total":
             raise ValueError('Argument "spin" should be "total"')
 
-        with open(filename, mode="wt") as fh:
+        with open(filename, mode="w") as fh:
             cube.cube_write_structure_mesh(file=fh, structure=self.structure, mesh=self.mesh)
             cube.cube_write_data(file=fh, data=self.total_rhor, mesh=self.mesh)
 
     @classmethod
-    def from_cube(cls, filename, spin='total'):
+    def from_cube(cls, filename, spin="total"):
         """
         Read real space density to CUBE file ``filename``.
         Return new :class:`Density` instance.
         """
-        if spin != 'total':
+        if spin != "total":
             raise ValueError('Argument "spin" should be "total"')
 
         structure, mesh, datar = cube.cube_read_structure_mesh_data(filepath=filename)
         return cls(nspinor=1, nsppol=1, nspden=1, datar=datar, structure=structure, iorder="c")
 
-    #@cached_property
-    #def kinden(self):
-        #"""Compute the kinetic energy density in real- and reciprocal-space."""
-        #return kindr, kindgg
+    # @cached_property
+    # def kinden(self):
+    # """Compute the kinetic energy density in real- and reciprocal-space."""
+    # return kindr, kindgg
 
-    def to_chgcar(self, filename=None) -> 'Chgcar':
+    def to_chgcar(self, filename=None) -> Chgcar:
         """
         Convert a :class:`Density` object into a ``Chgar`` object.
         If ``filename`` is not None, density is written to this file in Chgar format
@@ -1078,8 +1145,9 @@ class Density(_DensityField):
         # density in Chgcar is multiplied by volume!
         abipy_datar /= poscar.structure.volume
 
-        return cls(nspinor=nspinor, nsppol=nsppol, nspden=nspden, datar=abipy_datar,
-                   structure=poscar.structure, iorder="c")
+        return cls(
+            nspinor=nspinor, nsppol=nsppol, nspden=nspden, datar=abipy_datar, structure=poscar.structure, iorder="c"
+        )
 
 
 class _PotentialField(_Field):
@@ -1093,6 +1161,7 @@ class VxcPotential(_PotentialField):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: VxcPotential
     """
+
     netcdf_name = "exchange_correlation_potential"
     latex_label = "vxc $[eV/A^3]$"
 
@@ -1104,6 +1173,7 @@ class VhartreePotential(_PotentialField):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: VhartreePotential
     """
+
     netcdf_name = "vhartree"
     latex_label = "vh $[eV/A^3]$"
 
@@ -1115,6 +1185,7 @@ class VhxcPotential(_PotentialField):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: VhxcPotential
     """
+
     netcdf_name = "vhxc"
     latex_label = "vhxc $[eV/A^3]$"
 
@@ -1126,6 +1197,7 @@ class VksPotential(_PotentialField):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: VksPotential
     """
+
     netcdf_name = "vtrial"
     latex_label = "vks $[eV/A^3]$"
 
@@ -1155,8 +1227,7 @@ class FieldReader(ETSF_Reader):
         Raise:
             `ValueError` if cannot find a field or multiple fields are found.
         """
-        found = [field_cls for field_cls in all_subclasses(_Field)
-                 if field_cls.netcdf_name in self.rootgrp.variables]
+        found = [field_cls for field_cls in all_subclasses(_Field) if field_cls.netcdf_name in self.rootgrp.variables]
         if not found or len(found) > 1:
             raise ValueError("Found `%s` fields in file: %s" % (str(found), self.path))
         field_cls = found[0]
@@ -1182,7 +1253,7 @@ class FieldReader(ETSF_Reader):
         """Read potential data. Return `VksPotential` object."""
         return self.read_denpot(varname=field_cls.netcdf_name, field_cls=field_cls)
 
-    #def read_vks1(self, field_cls=Vks1Potential):
+    # def read_vks1(self, field_cls=Vks1Potential):
     #    """Read potential data. Return :class:`Vks1Potential` object."""
     #    return self.read_denpot(varname=field_cls.netcdf_name, field_cls=field_cls)
 
@@ -1231,33 +1302,32 @@ class FieldReader(ETSF_Reader):
             else:
                 raise ValueError(f"Invalid {dims.nspinor}, {dims.nspden=} and {dims.nsppol}")
 
-        else:
-            if dims.nspden == 4:
-                raise NotImplementedError()
+        elif dims.nspden == 4:
+            raise NotImplementedError
 
-                #if issubclass(field_cls, _DensityField):
-                    #datar_ab = np.empty_like(datar)
-                    #datar_ab[0] = (datar[0] + datar[3]) / 2  # (n + mz) / 2
-                    #datar_ab[1] = (rho[1] - 1j*rho[2]) / 2   # (mx - jmy) / 2
-                    #datar_ab[2] = (rho[1] + 1j*rho[2]) / 2   # (mx + jmy) /2
-                    #datar_ab[3] = (rho[0] - rho[3]) / 2      # (n - mz) / 2
-                    #datar = datar_ab
+            # if issubclass(field_cls, _DensityField):
+            # datar_ab = np.empty_like(datar)
+            # datar_ab[0] = (datar[0] + datar[3]) / 2  # (n + mz) / 2
+            # datar_ab[1] = (rho[1] - 1j*rho[2]) / 2   # (mx - jmy) / 2
+            # datar_ab[2] = (rho[1] + 1j*rho[2]) / 2   # (mx + jmy) /2
+            # datar_ab[3] = (rho[0] - rho[3]) / 2      # (n - mz) / 2
+            # datar = datar_ab
 
-                #if issubclass(field_cls, _PotentialFieldField):
-                #    datar_ab = np.reshape(np.empty_like(datar), (2, 2) + self.mesh.shape)
-                #    datar_ab[0,0] = datar[0]
-                #    datar_ab[1,1] = datar[1]
-                #    datar_ab[0,1] = datar[3] + 1j*datar[4]
-                #    datar_ab[1,0] = datar[3] - 1j*datar[4]
-                #    pauli = Pauli()
-                #    paull.()
+            # if issubclass(field_cls, _PotentialFieldField):
+            #    datar_ab = np.reshape(np.empty_like(datar), (2, 2) + self.mesh.shape)
+            #    datar_ab[0,0] = datar[0]
+            #    datar_ab[1,1] = datar[1]
+            #    datar_ab[0,1] = datar[3] + 1j*datar[4]
+            #    datar_ab[1,0] = datar[3] - 1j*datar[4]
+            #    pauli = Pauli()
+            #    paull.()
 
-                #else:
-                #    raise TypeError("Don't know how to handle class: %s" % type(field_cls)
+            # else:
+            #    raise TypeError("Don't know how to handle class: %s" % type(field_cls)
 
         # Structure uses Angstrom. Abinit uses Bohr.
         if issubclass(field_cls, _DensityField):
-            fact = 1 / bohr_to_angstrom ** 3
+            fact = 1 / bohr_to_angstrom**3
         elif issubclass(field_cls, _PotentialField):
             fact = Ha_to_eV
         else:
@@ -1269,5 +1339,4 @@ class FieldReader(ETSF_Reader):
         # stores data in Fortran order while AbiPy uses C-ordering.
         if cplex == 1:
             return field_cls(dims.nspinor, dims.nsppol, dims.nspden, datar, structure, iorder="f")
-        else:
-            raise NotImplementedError(f"{cplex=} not coded")
+        raise NotImplementedError(f"{cplex=} not coded")

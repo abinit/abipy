@@ -1,19 +1,19 @@
-# coding: utf-8
 """Tests for DEN/POT files."""
-import numpy as np
-import abipy.data as abidata
 
+import numpy as np
+
+import abipy.data as abidata
 from abipy import abilab
 from abipy.core.testing import AbipyTest
 from abipy.electrons.denpot import DensityNcFile
 
 
 class DensityNcFileTest(AbipyTest):
-
     def test_silicon_density_ncfile(self):
         """Testing si_DEN.nc"""
         with DensityNcFile(abidata.ref_file("si_DEN.nc")) as denc:
-            repr(denc); str(denc)
+            repr(denc)
+            str(denc)
             assert denc.structure.formula == "Si2"
             assert denc.ebands.structure == denc.structure
             assert str(denc.xc) == "LDA_XC_TETER93"
@@ -27,7 +27,8 @@ class DensityNcFileTest(AbipyTest):
             assert not denc.ebands.kpoints.is_path
 
             ksamp = denc.ebands.kpoints.ksampling
-            str(ksamp); repr(ksamp)
+            str(ksamp)
+            repr(ksamp)
 
             self.assert_equal(ksamp.mpdivs, [8, 8, 8])
             self.assert_equal(ksamp.kptrlatt_orig, 8 * np.eye(3, 3))
@@ -57,7 +58,8 @@ class DensityNcFileTest(AbipyTest):
     def test_nickel_density_ncfile(self):
         """Testing ni_666k_DEN.nc"""
         with abilab.abiopen(abidata.ref_file("ni_666k_DEN.nc")) as denc:
-            repr(denc); str(denc)
+            repr(denc)
+            str(denc)
             assert denc.to_string(verbose=2)
             assert denc.structure.formula == "Ni1"
             assert denc.ebands.structure == denc.structure
@@ -69,12 +71,14 @@ class DensityNcFileTest(AbipyTest):
             assert not denc.ebands.kpoints.is_mpmesh
             assert not denc.ebands.kpoints.is_path
             ksamp = denc.ebands.kpoints.ksampling
-            repr(ksamp); str(ksamp)
+            repr(ksamp)
+            str(ksamp)
             assert ksamp.mpdivs is None
 
             self.assert_equal(ksamp.kptrlatt_orig, 6 * np.eye(3, 3))
-            self.assert_equal(ksamp.shifts_orig.flatten(), [
-                1/2, 1/2, 1/2, 1/2, 0.0, 0.0, 0.0, 1/2, 0.0, 0.0, 0.0, 1/2])
+            self.assert_equal(
+                ksamp.shifts_orig.flatten(), [1 / 2, 1 / 2, 1 / 2, 1 / 2, 0.0, 0.0, 0.0, 1 / 2, 0.0, 0.0, 0.0, 1 / 2]
+            )
 
             self.assert_equal(ksamp.kptrlatt.flatten(), [6, -6, 6, -6, 6, 6, -6, -6, 6])
             self.assert_almost_equal(ksamp.shifts.flatten(), [0.5, 0.5, 0.5])
@@ -102,19 +106,19 @@ class DensityNcFileTest(AbipyTest):
 
 
 class VxcNcFileTest(AbipyTest):
-
     def test_vhartree_ncfile(self):
         """Testing VXC netcdf file."""
         with abilab.abiopen(abidata.ref_file("ni_666k_VHA.nc")) as ncfile:
-            repr(ncfile); str(ncfile)
+            repr(ncfile)
+            str(ncfile)
             assert ncfile.ebands.nsppol == 2 and ncfile.ebands.nspden == 2
             assert ncfile.structure.formula == "Ni1"
             assert ncfile.ebands.structure == ncfile.structure
             assert str(ncfile.xc) == "PBE"
 
             # Kpoint sampling
-            #ngkpt   6 6 6  nshiftk  4
-            #shiftk  1/2 1/2 1/2 1/2 0.0 0.0 0.0 1/2 0.0 0.0 0.0 1/2
+            # ngkpt   6 6 6  nshiftk  4
+            # shiftk  1/2 1/2 1/2 1/2 0.0 0.0 0.0 1/2 0.0 0.0 0.0 1/2
             assert not ncfile.ebands.kpoints.is_mpmesh
             assert not ncfile.ebands.kpoints.is_path
 
@@ -124,9 +128,9 @@ class VxcNcFileTest(AbipyTest):
             assert vh.is_potential_like
 
             ## Test converters.
-            #ncfile.write_chgcar(filename=self.get_tmpname(text=True))
-            #ncfile.write_xsf(filename=self.get_tmpname(text=True, suffix=".xsf"))
-            #ncfile.write_cube(filename=self.get_tmpname(text=True), spin="total")
+            # ncfile.write_chgcar(filename=self.get_tmpname(text=True))
+            # ncfile.write_xsf(filename=self.get_tmpname(text=True, suffix=".xsf"))
+            # ncfile.write_cube(filename=self.get_tmpname(text=True), spin="total")
 
             if self.has_matplotlib():
                 assert ncfile.ebands.plot(show=False)
@@ -138,15 +142,16 @@ class VxcNcFileTest(AbipyTest):
     def test_vxc_ncfile(self):
         """Testing VXC netcdf file."""
         with abilab.abiopen(abidata.ref_file("ni_666k_VXC.nc")) as ncfile:
-            repr(ncfile); str(ncfile)
+            repr(ncfile)
+            str(ncfile)
             assert ncfile.ebands.nsppol == 2 and ncfile.ebands.nspden == 2
             assert ncfile.structure.formula == "Ni1"
             assert ncfile.ebands.structure == ncfile.structure
             assert str(ncfile.xc) == "PBE"
 
             # Kpoint sampling
-            #ngkpt   6 6 6  nshiftk  4
-            #shiftk  1/2 1/2 1/2 1/2 0.0 0.0 0.0 1/2 0.0 0.0 0.0 1/2
+            # ngkpt   6 6 6  nshiftk  4
+            # shiftk  1/2 1/2 1/2 1/2 0.0 0.0 0.0 1/2 0.0 0.0 0.0 1/2
             assert not ncfile.ebands.kpoints.is_mpmesh
             assert not ncfile.ebands.kpoints.is_path
 
@@ -157,9 +162,9 @@ class VxcNcFileTest(AbipyTest):
             assert not vxc.is_density_like
 
             ## Test converters.
-            #ncfile.write_chgcar(filename=self.get_tmpname(text=True))
-            #ncfile.write_xsf(filename=self.get_tmpname(text=True, suffix=".xsf"))
-            #ncfile.write_cube(filename=self.get_tmpname(text=True), spin="total")
+            # ncfile.write_chgcar(filename=self.get_tmpname(text=True))
+            # ncfile.write_xsf(filename=self.get_tmpname(text=True, suffix=".xsf"))
+            # ncfile.write_cube(filename=self.get_tmpname(text=True), spin="total")
 
             if self.has_matplotlib():
                 assert ncfile.ebands.plot(show=False)
@@ -171,15 +176,16 @@ class VxcNcFileTest(AbipyTest):
     def test_vhxc_ncfile(self):
         """Testing VHXC netcdf file."""
         with abilab.abiopen(abidata.ref_file("ni_666k_VHXC.nc")) as ncfile:
-            repr(ncfile); str(ncfile)
+            repr(ncfile)
+            str(ncfile)
             assert ncfile.ebands.nsppol == 2 and ncfile.ebands.nspden == 2
             assert ncfile.structure.formula == "Ni1"
             assert ncfile.ebands.structure == ncfile.structure
             assert str(ncfile.xc) == "PBE"
 
             # Kpoint sampling
-            #ngkpt   6 6 6  nshiftk  4
-            #shiftk  1/2 1/2 1/2 1/2 0.0 0.0 0.0 1/2 0.0 0.0 0.0 1/2
+            # ngkpt   6 6 6  nshiftk  4
+            # shiftk  1/2 1/2 1/2 1/2 0.0 0.0 0.0 1/2 0.0 0.0 0.0 1/2
             assert not ncfile.ebands.kpoints.is_mpmesh
             assert not ncfile.ebands.kpoints.is_path
 
@@ -191,9 +197,9 @@ class VxcNcFileTest(AbipyTest):
             assert not vhxc.is_density_like
 
             ## Test converters.
-            #ncfile.write_chgcar(filename=self.get_tmpname(text=True))
-            #ncfile.write_xsf(filename=self.get_tmpname(text=True, suffix=".xsf"))
-            #ncfile.write_cube(filename=self.get_tmpname(text=True), spin="total")
+            # ncfile.write_chgcar(filename=self.get_tmpname(text=True))
+            # ncfile.write_xsf(filename=self.get_tmpname(text=True, suffix=".xsf"))
+            # ncfile.write_cube(filename=self.get_tmpname(text=True), spin="total")
 
             if self.has_matplotlib():
                 assert ncfile.ebands.plot(show=False)
@@ -205,7 +211,8 @@ class VxcNcFileTest(AbipyTest):
     def test_vpot_ncfile(self):
         """Testing POT netcdf file."""
         with abilab.abiopen(abidata.ref_file("ni_666k_POT.nc")) as ncfile:
-            repr(ncfile); str(ncfile)
+            repr(ncfile)
+            str(ncfile)
             assert ncfile.ebands.nsppol == 2 and ncfile.ebands.nspden == 2
             assert ncfile.structure.formula == "Ni1"
             assert ncfile.ebands.structure == ncfile.structure
@@ -218,9 +225,9 @@ class VxcNcFileTest(AbipyTest):
             assert not vks.is_density_like
 
             ## Test converters.
-            #ncfile.write_chgcar(filename=self.get_tmpname(text=True))
-            #ncfile.write_xsf(filename=self.get_tmpname(text=True, suffix=".xsf"))
-            #ncfile.write_cube(filename=self.get_tmpname(text=True), spin="total")
+            # ncfile.write_chgcar(filename=self.get_tmpname(text=True))
+            # ncfile.write_xsf(filename=self.get_tmpname(text=True, suffix=".xsf"))
+            # ncfile.write_cube(filename=self.get_tmpname(text=True), spin="total")
 
             if self.has_matplotlib():
                 assert ncfile.ebands.plot(show=False)

@@ -17,12 +17,11 @@ Please consult <https://docs.abinit.org/topics/longwave/> and
 <https://docs.abinit.org/tests/tutorespfn/Input/tlw_1.abi>
 """
 
-import sys
 import os
-import abipy.abilab as abilab
-import abipy.data as abidata
+import sys
 
-from abipy import flowtk
+import abipy.data as abidata
+from abipy import abilab, flowtk
 
 
 def build_flow(options):
@@ -73,13 +72,13 @@ xred
         ],
         diemac=13.0,
         nstep=100,
-        #tolvrs=1.0e-10,
+        # tolvrs=1.0e-10,
         tolvrs=1.0e-18,  # This is the value used in tlw_4.abi
-                          # but it is not always possible to reach this precision in more complex systems.
+        # but it is not always possible to reach this precision in more complex systems.
         useylm=1,
-        ixc=7
-        #iomode=3,
-        #paral_kgb=1,
+        ixc=7,
+        # iomode=3,
+        # paral_kgb=1,
     )
 
     # At the time of writing, Flexoelectric calculations are implemented only for
@@ -92,7 +91,7 @@ xred
             raise RuntimeError("Only NC pseudos are compatible with Q*")
         if pseudo.has_nlcc:
             raise RuntimeError("NLCC is not compatible with Q*")
-        #if pseudo.xc.type != "LDA":
+        # if pseudo.xc.type != "LDA":
         #    raise RuntimeError("Only LDA is compatible with Q*")
 
     # Initialize the flow
@@ -102,9 +101,10 @@ xred
     # Include Born effective charges and dynamical quadrupoles via `with_quad=True`.
     #
     ddb_ngqpt = [1, 1, 1]
-    #ddb_ngqpt = [4, 4, 4]
-    ph_work = flowtk.PhononWork.from_scf_input(scf_input, qpoints=ddb_ngqpt,
-                                               is_ngqpt=True, with_becs=True, with_flexoe=True)
+    # ddb_ngqpt = [4, 4, 4]
+    ph_work = flowtk.PhononWork.from_scf_input(
+        scf_input, qpoints=ddb_ngqpt, is_ngqpt=True, with_becs=True, with_flexoe=True
+    )
 
     # Add the phonon work to the flow
     flow.register_work(ph_work)
@@ -117,6 +117,7 @@ xred
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

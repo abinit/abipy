@@ -1,4 +1,3 @@
-# coding: utf-8
 from __future__ import annotations
 
 import os
@@ -14,8 +13,9 @@ def profile(statement, global_vars, local_vars):
 
         stats = profile("main()", global_vars=globals(), local_vars=locals())
     """
-    import pstats
     import cProfile
+    import pstats
+
     _, filename = tempfile.mkstemp()
     cProfile.runctx(statement, global_vars, local_vars, filename=filename)
 
@@ -36,15 +36,18 @@ class HtmlDiff:
 
         HtmlDiff(filepaths).open_browser()
     """
+
     def __init__(self, filepaths: list[str]):
+        """
+        Args:
+            filepaths: List of paths to the files to compare.
+        """
         if len(filepaths) < 2:
             raise ValueError("You need more than one file to compare!")
         self.filepaths = filepaths
 
     def open_browser(self, diffmode="difflib", **kwargs):
-        """
-        Generate diff with ``diffmode``, open browser, return exit code.
-        """
+        """Generate diff with ``diffmode``, open browser, return exit code."""
         try:
             func = getattr(self, diffmode)
         except AttributeError:
@@ -55,8 +58,10 @@ class HtmlDiff:
     def _launch_browser(self, tmpname):  # pragma: no cover
         """Open ``tmpname`` file in the default browser."""
         # warning: This code is not portable since we should pass a url.
-        if not tmpname.startswith("file://"): tmpname = "file://" + tmpname
+        if not tmpname.startswith("file://"):
+            tmpname = "file://" + tmpname
         import webbrowser
+
         try:
             return int(webbrowser.open(tmpname))
         except webbrowser.Error as exc:
@@ -69,20 +74,22 @@ class HtmlDiff:
         Use difflib to generate a HTML file with the diff.
         Open file in the browser.
         """
-        with open(self.filepaths[0], 'rt') as fh:
+        with open(self.filepaths[0]) as fh:
             fromlines = fh.readlines()
 
         diffs = []
         for path in self.filepaths[1:]:
-            with open(path, 'rt') as fh:
+            with open(path) as fh:
                 tolines = fh.readlines()
 
             _, tmpname = tempfile.mkstemp(suffix=".html", text=True)
             import difflib
-            #diff = difflib.HtmlDiff().make_table(fromlines, tolines,
-            diff = difflib.HtmlDiff().make_file(fromlines, tolines,
-                                                self.filepaths[0], path) #context=options.c, numlines=n)
-            with open(tmpname, "wt") as fh:
+
+            # diff = difflib.HtmlDiff().make_table(fromlines, tolines,
+            diff = difflib.HtmlDiff().make_file(
+                fromlines, tolines, self.filepaths[0], path
+            )  # context=options.c, numlines=n)
+            with open(tmpname, "w") as fh:
                 fh.writelines(diff)
 
             return self._launch_browser(tmpname)
@@ -96,10 +103,13 @@ class HtmlDiff:
             _, tmpname = tempfile.mkstemp(suffix=".html", text=True)
 
             # https://stackoverflow.com/questions/641055/diff-to-html-diff2html-program
-            #cmd = "/usr/bin/diff -y %s %s | pygmentize -l diff -f html -O full -o %s" % (
+            # cmd = "/usr/bin/diff -y %s %s | pygmentize -l diff -f html -O full -o %s" % (
             #    self.filepaths[0], file2, tmpname)
             cmd = "diff -U9999999 %s %s | pygmentize -l diff -f html -O full -o %s" % (
-                self.filepaths[0], file2, tmpname)
+                self.filepaths[0],
+                file2,
+                tmpname,
+            )
 
             retcode = os.system(cmd)
             if retcode != 0:
@@ -110,7 +120,7 @@ class HtmlDiff:
             return self._launch_browser(tmpname)
 
 
-def display_top(snapshot, key_type='lineno', limit=3):
+def display_top(snapshot, key_type="lineno", limit=3):
     """
     Profile memory usage in Python.
     Taken from https://stackoverflow.com/questions/552744/how-do-i-profile-memory-usage-in-python
@@ -122,12 +132,15 @@ def display_top(snapshot, key_type='lineno', limit=3):
         snapshot = tracemalloc.take_snapshot()
         display_top(snapshot)
     """
-    import tracemalloc
     import linecache
-    snapshot = snapshot.filter_traces((
-        tracemalloc.Filter(False, "<frozen importlib._bootstrap>"),
-        tracemalloc.Filter(False, "<unknown>"),
-    ))
+    import tracemalloc
+
+    snapshot = snapshot.filter_traces(
+        (
+            tracemalloc.Filter(False, "<frozen importlib._bootstrap>"),
+            tracemalloc.Filter(False, "<unknown>"),
+        )
+    )
     top_stats = snapshot.statistics(key_type)
 
     print("Top %s lines" % limit)
@@ -135,11 +148,10 @@ def display_top(snapshot, key_type='lineno', limit=3):
         frame = stat.traceback[0]
         # replace "/path/to/module/file.py" with "module/file.py"
         filename = os.sep.join(frame.filename.split(os.sep)[-2:])
-        print("#%s: %s:%s: %.1f KiB"
-              % (index, filename, frame.lineno, stat.size / 1024))
+        print("#%s: %s:%s: %.1f KiB" % (index, filename, frame.lineno, stat.size / 1024))
         line = linecache.getline(frame.filename, frame.lineno).strip()
         if line:
-            print('    %s' % line)
+            print("    %s" % line)
 
     other = top_stats[limit:]
     if other:
@@ -163,12 +175,11 @@ def get_size(bytes, suffix="B"):
 
 
 def print_hardware_system_info() -> None:
-    """
-    Taken from <https://thepythoncode.com/article/get-hardware-system-information-python>
-    """
+    """Taken from <https://thepythoncode.com/article/get-hardware-system-information-python>"""
     import platform
+
     uname = platform.uname()
-    print("="*40, "System Information", "="*40)
+    print("=" * 40, "System Information", "=" * 40)
     print(f"System: {uname.system}")
     print(f"Node Name: {uname.node}")
     print(f"Release: {uname.release}")
@@ -177,8 +188,9 @@ def print_hardware_system_info() -> None:
     print(f"Processor: {uname.processor}")
 
     import psutil
+
     # let's print CPU information
-    print("="*40, "CPU Info", "="*40)
+    print("=" * 40, "CPU Info", "=" * 40)
     # number of cores
     print("Physical cores:", psutil.cpu_count(logical=False))
     print("Total cores:", psutil.cpu_count(logical=True))
@@ -194,14 +206,14 @@ def print_hardware_system_info() -> None:
     print(f"Total CPU Usage: {psutil.cpu_percent()}%")
 
     # Memory Information
-    print("="*40, "Memory Information", "="*40)
+    print("=" * 40, "Memory Information", "=" * 40)
     # get the memory details
     svmem = psutil.virtual_memory()
     print(f"Total: {get_size(svmem.total)}")
     print(f"Available: {get_size(svmem.available)}")
     print(f"Used: {get_size(svmem.used)}")
     print(f"Percentage: {svmem.percent}%")
-    print("="*20, "SWAP", "="*20)
+    print("=" * 20, "SWAP", "=" * 20)
     # get the swap memory details (if exists)
     swap = psutil.swap_memory()
     print(f"Total: {get_size(swap.total)}")
@@ -210,7 +222,7 @@ def print_hardware_system_info() -> None:
     print(f"Percentage: {swap.percent}%")
 
     # Disk Information
-    print("="*40, "Disk Information", "="*40)
+    print("=" * 40, "Disk Information", "=" * 40)
     print("Partitions and Usage:")
     # get all disk partitions
     partitions = psutil.disk_partitions()
@@ -234,17 +246,17 @@ def print_hardware_system_info() -> None:
     print(f"Total write: {get_size(disk_io.write_bytes)}")
 
     # Network information
-    print("="*40, "Network Information", "="*40)
+    print("=" * 40, "Network Information", "=" * 40)
     # get all network interfaces (virtual and physical)
     if_addrs = psutil.net_if_addrs()
     for interface_name, interface_addresses in if_addrs.items():
         for address in interface_addresses:
             print(f"=== Interface: {interface_name} ===")
-            if str(address.family) == 'AddressFamily.AF_INET':
+            if str(address.family) == "AddressFamily.AF_INET":
                 print(f"  IP Address: {address.address}")
                 print(f"  Netmask: {address.netmask}")
                 print(f"  Broadcast IP: {address.broadcast}")
-            elif str(address.family) == 'AddressFamily.AF_PACKET':
+            elif str(address.family) == "AddressFamily.AF_PACKET":
                 print(f"  MAC Address: {address.address}")
                 print(f"  Netmask: {address.netmask}")
                 print(f"  Broadcast MAC: {address.broadcast}")

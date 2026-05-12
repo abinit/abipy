@@ -1,20 +1,28 @@
-# coding: utf-8
 """Tools to compute speed of sound."""
+
 from __future__ import annotations
 
 import math
+
 import numpy as np
 import pandas as pd
-import abipy.core.abinit_units as abu
-
 from pymatgen.core.units import bohr_to_angstrom, eV_to_Ha
-from abipy.core.structure import Structure
+
+import abipy.core.abinit_units as abu
+from abipy.abio.inputs import AnaddbInput
 from abipy.core.mixins import Has_Structure, NotebookWriter
+from abipy.core.structure import Structure
 from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.phonons import PhononBands, get_dyn_mat_eigenvec, match_eigenvectors
-from abipy.abio.inputs import AnaddbInput
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_visible, get_fig_plotly, get_figs_plotly, \
-    add_plotly_fig_kwargs, PlotlyRowColDesc
+from abipy.tools.plotting import (
+    PlotlyRowColDesc,
+    add_fig_kwargs,
+    add_plotly_fig_kwargs,
+    get_ax_fig_plt,
+    get_fig_plotly,
+    get_figs_plotly,
+    set_visible,
+)
 from abipy.tools.typing import Figure
 
 
@@ -25,11 +33,28 @@ class SoundVelocity(Has_Structure, NotebookWriter):
     """
 
     @classmethod
-    def from_ddb(cls, ddb_path: str,
-                 directions=None, labels=None, num_points=20, qpt_norm=0.1,
-                 ignore_neg_freqs=True, asr=2, chneut=1, dipdip=1, dipquad=1, quadquad=1,
-                 ngqpt=None, spell_check=True, anaddb_kwargs=None, verbose=0, mpi_procs=1, workdir=None, manager=None,
-                 return_input=False) -> SoundVelocity:
+    def from_ddb(
+        cls,
+        ddb_path: str,
+        directions=None,
+        labels=None,
+        num_points=20,
+        qpt_norm=0.1,
+        ignore_neg_freqs=True,
+        asr=2,
+        chneut=1,
+        dipdip=1,
+        dipquad=1,
+        quadquad=1,
+        ngqpt=None,
+        spell_check=True,
+        anaddb_kwargs=None,
+        verbose=0,
+        mpi_procs=1,
+        workdir=None,
+        manager=None,
+        return_input=False,
+    ) -> SoundVelocity:
         """
         Creates and instance of the object for a path to a DDB file..
         Runs anaddb along the specified directions or the standard directions in the standard paths given
@@ -58,10 +83,15 @@ class SoundVelocity(Has_Structure, NotebookWriter):
             return_input: True if the |AnaddbInput| object should be returned as 2nd argument
         """
         with DdbFile(ddb_path) as ddb:
-            if ngqpt is None: ngqpt = ddb.guessed_ngqpt
+            if ngqpt is None:
+                ngqpt = ddb.guessed_ngqpt
 
-            inp = AnaddbInput(ddb.structure, comment="ANADDB input for speed of sound",
-                              anaddb_kwargs=anaddb_kwargs, spell_check=spell_check)
+            inp = AnaddbInput(
+                ddb.structure,
+                comment="ANADDB input for speed of sound",
+                anaddb_kwargs=anaddb_kwargs,
+                spell_check=spell_check,
+            )
 
             q1shft = [[0, 0, 0]]
             inp.set_vars(
@@ -107,11 +137,10 @@ class SoundVelocity(Has_Structure, NotebookWriter):
             qph1l[:, :-1] = qpts
             qph1l[:, -1] = 1
 
-            inp['qph1l'] = qph1l.tolist()
-            inp['nph1l'] = n_qpoints
+            inp["qph1l"] = qph1l.tolist()
+            inp["nph1l"] = n_qpoints
 
-            task = ddb._run_anaddb_task(inp, mpi_procs=mpi_procs, workdir=workdir, manager=manager,
-                                        verbose=verbose)
+            task = ddb._run_anaddb_task(inp, mpi_procs=mpi_procs, workdir=workdir, manager=manager, verbose=verbose)
 
             phbst_path = task.outpath_from_ext("PHBST")
 
@@ -119,9 +148,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
             return new if not return_input else (new, inp)
 
     @classmethod
-    def from_phbst(cls, phbst_path: str,
-                   ignore_neg_freqs: bool = True,
-                   labels: list[str] = None) -> SoundVelocity:
+    def from_phbst(cls, phbst_path: str, ignore_neg_freqs: bool = True, labels: list[str] = None) -> SoundVelocity:
         """
         Creates an instance of the object starting from a PHBST netcdf file.
         The file should contain a series of directions starting from gamma and with the
@@ -139,21 +166,20 @@ class SoundVelocity(Has_Structure, NotebookWriter):
 
         rlatt = structure.lattice.reciprocal_lattice
         # q points in cartesian coordinate in 1/bohr, the original units are 1/A
-        qpt_cart_coords = [rlatt.get_cartesian_coords(c) * bohr_to_angstrom for c in
-                           phb.qpoints.frac_coords]
+        qpt_cart_coords = [rlatt.get_cartesian_coords(c) * bohr_to_angstrom for c in phb.qpoints.frac_coords]
         qpt_cart_norms = np.linalg.norm(qpt_cart_coords, axis=1)
 
         # find the indices of the gamma points
         gamma_ind = []
         for i, q in enumerate(phb.qpoints.frac_coords):
-            if np.array_equal(q, [0,0,0]):
+            if np.array_equal(q, [0, 0, 0]):
                 gamma_ind.append(i)
 
         n_directions = len(gamma_ind)
 
         n_points = len(phb.qpoints) / n_directions
         if not n_points.is_integer():
-            raise ValueError('Error extracting information from {}'.format(phbst_path))
+            raise ValueError(f"Error extracting information from {phbst_path}")
         n_points = int(n_points)
 
         phfreqs = phb.phfreqs
@@ -171,8 +197,8 @@ class SoundVelocity(Has_Structure, NotebookWriter):
             # index of the end point used for the slice
             # (the position of the last point is actually end-1)
             end = n_points * (i + 1)
-            dir_freqs = phfreqs[start: end]
-            dir_displ = eigdisp[start: end]
+            dir_freqs = phfreqs[start:end]
+            dir_displ = eigdisp[start:end]
 
             # matching bands
             dir_eigv = get_dyn_mat_eigenvec(dir_displ, structure, amu=phb.amu)
@@ -200,7 +226,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
                     break
 
             if first_positive_freq_ind is None or first_positive_freq_ind - n_points / 2 > 0:
-                raise ValueError("Too many negative frequencies along direction {}".format(direction))
+                raise ValueError(f"Too many negative frequencies along direction {direction}")
 
             sv = []
             mt = []
@@ -210,8 +236,11 @@ class SoundVelocity(Has_Structure, NotebookWriter):
                 start_fit = 0
                 if ignore_neg_freqs and first_positive_freq_ind > 1:
                     start_fit = first_positive_freq_ind
-                slope, se, _, _ = np.linalg.lstsq(qpt_cart_norms[start+start_fit:end][:, np.newaxis],
-                                                  acoustic_freqs[start_fit:, k] * eV_to_Ha, rcond=None)
+                slope, se, _, _ = np.linalg.lstsq(
+                    qpt_cart_norms[start + start_fit : end][:, np.newaxis],
+                    acoustic_freqs[start_fit:, k] * eV_to_Ha,
+                    rcond=None,
+                )
                 sv.append(slope[0] * abu.velocity_at_to_si)
 
                 # identify the type of the mode (longitudinal/transversal) based on the
@@ -228,18 +257,24 @@ class SoundVelocity(Has_Structure, NotebookWriter):
                     mt.append(None)
 
             # sort the lists based on the sound velocities
-            sv, mt, freqs = zip(*sorted(zip(sv, mt, acoustic_freqs.T.tolist())))
+            sv, mt, freqs = zip(*sorted(zip(sv, mt, acoustic_freqs.T.tolist(), strict=False)), strict=False)
 
             sound_velocities.append(sv)
             mode_types.append(mt)
             all_acoustic_freqs.append(freqs)
             all_qpts.append(phb.qpoints.frac_coords[start:end])
 
-        return cls(directions=directions, sound_velocities=sound_velocities, mode_types=mode_types,
-                   structure=structure, labels=labels, phfreqs=all_acoustic_freqs, qpts=all_qpts)
+        return cls(
+            directions=directions,
+            sound_velocities=sound_velocities,
+            mode_types=mode_types,
+            structure=structure,
+            labels=labels,
+            phfreqs=all_acoustic_freqs,
+            qpts=all_qpts,
+        )
 
-    def __init__(self, directions, sound_velocities, mode_types, structure,
-                 labels=None, phfreqs=None, qpts=None):
+    def __init__(self, directions, sound_velocities, mode_types, structure, labels=None, phfreqs=None, qpts=None):
         """
         Args:
             directions: list of qpoints identifying the directions for the calculation
@@ -281,12 +316,14 @@ class SoundVelocity(Has_Structure, NotebookWriter):
         rows = []
         for i in range(self.n_directions):
             for m in range(3):
-                rows.append([
-                    tuple(np.round(self.directions[i], decimals=3)),
-                    self.labels[i] if self.labels else "",
-                    self.sound_velocities[i][m],
-                    self.mode_types[i][m]
-                ])
+                rows.append(
+                    [
+                        tuple(np.round(self.directions[i], decimals=3)),
+                        self.labels[i] if self.labels else "",
+                        self.sound_velocities[i][m],
+                        self.mode_types[i][m],
+                    ]
+                )
 
         return pd.DataFrame(rows, columns=columns).set_index(["direction", "label"])
 
@@ -319,7 +356,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
 
         title = "[{:.3f}, {:.3f}, {:.3f}]".format(*self.directions[idir])
         if self.labels:
-            title += " - {}".format(self.labels[idir])
+            title += f" - {self.labels[idir]}"
 
         for i, c in enumerate(["r", "b", "g"]):
             ax.scatter(qpt_cart_coords, freqs[i] * units_factor, color=c, marker="x")
@@ -352,19 +389,32 @@ class SoundVelocity(Has_Structure, NotebookWriter):
 
         title = "[{:.3f}, {:.3f}, {:.3f}]".format(*self.directions[idir])
         if self.labels:
-            title += " - {}".format(self.labels[idir])
+            title += f" - {self.labels[idir]}"
 
         rcd = PlotlyRowColDesc.from_object(rcd)
         ply_row, ply_col = rcd.ply_row, rcd.ply_col
-        xaxis = 'xaxis%u' % rcd.iax
-        yaxis = 'yaxis%u' % rcd.iax
+        xaxis = "xaxis%u" % rcd.iax
+        yaxis = "yaxis%u" % rcd.iax
 
         if fig is None:
             fig, _ = get_fig_plotly()
-            fig.layout = dict(annotations=[dict(text=title, font_size=fontsize, x=0.5, xref='paper', xanchor='center',
-                              y=1, yref='paper', yanchor='bottom' ,showarrow=False)],
-                              yaxis_title_text=abu.wlabel_from_units(units, unicode=True),
-                              xaxis_title_text="Wave Vector")
+            fig.layout = dict(
+                annotations=[
+                    dict(
+                        text=title,
+                        font_size=fontsize,
+                        x=0.5,
+                        xref="paper",
+                        xanchor="center",
+                        y=1,
+                        yref="paper",
+                        yanchor="bottom",
+                        showarrow=False,
+                    )
+                ],
+                yaxis_title_text=abu.wlabel_from_units(units, unicode=True),
+                xaxis_title_text="Wave Vector",
+            )
         else:
             fig.layout.annotations[idir].text = title
             fig.layout.annotations[idir].font.size = fontsize
@@ -373,8 +423,8 @@ class SoundVelocity(Has_Structure, NotebookWriter):
             if idir == 0:
                 fig.layout[yaxis].title.text = abu.wlabel_from_units(units, unicode=True)
 
-        fig.layout[xaxis].rangemode = 'tozero'
-        fig.layout[yaxis].rangemode = 'tozero'
+        fig.layout[xaxis].rangemode = "tozero"
+        fig.layout[yaxis].rangemode = "tozero"
 
         rlatt = self.structure.lattice.reciprocal_lattice
         freqs = self.phfreqs[idir]
@@ -384,10 +434,26 @@ class SoundVelocity(Has_Structure, NotebookWriter):
         units_factor = abu.phfactor_ev2units(units)
 
         for i, c in enumerate(["red", "blue", "green"]):
-            fig.add_scatter(x=qpt_cart_coords, y=slope[i] * qpt_cart_coords * units_factor, line_color=c,
-                          name='', showlegend=False, mode='lines', row=ply_row, col=ply_col)
-            fig.add_scatter(x=qpt_cart_coords, y=freqs[i] * units_factor, marker=dict(symbol=4, size=8, color=c),
-                          name='', showlegend=False, mode='markers', row=ply_row, col=ply_col)
+            fig.add_scatter(
+                x=qpt_cart_coords,
+                y=slope[i] * qpt_cart_coords * units_factor,
+                line_color=c,
+                name="",
+                showlegend=False,
+                mode="lines",
+                row=ply_row,
+                col=ply_col,
+            )
+            fig.add_scatter(
+                x=qpt_cart_coords,
+                y=freqs[i] * units_factor,
+                marker=dict(symbol=4, size=8, color=c),
+                name="",
+                showlegend=False,
+                mode="markers",
+                row=ply_row,
+                col=ply_col,
+            )
 
         return fig
 
@@ -406,7 +472,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
         ax, fig, plt = get_ax_fig_plt(ax=None)
         from matplotlib.gridspec import GridSpec
 
-        nrows, ncols = math.ceil(self.n_directions / 2),  2
+        nrows, ncols = math.ceil(self.n_directions / 2), 2
         gspec = GridSpec(nrows=nrows, ncols=ncols, wspace=0.15, hspace=0.25)
 
         for i in range(self.n_directions):
@@ -431,10 +497,10 @@ class SoundVelocity(Has_Structure, NotebookWriter):
 
         Returns: |plotly.graph_objects.Figure|
         """
-
-        nrows, ncols = math.ceil(self.n_directions / 2),  2
-        fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=list(range(1, self.n_directions+1)),
-                                 horizontal_spacing=0.05)
+        nrows, ncols = math.ceil(self.n_directions / 2), 2
+        fig, _ = get_figs_plotly(
+            nrows=nrows, ncols=ncols, subplot_titles=list(range(1, self.n_directions + 1)), horizontal_spacing=0.05
+        )
 
         for i in range(self.n_directions):
             rcd = PlotlyRowColDesc(i // 2, i % 2, nrows, ncols)
@@ -442,7 +508,7 @@ class SoundVelocity(Has_Structure, NotebookWriter):
 
         return fig
 
-    def yield_figs(self, **kwargs):   # pragma: no cover
+    def yield_figs(self, **kwargs):  # pragma: no cover
         """
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         """
@@ -458,12 +524,14 @@ class SoundVelocity(Has_Structure, NotebookWriter):
 
         tmpfile = self.pickle_dump()
 
-        nb.cells.extend([
-            nbv.new_code_cell("sv = abilab.SoundVelocity.pickle_load('{}')".format(tmpfile)),
-            nbv.new_code_cell("sv.get_dataframe()")
-        ])
+        nb.cells.extend(
+            [
+                nbv.new_code_cell(f"sv = abilab.SoundVelocity.pickle_load('{tmpfile}')"),
+                nbv.new_code_cell("sv.get_dataframe()"),
+            ]
+        )
         if self.phfreqs is not None and self.qpts is not None:
             for i in range(self.n_directions):
-                nb.cells.append(nbv.new_code_cell("sv.plot_fit_freqs_dir({});".format(i)))
+                nb.cells.append(nbv.new_code_cell(f"sv.plot_fit_freqs_dir({i});"))
 
         return self._write_nb_nbpath(nb, nbpath)

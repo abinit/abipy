@@ -1,16 +1,18 @@
-# coding: utf-8
 """Work subclasses related to effective mass calculations."""
+
 from __future__ import annotations
 
 import os
-import numpy as np
 
+import numpy as np
 from monty.json import jsanitize
-from abipy.core.kpoints import build_segments
+
 from abipy.abio.inputs import AbinitInput
-from .nodes import Node
-from .works import Work, PhononWork
+from abipy.core.kpoints import build_segments
+
 from .flows import Flow
+from .nodes import Node
+from .works import PhononWork, Work
 
 
 def _get_red_dirs_from_opts(red_dirs, cart_dirs, reciprocal_lattice) -> np.ndarray:
@@ -39,16 +41,18 @@ class EffMassLineWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls,
-                       scf_input: AbinitInput,
-                       k0_list,
-                       step=0.01,
-                       npts=15,
-                       red_dirs=([1, 0, 0], [0, 1, 0], [0, 0, 1]),
-                       ndivsm=-20,
-                       cart_dirs=None,
-                       den_node=None,
-                       manager=None) -> EffMassLineWork:
+    def from_scf_input(
+        cls,
+        scf_input: AbinitInput,
+        k0_list,
+        step=0.01,
+        npts=15,
+        red_dirs=([1, 0, 0], [0, 1, 0], [0, 0, 1]),
+        ndivsm=-20,
+        cart_dirs=None,
+        den_node=None,
+        manager=None,
+    ) -> EffMassLineWork:
         """
         Build the Work from an |AbinitInput| representing a GS-SCF calculation.
 
@@ -102,13 +106,9 @@ class EffMassDFPTWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls,
-                       scf_input: AbinitInput,
-                       k0_list,
-                       effmass_bands_f90,
-                       ngfft=None,
-                       den_node=None,
-                       manager=None) -> EffMassDFPTWork:
+    def from_scf_input(
+        cls, scf_input: AbinitInput, k0_list, effmass_bands_f90, ngfft=None, den_node=None, manager=None
+    ) -> EffMassDFPTWork:
         """
         Build the Work from an |AbinitInput| representing a GS-SCF calculation.
 
@@ -153,12 +153,9 @@ class EffMassAutoDFPTWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls,
-                       scf_input: AbinitInput,
-                       ndivsm=15,
-                       tolwfr=1e-20,
-                       den_node=None,
-                       manager=None) -> EffMassAutoDFPTWork:
+    def from_scf_input(
+        cls, scf_input: AbinitInput, ndivsm=15, tolwfr=1e-20, den_node=None, manager=None
+    ) -> EffMassAutoDFPTWork:
         """
         Build the Work from an |AbinitInput| representing a GS-SCF calculation.
 
@@ -211,8 +208,9 @@ class EffMassAutoDFPTWork(Work):
 
         # Create the work for effective mass computation with DFPT and add it to the flow.
         # Keep a reference in generated_effmass_dfpt_work.
-        work = EffMassDFPTWork.from_scf_input(self.scf_input, k0_list, effmass_bands_f90,
-                                              ngfft=den_ngfft, den_node=self.den_node)
+        work = EffMassDFPTWork.from_scf_input(
+            self.scf_input, k0_list, effmass_bands_f90, ngfft=den_ngfft, den_node=self.den_node
+        )
 
         self.generated_effmass_dfpt_work = work
         self.flow.register_work(work)
@@ -230,14 +228,9 @@ class FrohlichZPRFlow(Flow):
     """
 
     @classmethod
-    def from_scf_input(cls,
-                       workdir: str,
-                       scf_input: AbinitInput,
-                       ddb_node=None,
-                       ndivsm=15,
-                       tolwfr=1e-20,
-                       metadata=None,
-                       manager=None) -> FrohlichZPRFlow:
+    def from_scf_input(
+        cls, workdir: str, scf_input: AbinitInput, ddb_node=None, ndivsm=15, tolwfr=1e-20, metadata=None, manager=None
+    ) -> FrohlichZPRFlow:
         """
         Build the Flow from an |AbinitInput| representing a GS-SCF calculation.
         Final results are stored in the "zprfrohl_results.json" in the outdata directory of the flow.
@@ -266,9 +259,9 @@ class FrohlichZPRFlow(Flow):
         else:
             # Compute DDB with BECS and eps_inf.
             new.ddb_file_path_if_ddb_node = None
-            ph_work = PhononWork.from_scf_task(new.scf_task, qpoints=[0, 0, 0],
-                                               is_ngqpt=False, tolerance=None, with_becs=True,
-                                               ddk_tolerance=None)
+            ph_work = PhononWork.from_scf_task(
+                new.scf_task, qpoints=[0, 0, 0], is_ngqpt=False, tolerance=None, with_becs=True, ddk_tolerance=None
+            )
             new.register_work(ph_work)
             new.ddb_node = ph_work
 
@@ -280,7 +273,8 @@ class FrohlichZPRFlow(Flow):
         This method shall return True if the calculation is completed or
         False if the execution should continue due to side-effects such as adding a new work to the flow.
         """
-        if self.on_all_ok_num_calls > 0: return True
+        if self.on_all_ok_num_calls > 0:
+            return True
         self.on_all_ok_num_calls += 1
 
         work = Work()
@@ -303,7 +297,8 @@ class FrohlichZPRFlow(Flow):
         in the `outdata` directory of the flow
         """
         d = {}
-        if self.metadata is not None: d.update({"metadata": self.metadata})
+        if self.metadata is not None:
+            d.update({"metadata": self.metadata})
 
         # Add GS results.
         with self.scf_task.open_gsr() as gsr:
@@ -317,15 +312,16 @@ class FrohlichZPRFlow(Flow):
             d["gsr_nscf_kpath"] = gsr.filepath
             gsr.ebands.set_fermie_to_vbm()
             d["ebands_kpath"] = gsr.ebands
-            #d["ebands_info"] = gsr.ebands.get_dict4pandas(with_geo=False, with_spglib=False)
+            # d["ebands_info"] = gsr.ebands.get_dict4pandas(with_geo=False, with_spglib=False)
 
         # TODO
         # Extract results from run.abo
-        #d["effmass_results"] = self.effmass_task.yaml_parse_results()
-        #d["frohl_results"] = self.frohl_task.yaml_parse_results()
+        # d["effmass_results"] = self.effmass_task.yaml_parse_results()
+        # d["frohl_results"] = self.frohl_task.yaml_parse_results()
 
         # Add epsinf, e0, BECS, alpha and DDB as string.
         from abipy import abilab
+
         if self.ddb_file_path_if_ddb_node is not None:
             ddb_filepath = self.ddb_file_path_if_ddb_node
         else:
@@ -342,7 +338,7 @@ class FrohlichZPRFlow(Flow):
             # FIXME Complex is not supported by JSON.
             d["eps0_cart"] = eps0.real
 
-        #print(d)
+        # print(d)
         abilab.mjson_write(d, self.outdir.path_in("zprfrohl_results.json"), indent=4)
 
         return super().finalize()

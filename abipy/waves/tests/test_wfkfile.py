@@ -1,7 +1,8 @@
 """Tests for Wfkfile module."""
-import numpy as np
-import abipy.data as abidata
 
+import numpy as np
+
+import abipy.data as abidata
 from abipy.core.testing import AbipyTest
 from abipy.waves import WfkFile
 
@@ -12,7 +13,8 @@ class TestWFKFile(AbipyTest):
     def test_read_wfkfile(self):
         """Testing WfkFile and waves from NC example data files."""
         wfk = WfkFile(abidata.ref_file("si_nscf_WFK.nc"))
-        repr(wfk); str(wfk)
+        repr(wfk)
+        str(wfk)
         assert len(wfk.to_string(verbose=2))
         assert wfk.nsppol == 1 and wfk.nspinor == 1 and wfk.nspden == 1
         assert wfk.params["nspinor"] == wfk.nspinor
@@ -22,7 +24,8 @@ class TestWFKFile(AbipyTest):
             wfk.get_wave(-1, kpoint, band)
 
         wave = wfk.get_wave(spin, kpoint, band)
-        repr(wave); str(wave)
+        repr(wave)
+        str(wave)
         assert len(wave.to_string(verbose=2))
         assert wave.structure is wfk.structure
         assert wave.shape == (wfk.nspinor, wave.npw)
@@ -34,8 +37,9 @@ class TestWFKFile(AbipyTest):
 
         for ig, (g, u_g) in enumerate(wave):
             assert np.all(g == wave.gvecs[ig])
-            assert np.all(u_g == wave.ug[:,ig])
-            if ig == 5: break
+            assert np.all(u_g == wave.ug[:, ig])
+            if ig == 5:
+                break
 
         # Test the norm
         for space in ["g", "gsphere", "r"]:
@@ -57,12 +61,12 @@ class TestWFKFile(AbipyTest):
         assert ur.shape == (8, 8, 8)
         self.assert_almost_equal(other_mesh.integrate(ur.conj() * ur) / wave.structure.volume, 1.0)
 
-        #visu = wfk.visualize_ur2(spin=0, kpoint=0, band=0, appname="vesta")
-        #assert callable(visu)
+        # visu = wfk.visualize_ur2(spin=0, kpoint=0, band=0, appname="vesta")
+        # assert callable(visu)
 
         # FFT and FFT^{-1} on the BOX.
-        #visu = wave.visualize_ur2(visu_name="xcrysden")
-        #assert callable(visu)
+        # visu = wave.visualize_ur2(visu_name="xcrysden")
+        # assert callable(visu)
         ug_mesh = wave.mesh.fft_r2g(wave.ur)
         same_ur = wave.mesh.fft_g2r(ug_mesh)
 
@@ -70,7 +74,7 @@ class TestWFKFile(AbipyTest):
         ur2 = wave.ur2
         assert not np.iscomplexobj(ur2) and np.all(ur2 >= 0)
         assert ur2.shape == wave.mesh.shape
-        #assert ur2.shape == wave.shape
+        # assert ur2.shape == wave.shape
         self.assert_almost_equal(ur2[0, 0, 0], 0.71185883486624901)
 
         # Back to the sphere

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import pytest
+
 import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def itest_tolsymerror_handler(fwp):
@@ -23,13 +23,18 @@ def itest_tolsymerror_handler(fwp):
     pytest.xfail("tolsymerror_handler has been disabled because this problem has been fixed in v9.")
     structure = dict(
         acell=(1.0, 1.0, 1.0),
-        xred=[
-           1.0001907690, 1.0040151117, 0.0099335191,
-           0.2501907744, 0.2540150788, 0.2599335332],
+        xred=[1.0001907690, 1.0040151117, 0.0099335191, 0.2501907744, 0.2540150788, 0.2599335332],
         rprim=[
-          -6.2733366562, 0.0000000000, -3.6219126071,
-          -6.2733366562, 0.0000000000,  3.6219126071,
-          -4.1822244376, 5.9145585205,  0.0000000000],
+            -6.2733366562,
+            0.0000000000,
+            -3.6219126071,
+            -6.2733366562,
+            0.0000000000,
+            3.6219126071,
+            -4.1822244376,
+            5.9145585205,
+            0.0000000000,
+        ],
         typat=(1, 1),
         ntypat=1,
         znucl=14,
@@ -39,15 +44,15 @@ def itest_tolsymerror_handler(fwp):
     inp = abilab.AbinitInput(structure=structure, pseudos=abidata.pseudos("14si.pspnc"))
 
     inp.set_vars(
-         ntime=5,
-         tolrff=0.02,
-         shiftk=[0, 0, 0],
-         ngkpt=(4, 4, 4),
-         chksymbreak=0,
-         ecut=4,
-         tolmxf=5e-05,
-         nshiftk=1,
-         #tolsym=1e-10,
+        ntime=5,
+        tolrff=0.02,
+        shiftk=[0, 0, 0],
+        ngkpt=(4, 4, 4),
+        chksymbreak=0,
+        ecut=4,
+        tolmxf=5e-05,
+        nshiftk=1,
+        # tolsym=1e-10,
     )
 
     flow = flowtk.Flow(workdir=fwp.workdir, manager=fwp.manager)
@@ -59,7 +64,7 @@ def itest_tolsymerror_handler(fwp):
     flow.show_status()
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
 
     task = flow[0][0]
     assert len(task.corrections) == 1
@@ -79,13 +84,13 @@ def itest_dilatmxerror_handler(fwp):
 
     in variable cell structural optimizations.
     """
-    #if fwp.on_travis:
+    # if fwp.on_travis:
     pytest.xfail("dilatmxerror_handler is not portable and it's been disabled!")
 
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
     structure.scale_lattice(structure.volume * 0.8)
     # Perturb the structure (random perturbation of 0.1 Angstrom)
-    #structure.perturb(distance=0.1)
+    # structure.perturb(distance=0.1)
 
     inp = abilab.AbinitInput(structure=structure, pseudos=abidata.pseudos("14si.pspnc"))
 
@@ -104,8 +109,8 @@ def itest_dilatmxerror_handler(fwp):
         tolmxf=5.0e-5,
         strfact=100,
         ntime=50,
-        #ntime=5, To test the restart
-        )
+        # ntime=5, To test the restart
+    )
 
     # Create the flow
     flow = flowtk.Flow(fwp.workdir, manager=fwp.manager)
@@ -117,11 +122,11 @@ def itest_dilatmxerror_handler(fwp):
     flow.show_status()
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
 
     task = flow[0][0]
     # Don't check the number of corrections as it's not portable.
     assert len(task.corrections)
     for i in range(task.num_corrections):
         assert task.corrections[i]["event"]["@class"] == "DilatmxError"
-    #assert 0
+    # assert 0

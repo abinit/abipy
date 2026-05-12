@@ -11,10 +11,8 @@ can be implemented on the basis of this example.
 
 import os
 import sys
-import abipy.data as data
-import abipy.abilab as abilab
 
-from abipy import flowtk
+from abipy import abilab, data, flowtk
 
 
 def make_inputs(ngkpt, paral_kgb=1):
@@ -25,27 +23,14 @@ def make_inputs(ngkpt, paral_kgb=1):
     # Dataset 3: calculation of the screening
     # Dataset 4-5-6: Self-Energy matrix elements (GW corrections) with different values of nband
 
-    multi = abilab.MultiDataset(structure=data.cif_file("si.cif"),
-                                pseudos=data.pseudos("14si.pspnc"), ndtset=6)
+    multi = abilab.MultiDataset(structure=data.cif_file("si.cif"), pseudos=data.pseudos("14si.pspnc"), ndtset=6)
 
     # This grid is the most economical, but does not contain the Gamma point.
-    scf_kmesh = dict(
-        ngkpt=ngkpt,
-        shiftk=[0.5, 0.5, 0.5,
-                0.5, 0.0, 0.0,
-                0.0, 0.5, 0.0,
-                0.0, 0.0, 0.5]
-    )
+    scf_kmesh = dict(ngkpt=ngkpt, shiftk=[0.5, 0.5, 0.5, 0.5, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.5])
 
     # This grid contains the Gamma point, which is the point at which
     # we will compute the (direct) band gap.
-    gw_kmesh = dict(
-        ngkpt=ngkpt,
-        shiftk=[0.0, 0.0, 0.0,
-                0.0, 0.5, 0.5,
-                0.5, 0.0, 0.5,
-                0.5, 0.5, 0.0]
-    )
+    gw_kmesh = dict(ngkpt=ngkpt, shiftk=[0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, 0.0, 0.5, 0.5, 0.5, 0.0])
 
     # Global variables. gw_kmesh is used in all datasets except DATASET 1.
     ecut = 6
@@ -88,29 +73,41 @@ def make_inputs(ngkpt, paral_kgb=1):
 
     # Dataset4: Calculation of the Self-Energy matrix elements (GW corrections)
     kptgw = [
-         -2.50000000E-01, -2.50000000E-01,  0.00000000E+00,
-         -2.50000000E-01,  2.50000000E-01,  0.00000000E+00,
-          5.00000000E-01,  5.00000000E-01,  0.00000000E+00,
-         -2.50000000E-01,  5.00000000E-01,  2.50000000E-01,
-          5.00000000E-01,  0.00000000E+00,  0.00000000E+00,
-          0.00000000E+00,  0.00000000E+00,  0.00000000E+00,
-      ]
+        -2.50000000e-01,
+        -2.50000000e-01,
+        0.00000000e00,
+        -2.50000000e-01,
+        2.50000000e-01,
+        0.00000000e00,
+        5.00000000e-01,
+        5.00000000e-01,
+        0.00000000e00,
+        -2.50000000e-01,
+        5.00000000e-01,
+        2.50000000e-01,
+        5.00000000e-01,
+        0.00000000e00,
+        0.00000000e00,
+        0.00000000e00,
+        0.00000000e00,
+        0.00000000e00,
+    ]
 
     bdgw = [1, 8]
 
     # Convergence study wrt nband in sigma.
     for idx, nband in enumerate([10, 20, 30]):
-        multi[3+idx].set_vars(
+        multi[3 + idx].set_vars(
             optdriver=4,
             nband=nband,
             ecutwfn=ecut,
             ecuteps=4.0,
             ecutsigx=6.0,
             symsigma=1,
-            #gw_qprange=0,
-            #nkptgw=0,
+            # gw_qprange=0,
+            # nkptgw=0,
         )
-        multi[3+idx].set_kptgw(kptgw, bdgw)
+        multi[3 + idx].set_kptgw(kptgw, bdgw)
 
     return multi.split_datasets()
 
@@ -118,7 +115,7 @@ def make_inputs(ngkpt, paral_kgb=1):
 def build_flow(options):
     # Working directory (default is the name of the script with '.py' removed and "run_" replaced by "flow_")
     if not options.workdir:
-        options.workdir = os.path.basename(sys.argv[0]).replace(".py", "").replace("run_","flow_")
+        options.workdir = os.path.basename(sys.argv[0]).replace(".py", "").replace("run_", "flow_")
 
     # Change the value of ngkpt below to perform a GW calculation with a different k-mesh.
     scf, nscf, scr, sig1, sig2, sig3 = make_inputs(ngkpt=[2, 2, 2])
@@ -131,6 +128,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

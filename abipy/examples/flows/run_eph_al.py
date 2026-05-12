@@ -6,11 +6,12 @@ Isotropic superconductivity
 This flow computes the phonon linewidths and the
 isotropic Eliashberg function in Al.
 """
-import sys
+
 import os
+import sys
+
 import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def build_flow(options):
@@ -27,9 +28,7 @@ def build_flow(options):
 
     structure = abilab.Structure.from_abivars(
         acell=3 * [7.5],
-        rprim=[0.0, 0.5, 0.5,
-               0.5, 0.0, 0.5,
-               0.5, 0.5, 0.0],
+        rprim=[0.0, 0.5, 0.5, 0.5, 0.0, 0.5, 0.5, 0.5, 0.0],
         typat=1,
         xred=[0.0, 0.0, 0.0],
         ntypat=1,
@@ -44,7 +43,7 @@ def build_flow(options):
     gs_inp.set_vars(
         ecut=8.0,
         nband=5,
-        occopt=7,    # include metallic occupation function with a small smearing
+        occopt=7,  # include metallic occupation function with a small smearing
         tsmear=0.04,
         tolvrs=1e-7,
     )
@@ -68,15 +67,22 @@ def build_flow(options):
     eph_work = flow.register_work(flowtk.Work())
     eph_deps = {work0[0]: "WFK", ph_work: ["DDB", "DVDB"]}
 
-    for eph_ngqpt_fine in [(4, 4, 4,), (8, 8, 8)]:
+    for eph_ngqpt_fine in [
+        (
+            4,
+            4,
+            4,
+        ),
+        (8, 8, 8),
+    ]:
         # Build input file for E-PH run.
         eph_inp = gs_inp.new_with_vars(
             optdriver=7,
-            ddb_ngqpt=ddb_ngqpt,           # q-mesh used to produce the DDB file (must be consistent with DDB data)
-            eph_intmeth=2,                 # Tetra method
-            eph_fsewin="0.8 eV",           # Energy window around Ef
-            eph_mustar=0.12,               # mustar parameter
-            eph_ngqpt_fine=eph_ngqpt_fine, # Interpolate DFPT potentials if != ddb_ngqpt
+            ddb_ngqpt=ddb_ngqpt,  # q-mesh used to produce the DDB file (must be consistent with DDB data)
+            eph_intmeth=2,  # Tetra method
+            eph_fsewin="0.8 eV",  # Energy window around Ef
+            eph_mustar=0.12,  # mustar parameter
+            eph_ngqpt_fine=eph_ngqpt_fine,  # Interpolate DFPT potentials if != ddb_ngqpt
         )
 
         # Set q-path for phonons and phonon linewidths.
@@ -97,6 +103,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

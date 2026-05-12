@@ -1,14 +1,22 @@
 """Tests for electrons.ebands module"""
-import sys
-import numpy as np
-import unittest
-import pymatgen.core.units as units
-import abipy.data as abidata
 
+import sys
+
+import numpy as np
+from pymatgen.core import units
+
+import abipy.data as abidata
 from abipy import abilab
-from abipy.electrons.ebands import (ElectronBands, ElectronDos, ElectronBandsPlotter, ElectronDosPlotter,
-    ElectronsReader, dataframe_from_ebands, Smearing)
 from abipy.core.testing import AbipyTest
+from abipy.electrons.ebands import (
+    ElectronBands,
+    ElectronBandsPlotter,
+    ElectronDos,
+    ElectronDosPlotter,
+    ElectronsReader,
+    Smearing,
+    dataframe_from_ebands,
+)
 
 
 class SmearingTest(AbipyTest):
@@ -18,7 +26,8 @@ class SmearingTest(AbipyTest):
             Smearing(scheme=None, occopt=1)
 
         sm = Smearing(scheme=None, occopt=3, tsmear_ev=0.0)
-        repr(sm); str(sm)
+        repr(sm)
+        str(sm)
         self.assert_msonable(sm, test_is_subclass=False)
         assert sm.has_metallic_scheme
         assert Smearing.as_smearing(sm) is sm
@@ -27,10 +36,8 @@ class SmearingTest(AbipyTest):
 
 
 class EbandsReaderTest(AbipyTest):
-
     def test_reader(self):
         """Testing ElectronsReader with WFK file."""
-
         with ElectronsReader(abidata.ref_file("si_scf_WFK.nc")) as r:
             nsppol = r.read_nsppol()
             nspden = r.read_nspden()
@@ -58,7 +65,8 @@ class EbandsReaderTest(AbipyTest):
             self.assert_almost_equal(fermie.to("Ha"), 0.205739364929578)
             assert r.read_nelect() == 8
             smearing = r.read_smearing()
-            repr(smearing); str(smearing)
+            repr(smearing)
+            str(smearing)
             assert smearing.occopt == 1
             self.assert_almost_equal(smearing.tsmear_ev.to("Ha"), 0.01)
             assert not smearing.has_metallic_scheme
@@ -69,7 +77,6 @@ class EbandsReaderTest(AbipyTest):
 
 
 class ElectronBandsTest(AbipyTest):
-
     def test_nickel_ebands_spin(self):
         """Testing Nickel electron bands with nsppol == 2"""
         ref_nelect = 18
@@ -78,7 +85,8 @@ class ElectronBandsTest(AbipyTest):
         with self.assertRaises(TypeError):
             ElectronBands.as_ebands(1)
 
-        repr(ni_ebands_kmesh); str(ni_ebands_kmesh)
+        repr(ni_ebands_kmesh)
+        str(ni_ebands_kmesh)
         assert ni_ebands_kmesh.nsppol == 2 and ni_ebands_kmesh.nspinor == 1 and ni_ebands_kmesh.nspden == 2
         assert ni_ebands_kmesh.nelect == ref_nelect
         assert ni_ebands_kmesh.kpoints.is_ibz and ni_ebands_kmesh.has_bzmesh and not ni_ebands_kmesh.has_bzpath
@@ -96,7 +104,8 @@ class ElectronBandsTest(AbipyTest):
         assert same.smearing.occopt == ni_ebands_kmesh.smearing.occopt
 
         ni_edos = ni_ebands_kmesh.get_edos(step=0.1, width=0.2)
-        repr(ni_edos); str(ni_edos)
+        repr(ni_edos)
+        str(ni_edos)
         assert ni_edos.to_string(verbose=2)
         self.assert_almost_equal(ni_ebands_kmesh.get_collinear_mag(), 0.6501439036904575)
 
@@ -118,7 +127,8 @@ class ElectronBandsTest(AbipyTest):
         ni_ebands_kpath.linewidths = np.ones(ni_ebands_kpath.shape)
         assert ni_ebands_kpath.has_linewidths
 
-        repr(ni_ebands_kpath); str(ni_ebands_kpath)
+        repr(ni_ebands_kpath)
+        str(ni_ebands_kpath)
         assert ni_ebands_kpath.nsppol == 2 and ni_ebands_kpath.nspinor == 1 and ni_ebands_kpath.nspden == 2
         assert ni_ebands_kpath.nelect == ref_nelect
         assert ni_ebands_kpath.kpoints.is_path and not ni_ebands_kpath.has_bzmesh and ni_ebands_kpath.has_bzpath
@@ -131,9 +141,11 @@ class ElectronBandsTest(AbipyTest):
         assert len(ni_ebands_kpath.to_json())
 
         self.assert_msonable(ni_ebands_kmesh, test_is_subclass=False)
-        #d = ni_ebands_kmesh.as_dict()
-        from monty.json import MontyDecoder #, MSONable
+        # d = ni_ebands_kmesh.as_dict()
         import json
+
+        from monty.json import MontyDecoder  # , MSONable
+
         assert ni_ebands_kmesh.smearing is not None
         new = json.loads(ni_ebands_kmesh.to_json(), cls=MontyDecoder)
         assert new.smearing is not None
@@ -152,9 +164,9 @@ class ElectronBandsTest(AbipyTest):
         ni_ebands_kpath.to_xmgrace(sys.stdout)
 
         # BXSF cannot be produced because.
-        #ngkpt    6 6 6
-        #nshiftk  4
-        #shiftk   1/2 1/2 1/2 1/2 0.0 0.0 0.0 1/2 0.0 0.0 0.0 1/2
+        # ngkpt    6 6 6
+        # nshiftk  4
+        # shiftk   1/2 1/2 1/2 1/2 0.0 0.0 0.0 1/2 0.0 0.0 0.0 1/2
         with self.assertRaises(ValueError):
             ni_ebands_kmesh.to_bxsf(self.get_tmpname(text=True))
 
@@ -200,33 +212,36 @@ class ElectronBandsTest(AbipyTest):
             assert ni_ebands_kpath.plot_lws_vs_e0(show=False)
 
             # TODO Generaliza jdos to metals.
-            #vrange, crange = range(0, 4), range(4, 5)
-            #assert ni_ebands_kmesh.plot_ejdosvc(vrange, crange, cumulative=False, show=False)
-            #assert ni_ebands_kmesh.plot_ejdosvc(vrange, crange, cumulative=True, show=False)
+            # vrange, crange = range(0, 4), range(4, 5)
+            # assert ni_ebands_kmesh.plot_ejdosvc(vrange, crange, cumulative=False, show=False)
+            # assert ni_ebands_kmesh.plot_ejdosvc(vrange, crange, cumulative=True, show=False)
 
             if self.has_seaborn():
-                assert ni_ebands_kmesh.boxplot(brange=[5, 10], show=False,
-                    title="Boxplot for up and down spin and 10 > band >= 5")
+                assert ni_ebands_kmesh.boxplot(
+                    brange=[5, 10], show=False, title="Boxplot for up and down spin and 10 > band >= 5"
+                )
 
             if self.has_plotly():
-                assert ni_ebands_kmesh.boxplotly(brange=[5, 10], show=False,
-                    title="Boxplot for up and down spin and 10 > band >= 5")
+                assert ni_ebands_kmesh.boxplotly(
+                    brange=[5, 10], show=False, title="Boxplot for up and down spin and 10 > band >= 5"
+                )
 
         # Test Abipy --> Pymatgen converter.
         pmg_bands_kpath = ni_ebands_kpath.to_pymatgen()
-        assert hasattr(pmg_bands_kpath, "get_branch")   # Should be BandStructureSymmLine
+        assert hasattr(pmg_bands_kpath, "get_branch")  # Should be BandStructureSymmLine
         assert pmg_bands_kpath.efermi == ni_ebands_kpath.fermie
         assert pmg_bands_kpath.is_spin_polarized
         assert pmg_bands_kpath.is_metal()
 
         # Test Pymatgen --> Abipy converter.
         same_ekpath = ElectronBands.from_pymatgen(pmg_bands_kpath, ni_ebands_kpath.nelect)
-        repr(same_ekpath); str(same_ekpath)
+        repr(same_ekpath)
+        str(same_ekpath)
         self.assert_equal(same_ekpath.eigens, ni_ebands_kpath.eigens)
         assert same_ekpath.fermie == ni_ebands_kpath.fermie
 
         pmg_bands_kmesh = ni_ebands_kmesh.to_pymatgen()
-        #assert hasattr(pmg_bands_kmesh, "get_branch")   # Should be BandStructure
+        # assert hasattr(pmg_bands_kmesh, "get_branch")   # Should be BandStructure
         assert pmg_bands_kmesh.efermi == ni_ebands_kmesh.fermie
         assert pmg_bands_kmesh.is_spin_polarized
         assert pmg_bands_kmesh.is_metal()
@@ -240,9 +255,9 @@ class ElectronBandsTest(AbipyTest):
         """Testing electron bands with nsppol == 1"""
         si_ebands_kmesh = ElectronBands.from_file(abidata.ref_file("si_scf_GSR.nc"))
         assert not si_ebands_kmesh.has_metallic_scheme
-        repr(si_ebands_kmesh); str(si_ebands_kmesh)
-        assert si_ebands_kmesh.to_string(title="Title",
-                with_structure=False, with_kpoints=True, verbose=1)
+        repr(si_ebands_kmesh)
+        str(si_ebands_kmesh)
+        assert si_ebands_kmesh.to_string(title="Title", with_structure=False, with_kpoints=True, verbose=1)
 
         for spin, ik, band in si_ebands_kmesh.skb_iter():
             assert spin == 0
@@ -280,7 +295,8 @@ class ElectronBandsTest(AbipyTest):
         self.assert_almost_equal(estats.stdev, 2.164400652355628)
         self.assert_almost_equal(estats.min, 0)
         self.assert_almost_equal(estats.max, 11.855874158768694)
-        repr(estats); str(estats)
+        repr(estats)
+        str(estats)
 
         assert si_ebands_kmesh.get_collinear_mag() == 0
 
@@ -289,7 +305,8 @@ class ElectronBandsTest(AbipyTest):
 
         edos_kwargs = dict(step=0.1, width=0.2)
         si_edos = si_ebands_kmesh.get_edos(**edos_kwargs)
-        repr(si_edos); str(si_edos)
+        repr(si_edos)
+        str(si_edos)
         assert ElectronDos.as_edos(si_edos, {}) is si_edos
         assert si_edos == si_edos and not (si_edos != si_edos)
         edos_samevals = ElectronDos.as_edos(si_ebands_kmesh, edos_kwargs)
@@ -324,7 +341,7 @@ class ElectronBandsTest(AbipyTest):
         # Test plot methods
         if self.has_matplotlib():
             klabels = {
-                (0,0,0): r"$\Gamma$",
+                (0, 0, 0): r"$\Gamma$",
                 (0.375, 0.375, 0.7500): "K",
                 (0.5, 0.5, 1.0): "X",
                 (0.5, 0.5, 0.5): "L",
@@ -338,7 +355,7 @@ class ElectronBandsTest(AbipyTest):
             assert si_ebands_kmesh.plot_with_edos(edos=si_edos, klabels=klabels, with_gaps=True, show=False)
             assert si_ebands_kmesh.kpoints.plot(show=False)
 
-            vrange, crange = range(0, 4), range(4, 5)
+            vrange, crange = range(4), range(4, 5)
             assert si_ebands_kmesh.plot_ejdosvc(vrange, crange, cumulative=False, show=False)
             assert si_ebands_kmesh.plot_ejdosvc(vrange, crange, cumulative=True, show=False)
             assert si_ebands_kmesh.kpoints.plot(show=False)
@@ -348,27 +365,30 @@ class ElectronBandsTest(AbipyTest):
         if self.has_ipywidgets():
             assert si_ebands_kmesh.ipw_edos_widget()
 
-        #if self.has_panel():
+        # if self.has_panel():
         #    assert si_ebands_kmesh.get_panel()
 
         # Test Abipy --> Pymatgen converter.
         pmg_bands_kmesh = si_ebands_kmesh.to_pymatgen()
         assert pmg_bands_kmesh.efermi == si_ebands_kmesh.fermie
         assert not pmg_bands_kmesh.is_spin_polarized
-        #assert not pmg_bands_kmesh.is_metal()
+        # assert not pmg_bands_kmesh.is_metal()
 
         # Test Pymatgen --> Abipy converter.
         same_ekmesh = ElectronBands.from_pymatgen(pmg_bands_kmesh, si_ebands_kmesh.nelect)
-        repr(same_ekmesh); str(same_ekmesh)
+        repr(same_ekmesh)
+        str(same_ekmesh)
         self.assert_equal(same_ekmesh.eigens, si_ebands_kmesh.eigens)
         assert same_ekmesh.fermie == si_ebands_kmesh.fermie
         assert len(same_ekmesh.kpoints) == len(pmg_bands_kmesh.kpoints)
 
         # Test JDOS methods.
         spin = 0
-        conduction = [4,]
+        conduction = [
+            4,
+        ]
         for v in range(1, 5):
-            valence = range(0, v)
+            valence = range(v)
             jdos = si_ebands_kmesh.get_ejdos(spin, valence, conduction)
             intg = jdos.integral()[-1][-1]
             self.assert_almost_equal(intg, len(conduction) * len(valence))
@@ -379,10 +399,12 @@ class ElectronBandsTest(AbipyTest):
 
         diffs = si_ebands_kpath.statdiff(si_ebands_kpath)
         assert diffs is not None
-        repr(diffs); str(diffs)
+        repr(diffs)
+        str(diffs)
 
         homo = si_ebands_kpath.homos[0]
-        repr(homo); str(homo)
+        repr(homo)
+        str(homo)
         assert homo.spin == 0 and homo.occ == 2.0 and homo.band == 3
         assert homo.kpoint == [0, 0, 0]
         assert homo == homo
@@ -393,7 +415,7 @@ class ElectronBandsTest(AbipyTest):
         lumo = si_ebands_kpath.lumos[0]
         assert homo != lumo
         assert lumo.spin == 0 and lumo.occ == 0.0 and lumo.band == 4
-        self.assert_almost_equal(lumo.kpoint.frac_coords, [0.,  0.4285714, 0.4285714])
+        self.assert_almost_equal(lumo.kpoint.frac_coords, [0.0, 0.4285714, 0.4285714])
         assert si_ebands_kpath.kpoints[lumo.kidx] == lumo.kpoint
         self.assert_almost_equal(lumo.eig, 6.1226526474610843)
 
@@ -405,10 +427,10 @@ class ElectronBandsTest(AbipyTest):
         assert dir_gap == dir_gap
         assert dir_gap != fun_gap
         assert si_ebands_kpath.get_gaps_string()
-        #print("repr_fun_gap", repr(fun_gap), id(fun_gap), id(fun_gap.qpoint))
-        #print("repr_dir_gap", repr(dir_gap), id(dir_gap), id(dir_gap.qpoint))
+        # print("repr_fun_gap", repr(fun_gap), id(fun_gap), id(fun_gap.qpoint))
+        # print("repr_dir_gap", repr(dir_gap), id(dir_gap), id(dir_gap.qpoint))
         self.assert_almost_equal(dir_gap.energy, 2.5318279814319133)
-        self.assert_almost_equal(fun_gap.qpoint.frac_coords, [0.,  0.4285714, 0.4285714])
+        self.assert_almost_equal(fun_gap.qpoint.frac_coords, [0.0, 0.4285714, 0.4285714])
         self.assert_almost_equal(fun_gap.energy, 0.52433967625601774)
         assert not fun_gap.is_direct
 
@@ -420,9 +442,7 @@ class ElectronBandsTest(AbipyTest):
         k0_list, effmass_bands_f90 = si_ebands_kpath.get_kpoints_and_band_range_for_edges()
 
         self.assert_equal(effmass_bands_f90, [[4, 4], [5, 5]])
-        self.assert_almost_equal(k0_list, np.array(
-                                [[0., 0.        , 0.        ],
-                                 [0., 0.42857143, 0.42857143]]))
+        self.assert_almost_equal(k0_list, np.array([[0.0, 0.0, 0.0], [0.0, 0.42857143, 0.42857143]]))
 
         # Test abipy-->pymatgen converter
         pmg_bands_kpath = si_ebands_kpath.to_pymatgen()
@@ -439,7 +459,8 @@ class ElectronBandsTest(AbipyTest):
 
         # Test Electron
         e1 = si_ebands_kpath._electron_state(spin=0, kpoint=[0, 0, 0], band=0)
-        repr(e1); str(e1)
+        repr(e1)
+        str(e1)
         e1_copy = e1.copy()
         assert isinstance(e1.as_dict(), dict)
         assert isinstance(e1.to_strdict(), dict)
@@ -460,8 +481,7 @@ class ElectronBandsTest(AbipyTest):
 
         # Test interpolation.
         vertices_names = [((0.0, 0.0, 0.0), "G"), ((0.5, 0.5, 0.0), "M")]
-        r = si_ebands_kmesh.interpolate(lpratio=10, vertices_names=vertices_names,
-                                        kmesh=[8, 8, 8], verbose=1)
+        r = si_ebands_kmesh.interpolate(lpratio=10, vertices_names=vertices_names, kmesh=[8, 8, 8], verbose=1)
         assert r.ebands_kpath is not None
         assert r.ebands_kpath.kpoints.is_path
         assert not r.ebands_kpath.kpoints.is_ibz
@@ -481,8 +501,7 @@ class ElectronBandsTest(AbipyTest):
         r.ebands_kmesh.to_bxsf(self.get_tmpname(text=True))
 
         # This just to call interpolate with line_density 0
-        r = si_ebands_kmesh.interpolate(lpratio=5, vertices_names=vertices_names, line_density=0,
-                                        verbose=1)
+        r = si_ebands_kmesh.interpolate(lpratio=5, vertices_names=vertices_names, line_density=0, verbose=1)
 
     def test_derivatives(self):
         """Testing computation of effective masses."""
@@ -491,25 +510,26 @@ class ElectronBandsTest(AbipyTest):
         # Hack eigens to simulate free-electron bands.
         # This should produce all(effective masses == 1)
         new_eigens = np.empty(ebands.shape)
-        branch = 0.5 * units.Ha_to_eV * np.array([(k.norm * units.bohr_to_ang)**2 for k in ebands.kpoints])
+        branch = 0.5 * units.Ha_to_eV * np.array([(k.norm * units.bohr_to_ang) ** 2 for k in ebands.kpoints])
         for spin in ebands.spins:
             for band in range(ebands.mband):
                 new_eigens[spin, :, band] = branch
         ebands._eigens = new_eigens
 
-        #effm_lines = ebands.effective_masses(spin=0, band=0, acc=2)
+        # effm_lines = ebands.effective_masses(spin=0, band=0, acc=2)
         # Flatten structure (.flatten does not work in this case)
-        #values = []
-        #for arr in effm_lines:
+        # values = []
+        # for arr in effm_lines:
         #    values.extend(arr)
-        #self.assert_almost_equal(np.array(values), 1.0)
+        # self.assert_almost_equal(np.array(values), 1.0)
 
         ebands.get_effmass_line(spin=0, kpoint=(0, 0, 0), band=0)
-        #repr(em); str(em)
-        #self.assert_almost_equal(np.array(values), 1.0)
+        # repr(em); str(em)
+        # self.assert_almost_equal(np.array(values), 1.0)
 
         emana = ebands.get_effmass_analyzer()
-        repr(emana); str(emana)
+        repr(emana)
+        str(emana)
 
     def test_fermi_surface(self):
         """Testing Fermi surface tools."""
@@ -521,7 +541,8 @@ class ElectronBandsTest(AbipyTest):
 
             # Test Ebands3d
             eb3d = ebands.get_ebands3d()
-            repr(eb3d); str(eb3d)
+            repr(eb3d)
+            str(eb3d)
             assert eb3d.to_string(verbose=2)
 
             if self.has_ifermi():
@@ -536,7 +557,7 @@ class ElectronBandsTest(AbipyTest):
 
                 r = ebands.get_ifermi_fs(**kwargs)
                 assert hasattr(r, "fs") and hasattr(r, "fs_plotter")
-                #r = ebands.get_ifermi_fs(interpolation_factor=1, cache=r)
+                # r = ebands.get_ifermi_fs(interpolation_factor=1, cache=r)
 
             if self.has_matplotlib():
                 assert eb3d.plot_contour(band=4, spin=0, plane="xy", elevation=0, show=False)
@@ -546,7 +567,7 @@ class ElectronBandsTest(AbipyTest):
             # Test Mayavi
             if self.has_mayavi():
                 assert eb3d.mvplot_isosurfaces(verbose=1, show=False)
-                #assert eb3d.mvplot_cutplanes(band=4, spin=0, show=False)
+                # assert eb3d.mvplot_cutplanes(band=4, spin=0, show=False)
 
     def test_dataframe_from_ebands(self):
         """Testing dataframe_from_ebands."""
@@ -555,23 +576,21 @@ class ElectronBandsTest(AbipyTest):
         gsr_nscf_path = abidata.ref_file("si_nscf_GSR.nc")
         index = ["foo", "bar", "hello"]
         df = dataframe_from_ebands([gsr_kmesh, si_ebands_kmesh, gsr_nscf_path], index=index, with_spglib=True)
-        #str(df)
+        # str(df)
         assert all(f == "Si2" for f in df["formula"])
         assert all(num == 227 for num in df["abispg_num"])
         assert all(df["spglib_num"] == df["abispg_num"])
 
 
 class ElectronBandsFromRestApi(AbipyTest):
-
     def test_from_mpid(self):
         """Testing interpolation of SnO2 band energies from MP database."""
-
         if self.test_mprester():
             with self.assertRaises(ValueError):
                 abilab.ElectronBands.from_mpid("foobar")
 
-            #mpid = "mp-149"
-            #mpid = "mp-856"
+            # mpid = "mp-149"
+            # mpid = "mp-856"
             mpid = "mp-3079"
             ebands = abilab.ElectronBands.from_mpid(mpid)
             # Use prune_step to remove k-points (too many k-points on a k-path can cause numerical instabilities)
@@ -592,12 +611,10 @@ class ElectronBandsFromRestApi(AbipyTest):
                 # Plot bands + dos using interpolated energies.
                 assert r.ebands_kpath.plot_with_edos(edos, show=False)
 
-
     def test_ebands_from_mpid_magnetic_semiconductor_nelect_automatically_computed(self):
         """https://github.com/abinit/abipy/issues/232"""
-
         if self.test_mprester():
-            ebands = ElectronBands.from_mpid('mp-565814')
+            ebands = ElectronBands.from_mpid("mp-565814")
             assert ebands.nsppol == 2
             self.assert_almost_equal(ebands.direct_gaps[0].energy, 3.6776999999999997)
             self.assert_almost_equal(ebands.direct_gaps[1].energy, 2.0054000000000003)
@@ -605,7 +622,7 @@ class ElectronBandsFromRestApi(AbipyTest):
             self.assert_almost_equal(ebands.fermie, 3.1562566)
             assert str(ebands.to_string(verbose=1))
 
-    #def test_ebands_from_mpid_metal(self):
+    # def test_ebands_from_mpid_metal(self):
     #    # This is Al but it's disabled because it takes ~ 77s
     #    # nsppol: 1, nkpt: 1016, mband: 96, nspinor: 1, nspden: 1
     #    ebands = ElectronBands.from_mpid('mp-134', line_mode=True)
@@ -613,12 +630,12 @@ class ElectronBandsFromRestApi(AbipyTest):
 
 
 class ElectronBandsPlotterTest(AbipyTest):
-
     def test_ebands_plotter(self):
         """Testing ElelectronBandsPlotter."""
         plotter = ElectronBandsPlotter(key_ebands=[("Si1", abidata.ref_file("si_scf_GSR.nc"))])
         plotter.add_ebands("Si2", abidata.ref_file("si_scf_GSR.nc"))
-        repr(plotter); str(plotter)
+        repr(plotter)
+        str(plotter)
 
         assert len(plotter.ebands_list) == 2
         assert len(plotter.edoses_list) == 0
@@ -650,11 +667,11 @@ class ElectronBandsPlotterTest(AbipyTest):
             assert plotter.combiplotly(title="Silicon band structure", show=False)
             # Alias for combiplot
             assert plotter.plotly(e0=2, width_ratios=(3, 1), fontsize=12, show=False)
-            #plotter.combiboxplotly(title="Silicon band structure", swarm=True, show=False)
+            # plotter.combiboxplotly(title="Silicon band structure", swarm=True, show=False)
             assert plotter.gridplotly(title="Silicon band structure", with_gaps=True, show=False)
-            #assert plotter.boxplotly(title="Silicon band structure", swarm=True, show=False)
-            #assert plotter.plotly_band_edges(epad_ev=2.0, show=False)
-            #assert plotter.animate(show=False)
+            # assert plotter.boxplotly(title="Silicon band structure", swarm=True, show=False)
+            # assert plotter.plotly_band_edges(epad_ev=2.0, show=False)
+            # assert plotter.animate(show=False)
 
         if self.has_ipywidgets():
             assert plotter.ipw_select_plot() is not None
@@ -670,7 +687,6 @@ class ElectronBandsPlotterTest(AbipyTest):
 
 
 class ElectronDosPlotterTest(AbipyTest):
-
     def test_api(self):
         """Testing ElelectronDosPlotter API."""
         gsr_path = abidata.ref_file("si_scf_GSR.nc")

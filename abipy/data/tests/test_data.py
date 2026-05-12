@@ -1,7 +1,8 @@
 """Tests for data module"""
-import os
-import abipy.data as abidata
 
+import os
+
+import abipy.data as abidata
 from abipy.core.testing import AbipyTest
 
 
@@ -31,11 +32,12 @@ class DataModuleTest(AbipyTest):
 
 
 class FilesGeneratorTest(AbipyTest):
-
     def test_abinit_files_generator(self):
         """Testing AbinitFilesGenerator."""
+
         class MyGenerator(abidata.AbinitFilesGenerator):
             """This class generates the output files used in the unit tests and in the examples."""
+
             # Subclasses must define the following class attributes:
             # List of pseudos (basenames) in abipy/data/pseudos
             pseudos = ["14si.pspnc"]
@@ -56,6 +58,7 @@ class FilesGeneratorTest(AbipyTest):
 
     def test_anaddb_files_generator(self):
         """Testing AnaddbFilesGenerator."""
+
         class MyGenerator(abidata.AnaddbFilesGenerator):
             """This class generates the output files used in the unit tests and in the examples."""
 

@@ -1,16 +1,16 @@
 """Tests for electrons.effmass_analyzer module"""
-import abipy.data as abidata
 
+import abipy.data as abidata
 from abipy.core.testing import AbipyTest
 from abipy.electrons.effmass_analyzer import EffMassAnalyzer
 
 
 class EffMassAnalyzerTest(AbipyTest):
-
     def test_api(self):
         """Testing EffMassAnalyzer."""
         emana = EffMassAnalyzer.from_file(abidata.ref_file("si_nscf_GSR.nc"))
-        repr(emana); str(emana)
+        repr(emana)
+        str(emana)
         assert emana.to_string(verbose=2)
 
         with self.assertRaises(RuntimeError):
@@ -26,12 +26,13 @@ class EffMassAnalyzerTest(AbipyTest):
 
         # extract segment.
         segment = emana.segments[0]
-        repr(segment); str(segment)
+        repr(segment)
+        str(segment)
         assert segment.to_string(verbose=2)
         df = segment.get_dataframe_with_accuracies(acc_list=(2, 4))
 
-        #assert len(emana.segments) == 1
-        #for segment in emana.segments[0]:
+        # assert len(emana.segments) == 1
+        # for segment in emana.segments[0]:
         #    segment.get_effmass_line(acc=2)
 
         if self.has_matplotlib():

@@ -2,21 +2,18 @@
 import collections
 import os
 
-from abipy.core.testing import AbipyTest
-
 from abipy.core.atom import (
-    NlkState,
-    #QState,
+    # QState,
     AtomicConfiguration,
+    NlkState,
     RadialFunction,
-    #RadialWaveFunction,
+    # RadialWaveFunction,
 )
-
+from abipy.core.testing import AbipyTest
 from abipy.data import nist_database
 
 
 class NlkTest(AbipyTest):
-
     def test_nlk_api(self):
         """Testing NlkState API."""
         nlk = NlkState(n=1, l=0, k=None)
@@ -31,13 +28,13 @@ class NlkTest(AbipyTest):
 
 
 class AtomicConfigurationTest(AbipyTest):
-
     def test_neutrals(self):
         """Testing neutral configurations."""
         for symbol in nist_database.allsymbols:
             aconf = AtomicConfiguration.neutral_from_symbol(symbol)
 
-            repr(aconf); str(aconf)
+            repr(aconf)
+            str(aconf)
             for state in aconf:
                 repr(state)
                 str(state)
@@ -74,7 +71,7 @@ class AtomicConfigurationTest(AbipyTest):
     def test_init_from_string(self):
         """Initialization of atomic configurations from string"""
         for symbol, confstr in nist_database._neutral.items():
-            #print("symbol", symbol, confstr)
+            # print("symbol", symbol, confstr)
             Z = nist_database.Z_from_symbol(symbol)
             aconf = AtomicConfiguration.from_string(Z, confstr)
 
@@ -82,15 +79,15 @@ class AtomicConfigurationTest(AbipyTest):
 
 
 class RadialFunctionTest(AbipyTest):
-
     def test_base(self):
         """Basic tests for RadialFunction."""
         filename = os.path.join(os.path.dirname(__file__), "wf-3s.ape")
 
         rf = RadialFunction.from_filename(filename)
-        rf_der = RadialFunction.from_filename(filename, cols=(0,2))
+        rf_der = RadialFunction.from_filename(filename, cols=(0, 2))
 
-        repr(rf); str(rf)
+        repr(rf)
+        str(rf)
         assert isinstance(rf, collections.abc.Iterable)
 
         # Integral in 3D

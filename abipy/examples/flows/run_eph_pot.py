@@ -8,12 +8,12 @@ along a q-path, merge the POT files in the DVDB file and finally use the
 DVDB and the DDB file to analyze the average over the unit cell of the
 periodic part as a function of q.
 """
-import sys
-import os
-import abipy.abilab as abilab
-import abipy.data as abidata
 
-from abipy import flowtk
+import os
+import sys
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
 
 
 def make_scf_input(ngkpt):
@@ -21,23 +21,28 @@ def make_scf_input(ngkpt):
     This function constructs the input file for the GS calculation:
     """
     structure = dict(
-        angdeg=3*[60.0],
-        acell=3*[7.1992351952],
+        angdeg=3 * [60.0],
+        acell=3 * [7.1992351952],
         natom=2,
         ntypat=2,
         typat=[1, 2],
         znucl=[31, 15],
         xred=[
-            0.0000000000, 0.0000000000, 0.0000000000,
-            0.2500000000, 0.2500000000, 0.2500000000,
-        ])
+            0.0000000000,
+            0.0000000000,
+            0.0000000000,
+            0.2500000000,
+            0.2500000000,
+            0.2500000000,
+        ],
+    )
 
     pseudos = abidata.pseudos("Ga.oncvpsp", "P.psp8")
     gs_inp = abilab.AbinitInput(structure, pseudos=pseudos)
 
     gs_inp.set_vars(
         nband=8,
-        ecut=20.0,   # Too low
+        ecut=20.0,  # Too low
         ngkpt=ngkpt,
         nshiftk=1,
         shiftk=[0, 0, 0],
@@ -71,32 +76,45 @@ def build_flow(options):
     # corresponding to a [4, 4, 4] q-mesh.
     # Electric field and Born effective charges are also computed.
     from abipy.flowtk.eph_flows import EphPotFlow
+
     ngqpt = [2, 2, 2]
 
     qpath_list = [
-        +0.10000,  +0.10000,  +0.10000,  # L -> G
-        +0.00000,  +0.00000,  +0.00000,  # $\Gamma$
-        +0.10000,  +0.00000,  +0.10000,  # G -> X
-
-        #+0.50000,  +0.50000,  +0.50000,  # L
-        #+0.00000,  +0.00000,  +0.00000,  # $\Gamma$
-        #+0.50000,  +0.00000,  +0.50000,  # X
-        #+0.50000,  +0.25000,  +0.75000,  # W
-        #+0.37500,  +0.37500,  +0.75000,  # K
-        #+0.00000,  +0.00000,  +0.00000,  # $\Gamma$
-        #+0.50000,  +0.25000,  +0.75000,  # W
-        #+0.62500  +0.25000  +0.62500  # U
-        #+0.50000  +0.25000  +0.75000  # W
-        #+0.50000  +0.50000  +0.50000  # L
-        #+0.37500  +0.37500  +0.75000  # K
-        #+0.62500  +0.25000  +0.62500  # U
-        #+0.50000  +0.00000  +0.50000  # X
+        +0.10000,
+        +0.10000,
+        +0.10000,  # L -> G
+        +0.00000,
+        +0.00000,
+        +0.00000,  # $\Gamma$
+        +0.10000,
+        +0.00000,
+        +0.10000,  # G -> X
+        # +0.50000,  +0.50000,  +0.50000,  # L
+        # +0.00000,  +0.00000,  +0.00000,  # $\Gamma$
+        # +0.50000,  +0.00000,  +0.50000,  # X
+        # +0.50000,  +0.25000,  +0.75000,  # W
+        # +0.37500,  +0.37500,  +0.75000,  # K
+        # +0.00000,  +0.00000,  +0.00000,  # $\Gamma$
+        # +0.50000,  +0.25000,  +0.75000,  # W
+        # +0.62500  +0.25000  +0.62500  # U
+        # +0.50000  +0.25000  +0.75000  # W
+        # +0.50000  +0.50000  +0.50000  # L
+        # +0.37500  +0.37500  +0.75000  # K
+        # +0.62500  +0.25000  +0.62500  # U
+        # +0.50000  +0.00000  +0.50000  # X
     ]
 
     # Use small ndivsm to reduce computing time.
-    flow = EphPotFlow.from_scf_input(options.workdir, scf_input,
-                                     ngqpt, qpath_list, ndivsm=2, ddk_tolerance={"tolwfr": 1e-12},
-                                     with_becs=True, with_quad=False)
+    flow = EphPotFlow.from_scf_input(
+        options.workdir,
+        scf_input,
+        ngqpt,
+        qpath_list,
+        ndivsm=2,
+        ddk_tolerance={"tolwfr": 1e-12},
+        with_becs=True,
+        with_quad=False,
+    )
 
     return flow
 
@@ -106,6 +124,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

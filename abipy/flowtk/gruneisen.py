@@ -1,15 +1,16 @@
-# coding: utf-8
 """
 Work for computing the Grüneisen parameters with finite differences of DFPT phonons.
 
 WARNING: This code must be tested more carefully.
 """
+
 from __future__ import annotations
 
 import numpy as np
 
 from abipy.core.structure import Structure
-from .works import Work, PhononWork
+
+from .works import PhononWork, Work
 
 
 class GruneisenWork(Work):
@@ -27,9 +28,9 @@ class GruneisenWork(Work):
     """
 
     @classmethod
-    def from_gs_input(cls, gs_inp, voldelta, ngqpt,
-                      tolerance=None, with_becs=False,
-                      ddk_tolerance=None, workdir=None, manager=None) -> GruneisenWork:
+    def from_gs_input(
+        cls, gs_inp, voldelta, ngqpt, tolerance=None, with_becs=False, ddk_tolerance=None, workdir=None, manager=None
+    ) -> GruneisenWork:
         """
         Build the work from an |AbinitInput| representing a GS calculations.
 
@@ -51,8 +52,10 @@ class GruneisenWork(Work):
         new.tolerance = tolerance
 
         if any(gs_inp["ngkpt"] % new.ngqpt != 0):
-            raise ValueError("Kmesh and Qmesh must be commensurate.\nGot ngkpt: `%s`\nand ngqpt: `%s`" % (
-                             str(gs_inp["ngkpt"]), str(new.ngqpt)))
+            raise ValueError(
+                "Kmesh and Qmesh must be commensurate.\nGot ngkpt: `%s`\nand ngqpt: `%s`"
+                % (str(gs_inp["ngkpt"]), str(new.ngqpt))
+            )
 
         # Build three tasks for structural optimization at constant volume.
         v0 = gs_inp.structure.volume
@@ -73,7 +76,7 @@ class GruneisenWork(Work):
             new_input = gs_inp.new_with_structure(new_structure)
             # Set variables for structural optimization at constant volume.
             new_input.pop_tolerances()
-            new_input.set_vars(optcell=3, ionmov=3, tolvrs=1e-10, toldff=1.e-6)
+            new_input.set_vars(optcell=3, ionmov=3, tolvrs=1e-10, toldff=1.0e-6)
             new_input.set_vars_ifnotin(ecutsm=0.5, dilatmx=1.05)
             t = new.register_relax_task(new_input)
             new.relax_tasks.append(t)
@@ -103,8 +106,14 @@ class GruneisenWork(Work):
 
             # work to compute phonons with new structure.
             gsinp_vol = self.gs_inp.new_with_structure(relaxed_structure)
-            work = PhononWork.from_scf_input(gsinp_vol, self.ngqpt, is_ngqpt=True, tolerance=self.tolerance,
-                                             with_becs=self.with_becs, ddk_tolerance=self.ddk_tolerance)
+            work = PhononWork.from_scf_input(
+                gsinp_vol,
+                self.ngqpt,
+                is_ngqpt=True,
+                tolerance=self.tolerance,
+                with_becs=self.with_becs,
+                ddk_tolerance=self.ddk_tolerance,
+            )
             # Add it to the flow.
             self.flow.register_work(work)
 
@@ -112,11 +121,17 @@ class GruneisenWork(Work):
 
         # Write Anaddb input file to compute Gruneisen parameters in flow.outdata.
         from abipy.abio.inputs import AnaddbInput
-        anaddb_inp = AnaddbInput.phbands_and_dos(struct_middle, self.ngqpt, nqsmall=20, ndivsm=20,
-                                                 chneut=1 if self.with_becs else 0,
-                                                 dipdip=1 if self.with_becs else 0,
-                                                 lo_to_splitting=self.with_becs,
-                                                 comment="Anaddb input file for Grunesein parameters")
+
+        anaddb_inp = AnaddbInput.phbands_and_dos(
+            struct_middle,
+            self.ngqpt,
+            nqsmall=20,
+            ndivsm=20,
+            chneut=1 if self.with_becs else 0,
+            dipdip=1 if self.with_becs else 0,
+            lo_to_splitting=self.with_becs,
+            comment="Anaddb input file for Grunesein parameters",
+        )
         # Add DDB files for Gruns
         anaddb_inp["gruns_nddbs"] = len(ddb_paths)
         anaddb_inp["gruns_ddbs"] = "\n" + "\n".join('"%s"' % p for p in ddb_paths)
@@ -125,20 +140,20 @@ class GruneisenWork(Work):
 
         files_file = []
         app = files_file.append
-        app(in_path)                                        # 1) Path of the input file
-        app(self.flow.outdir.path_in("anaddb_gruns.out"))   # 2) Path of the output file
-        app(ddb_paths[middle_idx])                          # 3) Input derivative database (not used if Gruns)
+        app(in_path)  # 1) Path of the input file
+        app(self.flow.outdir.path_in("anaddb_gruns.out"))  # 2) Path of the output file
+        app(ddb_paths[middle_idx])  # 3) Input derivative database (not used if Gruns)
         for i in range(4):
             app("FOOBAR")
 
-        with open(self.flow.outdir.path_in("anaddb_gruns.files"), "wt") as fh:
+        with open(self.flow.outdir.path_in("anaddb_gruns.files"), "w") as fh:
             fh.write("\n".join(files_file))
 
-        #task = AbinitTask.temp_shell_task(anaddb_inp, workdir=work.outdir, manager=self.manager)
-        #task.start_and_wait(autoparal=False)
+        # task = AbinitTask.temp_shell_task(anaddb_inp, workdir=work.outdir, manager=self.manager)
+        # task.start_and_wait(autoparal=False)
 
-        #with_ebands = False
-        #if with_ebands:
+        # with_ebands = False
+        # if with_ebands:
         #    bands_work = Work(manager=self.manager)
         #    for i, structure in enumerate(relaxed_structs):
         #        nscf_inp = self.gs_inp.new_with_structure(structure)

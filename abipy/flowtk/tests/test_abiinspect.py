@@ -1,9 +1,9 @@
 import os
 import tempfile
 
+import abipy.data as abidata
 from abipy.core.testing import AbipyTest
 from abipy.flowtk.abiinspect import *
-import abipy.data as abidata
 
 
 class YamlTokenizerTest(AbipyTest):
@@ -54,7 +54,7 @@ attacks: [BITE, HURT]
             for i, doc in enumerate(r):
                 n += 1
                 str(doc)
-                #print("doc", doc)
+                # print("doc", doc)
                 assert doc.tag == doc_tags[i]
                 assert doc.lineno == doc_linenos[i]
 
@@ -112,7 +112,7 @@ class AbinitInpectTest(AbipyTest):
         if self.has_matplotlib():
             assert cycle.plot(show=False)
             assert p.combiplot(show=False)
-            #p.slideshow()
+            # p.slideshow()
 
         if self.has_plotly():
             assert cycle.plotly(show=False)
@@ -131,8 +131,8 @@ class AbinitInpectTest(AbipyTest):
             str(scf_step.num_iterations)
 
         if self.has_matplotlib():
-           assert relaxation.plot(show=False)
-           #assert relaxation.slideshow(show=False)
+            assert relaxation.plot(show=False)
+            # assert relaxation.slideshow(show=False)
 
-        #if self.has_plotly():
+        # if self.has_plotly():
         #   assert relaxation.plotly(show=False)

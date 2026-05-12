@@ -9,12 +9,12 @@ the self-consistent potential perturbations (Δq Vscf) for each q-point
 using ab initio results, or by employing Fourier interpolation techniques
 starting from a coarse q-point mesh.
 """
-import sys
-import os
-import abipy.abilab as abilab
-import abipy.data as abidata
 
-from abipy import flowtk
+import os
+import sys
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
 from abipy.flowtk.eph_flows import EphPotFlow
 
 
@@ -40,7 +40,7 @@ xred 3*0
 """)
 
     pseudos = abidata.pseudos("Fe.psp8")
-    #pseudos = abidata.pseudos("Fe.upf")
+    # pseudos = abidata.pseudos("Fe.upf")
     scf_input = abilab.AbinitInput(structure, pseudos=pseudos)
     num_ele = scf_input.num_valence_electrons
 
@@ -55,23 +55,29 @@ xred 3*0
         nstep=300,
         paral_kgb=0,
         vloc_rcut=10,
-        #toldfe1=5e-13,
-        #ngfft=[30, 30, 30],
+        # toldfe1=5e-13,
+        # ngfft=[30, 30, 30],
     )
 
     # K-point grid
-    #scf_input.set_kmesh(ngkpt=[24, 24, 24], shiftk=[0, 0, 0])
+    # scf_input.set_kmesh(ngkpt=[24, 24, 24], shiftk=[0, 0, 0])
     scf_input.set_kmesh(ngkpt=[2, 2, 2], shiftk=[0, 0, 0])
 
     # q-mesh for phonons.
     ngqpt = [2, 2, 2]
-    #ngqpt = [1, 1, 1]
+    # ngqpt = [1, 1, 1]
 
     # List of q-points in reduced coordinates.
     qpath_list = [
-        +0.10000,  +0.10000,  +0.10000,
-        +0.00000,  +0.00000,  +0.00000,
-        +0.10000,  +0.00000,  +0.10000,
+        +0.10000,
+        +0.10000,
+        +0.10000,
+        +0.00000,
+        +0.00000,
+        +0.00000,
+        +0.10000,
+        +0.00000,
+        +0.10000,
     ]
 
     flow = EphPotFlow.from_scf_input(
@@ -79,9 +85,9 @@ xred 3*0
         scf_input,
         ngqpt,
         qpath_list,
-        ndivsm=0,                     # pass full list of q-points instead of boundaries.
+        ndivsm=0,  # pass full list of q-points instead of boundaries.
         what_to_compute="gkq_qpath",  # Important!
-        with_becs=False,              # Metal --> no becs, no dynamical quadrupoles.
+        with_becs=False,  # Metal --> no becs, no dynamical quadrupoles.
         with_quad=False,
     )
 
@@ -93,6 +99,7 @@ xred 3*0
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

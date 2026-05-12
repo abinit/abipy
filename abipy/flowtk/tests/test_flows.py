@@ -1,17 +1,16 @@
-# coding: utf-8
 import os
-import tempfile
 import shutil
-import abipy.data as abidata
+import tempfile
 
 from pymatgen.core.lattice import Lattice
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
 from abipy.core.structure import Structure
-from abipy.flowtk.flows import *
-from abipy.flowtk.works import *
-from abipy.flowtk.tasks import *
 from abipy.core.testing import AbipyTest
-from abipy import abilab
-from abipy import flowtk
+from abipy.flowtk.flows import *
+from abipy.flowtk.tasks import *
+from abipy.flowtk.works import *
 
 
 class FlowUnitTest(AbipyTest):
@@ -52,6 +51,7 @@ qadapters:
         mpi_runner: mpirun
 
 """
+
     def setUp(self):
         """Initialization phase."""
         super().setUp()
@@ -66,14 +66,16 @@ qadapters:
 
         # Fake input file
         from abipy.abio.inputs import AbinitInput
+
         coords = []
         coords.append([0, 0, 0])
         coords.append([0.75, 0.5, 0.75])
-        lattice = Lattice([[3.8401979337, 0.00, 0.00],
-                          [1.9200989668, 3.3257101909, 0.00],
-                          [0.00, -2.2171384943, 3.1355090603]])
-        self.fake_input = AbinitInput(structure=Structure(lattice, ["Si", "Si"], coords),
-                                      pseudos=abidata.pseudo("14si.pspnc"))
+        lattice = Lattice(
+            [[3.8401979337, 0.00, 0.00], [1.9200989668, 3.3257101909, 0.00], [0.00, -2.2171384943, 3.1355090603]]
+        )
+        self.fake_input = AbinitInput(
+            structure=Structure(lattice, ["Si", "Si"], coords), pseudos=abidata.pseudo("14si.pspnc")
+        )
 
     def tearDown(self):
         """Delete workdir"""
@@ -82,7 +84,6 @@ qadapters:
 
 
 class FlowTest(FlowUnitTest):
-
     def test_base(self):
         """Testing Flow..."""
         aequal = self.assertEqual
@@ -122,7 +123,7 @@ class FlowTest(FlowUnitTest):
         assert len(flow) == 1
         assert flow.num_tasks == 1
 
-        #print(task0_w0.input_structure)
+        # print(task0_w0.input_structure)
         str(task0_w0.make_input)
 
         # Task history
@@ -136,7 +137,7 @@ class FlowTest(FlowUnitTest):
         assert record.get_message(asctime=False) == "Hello world"
         assert len(task0_w0.history) == 0
         assert flow.select_tasks(nids=task0_w0.node_id)[0] == task0_w0
-        assert flow.select_tasks(wslice=slice(0,1,1)) == [task0_w0]
+        assert flow.select_tasks(wslice=slice(0, 1, 1)) == [task0_w0]
         assert flow.select_tasks(task_class="DfptTask") == []
         assert flow.get_task_scfcycles() == []
 
@@ -155,8 +156,8 @@ class FlowTest(FlowUnitTest):
         assert m.qads[0].max_mem_per_proc == 1024
         # This does not work as expected but the most importan thing is that
         # autoparal has been set to 0 and the other values have been updated.
-        #assert m.qads[0].min_cores == 1
-        #assert m.qads[0].max_cores == 1
+        # assert m.qads[0].min_cores == 1
+        # assert m.qads[0].max_cores == 1
 
         assert len(work) == 2
 
@@ -179,7 +180,7 @@ class FlowTest(FlowUnitTest):
         assert ddk_task_with_custom_limits.manager.qads[0].max_cores == 30, "should have custom value"
 
         # Check dependecies.
-        #task0_w1 = flow[1][0]
+        # task0_w1 = flow[1][0]
         assert flow[1].depends_on(task0_w0)
         assert flow[1][0].depends_on(task0_w0)
         assert flow[1][0] in task0_w0.get_children()
@@ -187,8 +188,8 @@ class FlowTest(FlowUnitTest):
         assert flow[1][0].find_parent_with_ext("WFK") == task0_w0
         assert flow[1][0].find_parent_with_ext("FOOBAR") is None
         assert not flow[2][0].depends_on(task0_w0)
-        assert not flow[2][0] in task0_w0.get_children()
-        assert not task0_w0 in flow[2][0].get_parents()
+        assert flow[2][0] not in task0_w0.get_children()
+        assert task0_w0 not in flow[2][0].get_parents()
         assert flow[1].pos == 1
         assert flow[1][0].pos == (1, 0)
         assert flow[2][0].pos == (2, 0)
@@ -221,9 +222,9 @@ class FlowTest(FlowUnitTest):
 
         # to/from string
         # FIXME This does not work with py3k
-        #s = flow.pickle_dumps(protocol=0)
-        #same_flow = Flow.pickle_loads(s)
-        #aequal(same_flow, flow)
+        # s = flow.pickle_dumps(protocol=0)
+        # same_flow = Flow.pickle_loads(s)
+        # aequal(same_flow, flow)
 
         self.assert_msonable(flow)
 
@@ -268,10 +269,24 @@ class FlowTest(FlowUnitTest):
         assert not dfs and not hist_plotter
 
         if self.has_networkx():
-            assert flow.plot_networkx(mode="network", with_edge_labels=False, arrows=False,
-                      node_size="num_cores", node_label="name_class", layout_type="spring", show=False)
-            assert flow.plot_networkx(mode="status", with_edge_labels=True, arrows=True,
-                      node_size="num_cores", node_label="name_class", layout_type="spring", show=False)
+            assert flow.plot_networkx(
+                mode="network",
+                with_edge_labels=False,
+                arrows=False,
+                node_size="num_cores",
+                node_label="name_class",
+                layout_type="spring",
+                show=False,
+            )
+            assert flow.plot_networkx(
+                mode="status",
+                with_edge_labels=True,
+                arrows=True,
+                node_size="num_cores",
+                node_label="name_class",
+                layout_type="spring",
+                show=False,
+            )
 
         if self.has_python_graphviz():
             assert flow.get_graphviz(engine="automatic", graph_attr=None, node_attr=None, edge_attr=None)
@@ -286,18 +301,18 @@ class FlowTest(FlowUnitTest):
         assert flow._status == flow.S_ERROR
         assert flow.status == flow.S_ERROR
 
-
     def test_workdir(self):
         """Testing if one can use workdir=None in flow.__init__ and then flow.allocate(workdir)."""
         flow = Flow(workdir=None, manager=self.manager)
         flow.register_task(self.fake_input)
-        #flow.register_work(work)
+        # flow.register_work(work)
         work = Work()
         work.register_scf_task(self.fake_input)
         flow.register_work(work)
 
         # If flow.workdir is None, we should used flow.allocate(workdir)
-        with self.assertRaises(RuntimeError): flow.allocate()
+        with self.assertRaises(RuntimeError):
+            flow.allocate()
 
         tmpdir = tempfile.mkdtemp()
         flow.allocate(workdir=tmpdir)
@@ -316,9 +331,9 @@ class FlowTest(FlowUnitTest):
 
         def make_scf_nscf_inputs():
             """Build ands return the input files for the GS-SCF and the GS-NSCF tasks."""
-
-            multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"),
-                                        pseudos=abidata.pseudos("14si.pspnc"), ndtset=2)
+            multi = abilab.MultiDataset(
+                structure=abidata.cif_file("si.cif"), pseudos=abidata.pseudos("14si.pspnc"), ndtset=2
+            )
 
             # Set global variables (dataset1 and dataset2)
             multi.set_vars(ecut=6, nband=8)
@@ -329,9 +344,9 @@ class FlowTest(FlowUnitTest):
 
             # Dataset 2 (GS-NSCF run on a k-path)
             kptbounds = [
-                [0.5, 0.0, 0.0], # L point
-                [0.0, 0.0, 0.0], # Gamma point
-                [0.0, 0.5, 0.5], # X point
+                [0.5, 0.0, 0.0],  # L point
+                [0.0, 0.0, 0.0],  # Gamma point
+                [0.0, 0.5, 0.5],  # X point
             ]
 
             multi[1].set_kpath(ndivsm=6, kptbounds=kptbounds)
@@ -345,8 +360,8 @@ class FlowTest(FlowUnitTest):
         hello_flow = flowtk.Flow(workdir=self.mkdtemp())
         hello_flow.register_scf_task(scf_input, append=True)
         hello_flow.register_nscf_task(nscf_input, deps={hello_flow[0][0]: "DEN"}, append=True)
-        #flow[0].get_graphviz_dirtree()
-        #abilab.print_doc(flowtk.PhononWork)
+        # flow[0].get_graphviz_dirtree()
+        # abilab.print_doc(flowtk.PhononWork)
 
         hello_flow = flowtk.Flow(workdir=self.mkdtemp())
         hello_flow.register_scf_task(scf_input, append=True)
@@ -358,9 +373,7 @@ class FlowTest(FlowUnitTest):
         assert len(hello_flow) == 3
 
 
-
 class TestFlowInSpectatorMode(FlowUnitTest):
-
     def test_spectator(self):
         flow = Flow(workdir=self.workdir, manager=self.manager)
 
@@ -401,16 +414,16 @@ class TestFlowInSpectatorMode(FlowUnitTest):
         flow = Flow.pickle_load(flow.workdir)
         assert flow.in_spectator_mode
 
-        #with self.assertRaises(flow.SpectatorError): flow.pickle_dump()
-        #with self.assertRaises(flow.SpectatorError): flow.make_scheduler().start()
+        # with self.assertRaises(flow.SpectatorError): flow.pickle_dump()
+        # with self.assertRaises(flow.SpectatorError): flow.make_scheduler().start()
 
         work = flow[0]
         assert work.send_signal(work.S_OK) is None
-        #with self.assertRaises(work.SpectatorError): work.on_ok()
-        #with self.assertRaises(work.SpectatorError): work.on_all_ok()
+        # with self.assertRaises(work.SpectatorError): work.on_ok()
+        # with self.assertRaises(work.SpectatorError): work.on_all_ok()
 
         task = work[0]
         assert task.send_signal(task.S_OK) is None
-        #with self.assertRaises(task.SpectatorError): task._on_done()
-        #with self.assertRaises(task.SpectatorError): task.on_ok()
-        #with self.assertRaises(task.SpectatorError): task._on_ok()
+        # with self.assertRaises(task.SpectatorError): task._on_done()
+        # with self.assertRaises(task.SpectatorError): task.on_ok()
+        # with self.assertRaises(task.SpectatorError): task._on_ok()

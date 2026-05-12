@@ -1,22 +1,30 @@
-# coding: utf-8
 """Classes for the analysis of electronic fatbands and projected DOSes."""
+
 from __future__ import annotations
 
 import traceback
-import numpy as np
-
 from collections import OrderedDict, defaultdict
-from tabulate import tabulate
 from functools import cached_property
-from monty.termcolor import cprint
+
+import numpy as np
 from monty.string import marquee
-from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
+from monty.termcolor import cprint
+from tabulate import tabulate
+
+from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Header, Has_Structure, NotebookWriter
 from abipy.core.structure import Structure
 from abipy.electrons.ebands import ElectronBands, ElectronsReader
 from abipy.tools.numtools import gaussian
+from abipy.tools.plotting import (
+    PlotlyRowColDesc,
+    add_fig_kwargs,
+    add_plotly_fig_kwargs,
+    get_axarray_fig_plt,
+    get_figs_plotly,
+    plotly_set_lims,
+    set_axlims,
+)
 from abipy.tools.typing import Figure
-from abipy.tools.plotting import (set_axlims, get_axarray_fig_plt, add_fig_kwargs, get_figs_plotly,
-    add_plotly_fig_kwargs, PlotlyRowColDesc, plotly_set_lims)
 
 
 def gaussians_dos(dos, mesh, width, values, energies, weights):
@@ -24,7 +32,7 @@ def gaussians_dos(dos, mesh, width, values, energies, weights):
     Accumulate dos with the Gaussian method.
     """
     assert len(dos) == len(mesh) and len(values) == len(energies) == len(weights)
-    for vw, e, w in zip(values * weights, energies, weights):
+    for vw, e, w in zip(values * weights, energies, weights, strict=False):
         dos += vw * gaussian(mesh, width, center=e)
     return dos
 
@@ -48,6 +56,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: FatBandsFile
     """
+
     # These class attributes can be redefined in order to customize the plots.
 
     # Mapping L --> color used in plots.
@@ -64,20 +73,33 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     # and we need a latex symbol to avoid errors in matplotlib --> replace myuparrow --> uparrow
 
     # Mapping spin --> title used in subplots that depend on (collinear) spin.
-    spin2tex = {k: v.replace("myuparrow", "uparrow") for k, v in
-            {0: r"$\sigma=\myuparrow$", 1: r"$\sigma=\downarrow$"}.items()}
+    spin2tex = {
+        k: v.replace("myuparrow", "uparrow") for k, v in {0: r"$\sigma=\myuparrow$", 1: r"$\sigma=\downarrow$"}.items()
+    }
 
     # Mappings used for non-collinear spins.
-    spinors2tex = {k: v.replace("myuparrow", "uparrow") for k, v in
-        {"up-up": r"$\myuparrow,\myuparrow$", "up-down": r"$\myuparrow,\downarrow$",
-                   "down-up": r"$\downarrow,\myuparrow$", "down-down": r"$\downarrow,\downarrow$",
-                   "sigma_x": r"$\sigma_{x}$", "sigma_y": r"$\sigma_{y}$", "sigma_z": r"$\sigma_{z}$",
-                  }.items()}
+    spinors2tex = {
+        k: v.replace("myuparrow", "uparrow")
+        for k, v in {
+            "up-up": r"$\myuparrow,\myuparrow$",
+            "up-down": r"$\myuparrow,\downarrow$",
+            "down-up": r"$\downarrow,\myuparrow$",
+            "down-down": r"$\downarrow,\downarrow$",
+            "sigma_x": r"$\sigma_{x}$",
+            "sigma_y": r"$\sigma_{y}$",
+            "sigma_z": r"$\sigma_{z}$",
+        }.items()
+    }
 
-    spinors2color = {"up-up": "black", "up-down": "brown",
-                     "down-up": "violet", "down-down": "yellow",
-                     "sigma_x": "green", "sigma_y": "blue", "sigma_z": "red",
-                   }
+    spinors2color = {
+        "up-up": "black",
+        "up-down": "brown",
+        "down-up": "violet",
+        "down-down": "yellow",
+        "sigma_x": "green",
+        "sigma_y": "blue",
+        "sigma_z": "red",
+    }
 
     # The alpha blending value, between 0 (transparent) and 1 (opaque)
     alpha = 0.6
@@ -87,7 +109,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     marker_size = 3.0
     linewidth = 0.1
     linecolor = "grey"
-    #klabel_size = None
+    # klabel_size = None
 
     @classmethod
     def from_file(cls, filepath: str) -> FatBandsFile:
@@ -95,6 +117,10 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         return cls(filepath)
 
     def __init__(self, filepath: str):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
         self.r = self.reader = r = ElectronsReader(filepath)
 
@@ -107,7 +133,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         self.pawprtdos = r.read_value("pawprtdos")
         self.usepaw = r.read_value("usepaw")
         self.natsph = r.read_dimvalue("natsph")
-        self.iatsph = r.read_value("iatsph") - 1 # F --> C
+        self.iatsph = r.read_value("iatsph") - 1  # F --> C
         self.ndosfraction = r.read_dimvalue("ndosfraction")
         # mbesslang: 1 + maximum angular momentum for Bessel function expansion.
         self.mbesslang = r.read_dimvalue("mbesslang")
@@ -119,8 +145,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             self.ratsph_extra = r.read_value("ratsph_extra")
             self.xredsph_extra = r.read_value("xredsph_extra")
         if self.natsph_extra != 0:
-            raise NotImplementedError("natsph_extra is not implemented, "
-                                      "but it's just a matter of using natom + natsph_extra")
+            raise NotImplementedError(
+                "natsph_extra is not implemented, but it's just a matter of using natom + natsph_extra"
+            )
 
         # This is a tricky part. Note the following:
         # If usepaw == 0, lmax_type gives the max l included in the non-local part of Vnl
@@ -133,7 +160,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         if self.usepaw == 0 or (self.usepaw == 1 and self.pawprtdos != 2):
             self.lmax_type[:] = self.mbesslang - 1
 
-        self.typat = r.read_value("atom_species") - 1 # F --> C
+        self.typat = r.read_value("atom_species") - 1  # F --> C
         self.lmax_atom = np.empty(self.natom, dtype=int)
         for iat in range(self.natom):
             self.lmax_atom[iat] = self.lmax_type[self.typat[iat]]
@@ -144,6 +171,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         # Note that we don't have arrays dimensioned with ntypat in the nc file so we can define
         # our own ordering for symbols.
         from pymatgen.core.periodic_table import Element
+
         self.symbols = sorted(self.structure.symbol_set, key=lambda s: Element[s].Z)
         self.symbol2indices, self.lmax_symbol = OrderedDict(), OrderedDict()
         for symbol in self.symbols:
@@ -159,10 +187,11 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         else:
             # Use colormap. Color will now be an RGBA tuple
             import matplotlib.pyplot as plt
-            cmap = plt.get_cmap('jet')
+
+            cmap = plt.get_cmap("jet")
             nsymb = len(self.symbols)
             for i, symb in enumerate(self.symbols):
-                self.symbol2color[symb] = cmap(i/nsymb)
+                self.symbol2color[symb] = cmap(i / nsymb)
 
         # Array dimensioned with natom. Set to true if iatom has been calculated
         if self.prtdos == 3:
@@ -216,8 +245,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             else:
                 print("natsph < natom. Will set to zero the PJDOS contributions for the atoms that are not included.")
                 assert self.natsph < self.natom
-                filedata = np.reshape(self.r.read_value(key),
-                                     (self.natsph, self.mbesslang, self.nsppol, self.mband, self.nkpt))
+                filedata = np.reshape(
+                    self.r.read_value(key), (self.natsph, self.mbesslang, self.nsppol, self.mband, self.nkpt)
+                )
                 for i, iatom in enumerate(self.iatsph):
                     wal_sbk[iatom] = filedata[i]
 
@@ -225,8 +255,10 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         # very bad cancellation between the FFT and the PS-PAW term (pawprtden=0).
         num_neg = np.sum(wal_sbk < 0)
         if num_neg:
-            print("WARNING: There are %d (%.1f%%) negative entries in LDOS weights" % (
-                  num_neg, 100 * num_neg / wal_sbk.size))
+            print(
+                "WARNING: There are %d (%.1f%%) negative entries in LDOS weights"
+                % (num_neg, 100 * num_neg / wal_sbk.size)
+            )
 
         return wal_sbk
 
@@ -263,8 +295,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             else:
                 print("natsph < natom. Will set to zero the PJDOS contributions for the atoms that are not included.")
                 assert self.natsph < self.natom
-                filedata = np.reshape(self.r.read_value(key),
-                                     (self.natsph, self.mbesslang**2, self.nsppol, self.mband, self.nkpt))
+                filedata = np.reshape(
+                    self.r.read_value(key), (self.natsph, self.mbesslang**2, self.nsppol, self.mband, self.nkpt)
+                )
                 for i, iatom in enumerate(self.iatsph):
                     walm_sbk[iatom] = filedata[i]
 
@@ -272,8 +305,10 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         # very bad cancellation between the FFT and the PS-PAW term (pawprtden=0).
         num_neg = np.sum(walm_sbk < 0)
         if num_neg:
-            print("WARNING: There are %d (%.1f%%) negative entries in LDOS weights" % (
-                  num_neg, 100 * num_neg / walm_sbk.size))
+            print(
+                "WARNING: There are %d (%.1f%%) negative entries in LDOS weights"
+                % (num_neg, 100 * num_neg / walm_sbk.size)
+            )
 
         return walm_sbk
 
@@ -289,7 +324,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
     @cached_property
     def params(self) -> dict:
-        """dict with parameters that might be subject to convergence studies."""
+        """Dict with parameters that might be subject to convergence studies."""
         od = self.get_ebands_params()
         return od
 
@@ -303,7 +338,8 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
     def to_string(self, verbose: int = 0) -> str:
         """String representation."""
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
 
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
@@ -313,8 +349,10 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         app(self.ebands.to_string(with_structure=True, title="Electronic Bands"))
         app("")
         app(marquee("Fatbands Info", mark="="))
-        app("prtdos: %d, prtdosm: %d, mbesslang: %d, pawprtdos: %d, usepaw: %d" % (
-            self.prtdos, self.prtdosm, self.mbesslang, self.pawprtdos, self.usepaw))
+        app(
+            "prtdos: %d, prtdosm: %d, mbesslang: %d, pawprtdos: %d, usepaw: %d"
+            % (self.prtdos, self.prtdosm, self.mbesslang, self.pawprtdos, self.usepaw)
+        )
         app("nsppol: %d, nkpt: %d, mband: %d" % (self.nsppol, self.nkpt, self.mband))
         app("")
 
@@ -322,14 +360,16 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             # Print table with info on atoms.
             table = [["Idx", "Symbol", "Reduced_Coords", "Lmax", "Ratsph [Bohr]", "Has_Atom"]]
             for iatom, site in enumerate(self.structure):
-                table.append([
-                    iatom,
-                    site.specie.symbol,
-                    "%.5f %.5f %.5f" % tuple(site.frac_coords),
-                    self.lmax_atom[iatom],
-                    self.ratsph_type[self.typat[iatom]],
-                    "Yes" if self.has_atom[iatom] else "No",
-                ])
+                table.append(
+                    [
+                        iatom,
+                        site.specie.symbol,
+                        "%.5f %.5f %.5f" % tuple(site.frac_coords),
+                        self.lmax_atom[iatom],
+                        self.ratsph_type[self.typat[iatom]],
+                        "Yes" if self.has_atom[iatom] else "No",
+                    ]
+                )
             app(tabulate(table, headers="firstrow"))
 
         if verbose > 1:
@@ -346,9 +386,8 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         """
         if spin is None and band is None:
             return self.wal_sbk[iatom]
-        else:
-            assert spin is not None and band is not None
-            return self.wal_sbk[iatom, :, spin, band, :]
+        assert spin is not None and band is not None
+        return self.wal_sbk[iatom, :, spin, band, :]
 
     def get_wl_symbol(self, symbol, spin=None, band=None) -> np.ndarray:
         """
@@ -360,13 +399,13 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         if spin is None and band is None:
             wl = np.zeros((self.lsize, self.nsppol, self.mband, self.nkpt))
             for iat in self.symbol2indices[symbol]:
-                for l in range(self.lmax_atom[iat]+1):
+                for l in range(self.lmax_atom[iat] + 1):
                     wl[l] += self.wal_sbk[iat, l]
         else:
             assert spin is not None and band is not None
             wl = np.zeros((self.lsize, self.nkpt))
             for iat in self.symbol2indices[symbol]:
-                for l in range(self.lmax_atom[iat]+1):
+                for l in range(self.lmax_atom[iat] + 1):
                     wl[l, :] += self.wal_sbk[iat, l, spin, band, :]
 
         return wl
@@ -382,14 +421,14 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         if spin is None and band is None:
             wl = self.get_wl_symbol(symbol)
             w = np.zeros((self.nsppol, self.mband, self.nkpt))
-            for l in range(self.lmax_symbol[symbol]+1):
+            for l in range(self.lmax_symbol[symbol] + 1):
                 w += wl[l]
 
         else:
             assert spin is not None and band is not None
             wl = self.get_wl_symbol(symbol, spin=spin, band=spin)
-            w = np.zeros((self.nkpt))
-            for l in range(self.lmax_symbol[symbol]+1):
+            w = np.zeros(self.nkpt)
+            for l in range(self.lmax_symbol[symbol] + 1):
                 w += wl[l]
 
         return w
@@ -403,13 +442,13 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         if spin is None and band is None:
             sp = np.zeros((self.nsppol, self.mband, self.nkpt))
             for iatom in range(self.natom):
-                for l in range(self.lmax_atom[iatom]+1):
+                for l in range(self.lmax_atom[iatom] + 1):
                     sp += self.wal_sbk[iatom, l]
         else:
             assert spin is not None and band is not None
-            sp = np.zeros((self.nkpt))
+            sp = np.zeros(self.nkpt)
             for iatom in range(self.natom):
-                for l in range(self.lmax_atom[iatom]+1):
+                for l in range(self.lmax_atom[iatom] + 1):
                     sp += self.wal_sbk[iatom, l, spin, band, :]
 
         return 1.0 - sp
@@ -425,7 +464,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             linewidth=self.linewidth,
             markersize=self.marker_size,
             marker=self.marker_spin[spin],
-            #klabel_size=self.klabel_size,
+            # klabel_size=self.klabel_size,
         )
 
     def eb_plotly_kwargs(self, spin: int) -> tuple[dict]:
@@ -434,13 +473,15 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         when plotting a band line with spin index ``spin``.
         Subclasses can redefine the implementation to customize the plots.
         """
-        return dict(width=self.linewidth, color=self.linecolor), \
-               dict(marker = dict(size=self.marker_size+5, symbol=self.marker_spin_plotly[spin]))
-        #klabel_size=self.klabel_size,
+        return dict(width=self.linewidth, color=self.linecolor), dict(
+            marker=dict(size=self.marker_size + 5, symbol=self.marker_spin_plotly[spin])
+        )
+        # klabel_size=self.klabel_size,
 
     @add_fig_kwargs
-    def plot_fatbands_siteview(self, e0="fermie", view="inequivalent", fact=1.0, fontsize=12,
-                               ylims=None, blist=None, **kwargs) -> Figure:
+    def plot_fatbands_siteview(
+        self, e0="fermie", view="inequivalent", fact=1.0, fontsize=12, ylims=None, blist=None, **kwargs
+    ) -> Figure:
         """
         Plot fatbands for each atom in the unit cell. By default, only the **inequivalent** atoms are shown.
 
@@ -461,8 +502,13 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         # Define num_plots and ax2atom depending on view.
         # ax2natom[1:num_plots] --> iatom index in structure.
         # TODO: ebands.used_magnetic_symmetries?
-        if view == "inequivalent" and (self.nspden == 2 and self.nsppol == 1) or (self.nspinor == 2 and self.nspden != 4):
-            cprint("The system with magnetic symmetries but the spglib API used by pymatgen does not support them.", "yellow")
+        if (view == "inequivalent" and (self.nspden == 2 and self.nsppol == 1)) or (
+            self.nspinor == 2 and self.nspden != 4
+        ):
+            cprint(
+                "The system with magnetic symmetries but the spglib API used by pymatgen does not support them.",
+                "yellow",
+            )
             cprint("    nsppol: %s, nspden: %s, nspinor: %s" % (self.nsppol, self.nspden, self.nspinor), "yellow")
             cprint("Setting view to `all`", "yellow")
             view = "all"
@@ -486,10 +532,10 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             ncols = 2
             nrows = num_plots // ncols + num_plots % ncols
 
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=True, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols, sharex=True, sharey=True, squeeze=False)
         # don't show the last ax if num_plots is odd.
-        if num_plots % ncols != 0: ax_mat[-1, -1].axis("off")
+        if num_plots % ncols != 0:
+            ax_mat[-1, -1].axis("off")
 
         ebands = self.ebands
         e0 = ebands.get_e0(e0)
@@ -511,13 +557,19 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                     wlk = self.get_wl_atom(iatom, spin=spin, band=band) * (fact / 2)
                     yup = ebands.eigens[spin, :, band] - e0
                     ydown = yup
-                    for l in range(self.lmax_atom[iatom]+1):
-                        w = wlk[l,:]
+                    for l in range(self.lmax_atom[iatom] + 1):
+                        w = wlk[l, :]
                         y1, y2 = yup + w, ydown - w
                         ax.fill_between(x, yup, y1, alpha=self.alpha, facecolor=self.l2color[l])
-                        ax.fill_between(x, ydown, y2, alpha=self.alpha, facecolor=self.l2color[l],
-                                        label=self.l2tex[l] if (spin, band) == (0, 0) else None)
-                                        # Note: could miss a label in the other plots if lmax is not large enough!
+                        ax.fill_between(
+                            x,
+                            ydown,
+                            y2,
+                            alpha=self.alpha,
+                            facecolor=self.l2color[l],
+                            label=self.l2tex[l] if (spin, band) == (0, 0) else None,
+                        )
+                        # Note: could miss a label in the other plots if lmax is not large enough!
                         yup, ydown = y1, y2
 
             set_axlims(ax, ylims, "y")
@@ -527,8 +579,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         return fig
 
     @add_fig_kwargs
-    def plot_fatbands_lview(self, e0="fermie", fact=1.0, ax_mat=None, lmin=0, lmax=None,
-                            ylims=None, blist=None, fontsize=12, **kwargs) -> Figure:
+    def plot_fatbands_lview(
+        self, e0="fermie", fact=1.0, ax_mat=None, lmin=0, lmax=None, ylims=None, blist=None, fontsize=12, **kwargs
+    ) -> Figure:
         """
         Plot the electronic fatbands grouped by L with matplotlib.
 
@@ -551,8 +604,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         mylsize = self.lsize if lmax is None else lmax + 1
         # Build or get grid with (nsppol, mylsize) axis.
         nrows, ncols = self.nsppol, mylsize - lmin
-        ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=True, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(
+            ax_mat, nrows=nrows, ncols=ncols, sharex=True, sharey=True, squeeze=False
+        )
         ax_mat = np.reshape(ax_mat, (nrows, ncols))
 
         ebands = self.ebands
@@ -572,7 +626,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                     # Only the first column show labels.
                     # Trick: Don't change the labels but set their fontsize to 0 otherwise
                     # also the other axes are affected (likely due to sharey=True).
-                    #ax.yaxis.set_tick_params(fontsize=0)
+                    # ax.yaxis.set_tick_params(fontsize=0)
                     for tick in ax.yaxis.get_major_ticks():
                         tick.label1.set_fontsize(0)
 
@@ -585,8 +639,14 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                         y1, y2 = yup + w, ydown - w
                         # Add width around each band. Only the [0,0] plot has the legend.
                         ax.fill_between(x, yup, y1, alpha=self.alpha, facecolor=self.symbol2color[symbol])
-                        ax.fill_between(x, ydown, y2, alpha=self.alpha, facecolor=self.symbol2color[symbol],
-                                        label=symbol if (l, spin, ib) == (0, 0, 0) else None)
+                        ax.fill_between(
+                            x,
+                            ydown,
+                            y2,
+                            alpha=self.alpha,
+                            facecolor=self.symbol2color[symbol],
+                            label=symbol if (l, spin, ib) == (0, 0, 0) else None,
+                        )
                         yup, ydown = y1, y2
 
                 set_axlims(ax, ylims, "y")
@@ -595,8 +655,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         return fig
 
     @add_plotly_fig_kwargs
-    def plotly_fatbands_lview(self, e0="fermie", fact=1.0, fig=None, lmax=None,
-                              ylims=None, blist=None, fontsize=12, band_and_dos=0,  **kwargs):
+    def plotly_fatbands_lview(
+        self, e0="fermie", fact=1.0, fig=None, lmax=None, ylims=None, blist=None, fontsize=12, band_and_dos=0, **kwargs
+    ):
         """
         Plot the electronic fatbands grouped by L with plotly.
 
@@ -621,8 +682,14 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         nrows, ncols = self.nsppol, mylsize
         # Build fig with subplots.
         if fig is None:
-            fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=list(range(1, nrows * ncols + 1)),
-                                     sharex=True, sharey=True, horizontal_spacing=0.02)
+            fig, _ = get_figs_plotly(
+                nrows=nrows,
+                ncols=ncols,
+                subplot_titles=list(range(1, nrows * ncols + 1)),
+                sharex=True,
+                sharey=True,
+                horizontal_spacing=0.02,
+            )
 
         ebands = self.ebands
         e0 = ebands.get_e0(e0)
@@ -631,14 +698,14 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         for spin in range(self.nsppol):
             for l in range(mylsize):
-                rcd = PlotlyRowColDesc(spin, l+band_and_dos*l, nrows, ncols*(1+band_and_dos))
+                rcd = PlotlyRowColDesc(spin, l + band_and_dos * l, nrows, ncols * (1 + band_and_dos))
                 ply_row, ply_col, iax = rcd.ply_row, rcd.ply_col, rcd.iax
 
                 line_opts, marker_opts = self.eb_plotly_kwargs(spin)
                 ebands.plotly_traces(fig, e0, rcd=rcd, spin=spin, line_opts=line_opts, **marker_opts)
 
                 if self.nsppol == 2:
-                    title = r"$%s , %s$" % (self.l2tex[l].replace('$',''), self.spin2tex[spin].replace('$',''))
+                    title = r"$%s , %s$" % (self.l2tex[l].replace("$", ""), self.spin2tex[spin].replace("$", ""))
                 else:
                     title = "%s" % self.l2tex[l]
                 ebands.decorate_plotly(fig, iax=iax)
@@ -646,7 +713,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                 fig.layout.annotations[iax - 1].font.size = fontsize
 
                 if l != 0:
-                    yaxis = 'yaxis%u' % iax
+                    yaxis = "yaxis%u" % iax
                     fig.layout[yaxis].title.text = ""
                     # Only the first column show labels.
 
@@ -658,21 +725,72 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                         w = wlk[l]
                         y1, y2 = yup + w, ydown - w
                         # Add width around each band. Only the [0,0] plot show the legend.
-                        fill_line_opts = {'color': self.symbol2color[symbol], 'width': 0.1}
-                        fig.add_scatter(x=x, y=yup, mode='lines', line=fill_line_opts, opacity=self.alpha,
-                                        name='', showlegend=False, legendgroup=symbol, row=ply_row, col=ply_col)
-                        fig.add_scatter(x=x, y=y1, mode='lines', line=fill_line_opts, opacity=self.alpha,
-                                        name='', showlegend=False, legendgroup=symbol, fill='tonexty', row=ply_row, col=ply_col)
-                        fig.add_scatter(x=x, y=ydown, mode='lines', line=fill_line_opts, opacity=self.alpha,
-                                        name='', showlegend=False, legendgroup=symbol, row=ply_row, col=ply_col)
+                        fill_line_opts = {"color": self.symbol2color[symbol], "width": 0.1}
+                        fig.add_scatter(
+                            x=x,
+                            y=yup,
+                            mode="lines",
+                            line=fill_line_opts,
+                            opacity=self.alpha,
+                            name="",
+                            showlegend=False,
+                            legendgroup=symbol,
+                            row=ply_row,
+                            col=ply_col,
+                        )
+                        fig.add_scatter(
+                            x=x,
+                            y=y1,
+                            mode="lines",
+                            line=fill_line_opts,
+                            opacity=self.alpha,
+                            name="",
+                            showlegend=False,
+                            legendgroup=symbol,
+                            fill="tonexty",
+                            row=ply_row,
+                            col=ply_col,
+                        )
+                        fig.add_scatter(
+                            x=x,
+                            y=ydown,
+                            mode="lines",
+                            line=fill_line_opts,
+                            opacity=self.alpha,
+                            name="",
+                            showlegend=False,
+                            legendgroup=symbol,
+                            row=ply_row,
+                            col=ply_col,
+                        )
                         if (l, spin, ib) == (0, 0, 0):
-                            fig.add_scatter(x=x, y=y2, mode='lines', line=fill_line_opts, opacity=self.alpha,
-                                            name=symbol, showlegend=True, legendgroup=symbol, fill='tonexty',
-                                            row=ply_row, col=ply_col)
+                            fig.add_scatter(
+                                x=x,
+                                y=y2,
+                                mode="lines",
+                                line=fill_line_opts,
+                                opacity=self.alpha,
+                                name=symbol,
+                                showlegend=True,
+                                legendgroup=symbol,
+                                fill="tonexty",
+                                row=ply_row,
+                                col=ply_col,
+                            )
                         else:
-                            fig.add_scatter(x=x, y=y2, mode='lines', line=fill_line_opts, opacity=self.alpha,
-                                            name='', showlegend=False, legendgroup=symbol, fill='tonexty',
-                                            row=ply_row, col=ply_col)
+                            fig.add_scatter(
+                                x=x,
+                                y=y2,
+                                mode="lines",
+                                line=fill_line_opts,
+                                opacity=self.alpha,
+                                name="",
+                                showlegend=False,
+                                legendgroup=symbol,
+                                fill="tonexty",
+                                row=ply_row,
+                                col=ply_col,
+                            )
                         yup, ydown = y1, y2
 
                 plotly_set_lims(fig, ylims, "y", iax=iax)
@@ -681,8 +799,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         return fig
 
     @add_fig_kwargs
-    def plot_fatbands_mview(self, iatom, e0="fermie", fact=1.0, lmax=None,
-                            ylims=None, blist=None, **kwargs) -> Figure:
+    def plot_fatbands_mview(self, iatom, e0="fermie", fact=1.0, lmax=None, ylims=None, blist=None, **kwargs) -> Figure:
         """
         Plot the electronic fatbands grouped by LM.
 
@@ -701,7 +818,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         Returns: |matplotlib-Figure|
         """
         # TODO
-        #if self.nsppol == 2:
+        # if self.nsppol == 2:
         #    raise NotImplementedError("To be tested with spin")
 
         if not (self.prtdos == 3 and self.prtdosm != 0):
@@ -712,9 +829,10 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         # Build plot grid.
         import matplotlib.pyplot as plt
-        from matplotlib.gridspec import GridSpec #, GridSpecFromSubplotSpec
+        from matplotlib.gridspec import GridSpec  # , GridSpecFromSubplotSpec
+
         fig = plt.figure()
-        nrows, ncols = 2 * (mylmax+1), mylmax + 1
+        nrows, ncols = 2 * (mylmax + 1), mylmax + 1
         gspec = GridSpec(nrows=nrows, ncols=ncols, wspace=0.1, hspace=0.1)
 
         # Build plot grid (L along the column, each L has 2L+1 subplots).
@@ -725,8 +843,8 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                 k = (l, im)
                 ax00 = None if l == 0 else ax_lim[(0, 0)]
                 ax = plt.subplot(gspec[im, l], sharex=ax00, sharey=ax00)
-                if im < 2*l + 1:
-                    #ax.set_title("l=%d, m=%d" % (l, im - l))
+                if im < 2 * l + 1:
+                    # ax.set_title("l=%d, m=%d" % (l, im - l))
                     ax_lim[k] = ax
                     ax.grid(True)
                 else:
@@ -744,16 +862,16 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
             if im == 2 * l:
                 ebands.decorate_ax(ax)
-            #if l > 0:
+            # if l > 0:
             #    ax.set_ylabel("")
 
             for spin in range(self.nsppol):
                 for band in mybands:
-                    #print("band:", band)
+                    # print("band:", band)
                     yup = ebands.eigens[spin, :, band] - e0
                     ydown = yup
 
-                    w = self.walm_sbk[iatom,  l**2 + im, spin, band, :] * (fact / 2)
+                    w = self.walm_sbk[iatom, l**2 + im, spin, band, :] * (fact / 2)
                     y1, y2 = yup + w, ydown - w
                     # Add width around each band.
                     ax.fill_between(x, yup, y1, alpha=self.alpha, facecolor=self.l2color[l])
@@ -765,8 +883,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         return fig
 
     @add_fig_kwargs
-    def plot_fatbands_typeview(self, e0="fermie", fact=1.0, lmax=None, l_list=None, ax_mat=None, ylims=None,
-                               blist=None, fontsize=8, **kwargs) -> Figure:
+    def plot_fatbands_typeview(
+        self, e0="fermie", fact=1.0, lmax=None, l_list=None, ax_mat=None, ylims=None, blist=None, fontsize=8, **kwargs
+    ) -> Figure:
         """
         Plot the electronic fatbands grouped by atomic type with matplotlib.
 
@@ -790,8 +909,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         # Get ax_mat and fig.
         nrows, ncols = self.nsppol, self.ntypat
-        ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=True, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(
+            ax_mat, nrows=nrows, ncols=ncols, sharex=True, sharey=True, squeeze=False
+        )
         ax_mat = np.reshape(ax_mat, (nrows, ncols))
 
         ebands = self.ebands
@@ -805,8 +925,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                 ax = ax_mat[spin, itype]
                 ebands.plot_ax(ax, e0, spin=spin, **self.eb_plotax_kwargs(spin))
 
-                title = ("type=%s, %s" % (symbol, self.spin2tex[spin]) if self.nsppol == 2
-                         else "type=%s" % symbol)
+                title = "type=%s, %s" % (symbol, self.spin2tex[spin]) if self.nsppol == 2 else "type=%s" % symbol
                 ebands.decorate_ax(ax, title=title)
                 if itype != 0:
                     ax.set_ylabel("")
@@ -816,14 +935,21 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                     yup = ebands.eigens[spin, :, band] - e0
                     ydown = yup
                     for l in range(min(self.lmax_symbol[symbol] + 1, mylsize)):
-                        if l_list is not None and l not in l_list: continue
+                        if l_list is not None and l not in l_list:
+                            continue
                         # Add width around each band.
                         w = wl_sbk[l, spin, band]
                         y1, y2 = yup + w, ydown - w
                         ax.fill_between(x, yup, y1, alpha=self.alpha, facecolor=self.l2color[l])
-                        ax.fill_between(x, ydown, y2, alpha=self.alpha, facecolor=self.l2color[l],
-                                        label=self.l2tex[l] if (itype, spin, band) == (0, 0, 0) else None)
-                                        # Note: could miss a label in the other plots if lmax is not large enough!
+                        ax.fill_between(
+                            x,
+                            ydown,
+                            y2,
+                            alpha=self.alpha,
+                            facecolor=self.l2color[l],
+                            label=self.l2tex[l] if (itype, spin, band) == (0, 0, 0) else None,
+                        )
+                        # Note: could miss a label in the other plots if lmax is not large enough!
                         yup, ydown = y1, y2
 
                 set_axlims(ax, ylims, "y")
@@ -832,8 +958,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         return fig
 
     @add_plotly_fig_kwargs
-    def plotly_fatbands_typeview(self, e0="fermie", fact=1.0, lmax=None, fig=None, ylims=None,
-                                 blist=None, fontsize=12, band_and_dos=0, **kwargs):
+    def plotly_fatbands_typeview(
+        self, e0="fermie", fact=1.0, lmax=None, fig=None, ylims=None, blist=None, fontsize=12, band_and_dos=0, **kwargs
+    ):
         """
         Plot the electronic fatbands grouped by atomic type with plotly.
 
@@ -859,8 +986,14 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         nrows, ncols = self.nsppol, self.ntypat
         # Build fig with (nsppol, ntypat) subplots.
         if fig is None:
-            fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=list(range(1, nrows*ncols+1)),
-                                     sharex=True, sharey=True, horizontal_spacing=0.02)
+            fig, _ = get_figs_plotly(
+                nrows=nrows,
+                ncols=ncols,
+                subplot_titles=list(range(1, nrows * ncols + 1)),
+                sharex=True,
+                sharey=True,
+                horizontal_spacing=0.02,
+            )
 
         ebands = self.ebands
         e0 = ebands.get_e0(e0)
@@ -870,19 +1003,22 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         for itype, symbol in enumerate(self.symbols):
             wl_sbk = self.get_wl_symbol(symbol) * (fact / 2)
             for spin in range(self.nsppol):
-                rcd = PlotlyRowColDesc(spin, itype+band_and_dos*itype, nrows, ncols*(1+band_and_dos))
+                rcd = PlotlyRowColDesc(spin, itype + band_and_dos * itype, nrows, ncols * (1 + band_and_dos))
                 ply_row, ply_col, iax = rcd.ply_row, rcd.ply_col, rcd.iax
 
                 line_opts, marker_opts = self.eb_plotly_kwargs(spin)
                 ebands.plotly_traces(fig, e0, rcd=rcd, spin=spin, line_opts=line_opts, **marker_opts)
 
-                title = (r"$\text{type=%s, }%s$" % (symbol, self.spin2tex[spin].replace('$','')) if self.nsppol == 2
-                         else "type=%s" % symbol)
+                title = (
+                    r"$\text{type=%s, }%s$" % (symbol, self.spin2tex[spin].replace("$", ""))
+                    if self.nsppol == 2
+                    else "type=%s" % symbol
+                )
                 ebands.decorate_plotly(fig, iax=iax)
                 fig.layout.annotations[iax - 1].text = title
                 fig.layout.annotations[iax - 1].font.size = fontsize
                 if itype != 0:
-                    yaxis = 'yaxis%u' % iax
+                    yaxis = "yaxis%u" % iax
                     fig.layout[yaxis].title.text = ""
 
                 # Plot fatbands for given (symbol, spin) and all angular momenta.
@@ -893,20 +1029,72 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                         # Add width around each band.
                         w = wl_sbk[l, spin, band]
                         y1, y2 = yup + w, ydown - w
-                        fill_line_opts = {'color': self.l2color[l], 'width': 0.1}
-                        fig.add_scatter(x=x, y=yup, mode='lines', line=fill_line_opts, name='',
-                                        opacity=self.alpha, showlegend=False, legendgroup=l, row=ply_row, col=ply_col)
-                        fig.add_scatter(x=x, y=y1, mode='lines', line=fill_line_opts, name='', opacity=self.alpha,
-                                        showlegend=False, legendgroup=l, fill='tonexty', row=ply_row, col=ply_col)
-                        fig.add_scatter(x=x, y=ydown, mode='lines', line=fill_line_opts, name='',
-                                        opacity=self.alpha, showlegend=False, legendgroup=l, row=ply_row, col=ply_col)
+                        fill_line_opts = {"color": self.l2color[l], "width": 0.1}
+                        fig.add_scatter(
+                            x=x,
+                            y=yup,
+                            mode="lines",
+                            line=fill_line_opts,
+                            name="",
+                            opacity=self.alpha,
+                            showlegend=False,
+                            legendgroup=l,
+                            row=ply_row,
+                            col=ply_col,
+                        )
+                        fig.add_scatter(
+                            x=x,
+                            y=y1,
+                            mode="lines",
+                            line=fill_line_opts,
+                            name="",
+                            opacity=self.alpha,
+                            showlegend=False,
+                            legendgroup=l,
+                            fill="tonexty",
+                            row=ply_row,
+                            col=ply_col,
+                        )
+                        fig.add_scatter(
+                            x=x,
+                            y=ydown,
+                            mode="lines",
+                            line=fill_line_opts,
+                            name="",
+                            opacity=self.alpha,
+                            showlegend=False,
+                            legendgroup=l,
+                            row=ply_row,
+                            col=ply_col,
+                        )
                         if (itype, spin, band) == (0, 0, 0):
-                            fig.add_scatter(x=x, y=y2, mode='lines', line=fill_line_opts, name=self.l2tex[l],
-                                           opacity=self.alpha, showlegend=True, legendgroup=l, fill='tonexty',
-                                           row=ply_row, col=ply_col)
+                            fig.add_scatter(
+                                x=x,
+                                y=y2,
+                                mode="lines",
+                                line=fill_line_opts,
+                                name=self.l2tex[l],
+                                opacity=self.alpha,
+                                showlegend=True,
+                                legendgroup=l,
+                                fill="tonexty",
+                                row=ply_row,
+                                col=ply_col,
+                            )
                         else:
-                            fig.add_scatter(x=x, y=y2, mode='lines', line=fill_line_opts, name='', opacity=self.alpha,
-                                            showlegend=False, legendgroup=l, fill='tonexty', row=ply_row, col=ply_col)
+                            fig.add_scatter(
+                                x=x,
+                                y=y2,
+                                mode="lines",
+                                line=fill_line_opts,
+                                name="",
+                                opacity=self.alpha,
+                                showlegend=False,
+                                legendgroup=l,
+                                fill="tonexty",
+                                row=ply_row,
+                                col=ply_col,
+                            )
                             # Note: could miss a label in the other plots if lmax is not large enough!
                         yup, ydown = y1, y2
 
@@ -934,8 +1122,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         Returns: |matplotlib-Figure|
         """
         nrows, ncols = 1, self.nsppol
-        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=True, squeeze=False)
+        ax_list, fig, plt = get_axarray_fig_plt(
+            ax_list, nrows=nrows, ncols=ncols, sharex=True, sharey=True, squeeze=False
+        )
         ax_list = ax_list.ravel()
 
         ebands = self.ebands
@@ -964,9 +1153,14 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
                 # Show regions with negative spilling in red.
                 if num_neg:
-                    print("For spin:", spin, "band:", band,
-                          "There are %d (%.1f%%) k-points with negative spilling. Min: %.2E" % (
-                           num_neg, 100 * num_neg / self.nkpt, w.min()))
+                    print(
+                        "For spin:",
+                        spin,
+                        "band:",
+                        band,
+                        "There are %d (%.1f%%) k-points with negative spilling. Min: %.2E"
+                        % (num_neg, 100 * num_neg / self.nkpt, w.min()),
+                    )
 
                     absw = np.abs(w)
                     ax.fill_between(x, y, y + absw, where=wisneg, alpha=self.alpha, facecolor="red")
@@ -977,8 +1171,8 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         return fig
 
     # TODO: THIS CODE IS STILL UNDER DEVELOPMENT
-    #@add_fig_kwargs
-    #def plot_fatbands_spinor(self, terms=("sigma_z",), e0="fermie", fact=1,
+    # @add_fig_kwargs
+    # def plot_fatbands_spinor(self, terms=("sigma_z",), e0="fermie", fact=1,
     #                         ylims=None, blist=None, ax_list=None, **kwargs):
     #    """
     #    Plot spinor-resolved electronic fatbands. Require prtdos = 5 and nspinor = 2.
@@ -1065,7 +1259,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     #    return fig
 
     # TODO: THIS CODE IS STILL UNDER DEVELOPMENT
-    #def get_nelect_in_spheres(self, start_energy=None, stop_energy=None,
+    # def get_nelect_in_spheres(self, start_energy=None, stop_energy=None,
     #                          method="gaussian", step=0.1, width=0.2):
     #    """
     #    Print the number of electrons inside each atom-centered sphere.
@@ -1111,16 +1305,18 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         """
         FatBandsFile can use differerent integrators that are cached in self._cached_dos_integrators
         """
-        if not hasattr(self, "_cached_dos_integrators"): self._cached_dos_integrators = {}
+        if not hasattr(self, "_cached_dos_integrators"):
+            self._cached_dos_integrators = {}
         key = (method, step, width)
         intg = self._cached_dos_integrators.get(key, None)
-        if intg is not None: return intg
+        if intg is not None:
+            return intg
         # Build integrator, cache it and return it.
         intg = _DosIntegrator(self, method, step, width)
         self._cached_dos_integrators[key] = intg
         return intg
 
-    #def get_projected_magnetisation(self):
+    # def get_projected_magnetisation(self):
     #    """
     #    Final projected magnetisation as a numpy array with the shape (nkpoints, nbands,
     #    natoms, norbitals, 3). Where the last axis is the contribution in the 3
@@ -1130,9 +1326,24 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
     #    """
 
     @add_fig_kwargs
-    def plot_pjdos_lview(self, e0="fermie", lmax=None, method="gaussian", step=0.1, width=0.2,
-                         stacked=True, combined_spins=True, ax_mat=None, exchange_xy=False,
-                         with_info=True, with_spin_sign=True, xlims=None, ylims=None, fontsize=8, **kwargs) -> Figure:
+    def plot_pjdos_lview(
+        self,
+        e0="fermie",
+        lmax=None,
+        method="gaussian",
+        step=0.1,
+        width=0.2,
+        stacked=True,
+        combined_spins=True,
+        ax_mat=None,
+        exchange_xy=False,
+        with_info=True,
+        with_spin_sign=True,
+        xlims=None,
+        ylims=None,
+        fontsize=8,
+        **kwargs,
+    ) -> Figure:
         """
         Plot the PJ-DOS on a linear mesh with matplotlib.
 
@@ -1163,9 +1374,11 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             intg = self.get_dos_integrator(method, step, width)
         except Exception:
             msg = traceback.format_exc()
-            msg += ("Error while trying to compute the DOS.\n"
-                    "Verify that the k-points form a homogeneous sampling of the BZ.\n"
-                    "Returning None\n")
+            msg += (
+                "Error while trying to compute the DOS.\n"
+                "Verify that the k-points form a homogeneous sampling of the BZ.\n"
+                "Returning None\n"
+            )
             cprint(msg, color="red")
             return None
 
@@ -1180,8 +1393,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         mylsize = self.lsize if lmax is None else lmax + 1
         nrows = self.nsppol if not combined_spins else 1
         ncols = mylsize
-        ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=True, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(
+            ax_mat, nrows=nrows, ncols=ncols, sharex=True, sharey=True, squeeze=False
+        )
         ax_mat = np.reshape(ax_mat, (nrows, ncols))
 
         # The code below expects a matrix of axes of shape[nsppol, self.lsize]
@@ -1197,20 +1411,23 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             # Plot PJDOS as lines.
             for isymb, symbol in enumerate(self.symbols):
                 for spin in range(self.nsppol):
-                    if with_spin_sign: spin_sign = +1 if spin == 0 else -1
+                    if with_spin_sign:
+                        spin_sign = +1 if spin == 0 else -1
                     # Loop over the columns of the grid.
                     for l in range(min(self.lmax_symbol[symbol] + 1, mylsize)):
                         ax = ax_mat[spin, l]
 
                         # Plot total DOS.
                         x, y = mesh, spin_sign * edos.spin_dos[spin].values
-                        if exchange_xy: x, y = y, x
+                        if exchange_xy:
+                            x, y = y, x
                         label = "Tot" if (l, spin, isymb) == (0, 0, 0) else None
                         ax.plot(x, y, color="k", label=label if with_info else None)
 
                         # Plot PJ-DOS(l, spin)
                         x, y = mesh, spin_sign * symbols_lso[symbol][l, spin]
-                        if exchange_xy: x, y = y, x
+                        if exchange_xy:
+                            x, y = y, x
                         label = symbol if (l, spin, isymb) == (0, 0, 0) else None
                         ax.plot(x, y, color=self.symbol2color[symbol], label=label if with_info else None)
 
@@ -1225,12 +1442,14 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             zerodos = np.zeros(len(mesh))
             for l in range(mylsize):
                 for spin in self.ebands.spins:
-                    if with_spin_sign: spin_sign = +1 if spin == 0 else -1
+                    if with_spin_sign:
+                        spin_sign = +1 if spin == 0 else -1
                     ax = ax_mat[spin, l]
 
                     # Plot total DOS.
                     x, y = mesh, spin_sign * edos.spin_dos[spin].values
-                    if exchange_xy: x, y = y, x
+                    if exchange_xy:
+                        x, y = y, x
                     label = "Tot" if (l, spin) == (0, 0) else None
                     ax.plot(x, y, color="k", label=label if with_info else None)
 
@@ -1238,18 +1457,25 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                     stack = ls_stackdos[(l, spin)] * spin_sign
                     for isymb, symbol in enumerate(self.symbols):
                         yup = stack[isymb]
-                        ydown = stack[isymb-1] if isymb != 0 else zerodos
+                        ydown = stack[isymb - 1] if isymb != 0 else zerodos
                         label = "%s (stacked)" % symbol if (l, spin) == (0, 0) else None
                         fill = ax.fill_between if not exchange_xy else ax.fill_betweenx
-                        fill(mesh, yup, ydown, alpha=self.alpha, facecolor=self.symbol2color[symbol],
-                             label=label if with_info else None)
+                        fill(
+                            mesh,
+                            yup,
+                            ydown,
+                            alpha=self.alpha,
+                            facecolor=self.symbol2color[symbol],
+                            label=label if with_info else None,
+                        )
 
                     set_axlims(ax, xlims, "x")
                     set_axlims(ax, ylims, "y")
 
         # Decorate axis.
         for spin in range(self.nsppol):
-            if aliased_axis and spin == 1: break # Don't repeat yourself!
+            if aliased_axis and spin == 1:
+                break  # Don't repeat yourself!
 
             for l in range(mylsize):
                 ax = ax_mat[spin, l]
@@ -1257,8 +1483,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                     if combined_spins:
                         title = self.l2tex[l]
                     else:
-                        title = "%s, %s" % (self.l2tex[l], self.spin2tex[spin]) if self.nsppol == 2 else \
-                                 self.l2tex[l]
+                        title = "%s, %s" % (self.l2tex[l], self.spin2tex[spin]) if self.nsppol == 2 else self.l2tex[l]
                     ax.set_title(title, fontsize=fontsize)
                 ax.grid(True)
 
@@ -1269,9 +1494,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                     if with_info:
                         ax.legend(loc="best", fontsize=fontsize, shadow=True)
                         if exchange_xy:
-                            ax.set_xlabel('DOS (states/eV)')
+                            ax.set_xlabel("DOS (states/eV)")
                         else:
-                            ax.set_ylabel('DOS (states/eV)')
+                            ax.set_ylabel("DOS (states/eV)")
                 elif l == mylsize - 1:
                     ax.yaxis.set_ticks_position("right")
                     ax.yaxis.set_label_position("right")
@@ -1279,16 +1504,32 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                     # Plots in the middle: don't show labels.
                     # Trick: Don't change the labels but set their fontsize to 0 otherwise
                     # also the other axes are affected (likely due to sharey=True).
-                    #ax.yaxis.set_tick_params(fontsize=0)
+                    # ax.yaxis.set_tick_params(fontsize=0)
                     for tick in ax.yaxis.get_major_ticks():
                         tick.label1.set_fontsize(0)
 
         return fig
 
     @add_plotly_fig_kwargs
-    def plotly_pjdos_lview(self, e0="fermie", lmax=None, method="gaussian", step=0.1, width=0.2,
-                         stacked=True, combined_spins=True, fig=None, exchange_xy=False, with_info=True,
-                           with_spin_sign=True, xlims=None, ylims=None, fontsize=12, band_and_dos=0, **kwargs):
+    def plotly_pjdos_lview(
+        self,
+        e0="fermie",
+        lmax=None,
+        method="gaussian",
+        step=0.1,
+        width=0.2,
+        stacked=True,
+        combined_spins=True,
+        fig=None,
+        exchange_xy=False,
+        with_info=True,
+        with_spin_sign=True,
+        xlims=None,
+        ylims=None,
+        fontsize=12,
+        band_and_dos=0,
+        **kwargs,
+    ):
         """
         Plot the PJ-DOS on a linear mesh with plotly.
 
@@ -1321,9 +1562,11 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             intg = self.get_dos_integrator(method, step, width)
         except Exception:
             msg = traceback.format_exc()
-            msg += ("Error while trying to compute the DOS.\n"
-                    "Verify that the k-points form a homogeneous sampling of the BZ.\n"
-                    "Returning None\n")
+            msg += (
+                "Error while trying to compute the DOS.\n"
+                "Verify that the k-points form a homogeneous sampling of the BZ.\n"
+                "Returning None\n"
+            )
             cprint(msg, color="red")
             return None
 
@@ -1339,8 +1582,14 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         ncols = mylsize
         # Build fig with subplots.
         if fig is None:
-            fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=list(range(1, nrows * ncols + 1)),
-                                     sharex=True, sharey=True, horizontal_spacing=0.02)
+            fig, _ = get_figs_plotly(
+                nrows=nrows,
+                ncols=ncols,
+                subplot_titles=list(range(1, nrows * ncols + 1)),
+                sharex=True,
+                sharey=True,
+                horizontal_spacing=0.02,
+            )
 
         # If spins are plotted on the same graph (combined_spins), aliased_axis is set to True
         # and comb_s is set to 2 so that [spin=0]//comb_s == [spin=1]//comb_s
@@ -1356,29 +1605,52 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             # Plot PJDOS as lines.
             for isymb, symbol in enumerate(self.symbols):
                 for spin in range(self.nsppol):
-                    if with_spin_sign: spin_sign = +1 if spin == 0 else -1
+                    if with_spin_sign:
+                        spin_sign = +1 if spin == 0 else -1
                     # Loop over the columns of the grid.
                     for l in range(min(self.lmax_symbol[symbol] + 1, mylsize)):
-                        rcd = PlotlyRowColDesc(spin//comb_s, l+band_and_dos*(l+1), nrows, ncols*(1+band_and_dos))
+                        rcd = PlotlyRowColDesc(
+                            spin // comb_s, l + band_and_dos * (l + 1), nrows, ncols * (1 + band_and_dos)
+                        )
                         ply_row, ply_col, iax = rcd.ply_row, rcd.ply_col, rcd.iax
 
                         # Plot total DOS.
                         x, y = mesh, spin_sign * edos.spin_dos[spin].values
-                        if exchange_xy: x, y = y, x
+                        if exchange_xy:
+                            x, y = y, x
                         label = "Tot"
                         if ((l, spin, isymb) == (0, 0, 0)) & with_info:
                             showlegend = True
                         else:
                             showlegend = False
-                        fig.add_scatter(x=x, y=y, mode='lines', line={'color': 'black'}, name=label,
-                                        showlegend=showlegend, legendgroup=label, row=ply_row, col=ply_col)
+                        fig.add_scatter(
+                            x=x,
+                            y=y,
+                            mode="lines",
+                            line={"color": "black"},
+                            name=label,
+                            showlegend=showlegend,
+                            legendgroup=label,
+                            row=ply_row,
+                            col=ply_col,
+                        )
 
                         # Plot PJ-DOS(l, spin)
                         x, y = mesh, spin_sign * symbols_lso[symbol][l, spin]
-                        if exchange_xy: x, y = y, x
+                        if exchange_xy:
+                            x, y = y, x
                         label = symbol
-                        fig.add_scatter(x=x, y=y, mode='lines', line={'color': self.symbol2color[symbol]}, name=label,
-                                        showlegend=showlegend, legendgroup=label, row=ply_row, col=ply_col)
+                        fig.add_scatter(
+                            x=x,
+                            y=y,
+                            mode="lines",
+                            line={"color": self.symbol2color[symbol]},
+                            name=label,
+                            showlegend=showlegend,
+                            legendgroup=label,
+                            row=ply_row,
+                            col=ply_col,
+                        )
 
                     plotly_set_lims(fig, xlims, "x", iax=iax)
                     plotly_set_lims(fig, ylims, "y", iax=iax)
@@ -1391,74 +1663,124 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             zerodos = np.zeros(len(mesh))
             for l in range(mylsize):
                 for spin in self.ebands.spins:
-                    if with_spin_sign: spin_sign = +1 if spin == 0 else -1
-                    rcd = PlotlyRowColDesc(spin//comb_s, l+band_and_dos*(l+1), nrows, ncols*(1+band_and_dos))
+                    if with_spin_sign:
+                        spin_sign = +1 if spin == 0 else -1
+                    rcd = PlotlyRowColDesc(
+                        spin // comb_s, l + band_and_dos * (l + 1), nrows, ncols * (1 + band_and_dos)
+                    )
                     ply_row, ply_col, iax = rcd.ply_row, rcd.ply_col, rcd.iax
 
                     # Plot total DOS.
                     x, y = mesh, spin_sign * edos.spin_dos[spin].values
-                    if exchange_xy: x, y = y, x
+                    if exchange_xy:
+                        x, y = y, x
                     label = "Tot"
                     if ((l, spin) == (0, 0)) & with_info:
                         showlegend = True
                     else:
                         showlegend = False
-                    fig.add_scatter(x=x, y=y, mode='lines', line={'color': 'black'}, name=label,
-                                    showlegend=showlegend, legendgroup=label, row=ply_row, col=ply_col)
+                    fig.add_scatter(
+                        x=x,
+                        y=y,
+                        mode="lines",
+                        line={"color": "black"},
+                        name=label,
+                        showlegend=showlegend,
+                        legendgroup=label,
+                        row=ply_row,
+                        col=ply_col,
+                    )
 
                     # Plot cumulative PJ-DOS(l, spin)
                     stack = ls_stackdos[(l, spin)] * spin_sign
                     for isymb, symbol in enumerate(self.symbols):
                         yup = stack[isymb]
-                        ydown = stack[isymb-1] if isymb != 0 else zerodos
+                        ydown = stack[isymb - 1] if isymb != 0 else zerodos
                         label = "%s (stacked)" % symbol if (l, spin) == (0, 0) else None
-                        fill = 'tonextx' if not exchange_xy else 'tonexty'
-                        fill_line_opts = {'color': self.symbol2color[symbol], 'width': 0.1}
+                        fill = "tonextx" if not exchange_xy else "tonexty"
+                        fill_line_opts = {"color": self.symbol2color[symbol], "width": 0.1}
                         x1, x2, y1, y2 = mesh, mesh, ydown, yup
-                        if exchange_xy: x1, x2, y1, y2 = y1, y2, x1, x2
-                        fig.add_scatter(x=x1, y=y1, mode='lines', line=fill_line_opts, name='',
-                                        showlegend=False, legendgroup=l, row=ply_row, col=ply_col)
-                        fig.add_scatter(x=x2, y=y2, mode='lines', line=fill_line_opts, name=label, opacity=self.alpha,
-                                        showlegend=showlegend, legendgroup=symbol, fill=fill, row=ply_row, col=ply_col)
+                        if exchange_xy:
+                            x1, x2, y1, y2 = y1, y2, x1, x2
+                        fig.add_scatter(
+                            x=x1,
+                            y=y1,
+                            mode="lines",
+                            line=fill_line_opts,
+                            name="",
+                            showlegend=False,
+                            legendgroup=l,
+                            row=ply_row,
+                            col=ply_col,
+                        )
+                        fig.add_scatter(
+                            x=x2,
+                            y=y2,
+                            mode="lines",
+                            line=fill_line_opts,
+                            name=label,
+                            opacity=self.alpha,
+                            showlegend=showlegend,
+                            legendgroup=symbol,
+                            fill=fill,
+                            row=ply_row,
+                            col=ply_col,
+                        )
 
                     plotly_set_lims(fig, xlims, "x", iax=iax)
                     plotly_set_lims(fig, ylims, "y", iax=iax)
 
         # Decorate axis.
         for spin in range(self.nsppol):
-            if aliased_axis and spin == 1: break # Don't repeat yourself!
+            if aliased_axis and spin == 1:
+                break  # Don't repeat yourself!
 
             for l in range(mylsize):
-                rcd = PlotlyRowColDesc(spin//comb_s, l+band_and_dos*(l+1), nrows, ncols*(1+band_and_dos))
+                rcd = PlotlyRowColDesc(spin // comb_s, l + band_and_dos * (l + 1), nrows, ncols * (1 + band_and_dos))
                 iax = rcd.iax
                 if with_info:
                     if combined_spins:
                         title = self.l2tex[l]
+                    elif self.nsppol == 2:
+                        title = r"$%s , %s$" % (self.l2tex[l].replace("$", ""), self.spin2tex[spin].replace("$", ""))
                     else:
-                        if self.nsppol == 2:
-                            title = r"$%s , %s$" % (self.l2tex[l].replace('$',''), self.spin2tex[spin].replace('$',''))
-                        else:
-                            title = self.l2tex[l]
+                        title = self.l2tex[l]
                     fig.layout.annotations[iax - 1].text = title
                 else:
-                    fig.layout.annotations[iax - 1].text = ''
+                    fig.layout.annotations[iax - 1].text = ""
                 fig.layout.annotations[iax - 1].font.size = fontsize
 
                 if with_info:
-                    fig.layout['xaxis%u' % iax].title = dict(text="Energy (eV)")
+                    fig.layout["xaxis%u" % iax].title = dict(text="Energy (eV)")
                     # Display y labels only on the first plot.
                     if l == 0:
                         if exchange_xy:
-                            fig.layout['xaxis%u' % iax].title = dict(text='DOS (states/eV)')
+                            fig.layout["xaxis%u" % iax].title = dict(text="DOS (states/eV)")
                         else:
-                            fig.layout['yaxis%u' % iax].title = dict(text='DOS (states/eV)')
+                            fig.layout["yaxis%u" % iax].title = dict(text="DOS (states/eV)")
         fig.layout.legend.font.size = fontsize
         return fig
 
     @add_fig_kwargs
-    def plot_pjdos_typeview(self, e0="fermie", lmax=None, l_list=None, method="gaussian", step=0.1, width=0.2,
-                            stacked=True, combined_spins=True, ax_mat=None, exchange_xy=False,
-                            with_info=True, with_spin_sign=True, xlims=None, ylims=None, fontsize=8, **kwargs) -> Figure:
+    def plot_pjdos_typeview(
+        self,
+        e0="fermie",
+        lmax=None,
+        l_list=None,
+        method="gaussian",
+        step=0.1,
+        width=0.2,
+        stacked=True,
+        combined_spins=True,
+        ax_mat=None,
+        exchange_xy=False,
+        with_info=True,
+        with_spin_sign=True,
+        xlims=None,
+        ylims=None,
+        fontsize=8,
+        **kwargs,
+    ) -> Figure:
         """
         Plot the PJ-DOS on a linear mesh with matplotlib.
 
@@ -1492,9 +1814,11 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             intg = self.get_dos_integrator(method, step, width)
         except Exception:
             msg = traceback.format_exc()
-            msg += ("Error while trying to compute the DOS.\n"
-                    "Verify that the k-points form a homogeneous sampling of the BZ.\n"
-                    "Returning None\n")
+            msg += (
+                "Error while trying to compute the DOS.\n"
+                "Verify that the k-points form a homogeneous sampling of the BZ.\n"
+                "Returning None\n"
+            )
             cprint(msg, color="red")
             return None
 
@@ -1508,8 +1832,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         # Get grid of axes.
         nrows = self.nsppol if not combined_spins else 1
         ncols = self.ntypat
-        ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=True, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(
+            ax_mat, nrows=nrows, ncols=ncols, sharex=True, sharey=True, squeeze=False
+        )
         ax_mat = np.reshape(ax_mat, (nrows, ncols))
 
         # The code below expects a matrix of axes of shape[nsppol, self.ntypat]
@@ -1523,22 +1848,26 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         spin_sign = +1
         if not stacked:
             for spin in range(self.nsppol):
-                if with_spin_sign: spin_sign = +1 if spin == 0 else -1
+                if with_spin_sign:
+                    spin_sign = +1 if spin == 0 else -1
                 # Loop over the columns of the grid.
                 for isymb, symbol in enumerate(self.symbols):
                     ax = ax_mat[spin, isymb]
 
                     # Plot total DOS.
                     x, y = mesh, spin_sign * edos.spin_dos[spin].values
-                    if exchange_xy: x, y = y, x
+                    if exchange_xy:
+                        x, y = y, x
                     label = "Tot" if (spin, isymb) == (0, 0) else None
                     ax.plot(x, y, color="k", label=label if with_info else None)
 
                     for l in range(min(self.lmax_symbol[symbol] + 1, mylsize)):
-                        if l_list is not None and l not in l_list: continue
+                        if l_list is not None and l not in l_list:
+                            continue
                         # Plot PJ-DOS(l, spin)
                         x, y = mesh, spin_sign * symbols_lso[symbol][l, spin]
-                        if exchange_xy: x, y = y, x
+                        if exchange_xy:
+                            x, y = y, x
                         label = self.l2tex[l] if (spin, isymb) == (0, 0) else None
                         ax.plot(x, y, color=self.l2color[l], label=label if with_info else None)
 
@@ -1548,37 +1877,47 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         else:
             # Plot stacked PJDOS
             # Loop over the columns of the grid.
-            #ls_stackdos = intg.ls_stackdos
+            # ls_stackdos = intg.ls_stackdos
             spin_sign = +1
             zerodos = np.zeros(len(mesh))
             for spin in range(self.nsppol):
-                if with_spin_sign: spin_sign = +1 if spin == 0 else -1
+                if with_spin_sign:
+                    spin_sign = +1 if spin == 0 else -1
                 for isymb, symbol in enumerate(self.symbols):
                     ax = ax_mat[spin, isymb]
 
                     # Plot total DOS.
                     x, y = mesh, spin_sign * edos.spin_dos[spin].values
-                    if exchange_xy: x, y = y, x
+                    if exchange_xy:
+                        x, y = y, x
                     label = "Tot" if (spin, isymb) == (0, 0) else None
                     ax.plot(x, y, color="k", label=label if with_info else None)
 
                     # Plot cumulative PJ-DOS(l, spin)
                     stack = intg.get_lstack_symbol(symbol, spin) * spin_sign
                     for l in range(min(self.lmax_symbol[symbol] + 1, mylsize)):
-                        if l_list is not None and l not in l_list: continue
+                        if l_list is not None and l not in l_list:
+                            continue
                         yup = stack[l]
-                        ydown = stack[l-1] if l != 0 else zerodos
+                        ydown = stack[l - 1] if l != 0 else zerodos
                         label = "%s (stacked)" % self.l2tex[l] if (isymb, spin) == (0, 0) else None
                         fill = ax.fill_between if not exchange_xy else ax.fill_betweenx
-                        fill(mesh, yup, ydown, alpha=self.alpha, facecolor=self.l2color[l],
-                             label=label if with_info else None)
+                        fill(
+                            mesh,
+                            yup,
+                            ydown,
+                            alpha=self.alpha,
+                            facecolor=self.l2color[l],
+                            label=label if with_info else None,
+                        )
 
                     set_axlims(ax, xlims, "x")
                     set_axlims(ax, ylims, "y")
 
         # Decorate axis.
         for spin in range(self.nsppol):
-            if aliased_axis and spin == 1: break # Don't repeat yourself!
+            if aliased_axis and spin == 1:
+                break  # Don't repeat yourself!
 
             for itype, symbol in enumerate(self.symbols):
                 ax = ax_mat[spin, itype]
@@ -1597,9 +1936,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                     if with_info:
                         ax.legend(loc="best", fontsize=fontsize, shadow=True)
                         if exchange_xy:
-                            ax.set_xlabel('DOS (states/eV)')
+                            ax.set_xlabel("DOS (states/eV)")
                         else:
-                            ax.set_ylabel('DOS (states/eV)')
+                            ax.set_ylabel("DOS (states/eV)")
                 elif itype == self.ntypat - 1:
                     ax.yaxis.set_ticks_position("right")
                     ax.yaxis.set_label_position("right")
@@ -1607,16 +1946,32 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                     # Plots in the middle: don't show labels.
                     # Trick: Don't change the labels but set their fontsize to 0 otherwise
                     # also the other axes are affected (likely due to sharey=True).
-                    #ax.yaxis.set_tick_params(fontsize=0)
+                    # ax.yaxis.set_tick_params(fontsize=0)
                     for tick in ax.yaxis.get_major_ticks():
                         tick.label1.set_fontsize(0)
 
         return fig
 
     @add_plotly_fig_kwargs
-    def plotly_pjdos_typeview(self, e0="fermie", lmax=None, method="gaussian", step=0.1, width=0.2,
-                            stacked=True, combined_spins=True, fig=None, exchange_xy=False, with_info=True,
-                            with_spin_sign=True, xlims=None, ylims=None, fontsize=12, band_and_dos=0, **kwargs):
+    def plotly_pjdos_typeview(
+        self,
+        e0="fermie",
+        lmax=None,
+        method="gaussian",
+        step=0.1,
+        width=0.2,
+        stacked=True,
+        combined_spins=True,
+        fig=None,
+        exchange_xy=False,
+        with_info=True,
+        with_spin_sign=True,
+        xlims=None,
+        ylims=None,
+        fontsize=12,
+        band_and_dos=0,
+        **kwargs,
+    ):
         """
         Plot the PJ-DOS on a linear mesh with plotly.
 
@@ -1651,9 +2006,11 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             intg = self.get_dos_integrator(method, step, width)
         except Exception:
             msg = traceback.format_exc()
-            msg += ("Error while trying to compute the DOS.\n"
-                    "Verify that the k-points form a homogeneous sampling of the BZ.\n"
-                    "Returning None\n")
+            msg += (
+                "Error while trying to compute the DOS.\n"
+                "Verify that the k-points form a homogeneous sampling of the BZ.\n"
+                "Returning None\n"
+            )
             cprint(msg, color="red")
             return None
 
@@ -1668,8 +2025,14 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         ncols = self.ntypat
         # Build fig with subplots.
         if fig is None:
-            fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=list(range(1, nrows * ncols + 1)),
-                                     sharex=True, sharey=True, horizontal_spacing=0.02)
+            fig, _ = get_figs_plotly(
+                nrows=nrows,
+                ncols=ncols,
+                subplot_titles=list(range(1, nrows * ncols + 1)),
+                sharex=True,
+                sharey=True,
+                horizontal_spacing=0.02,
+            )
 
         # If spins are plotted on the same graph (combined_spins), aliased_axis is set to True
         # and comb_s is set to 2 so that [spin=0]//comb_s == [spin=1]//comb_s
@@ -1683,30 +2046,53 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         spin_sign = +1
         if not stacked:
             for spin in range(self.nsppol):
-                if with_spin_sign: spin_sign = +1 if spin == 0 else -1
+                if with_spin_sign:
+                    spin_sign = +1 if spin == 0 else -1
                 # Loop over the columns of the grid.
                 for isymb, symbol in enumerate(self.symbols):
-                    rcd = PlotlyRowColDesc(spin//comb_s, isymb+band_and_dos*(isymb+1), nrows, ncols*(1+band_and_dos))
+                    rcd = PlotlyRowColDesc(
+                        spin // comb_s, isymb + band_and_dos * (isymb + 1), nrows, ncols * (1 + band_and_dos)
+                    )
                     ply_row, ply_col, iax = rcd.ply_row, rcd.ply_col, rcd.iax
 
                     # Plot total DOS.
                     x, y = mesh, spin_sign * edos.spin_dos[spin].values
-                    if exchange_xy: x, y = y, x
+                    if exchange_xy:
+                        x, y = y, x
                     label = "Tot"
                     if ((spin, isymb) == (0, 0)) & with_info:
                         showlegend = True
                     else:
                         showlegend = False
-                    fig.add_scatter(x=x, y=y, mode='lines', line={'color': 'black'}, name=label, showlegend=showlegend,
-                                    legendgroup=label, row=ply_row, col=ply_col)
+                    fig.add_scatter(
+                        x=x,
+                        y=y,
+                        mode="lines",
+                        line={"color": "black"},
+                        name=label,
+                        showlegend=showlegend,
+                        legendgroup=label,
+                        row=ply_row,
+                        col=ply_col,
+                    )
 
                     for l in range(min(self.lmax_symbol[symbol] + 1, mylsize)):
                         # Plot PJ-DOS(l, spin)
                         x, y = mesh, spin_sign * symbols_lso[symbol][l, spin]
-                        if exchange_xy: x, y = y, x
+                        if exchange_xy:
+                            x, y = y, x
                         label = self.l2tex[l]
-                        fig.add_scatter(x=x, y=y, name=label , showlegend=showlegend, legendgroup=l,
-                                        mode='lines', line={'color': self.l2color[l]}, row=ply_row, col=ply_col)
+                        fig.add_scatter(
+                            x=x,
+                            y=y,
+                            name=label,
+                            showlegend=showlegend,
+                            legendgroup=l,
+                            mode="lines",
+                            line={"color": self.l2color[l]},
+                            row=ply_row,
+                            col=ply_col,
+                        )
 
                     plotly_set_lims(fig, xlims, "x", iax=iax)
                     plotly_set_lims(fig, ylims, "y", iax=iax)
@@ -1714,77 +2100,128 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         else:
             # Plot stacked PJDOS
             # Loop over the columns of the grid.
-            #ls_stackdos = intg.ls_stackdos
+            # ls_stackdos = intg.ls_stackdos
             spin_sign = +1
             zerodos = np.zeros(len(mesh))
             for spin in range(self.nsppol):
-                if with_spin_sign: spin_sign = +1 if spin == 0 else -1
+                if with_spin_sign:
+                    spin_sign = +1 if spin == 0 else -1
                 for isymb, symbol in enumerate(self.symbols):
-                    rcd = PlotlyRowColDesc(spin//comb_s, isymb+band_and_dos*(isymb+1), nrows, ncols*(1+band_and_dos))
+                    rcd = PlotlyRowColDesc(
+                        spin // comb_s, isymb + band_and_dos * (isymb + 1), nrows, ncols * (1 + band_and_dos)
+                    )
                     ply_row, ply_col, iax = rcd.ply_row, rcd.ply_col, rcd.iax
 
                     # Plot total DOS.
                     x, y = mesh, spin_sign * edos.spin_dos[spin].values
-                    if exchange_xy: x, y = y, x
+                    if exchange_xy:
+                        x, y = y, x
                     label = "Tot"
                     if ((spin, isymb) == (0, 0)) & with_info:
                         showlegend = True
                     else:
                         showlegend = False
-                    fig.add_scatter(x=x, y=y, mode='lines', line={'color': 'black'}, name=label, showlegend=showlegend,
-                                    legendgroup=label, row=ply_row, col=ply_col)
+                    fig.add_scatter(
+                        x=x,
+                        y=y,
+                        mode="lines",
+                        line={"color": "black"},
+                        name=label,
+                        showlegend=showlegend,
+                        legendgroup=label,
+                        row=ply_row,
+                        col=ply_col,
+                    )
 
                     # Plot cumulative PJ-DOS(l, spin)
                     stack = intg.get_lstack_symbol(symbol, spin) * spin_sign
                     for l in range(min(self.lmax_symbol[symbol] + 1, mylsize)):
                         yup = stack[l]
-                        ydown = stack[l-1] if l != 0 else zerodos
-                        label = r"%s (stacked)" % self.l2tex[l].replace('$','') if (isymb, spin) == (0, 0) else None
-                        fill = 'tonextx' if not exchange_xy else 'tonexty'
-                        fill_line_opts = {'color': self.l2color[l], 'width': 0.1}
+                        ydown = stack[l - 1] if l != 0 else zerodos
+                        label = r"%s (stacked)" % self.l2tex[l].replace("$", "") if (isymb, spin) == (0, 0) else None
+                        fill = "tonextx" if not exchange_xy else "tonexty"
+                        fill_line_opts = {"color": self.l2color[l], "width": 0.1}
                         x1, x2, y1, y2 = mesh, mesh, ydown, yup
-                        if exchange_xy: x1, x2, y1, y2 = y1, y2, x1, x2
-                        fig.add_scatter(x=x1, y=y1, mode='lines', line=fill_line_opts, name='',
-                                        showlegend=False, legendgroup=l, row=ply_row, col=ply_col)
-                        fig.add_scatter(x=x2, y=y2, mode='lines', line=fill_line_opts, name=label, opacity=self.alpha,
-                                        showlegend=showlegend, legendgroup=l, fill=fill, row=ply_row, col=ply_col)
+                        if exchange_xy:
+                            x1, x2, y1, y2 = y1, y2, x1, x2
+                        fig.add_scatter(
+                            x=x1,
+                            y=y1,
+                            mode="lines",
+                            line=fill_line_opts,
+                            name="",
+                            showlegend=False,
+                            legendgroup=l,
+                            row=ply_row,
+                            col=ply_col,
+                        )
+                        fig.add_scatter(
+                            x=x2,
+                            y=y2,
+                            mode="lines",
+                            line=fill_line_opts,
+                            name=label,
+                            opacity=self.alpha,
+                            showlegend=showlegend,
+                            legendgroup=l,
+                            fill=fill,
+                            row=ply_row,
+                            col=ply_col,
+                        )
 
                     plotly_set_lims(fig, xlims, "x", iax=iax)
                     plotly_set_lims(fig, ylims, "y", iax=iax)
 
         # Decorate axis.
         for spin in range(self.nsppol):
-            if aliased_axis and spin == 1: break # Don't repeat yourself!
+            if aliased_axis and spin == 1:
+                break  # Don't repeat yourself!
 
             for isymb, symbol in enumerate(self.symbols):
-                rcd = PlotlyRowColDesc(spin//comb_s, isymb+band_and_dos*(isymb+1), nrows, ncols*(1+band_and_dos))
+                rcd = PlotlyRowColDesc(
+                    spin // comb_s, isymb + band_and_dos * (isymb + 1), nrows, ncols * (1 + band_and_dos)
+                )
                 iax = rcd.iax
                 if with_info:
                     if combined_spins:
                         title = "Type: %s" % symbol
                     else:
-                        title = r"%s , %s" % (symbol, self.spin2tex[spin].replace('$','')) if self.nsppol == 2 else symbol
+                        title = (
+                            r"%s , %s" % (symbol, self.spin2tex[spin].replace("$", "")) if self.nsppol == 2 else symbol
+                        )
                     fig.layout.annotations[iax - 1].text = title
                 else:
-                    fig.layout.annotations[iax - 1].text = ''
+                    fig.layout.annotations[iax - 1].text = ""
                 fig.layout.annotations[iax - 1].font.size = fontsize
 
                 # Display y labels only on the first plot.
                 if with_info:
-                    fig.layout['xaxis%u' % iax].title = dict(text="Energy (eV)")
+                    fig.layout["xaxis%u" % iax].title = dict(text="Energy (eV)")
                     if isymb == 0:
                         if exchange_xy:
-                            fig.layout['xaxis%u' % iax].title = dict(text='DOS (states/eV)')
+                            fig.layout["xaxis%u" % iax].title = dict(text="DOS (states/eV)")
                         else:
-                            fig.layout['yaxis%u' % iax].title = dict(text='DOS (states/eV)')
+                            fig.layout["yaxis%u" % iax].title = dict(text="DOS (states/eV)")
 
         fig.layout.legend.font.size = fontsize
         return fig
 
     @add_fig_kwargs
-    def plot_fatbands_with_pjdos(self, e0="fermie", fact=1.0, lmax=None, blist=None, view="type",
-                                 pjdosfile=None, edos_kwargs=None, stacked=True, width_ratios=(2, 1),
-                                 fontsize=8, ylims=None, **kwargs) -> Figure:
+    def plot_fatbands_with_pjdos(
+        self,
+        e0="fermie",
+        fact=1.0,
+        lmax=None,
+        blist=None,
+        view="type",
+        pjdosfile=None,
+        edos_kwargs=None,
+        stacked=True,
+        width_ratios=(2, 1),
+        fontsize=8,
+        ylims=None,
+        **kwargs,
+    ) -> Figure:
         """
         Compute the fatbands and the PJDOS on the same figure with matplotlib, a.k.a the Sistine Chapel.
 
@@ -1821,15 +2258,17 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             cprint("Returning None", color="yellow")
             return None
 
-        if edos_kwargs is None: edos_kwargs = {}
+        if edos_kwargs is None:
+            edos_kwargs = {}
 
         # Build plot grid.
         import matplotlib.pyplot as plt
         from matplotlib.gridspec import GridSpec, GridSpecFromSubplotSpec
+
         fig = plt.figure()
         # Define number of columns depending on view
         mylsize = self.lsize if lmax is None else lmax + 1
-        #ncols = dict(type=self.ntypat, lview=self.lsize)[view]
+        # ncols = dict(type=self.ntypat, lview=self.lsize)[view]
         ncols = dict(type=self.ntypat, lview=mylsize)[view]
         gspec = GridSpec(nrows=self.nsppol, ncols=ncols)
         fatbands_axmat = np.empty((self.nsppol, ncols), dtype=object)
@@ -1837,8 +2276,9 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         for spin in range(self.nsppol):
             for icol in range(ncols):
-                subgrid = GridSpecFromSubplotSpec(1, 2, subplot_spec=gspec[spin, icol],
-                                                  width_ratios=width_ratios, wspace=0.05)
+                subgrid = GridSpecFromSubplotSpec(
+                    1, 2, subplot_spec=gspec[spin, icol], width_ratios=width_ratios, wspace=0.05
+                )
                 # Similar plots share the x-axis. All plots share the y-axis.
                 prev_fatbax = None if (icol == 0 and spin == 0) else fatbands_axmat[0, 0]
                 ax1 = plt.subplot(subgrid[0], sharex=prev_fatbax, sharey=prev_fatbax)
@@ -1849,20 +2289,56 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
 
         # Plot bands on fatbands_axmat and PJDOS on pjdos_axmat.
         if view == "lview":
-            self.plot_fatbands_lview(e0=e0, fact=fact, lmax=lmax, blist=blist, ax_mat=fatbands_axmat,
-                                     fontsize=fontsize, ylims=ylims, show=False)
-            pjdosfile.plot_pjdos_lview(e0=e0, lmax=lmax, ax_mat=pjdos_axmat, exchange_xy=True,
-                                       stacked=stacked, combined_spins=False, fontsize=fontsize,
-                                       with_info=False, with_spin_sign=False, show=False, ylims=ylims,
-                                       **edos_kwargs)
+            self.plot_fatbands_lview(
+                e0=e0,
+                fact=fact,
+                lmax=lmax,
+                blist=blist,
+                ax_mat=fatbands_axmat,
+                fontsize=fontsize,
+                ylims=ylims,
+                show=False,
+            )
+            pjdosfile.plot_pjdos_lview(
+                e0=e0,
+                lmax=lmax,
+                ax_mat=pjdos_axmat,
+                exchange_xy=True,
+                stacked=stacked,
+                combined_spins=False,
+                fontsize=fontsize,
+                with_info=False,
+                with_spin_sign=False,
+                show=False,
+                ylims=ylims,
+                **edos_kwargs,
+            )
 
         elif view == "type":
-            self.plot_fatbands_typeview(e0=e0, fact=fact, lmax=lmax, blist=blist, ax_mat=fatbands_axmat,
-                                        fontsize=fontsize, ylims=ylims, show=False)
-            pjdosfile.plot_pjdos_typeview(e0=e0, lmax=lmax, ax_mat=pjdos_axmat, exchange_xy=True,
-                                          stacked=stacked, combined_spins=False, fontsize=fontsize,
-                                          with_info=False, with_spin_sign=False, show=False, ylims=ylims,
-                                          **edos_kwargs)
+            self.plot_fatbands_typeview(
+                e0=e0,
+                fact=fact,
+                lmax=lmax,
+                blist=blist,
+                ax_mat=fatbands_axmat,
+                fontsize=fontsize,
+                ylims=ylims,
+                show=False,
+            )
+            pjdosfile.plot_pjdos_typeview(
+                e0=e0,
+                lmax=lmax,
+                ax_mat=pjdos_axmat,
+                exchange_xy=True,
+                stacked=stacked,
+                combined_spins=False,
+                fontsize=fontsize,
+                with_info=False,
+                with_spin_sign=False,
+                show=False,
+                ylims=ylims,
+                **edos_kwargs,
+            )
         else:
             raise ValueError(f"Don't know how to handle {view=}")
 
@@ -1870,19 +2346,32 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         for ax in pjdos_axmat.ravel():
             ax.set_xlabel("")
             ax.set_ylabel("")
-            #ax.xaxis.set_tick_params(fontsize=0)
-            #ax.yaxis.set_tick_params(fontsize=0)
-            for xtick, ytick in zip(ax.xaxis.get_major_ticks(), ax.yaxis.get_major_ticks()):
+            # ax.xaxis.set_tick_params(fontsize=0)
+            # ax.yaxis.set_tick_params(fontsize=0)
+            for xtick, ytick in zip(ax.xaxis.get_major_ticks(), ax.yaxis.get_major_ticks(), strict=False):
                 xtick.label1.set_fontsize(0)
                 ytick.label1.set_fontsize(0)
 
-        if closeit: pjdosfile.close()
+        if closeit:
+            pjdosfile.close()
         return fig
 
     @add_plotly_fig_kwargs
-    def plotly_fatbands_with_pjdos(self, e0="fermie", fact=1.0, lmax=None, blist=None, view="type",
-                                   pjdosfile=None, edos_kwargs=None, stacked=True, width_ratios=(2, 1),
-                                   fontsize=12, ylims=None, **kwargs):
+    def plotly_fatbands_with_pjdos(
+        self,
+        e0="fermie",
+        fact=1.0,
+        lmax=None,
+        blist=None,
+        view="type",
+        pjdosfile=None,
+        edos_kwargs=None,
+        stacked=True,
+        width_ratios=(2, 1),
+        fontsize=12,
+        ylims=None,
+        **kwargs,
+    ):
         """
         Compute the fatbands and the PJDOS on the same figure with plotly, a.k.a the Sistine Chapel.
 
@@ -1918,34 +2407,85 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             cprint("Returning None", color="yellow")
             return None
 
-        if edos_kwargs is None: edos_kwargs = {}
+        if edos_kwargs is None:
+            edos_kwargs = {}
 
         # Define number of columns depending on view
         mylsize = self.lsize if lmax is None else lmax + 1
-        #ncols = dict(type=self.ntypat, lview=self.lsize)[view]
+        # ncols = dict(type=self.ntypat, lview=self.lsize)[view]
         ncols = dict(type=self.ntypat, lview=mylsize)[view]
         # Build fig with subplots for bands(at odd_col) and dos(at even_col).
-        fig, _ = get_figs_plotly(nrows=self.nsppol, ncols=ncols*2, subplot_titles=list(range(1, self.nsppol*ncols*2 + 1)),
-                                 sharex=True, sharey=True, horizontal_spacing=0.02, column_widths=width_ratios*ncols)
+        fig, _ = get_figs_plotly(
+            nrows=self.nsppol,
+            ncols=ncols * 2,
+            subplot_titles=list(range(1, self.nsppol * ncols * 2 + 1)),
+            sharex=True,
+            sharey=True,
+            horizontal_spacing=0.02,
+            column_widths=width_ratios * ncols,
+        )
 
         # Plot bands and PJDOS on fig with kwargs 'band_and_dos=1' .
         if view == "lview":
-            self.plotly_fatbands_lview(e0=e0, fact=fact, lmax=lmax, blist=blist, fig=fig, ylims=ylims,
-                                       fontsize=fontsize, band_and_dos=1, show=False)
-            pjdosfile.plotly_pjdos_lview(e0=e0, lmax=lmax, fig=fig, exchange_xy=True, stacked=stacked,
-                                         combined_spins=False, fontsize=fontsize, with_info=False,
-                                         with_spin_sign=False, ylims=ylims, band_and_dos=1, show=False, **edos_kwargs)
+            self.plotly_fatbands_lview(
+                e0=e0,
+                fact=fact,
+                lmax=lmax,
+                blist=blist,
+                fig=fig,
+                ylims=ylims,
+                fontsize=fontsize,
+                band_and_dos=1,
+                show=False,
+            )
+            pjdosfile.plotly_pjdos_lview(
+                e0=e0,
+                lmax=lmax,
+                fig=fig,
+                exchange_xy=True,
+                stacked=stacked,
+                combined_spins=False,
+                fontsize=fontsize,
+                with_info=False,
+                with_spin_sign=False,
+                ylims=ylims,
+                band_and_dos=1,
+                show=False,
+                **edos_kwargs,
+            )
 
         elif view == "type":
-            self.plotly_fatbands_typeview(e0=e0, fact=fact, lmax=lmax, blist=blist, fig=fig, ylims=ylims,
-                                          fontsize=fontsize, band_and_dos=1, show=False)
-            pjdosfile.plotly_pjdos_typeview(e0=e0, lmax=lmax, fig=fig, exchange_xy=True, stacked=stacked,
-                                            combined_spins=False, fontsize=fontsize, with_info=False,
-                                            with_spin_sign=False, ylims=ylims, band_and_dos=1, show=False, **edos_kwargs)
+            self.plotly_fatbands_typeview(
+                e0=e0,
+                fact=fact,
+                lmax=lmax,
+                blist=blist,
+                fig=fig,
+                ylims=ylims,
+                fontsize=fontsize,
+                band_and_dos=1,
+                show=False,
+            )
+            pjdosfile.plotly_pjdos_typeview(
+                e0=e0,
+                lmax=lmax,
+                fig=fig,
+                exchange_xy=True,
+                stacked=stacked,
+                combined_spins=False,
+                fontsize=fontsize,
+                with_info=False,
+                with_spin_sign=False,
+                ylims=ylims,
+                band_and_dos=1,
+                show=False,
+                **edos_kwargs,
+            )
         else:
             raise ValueError(f"Don't know how to handle {view=}")
 
-        if closeit: pjdosfile.close()
+        if closeit:
+            pjdosfile.close()
         return fig
 
     @add_fig_kwargs
@@ -1970,13 +2510,13 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
             print("prtdos == 3 is required!")
             return None
         # TODO: More tests.
-        #if self.pawprtdos != 0:
+        # if self.pawprtdos != 0:
 
         mylsize = self.lsize if lmax is None else lmax + 1
 
         # Onsite contributions.
         # fracts_paw1,(dtset%nkpt,dtset%mband,dtset%nsppol,new%ndosfraction))
-        #wshape = (self.natom, self.mbesslang, self.nsppol, self.mband, self.nkpt)
+        # wshape = (self.natom, self.mbesslang, self.nsppol, self.mband, self.nkpt)
         wal_sbk = self.wal_sbk
         paw1_wal_sbk = self._read_wal_sbk(key="dos_fractions_paw1")
         pawt1_wal_sbk = self._read_wal_sbk(key="dos_fractions_pawt1")
@@ -2002,9 +2542,10 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                 for k, kpoint in enumerate(kpoints):
                     weight = kpoint.weight
                     for band in range(nband_sk[spin, k]):
-                        gs = gaussian(mesh, width, center=eigens[spin,k,band])
+                        gs = gaussian(mesh, width, center=eigens[spin, k, band])
                         for iatom in range(self.natom):
-                            if not self.has_atom[iatom]: continue
+                            if not self.has_atom[iatom]:
+                                continue
                             for l in range(min(self.lmax_atom[iatom] + 1, mylsize)):
                                 totdos_al[iatom, l, spin] += weight * gs * wal_sbk[iatom, l, spin, band, k]
                                 paw1dos_al[iatom, l, spin] += weight * gs * paw1_wal_sbk[iatom, l, spin, band, k]
@@ -2019,18 +2560,20 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         # Build plot grid.
         nrows, ncols = np.count_nonzero(self.has_atom), self.lsize
         ax_mat = None
-        ax_mat, fig, plt = get_axarray_fig_plt(ax_mat, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=True, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(
+            ax_mat, nrows=nrows, ncols=ncols, sharex=True, sharey=True, squeeze=False
+        )
         ax_mat = np.reshape(ax_mat, (nrows, ncols))
 
         irow = -1
         for iatom in range(self.natom):
-            if not self.has_atom[iatom]: continue
+            if not self.has_atom[iatom]:
+                continue
             irow += 1
-            #for l in range(min(self.lmax_atom[iatom] + 1, mylsize)):
+            # for l in range(min(self.lmax_atom[iatom] + 1, mylsize)):
             for l in range(min(self.lsize, mylsize)):
                 ax = ax_mat[irow, l]
-                if l >= self.lmax_atom[iatom]+1:
+                if l >= self.lmax_atom[iatom] + 1:
                     # don't show this plots and cycle
                     ax.axis("off")
                     continue
@@ -2038,28 +2581,44 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
                 if l != 0:
                     ax.set_ylabel("")
                     # Only the first column show labels.
-                    #ax.yaxis.set_tick_params(fontsize=0)
+                    # ax.yaxis.set_tick_params(fontsize=0)
                     for tick in ax.yaxis.get_major_ticks():
                         tick.label1.set_fontsize(0)
 
                 for spin in range(self.nsppol):
                     spin_sign = +1 if spin == 0 else -1
-                    ax.plot(mesh, totdos_al[iatom, l, spin] * spin_sign, color="k",
-                            label="Total" if (irow, l, spin) == (0, 0, 0) else None)
-                    ax.plot(mesh, pwdos_al[iatom, l, spin] * spin_sign, color="r",
-                            label="PW part" if (irow, l, spin) == (0, 0, 0) else None)
-                    ax.plot(mesh, paw1dos_al[iatom, l, spin] * spin_sign, color="b",
-                            label="AE-onsite" if (irow, l, spin) == (0, 0, 0) else None)
-                    ax.plot(mesh, pawt1dos_al[iatom, l, spin] * spin_sign, color="g",
-                            label="PS-onsite" if (irow, l, spin) == (0, 0, 0) else None)
+                    ax.plot(
+                        mesh,
+                        totdos_al[iatom, l, spin] * spin_sign,
+                        color="k",
+                        label="Total" if (irow, l, spin) == (0, 0, 0) else None,
+                    )
+                    ax.plot(
+                        mesh,
+                        pwdos_al[iatom, l, spin] * spin_sign,
+                        color="r",
+                        label="PW part" if (irow, l, spin) == (0, 0, 0) else None,
+                    )
+                    ax.plot(
+                        mesh,
+                        paw1dos_al[iatom, l, spin] * spin_sign,
+                        color="b",
+                        label="AE-onsite" if (irow, l, spin) == (0, 0, 0) else None,
+                    )
+                    ax.plot(
+                        mesh,
+                        pawt1dos_al[iatom, l, spin] * spin_sign,
+                        color="g",
+                        label="PS-onsite" if (irow, l, spin) == (0, 0, 0) else None,
+                    )
 
         for ax in ax_mat[-1, :]:
-            ax.set_xlabel('Energy (eV)')
+            ax.set_xlabel("Energy (eV)")
             set_axlims(ax, xlims, "x")
 
     # TODO: THIS CODE IS STILL UNDER DEVELOPMENT
-    #@add_fig_kwargs
-    #def plot_pjdos_spinor(self, terms=("sigma_x", "sigma_y", "sigma_z"),
+    # @add_fig_kwargs
+    # def plot_pjdos_spinor(self, terms=("sigma_x", "sigma_y", "sigma_z"),
     #                      e0="fermie", method="gaussian", step=0.1, width=0.2,
     #                      blist=None,
     #                      #stacked=True,
@@ -2169,6 +2728,7 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         Build panel with widgets to interact with the |FatbandsFile| either in a notebook or in panel app.
         """
         from abipy.panels.fatbands import FatBandsFilePanel
+
         return FatBandsFilePanel(self).get_panel(**kwargs)
 
     def write_notebook(self, nbpath=None):
@@ -2178,56 +2738,75 @@ class FatBandsFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, N
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        nb.cells.extend([
-            nbv.new_code_cell("fbnc = abilab.abiopen('%s')\nprint(fbnc)" % self.filepath),
-            nbv.new_code_cell("fbnc.structure"),
-            nbv.new_code_cell("#fbnc.ebands.kpoints.plot();"),
-            nbv.new_code_cell("xlims = (None, None)\nylims = (None, None)"),
-            nbv.new_code_cell("#fbnc.ebands.plot(ylims=ylims);"),
-            nbv.new_code_cell("fbnc.ebands.boxplot();"),
-        ])
+        nb.cells.extend(
+            [
+                nbv.new_code_cell("fbnc = abilab.abiopen('%s')\nprint(fbnc)" % self.filepath),
+                nbv.new_code_cell("fbnc.structure"),
+                nbv.new_code_cell("#fbnc.ebands.kpoints.plot();"),
+                nbv.new_code_cell("xlims = (None, None)\nylims = (None, None)"),
+                nbv.new_code_cell("#fbnc.ebands.plot(ylims=ylims);"),
+                nbv.new_code_cell("fbnc.ebands.boxplot();"),
+            ]
+        )
 
         if self.prtdos == 3:
-            nb.cells.extend([
-                nbv.new_markdown_cell("## Fatbands plots with L-character \n(require `prtdos=3`)"),
-                nbv.new_code_cell("fbnc.plot_fatbands_typeview(ylims=ylims);"),
-                nbv.new_code_cell("fbnc.plot_fatbands_lview(ylims=ylims);"),
-                nbv.new_code_cell("fbnc.plot_fatbands_siteview(ylims=ylims);"),
-            ])
+            nb.cells.extend(
+                [
+                    nbv.new_markdown_cell("## Fatbands plots with L-character \n(require `prtdos=3`)"),
+                    nbv.new_code_cell("fbnc.plot_fatbands_typeview(ylims=ylims);"),
+                    nbv.new_code_cell("fbnc.plot_fatbands_lview(ylims=ylims);"),
+                    nbv.new_code_cell("fbnc.plot_fatbands_siteview(ylims=ylims);"),
+                ]
+            )
 
         if self.prtdos == 3 and self.prtdosm != 0:
-            nb.cells.extend([
-                nbv.new_markdown_cell("## Fatbands plots with LM-character \n(require `prtdos = 3 and prtdosm != 0`)"),
-                nbv.new_code_cell("fbnc.plot_fatbands_mview(iatom=0, ylims=ylims);"),
-            ])
+            nb.cells.extend(
+                [
+                    nbv.new_markdown_cell(
+                        "## Fatbands plots with LM-character \n(require `prtdos = 3 and prtdosm != 0`)"
+                    ),
+                    nbv.new_code_cell("fbnc.plot_fatbands_mview(iatom=0, ylims=ylims);"),
+                ]
+            )
 
         if self.prtdos == 5 and self.nspinor == 2:
-            nb.cells.extend([
-                nbv.new_markdown_cell("## Fatbands plots with Spin-character \n(require `prtdos = 5 and nspinor == 2`)"),
-                nbv.new_code_cell("fbnc.plot_fatbands_spinor(ylims=ylims);"),
-            ])
+            nb.cells.extend(
+                [
+                    nbv.new_markdown_cell(
+                        "## Fatbands plots with Spin-character \n(require `prtdos = 5 and nspinor == 2`)"
+                    ),
+                    nbv.new_code_cell("fbnc.plot_fatbands_spinor(ylims=ylims);"),
+                ]
+            )
 
         if self.prtdos == 3 and self.ebands.kpoints.is_mpmesh:
-            nb.cells.extend([
-                nbv.new_markdown_cell("## L-DOSes plots \n(require `prtdos = 3` and BZ sampling)"),
-                nbv.new_code_cell("fbnc.plot_pjdos_lview(xlims=xlims);"),
-                nbv.new_code_cell("fbnc.plot_pjdos_typeview(xlims=xlims);"),
-            ])
+            nb.cells.extend(
+                [
+                    nbv.new_markdown_cell("## L-DOSes plots \n(require `prtdos = 3` and BZ sampling)"),
+                    nbv.new_code_cell("fbnc.plot_pjdos_lview(xlims=xlims);"),
+                    nbv.new_code_cell("fbnc.plot_pjdos_typeview(xlims=xlims);"),
+                ]
+            )
 
         if self.prtdos == 3 and self.ebands.kpoints.is_path:
-            nb.cells.extend([
-                nbv.new_markdown_cell(
-                    "## L-DOSes with fatbands\n"
-                    "(require `prtdos=3`, `fbnc` must contain a k-path, "
-                    "`pjdosfile` is a `FATBANDS.nc` file with a BZ sampling)"),
-                nbv.new_code_cell("fbnc.plot_fatbands_with_pjdos(pjdosfile=None, ylims=ylims, view='type');"),
-            ])
+            nb.cells.extend(
+                [
+                    nbv.new_markdown_cell(
+                        "## L-DOSes with fatbands\n"
+                        "(require `prtdos=3`, `fbnc` must contain a k-path, "
+                        "`pjdosfile` is a `FATBANDS.nc` file with a BZ sampling)"
+                    ),
+                    nbv.new_code_cell("fbnc.plot_fatbands_with_pjdos(pjdosfile=None, ylims=ylims, view='type');"),
+                ]
+            )
 
         if self.usepaw == 1 and self.prtdos != 3:
-            nb.cells.extend([
-                nbv.new_markdown_cell("## PAW L-DOS decomposed into smooth PW part, AE and PS terms"),
-                nbv.new_code_cell("fbnc.plot_pawdos_terms();"),
-            ])
+            nb.cells.extend(
+                [
+                    nbv.new_markdown_cell("## PAW L-DOS decomposed into smooth PW part, AE and PS terms"),
+                    nbv.new_code_cell("fbnc.plot_pawdos_terms();"),
+                ]
+            )
 
         return self._write_nb_nbpath(nb, nbpath)
 
@@ -2239,29 +2818,27 @@ class _DosIntegrator:
     PJDOSes are computed lazily and stored in the integrator so that we can reuse the results
     if needed.
     """
+
     def __init__(self, fbfile: str, method: str, step: float, width: float):
-        """
-        """
+        """ """
         self.fbfile, self.method, self.step, self.width = fbfile, method, step, width
 
         # Compute Total DOS from ebands and define energy mesh.
         self.edos = fbfile.ebands.get_edos(method=method, step=step, width=width)
         self.mesh = self.edos.spin_dos[0].mesh
 
-    #@cached_property
-    #def site_edos(self):
+    # @cached_property
+    # def site_edos(self):
     #    """Array [natom, nsppol, lmax**2]"""
 
     @cached_property
     def symbols_lso(self) -> dict:
-        """
-        """
+        """ """
         fbfile, ebands = self.fbfile, self.fbfile.ebands
 
         # Compute l-decomposed PJDOS for each type of atom.
         symbols_lso = {}
         if self.method == "gaussian":
-
             for symbol in fbfile.symbols:
                 lmax = fbfile.lmax_symbol[symbol]
                 wlsbk = fbfile.get_wl_symbol(symbol)
@@ -2272,8 +2849,9 @@ class _DosIntegrator:
                         for band in range(ebands.nband_sk[spin, k]):
                             e = ebands.eigens[spin, k, band]
                             for l in range(lmax + 1):
-                                lso[l, spin] += wlsbk[l, spin, band, k] *\
-                                                weight * gaussian(self.mesh, self.width, center=e)
+                                lso[l, spin] += (
+                                    wlsbk[l, spin, band, k] * weight * gaussian(self.mesh, self.width, center=e)
+                                )
                 symbols_lso[symbol] = lso
 
         else:
@@ -2290,9 +2868,10 @@ class _DosIntegrator:
         """
         fbfile = self.fbfile
         from itertools import product
+
         dls = defaultdict(dict)
         for symbol, lso in self.symbols_lso.items():
-            for l, spin in product(range(fbfile.lmax_symbol[symbol]+1), range(fbfile.nsppol)):
+            for l, spin in product(range(fbfile.lmax_symbol[symbol] + 1), range(fbfile.nsppol)):
                 dls[(l, spin)][symbol] = lso[l, spin]
 
         ls_stackdos = {}
@@ -2300,7 +2879,8 @@ class _DosIntegrator:
         for (l, spin), dvals in dls.items():
             arr = np.zeros((nsymb, len(self.mesh)))
             for isymb, symbol in enumerate(fbfile.symbols):
-                if symbol not in dvals: continue
+                if symbol not in dvals:
+                    continue
                 arr[isymb] = dvals[symbol]
             ls_stackdos[(l, spin)] = arr.cumsum(axis=0)
 

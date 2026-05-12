@@ -1,25 +1,23 @@
-# coding: utf-8
 """Hirshfeld Charges."""
+
 from __future__ import annotations
 
-import numpy as np
 import os
-
 from shutil import which
+
+import numpy as np
 from monty.dev import requires
 from pymatgen.command_line.bader_caller import BaderAnalysis
-from pymatgen.io.abinit.pseudos import Pseudo
 from pymatgen.core.units import bohr_to_angstrom
-from abipy.core.structure import Structure
-from abipy.core.mixins import Has_Structure
+from pymatgen.io.abinit.pseudos import Pseudo
+
 from abipy.core.fields import Density
 from abipy.core.globals import get_workdir
+from abipy.core.mixins import Has_Structure
+from abipy.core.structure import Structure
 from abipy.electrons.denpot import DensityFortranFile
 
-__all__ = [
-    "HirshfeldCharges",
-    "BaderCharges"
-]
+__all__ = ["BaderCharges", "HirshfeldCharges"]
 
 
 class Charges(Has_Structure):
@@ -69,26 +67,26 @@ class HirshfeldCharges(Charges):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: HirshfeldCharges
     """
+
     @classmethod
     def from_cut3d_outfile(cls, filepath, structure):
         """
         Generates a HirshfeldCharges object from the outputfile of cut3d and a structure.
         """
-
         electron_charges = []
         reference_charges = []
-        with open(filepath, 'rt') as f:
+        with open(filepath) as f:
             lines = f.readlines()
 
         start_hirshfeld_i = None
         for i, l in enumerate(lines):
             if "Hirshfeld analysis" in l:
-                start_hirshfeld_i = i+3
+                start_hirshfeld_i = i + 3
                 break
         else:
-            raise RuntimeError('The file does not contain Hirshfeld charges')
+            raise RuntimeError("The file does not contain Hirshfeld charges")
 
-        for i in range(start_hirshfeld_i, start_hirshfeld_i+len(structure)):
+        for i in range(start_hirshfeld_i, start_hirshfeld_i + len(structure)):
             l = lines[i]
             electron_charges.append(float(l.split()[2]))
             reference_charges.append(-float(l.split()[1]))
@@ -107,8 +105,9 @@ class BaderCharges(Charges):
     """
 
     @classmethod
-    @requires(which("bader") or which("bader.exe"),
-              "BaderCharges.from_files requires the executable bader to be in the path.")
+    @requires(
+        which("bader") or which("bader.exe"), "BaderCharges.from_files requires the executable bader to be in the path."
+    )
     def from_files(cls, density_path, pseudopotential_paths, with_core=True, workdir=None, **kwargs):
         """
         Uses the abinit density files and the bader_ executable from Henkelmann et al. to calculate
@@ -133,7 +132,7 @@ class BaderCharges(Charges):
         """
         # read the valence density
         # if density is not a netcdf file, convert with cut3d
-        if not density_path.endswith('.nc'):
+        if not density_path.endswith(".nc"):
             dff = DensityFortranFile.from_file(density_path)
             density = dff.get_density()
         else:
@@ -150,15 +149,17 @@ class BaderCharges(Charges):
             try:
                 from pseudo_dojo.ppcodes.oncvpsp import psp8_get_densities
             except ImportError as exc:
-                print("PseudoDojo package required to extract core densities. "
-                      "Please install it with `pip install pseudo_dojo`")
+                print(
+                    "PseudoDojo package required to extract core densities. "
+                    "Please install it with `pip install pseudo_dojo`"
+                )
                 raise exc
 
             # extract core charge from pseudopotentials on a radial grid in the correct units
             rhoc = {}
             for specie, ppath in pseudopotential_paths.items():
                 r = psp8_get_densities(ppath)
-                rhoc[specie] = [r.rmesh * bohr_to_angstrom, r.aecore / (4.0 * np.pi) / (bohr_to_angstrom ** 3)]
+                rhoc[specie] = [r.rmesh * bohr_to_angstrom, r.aecore / (4.0 * np.pi) / (bohr_to_angstrom**3)]
 
             workdir = get_workdir(workdir)
 
@@ -171,7 +172,7 @@ class BaderCharges(Charges):
             pseudos = {k: Pseudo.from_file(p) for k, p in pseudopotential_paths.items()}
             atomic_charges = [pseudos[s.specie.name].Z_val for s in structure]
 
-        chgcar_path = os.path.join(workdir, 'CHGCAR')
+        chgcar_path = os.path.join(workdir, "CHGCAR")
         density.to_chgcar(chgcar_path)
 
         ba = BaderAnalysis(chgcar_path)

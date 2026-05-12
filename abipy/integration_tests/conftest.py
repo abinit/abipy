@@ -1,16 +1,17 @@
 """Configuration file for pytest."""
+
 from __future__ import annotations
 
-import os
-import pytest
-import ruamel.yaml as yaml
 import copy
-import abipy.flowtk as flowtk
-
+import os
 from pprint import pformat
+
+import pytest
 from monty.collections import AttrDict
 from monty.string import marquee
-from abipy.tools.iotools import yaml_safe_load_path, yaml_dump
+
+from abipy import flowtk
+from abipy.tools.iotools import yaml_dump, yaml_safe_load_path
 
 # Are we running on travis?
 
@@ -21,10 +22,10 @@ from abipy.tools.iotools import yaml_safe_load_path, yaml_dump
 # to Manager.from_string in fwp. base_conf looks like:
 
 USER_CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".abinit", "abipy")
-#USER_CONFIG_DIR = os.path.dirname(__file__)
+# USER_CONFIG_DIR = os.path.dirname(__file__)
 
 # Read the base configuration from file
-#with open(os.path.join(USER_CONFIG_DIR, "manager.yml")) as fh:
+# with open(os.path.join(USER_CONFIG_DIR, "manager.yml")) as fh:
 #    base_conf = yaml.safe_load(fh)
 
 base_conf = yaml_safe_load_path(os.path.join(USER_CONFIG_DIR, "manager.yml"))
@@ -32,15 +33,16 @@ base_conf = yaml_safe_load_path(os.path.join(USER_CONFIG_DIR, "manager.yml"))
 # Build list of configurations.
 _manager_confs = []
 
-for autoparal in [1]: #, 1]:
+for autoparal in [1]:  # , 1]:
     newd = copy.deepcopy(base_conf)
-    if "policy" not in newd: newd["policy"] = {}
+    if "policy" not in newd:
+        newd["policy"] = {}
     newd["policy"]["autoparal"] = autoparal
     _manager_confs.append(newd)
 
 
 _manager_confs = [yaml_dump(d) for d in _manager_confs]
-#_manager_confs = [base_conf]
+# _manager_confs = [base_conf]
 
 
 @pytest.fixture(params=_manager_confs)
@@ -63,7 +65,7 @@ def fwp(tmpdir, request):
 
 # Use tuples instead of dict because pytest require objects to be hashable.
 _tvars_list = [
-    #(("paral_kgb", 0),),
+    # (("paral_kgb", 0),),
     (("paral_kgb", 1),),
 ]
 
@@ -81,9 +83,13 @@ def tvars(request):
 
 def pytest_addoption(parser):
     """Add extra command line options."""
-    parser.addoption('--loglevel', default="ERROR", type=str,
-                     help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
-    #parser.addoption('--manager', default=None, help="TaskManager file (defaults to the manager.yml found in cwd"
+    parser.addoption(
+        "--loglevel",
+        default="ERROR",
+        type=str,
+        help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG",
+    )
+    # parser.addoption('--manager', default=None, help="TaskManager file (defaults to the manager.yml found in cwd"
 
 
 def pytest_report_header(config):
@@ -118,9 +124,10 @@ def pytest_report_header(config):
     # loglevel is bound to the string value obtained from the command line argument.
     # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
     import logging
+
     numeric_level = getattr(logging, config.option.loglevel.upper(), None)
     if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % config.option.loglevel)
+        raise ValueError("Invalid log level: %s" % config.option.loglevel)
     logging.basicConfig(level=numeric_level)
 
     return lines

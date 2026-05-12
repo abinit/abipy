@@ -1,15 +1,16 @@
 """Tests for msqdos module."""
-import os
-import numpy as np
-import abipy.data as abidata
 
-from abipy.core.testing import AbipyTest
+import os
+
+import numpy as np
+
+import abipy.data as abidata
 from abipy import abilab
 from abipy.core.symmetries import indsym_from_symrel
+from abipy.core.testing import AbipyTest
 
 
 class MsqdTest(AbipyTest):
-
     def test_from_ddb(self):
         """Testing MsqDos from DDB file."""
         self.skip_if_abinit_not_ge("8.11.0")
@@ -24,9 +25,10 @@ class MsqdTest(AbipyTest):
             phbst_file.close()
             phdos_file.close()
 
-        repr(msqd_dos); str(msqd_dos)
+        repr(msqd_dos)
+        str(msqd_dos)
         assert msqd_dos.to_string(verbose=2)
-        for fmt in ("cartesian", "cif", "ustar", "beta"): #, "B"):
+        for fmt in ("cartesian", "cif", "ustar", "beta"):  # , "B"):
             df = msqd_dos.get_dataframe(temp=100, view="all", select_symbols="Si", fmt=fmt)
             abilab.print_dataframe(df, title="Format: %s" % fmt)
 
@@ -42,7 +44,7 @@ class MsqdTest(AbipyTest):
         assert np.all(abipy_indsym == msqd_dos.structure.indsym)
 
         cif_string = msqd_dos.get_cif_string(temp=300)
-        #print("cif_string:\n", cif_string)
+        # print("cif_string:\n", cif_string)
 
         ref_string = """\
 # generated using pymatgen
@@ -110,19 +112,20 @@ O8    0.01922    0.01518    0.01356   -0.00661   -0.00412    0.01157"""
         # NB: lattice.matrix and cart_coords are not necessarily the
         # same when we read the structure from CIF because the lattice
         # is initialized from_angles_and_lenghts
-        #self.assert_almost_equal(same_structure.lattice.matrix, msqd_dos.structure.lattice.matrix)
+        # self.assert_almost_equal(same_structure.lattice.matrix, msqd_dos.structure.lattice.matrix)
 
-        for s1, s2 in zip(same_structure, msqd_dos.structure):
+        for s1, s2 in zip(same_structure, msqd_dos.structure, strict=False):
             assert s1.specie.symbol == s2.specie.symbol
             self.assert_almost_equal(s1.frac_coords, s2.frac_coords, decimal=5)
-            #self.assert_almost_equal(s1.coords, s2.coords, decimal=5)
+            # self.assert_almost_equal(s1.coords, s2.coords, decimal=5)
 
         maxerr = msqd_dos.check_site_symmetries(temp=300, verbose=1)
         assert maxerr < 1e-10
 
         # Get dict with results and try to encode with MontyEncoder
         jdoc = msqd_dos.get_json_doc(tstart=10, tstop=10, num=1)
-        from monty.json import json, MontyEncoder
+        from monty.json import MontyEncoder, json
+
         assert json.dumps(jdoc, cls=MontyEncoder)
 
         if self.has_matplotlib():

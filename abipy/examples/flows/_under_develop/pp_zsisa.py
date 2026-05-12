@@ -1,19 +1,18 @@
 #!/usr/bin/env python
 
 import sys
-import os
-#import abipy.data as abidata
-#import abipy.abilab as abilab
-import abipy.flowtk as flowtk
 
-from abipy.dfpt.qha_general_stress import QHA_ZSISA
+# import abipy.data as abidata
+# import abipy.abilab as abilab
+from abipy import flowtk
 from abipy.flowtk.zsisa import ThermalRelaxWork
 
+
 def build_flow(options):
-    #nqsmall_or_qppa = 2
-    #zsisa = QHA_ZSISA.from_json_file("flow_qha_zsisa/outdata/zsisa.json", nqsmall_or_qppa, verbose=1)
-    #zsisa = QHA_ZSISA.pickle_load("/Users/giantomassi/git_repos/abipy/abipy/examples/flows/flow_qha_zsisa/outdata", basename="zsisa.json.pickle")
-    #print(zsisa)
+    # nqsmall_or_qppa = 2
+    # zsisa = QHA_ZSISA.from_json_file("flow_qha_zsisa/outdata/zsisa.json", nqsmall_or_qppa, verbose=1)
+    # zsisa = QHA_ZSISA.pickle_load("/Users/giantomassi/git_repos/abipy/abipy/examples/flows/flow_qha_zsisa/outdata", basename="zsisa.json.pickle")
+    # print(zsisa)
 
     temperatures = [10, 50]
     temperatures = [10, 50, 100, 200]

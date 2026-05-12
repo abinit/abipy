@@ -9,11 +9,11 @@ followed by a band structure calculation
 WARNING: The API could change!
 """
 
-import sys
 import os
+import sys
+
 import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def make_ion_ioncell_inputs(paral_kgb=0):
@@ -22,17 +22,17 @@ def make_ion_ioncell_inputs(paral_kgb=0):
 
     # Perturb the structure (random perturbation of 0.1 Angstrom)
     # then compress the volume to trigger dilatmx.
-    #structure.perturb(distance=0.1)
-    #structure.scale_lattice(structure.volume * 0.6)
+    # structure.perturb(distance=0.1)
+    # structure.scale_lattice(structure.volume * 0.6)
 
     global_vars = dict(
         ecut=28,
-        ngkpt=[4,4,4],
-        shiftk=[0,0,0],
+        ngkpt=[4, 4, 4],
+        shiftk=[0, 0, 0],
         nshiftk=1,
         chksymbreak=0,
         paral_kgb=paral_kgb,
-        #prtwf=0,
+        # prtwf=0,
     )
 
     multi = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=2)
@@ -47,8 +47,8 @@ def make_ion_ioncell_inputs(paral_kgb=0):
         tolrff=0.02,
         tolmxf=5.0e-5,
         ntime=50,
-        #ntime=3,  #To test the restart
-        #dilatmx=1.1, # FIXME: abinit crashes if I don't use this
+        # ntime=3,  #To test the restart
+        # dilatmx=1.1, # FIXME: abinit crashes if I don't use this
     )
 
     # Dataset 2 (Atom + Cell Relaxation)
@@ -61,8 +61,8 @@ def make_ion_ioncell_inputs(paral_kgb=0):
         tolmxf=5.0e-5,
         strfact=100,
         ntime=50,
-        #ntime=3,  # To test the restart
-        )
+        # ntime=3,  # To test the restart
+    )
 
     ion_inp, ioncell_inp = multi.split_datasets()
     return ion_inp, ioncell_inp
@@ -71,34 +71,35 @@ def make_ion_ioncell_inputs(paral_kgb=0):
 def make_scf_nscf_inputs(paral_kgb=1):
     """Returns two input files: GS run and NSCF on a high symmetry k-mesh."""
     pseudos = abidata.pseudos("14si.pspnc")
-    #pseudos = data.pseudos("Si.GGA_PBE-JTH-paw.xml")
+    # pseudos = data.pseudos("Si.GGA_PBE-JTH-paw.xml")
 
     multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"), pseudos=pseudos, ndtset=2)
 
     # Global variables
     ecut = 28
-    global_vars = dict(ecut=ecut,
-                       nband=8,
-                       timopt=-1,
-                       istwfk="*1",
-                       nstep=15,
-                       paral_kgb=paral_kgb,
-                    )
+    global_vars = dict(
+        ecut=ecut,
+        nband=8,
+        timopt=-1,
+        istwfk="*1",
+        nstep=15,
+        paral_kgb=paral_kgb,
+    )
 
     if multi.ispaw:
-        global_vars.update(pawecutdg=2*ecut)
+        global_vars.update(pawecutdg=2 * ecut)
 
     multi.set_vars(global_vars)
 
     # Dataset 1 (GS run)
-    multi[0].set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
+    multi[0].set_kmesh(ngkpt=[8, 8, 8], shiftk=[0, 0, 0])
     multi[0].set_vars(tolvrs=1e-6)
 
     # Dataset 2 (NSCF run)
     kptbounds = [
-        [0.5, 0.0, 0.0], # L point
-        [0.0, 0.0, 0.0], # Gamma point
-        [0.0, 0.5, 0.5], # X point
+        [0.5, 0.0, 0.0],  # L point
+        [0.0, 0.0, 0.0],  # Gamma point
+        [0.0, 0.5, 0.5],  # X point
     ]
 
     multi[1].set_kpath(ndivsm=6, kptbounds=kptbounds)
@@ -118,7 +119,7 @@ def build_flow(options):
     flow = flowtk.Flow(options.workdir, manager=options.manager)
 
     paral_kgb = 1
-    #paral_kgb = 0  # This one is OK
+    # paral_kgb = 0  # This one is OK
 
     # Create a relaxation work and add it to the flow.
     ion_inp, ioncell_inp = make_ion_ioncell_inputs(paral_kgb=paral_kgb)
@@ -139,7 +140,7 @@ def build_flow(options):
         bands_work.scf_task.add_deps({relax_work[-1]: "WFK"})
 
         # --> This is ok if we used fourier_interp to change the FFT mesh.
-        #bands_work.scf_task.add_deps({relax_work[-1]: "DEN"})
+        # bands_work.scf_task.add_deps({relax_work[-1]: "DEN"})
 
     # All task in bands_work will fetch the relaxed structure from the last task in relax_work
     for task in bands_work:
@@ -158,6 +159,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

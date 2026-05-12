@@ -1,23 +1,23 @@
-# coding: utf-8
 """Tools and helper functions for abinit calculations"""
+
 from __future__ import annotations
 
+import collections
+import logging
+import operator
 import os
 import re
-import collections
 import shutil
-import operator
-import numpy as np
-
-from typing import Optional
 from fnmatch import fnmatch
+
+import numpy as np
 from monty.collections import dict2namedtuple
-from monty.string import list_strings
 from monty.fnmatch import WildCard
 from monty.shutil import copy_r
+from monty.string import list_strings
+
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 
-import logging
 logger = logging.getLogger(__name__)
 
 
@@ -27,15 +27,15 @@ def as_bool(s: str | bool) -> bool:
 
     >>> assert as_bool(True) is True and as_bool("Yes") is True and as_bool("false") is False
     """
-    if s in (False, True): return s
+    if s in (False, True):
+        return s
     # Assume string
     s = s.lower()
     if s in ("yes", "true"):
         return True
-    elif s in ("no", "false"):
+    if s in ("no", "false"):
         return False
-    else:
-        raise ValueError("Don't know how to convert type %s: %s into a boolean" % (type(s), s))
+    raise ValueError("Don't know how to convert type %s: %s into a boolean" % (type(s), s))
 
 
 class File:
@@ -43,7 +43,12 @@ class File:
     Very simple class used to store file basenames, absolute paths and directory names.
     Provides wrappers for the most commonly used functions defined in os.path.
     """
+
     def __init__(self, path: str):
+        """
+        Args:
+            path: Path to the file.
+        """
         self._path = os.path.abspath(path)
 
     def __repr__(self):
@@ -98,12 +103,12 @@ class File:
 
     def read(self) -> str:
         """Read data from file."""
-        with open(self.path, "r") as f:
+        with open(self.path) as f:
             return f.read()
 
     def readlines(self) -> list[str]:
         """Read lines from files."""
-        with open(self.path, "r") as f:
+        with open(self.path) as f:
             return f.readlines()
 
     def write(self, string: str):
@@ -112,8 +117,7 @@ class File:
         with open(self.path, "w") as f:
             if not string.endswith("\n"):
                 return f.write(string + "\n")
-            else:
-                return f.write(string)
+            return f.write(string)
 
     def writelines(self, lines: list[str]):
         """Write a list of strings to file."""
@@ -149,7 +153,8 @@ class File:
         Return the size, in bytes, of path.
         Return 0 if the file is empty or it does not exist.
         """
-        if not self.exists: return 0
+        if not self.exists:
+            return 0
         return os.path.getsize(self.path)
 
 
@@ -158,7 +163,12 @@ class Directory:
     Very simple class that provides helper functions
     wrapping the most commonly used functions defined in os.path.
     """
+
     def __init__(self, path: str):
+        """
+        Args:
+            path: Path to the directory.
+        """
         self._path = os.path.abspath(path)
 
     def __repr__(self):
@@ -231,7 +241,7 @@ class Directory:
         """Return the absolute path of filename in the directory."""
         return os.path.join(self.path, file_basename)
 
-    def list_filepaths(self, wildcard: Optional[str] = None) -> list[str]:
+    def list_filepaths(self, wildcard: str | None = None) -> list[str]:
         """
         Return the list of absolute filepaths in the directory.
 
@@ -239,7 +249,8 @@ class Directory:
             wildcard: String of tokens separated by "|". Each token represents a pattern.
                 If wildcard is not None, we return only those files whose basename matches
                 the given shell pattern (uses fnmatch).
-                Example:
+
+        Example:
                   wildcard="*.nc|*.pdf" selects only those files that end with .nc or .pdf
         """
         # Select the files in the directory.
@@ -250,7 +261,7 @@ class Directory:
             # Filter using shell patterns.
             w = WildCard(wildcard)
             filepaths = [path for path in filepaths if w.match(os.path.basename(path))]
-            #filepaths = WildCard(wildcard).filter(filepaths)
+            # filepaths = WildCard(wildcard).filter(filepaths)
 
         return sorted(filepaths)
 
@@ -264,7 +275,7 @@ class Directory:
         """
         path = self.has_abiext(ext, single_file=True)
         if not path:
-            raise FileNotFoundError(f"Cannot find file with extension: `{ext}` in directory `{repr(self)}`")
+            raise FileNotFoundError(f"Cannot find file with extension: `{ext}` in directory `{self!r}`")
 
         return path
 
@@ -284,18 +295,21 @@ class Directory:
             This implies that this method is not compatible with multiple datasets.
         """
         if ext != "abo":
-            ext = ext if ext.startswith('_') else '_' + ext
+            ext = ext if ext.startswith("_") else "_" + ext
 
         files = []
         for f in self.list_filepaths():
             # For the time being, we ignore DDB files in nc format.
-            if ext == "_DDB" and f.endswith(".nc"): continue
+            if ext == "_DDB" and f.endswith(".nc"):
+                continue
             # Ignore BSE text files e.g. GW_NLF_MDF
-            if ext == "_MDF" and not f.endswith(".nc"): continue
+            if ext == "_MDF" and not f.endswith(".nc"):
+                continue
             # Ignore DDK.nc files (temporary workaround for v8.8.2 in which
             # the DFPT code produces a new file with DDK.nc extension that enters
             # into conflict with AbiPy convention.
-            if ext == "_DDK" and f.endswith(".nc"): continue
+            if ext == "_DDK" and f.endswith(".nc"):
+                continue
 
             if f.endswith(ext) or f.endswith(ext + ".nc"):
                 files.append(f)
@@ -309,8 +323,9 @@ class Directory:
 
         if len(files) > 1 and single_file:
             # ABINIT users must learn that multiple datasets are bad!
-            raise ValueError("Found multiple files with the same extensions:\n %s\n" % files +
-                             "Please avoid multiple datasets!")
+            raise ValueError(
+                "Found multiple files with the same extensions:\n %s\n" % files + "Please avoid multiple datasets!"
+            )
 
         return files[0] if single_file else files
 
@@ -320,7 +335,6 @@ class Directory:
         given by the ABINIT file extension.
 
         Example:
-
             outdir.symlink_abiext('1WF', 'DDK')
 
         creates the link out_DDK that points to out_1WF
@@ -331,15 +345,15 @@ class Directory:
         """
         infile = self.has_abiext(inext)
         if not infile:
-            raise RuntimeError('no file with extension `%s` in `%s`' % (inext, self))
+            raise RuntimeError("no file with extension `%s` in `%s`" % (inext, self))
 
         for i in range(len(infile) - 1, -1, -1):
-            if infile[i] == '_':
+            if infile[i] == "_":
                 break
         else:
-            raise RuntimeError('Extension `%s` could not be detected in file `%s`' % (inext, infile))
+            raise RuntimeError("Extension `%s` could not be detected in file `%s`" % (inext, infile))
 
-        outfile = infile[:i] + '_' + outext
+        outfile = infile[:i] + "_" + outext
         if infile.endswith(".nc") and not outfile.endswith(".nc"):
             outfile = outfile + ".nc"
 
@@ -348,10 +362,10 @@ class Directory:
                 if os.path.realpath(outfile) == infile:
                     logger.debug("Link `%s` already exists but it's OK because it points to the correct file" % outfile)
                     return 0
-                else:
-                    raise RuntimeError("Expecting link at `%s` already exists but it does not point to `%s`" % (outfile, infile))
-            else:
-                raise RuntimeError('Expecting link at `%s` but found file.' % outfile)
+                raise RuntimeError(
+                    "Expecting link at `%s` already exists but it does not point to `%s`" % (outfile, infile)
+                )
+            raise RuntimeError("Expecting link at `%s` but found file." % outfile)
 
         os.symlink(infile, outfile)
 
@@ -361,15 +375,15 @@ class Directory:
         """Rename the Abinit file with extension inext with the new extension outext"""
         infile = self.has_abiext(inext)
         if not infile:
-            raise RuntimeError('no file with extension %s in %s' % (inext, self))
+            raise RuntimeError("no file with extension %s in %s" % (inext, self))
 
         for i in range(len(infile) - 1, -1, -1):
-            if infile[i] == '_':
+            if infile[i] == "_":
                 break
         else:
-            raise RuntimeError('Extension %s could not be detected in file %s' % (inext, infile))
+            raise RuntimeError("Extension %s could not be detected in file %s" % (inext, infile))
 
-        outfile = infile[:i] + '_' + outext
+        outfile = infile[:i] + "_" + outext
         shutil.move(infile, outfile)
         return 0
 
@@ -377,15 +391,15 @@ class Directory:
         """Copy the Abinit file with extension inext to a new file with the extension outext"""
         infile = self.has_abiext(inext)
         if not infile:
-            raise RuntimeError('no file with extension %s in %s' % (inext, self))
+            raise RuntimeError("no file with extension %s in %s" % (inext, self))
 
         for i in range(len(infile) - 1, -1, -1):
-            if infile[i] == '_':
+            if infile[i] == "_":
                 break
         else:
-            raise RuntimeError('Extension %s could not be detected in file %s' % (inext, infile))
+            raise RuntimeError("Extension %s could not be detected in file %s" % (inext, infile))
 
-        outfile = infile[:i] + '_' + outext
+        outfile = infile[:i] + "_" + outext
         shutil.copy(infile, outfile)
         return 0
 
@@ -398,11 +412,12 @@ class Directory:
 
         for ext in list_strings(exts):
             path = self.has_abiext(ext)
-            if not path: continue
+            if not path:
+                continue
             try:
                 os.remove(path)
                 paths.append(path)
-            except IOError:
+            except OSError:
                 logger.warning("Exception while trying to remove file %s" % path)
 
         return paths
@@ -419,7 +434,8 @@ class Directory:
         regex = re.compile(r"out_TIM(\d+)_DEN(.nc)?$")
 
         timden_paths = [f for f in self.list_filepaths() if regex.match(os.path.basename(f))]
-        if not timden_paths: return None
+        if not timden_paths:
+            return None
 
         # Build list of (step, path) tuples.
         stepfile_list = []
@@ -442,7 +458,8 @@ class Directory:
         regex = re.compile(r"out_1WF(\d+)(\.nc)?$")
 
         wf_paths = [f for f in self.list_filepaths() if regex.match(os.path.basename(f))]
-        if not wf_paths: return None
+        if not wf_paths:
+            return None
 
         # Build list of (pertcase, path) tuples.
         pertfile_list = []
@@ -464,7 +481,8 @@ class Directory:
         """
         regex = re.compile(r"out_DEN(\d+)(\.nc)?$")
         den_paths = [f for f in self.list_filepaths() if regex.match(os.path.basename(f))]
-        if not den_paths: return None
+        if not den_paths:
+            return None
 
         # Build list of (pertcase, path) tuples.
         pertfile_list = []
@@ -508,13 +526,13 @@ _EXT2VARS = {
     "DKK": {},
     "EFMAS.nc": {"irdefmas": 1},
     # Abinit does not implement getkden and irdkden but relies on irden
-    "KDEN": {},  #{"irdkden": 1},
+    "KDEN": {},  # {"irdkden": 1},
     "KERANGE.nc": {"getkerange_filepath": '"indata/in_KERANGE.nc"'},
-    "POT": {"getpot_filepath" : '"indata/in_POT"'},
+    "POT": {"getpot_filepath": '"indata/in_POT"'},
     "SIGEPH": {"getsigeph_filepath": '"indata/in_SIGEPH.nc"'},
     "DKDK": {},  # irddkdk is not defined.
-    #"DKDE": {"getdkde": 1},
-    #"DELFD": {"getdelfd": 1},
+    # "DKDE": {"getdkde": 1},
+    # "DELFD": {"getdelfd": 1},
     "GSTORE": {"getgstore_filepath": '"indata/in_GSTORE.nc"'},
     "HIST": {},
 }
@@ -563,7 +581,8 @@ def abi_splitext(filename: str) -> tuple[str, str]:
         raise ValueError("Cannot find a registered extension in %s" % filename)
 
     root = filename[:i]
-    if is_ncfile: ext += ".nc"
+    if is_ncfile:
+        ext += ".nc"
 
     return root, ext
 
@@ -586,31 +605,35 @@ class FilepathFixer:
     `FilepathFixer` to fix the output files produced by the run.
 
     Example:
-
         fixer = FilepathFixer()
         fixer.fix_paths('/foo/out_1WF17') == {'/foo/out_1WF17': '/foo/out_1WF'}
         fixer.fix_paths('/foo/out_1WF5.nc') == {'/foo/out_1WF5.nc': '/foo/out_1WF.nc'}
     """
+
     def __init__(self):
+        """Initialize the fixer."""
         # dictionary mapping the *official* file extension to
         # the regular expression used to tokenize the basename of the file
         # To add a new file it's sufficient to add a new regexp and
         # a static method _fix_EXTNAME
         self.regs = regs = {}
         import re
+
         regs["1WF"] = re.compile(r"(\w+_)1WF(\d+)(\.nc)?$")
         regs["1DEN"] = re.compile(r"(\w+_)1DEN(\d+)(\.nc)?$")
 
     @staticmethod
     def _fix_1WF(match) -> str:
         root, pert, ncext = match.groups()
-        if ncext is None: ncext = ""
+        if ncext is None:
+            ncext = ""
         return root + "1WF" + ncext
 
     @staticmethod
     def _fix_1DEN(match) -> str:
         root, pert, ncext = match.groups()
-        if ncext is None: ncext = ""
+        if ncext is None:
+            ncext = ""
         return root + "1DEN" + ncext
 
     def _fix_path(self, path: str) -> tuple:
@@ -638,14 +661,15 @@ class FilepathFixer:
             newpath, ext = self._fix_path(path)
 
             if newpath is not None:
-                #if ext not in fixed_exts:
+                # if ext not in fixed_exts:
                 #    if ext == "1WF": continue
                 #    raise ValueError("Unknown extension %s" % ext)
-                #print(ext, path, fixed_exts)
-                #if ext != '1WF':
+                # print(ext, path, fixed_exts)
+                # if ext != '1WF':
                 #    assert ext not in fixed_exts
                 if ext not in fixed_exts:
-                    if ext == "1WF": continue
+                    if ext == "1WF":
+                        continue
                     raise ValueError("Unknown extension %s" % ext)
                 fixed_exts.append(ext)
                 old2new[path] = newpath
@@ -689,7 +713,7 @@ _BIN_OPS = {
     "$lte": operator.le,
     "$divisible": _bop_divisible,
     "$and": _bop_and,
-    "$or":  _bop_or,
+    "$or": _bop_or,
 }
 
 
@@ -711,7 +735,6 @@ def map2rpn(map, obj):
     rpn = []
 
     for k, v in map.items():
-
         if k in _ALL_OPS:
             if isinstance(v, collections.abc.Mapping):
                 # e.g "$not": {"$gt": "one"}
@@ -733,12 +756,12 @@ def map2rpn(map, obj):
                 # 1) "$eq"": "attribute_name"
                 # 2) "$eq"": 1.0
                 try:
-                    #print("in_otherv",k, v)
+                    # print("in_otherv",k, v)
                     rpn.append(getattr(obj, v))
                     rpn.append(k)
 
                 except TypeError:
-                    #print("in_otherv, raised",k, v)
+                    # print("in_otherv, raised",k, v)
                     rpn.extend([v, k])
         else:
             try:
@@ -752,7 +775,7 @@ def map2rpn(map, obj):
                 rpn.append(k)
                 rpn.extend(values)
             else:
-                #"one": 1.0
+                # "one": 1.0
                 rpn.extend([k, v, "$eq"])
 
     return rpn
@@ -767,7 +790,6 @@ def evaluate_rpn(rpn):
     vals_stack = []
 
     for item in rpn:
-
         if item in _ALL_OPS:
             # Apply the operator and push to the task.
             v2 = vals_stack.pop()
@@ -799,7 +821,6 @@ class Condition:
     to the one used in mongodb (albeit not all the operators available in mongodb are supported here).
 
     Example:
-
     $gt: {field: {$gt: value} }
 
     $gt selects those documents where the value of the field is greater than (i.e. >) the specified value.
@@ -818,15 +839,19 @@ class Condition:
     db.inventory.find( { qty: { $gt: 20 } } )
     db.inventory.find({ $and: [ { price: 1.99 }, { qty: { $lt: 20 } }, { sale: true } ] } )
     """
+
     @classmethod
     def as_condition(cls, obj):
         """Convert obj into :class:`Condition`"""
         if isinstance(obj, cls):
             return obj
-        else:
-            return cls(cmap=obj)
+        return cls(cmap=obj)
 
     def __init__(self, cmap=None):
+        """
+        Args:
+            cmap: Dictionary with operators and operands.
+        """
         self.cmap = {} if cmap is None else cmap
 
     def __str__(self):
@@ -838,7 +863,9 @@ class Condition:
     __nonzero__ = __bool__
 
     def __call__(self, obj):
-        if not self: return True
+        """Evaluate the condition on `obj`."""
+        if not self:
+            return True
         try:
             return evaluate_rpn(map2rpn(self.cmap, obj))
         except Exception as exc:
@@ -851,24 +878,29 @@ class Editor:
     Wrapper class that calls the editor specified by the user
     or the one specified in the $EDITOR env variable.
     """
+
     def __init__(self, editor=None):
         """If editor is None, $EDITOR is used."""
         self.editor = os.getenv("EDITOR", "vi") if editor is None else str(editor)
 
     def edit_files(self, fnames, ask_for_exit=True):
+        """Edit a list of files."""
         exit_status = 0
         for idx, fname in enumerate(fnames):
             exit_status = self.edit_file(fname)
-            if ask_for_exit and idx != len(fnames)-1 and self.user_wants_to_exit():
+            if ask_for_exit and idx != len(fnames) - 1 and self.user_wants_to_exit():
                 break
         return exit_status
 
     def edit_file(self, fname):
+        """Edit a single file."""
         from subprocess import call
+
         retcode = call([self.editor, fname])
 
         if retcode != 0:
             import warnings
+
             warnings.warn("Error while trying to edit file: %s" % fname)
 
         return retcode
@@ -886,8 +918,18 @@ class Editor:
 
 
 class SparseHistogram:
+    """
+    Histogram of a list of objects based on a property.
+    """
 
     def __init__(self, items, key=None, num=None, step=None):
+        """
+        Args:
+            items: List of objects.
+            key: Function used to extract the property from the object.
+            num: Number of bins.
+            step: Bin width.
+        """
         if num is None and step is None:
             raise ValueError("Either num or step must be specified")
 
@@ -897,19 +939,20 @@ class SparseHistogram:
         start, stop = min(values), max(values)
         if num is None:
             num = int((stop - start) / step)
-            if num == 0: num = 1
+            if num == 0:
+                num = 1
         mesh = np.linspace(start, stop, num, endpoint=False)
 
         from monty.bisect import find_le
 
         hist = defaultdict(list)
-        for item, value in zip(items, values):
+        for item, value in zip(items, values, strict=False):
             # Find rightmost value less than or equal to x.
             # hence each bin contains all items whose value is >= value
             pos = find_le(mesh, value)
             hist[mesh[pos]].append(item)
 
-        #new = OrderedDict([(pos, hist[pos]) for pos in sorted(hist.keys(), reverse=reverse)])
+        # new = OrderedDict([(pos, hist[pos]) for pos in sorted(hist.keys(), reverse=reverse)])
         self.binvals = sorted(hist.keys())
         self.values = [hist[pos] for pos in self.binvals]
         self.start, self.stop, self.num = start, stop, num
@@ -928,12 +971,19 @@ class SparseHistogram:
 
 
 class Dirviz:
+    """
+    This object provides helper methods to visualize the content of a directory.
+    """
 
-    #file_color = np.array((255, 0, 0)) / 255
-    #dir_color = np.array((0, 0, 255)) / 255
+    # file_color = np.array((255, 0, 0)) / 255
+    # dir_color = np.array((0, 0, 255)) / 255
 
     def __init__(self, top):
-        #if not os.path.isdir(top):
+        """
+        Args:
+            top: Path to the directory.
+        """
+        # if not os.path.isdir(top):
         #    raise TypeError("%s should be a directory!" % str(top))
         self.top = os.path.abspath(top)
 
@@ -956,17 +1006,20 @@ class Dirviz:
         """
         # https://www.graphviz.org/doc/info/
         from graphviz import Digraph
-        g = Digraph("directory", #filename="flow_%s.gv" % os.path.basename(self.relworkdir),
-            engine=engine) # if engine == "automatic" else engine)
+
+        g = Digraph(
+            "directory",  # filename="flow_%s.gv" % os.path.basename(self.relworkdir),
+            engine=engine,
+        )  # if engine == "automatic" else engine)
 
         # Set graph attributes.
-        #g.attr(label="%s@%s" % (self.__class__.__name__, self.relworkdir))
+        # g.attr(label="%s@%s" % (self.__class__.__name__, self.relworkdir))
         g.attr(label=self.top)
-        #g.attr(fontcolor="white", bgcolor='purple:pink')
-        #g.attr(rankdir="LR", pagedir="BL")
-        #g.attr(constraint="false", pack="true", packMode="clust")
-        g.node_attr.update(color='lightblue2', style='filled')
-        #g.node_attr.update(ranksep='equally')
+        # g.attr(fontcolor="white", bgcolor='purple:pink')
+        # g.attr(rankdir="LR", pagedir="BL")
+        # g.attr(constraint="false", pack="true", packMode="clust")
+        g.node_attr.update(color="lightblue2", style="filled")
+        # g.node_attr.update(ranksep='equally')
 
         # Add input attributes.
         if graph_attr is not None:
@@ -978,12 +1031,12 @@ class Dirviz:
 
         def node_kwargs(path):
             return dict(
-                #shape="circle",
-                #shape="none",
-                #shape="plaintext",
-                #shape="point",
+                # shape="circle",
+                # shape="none",
+                # shape="plaintext",
+                # shape="point",
                 shape="record",
-                #color=node.color_hex,
+                # color=node.color_hex,
                 fontsize="8.0",
                 label=os.path.basename(path),
             )
@@ -994,9 +1047,10 @@ class Dirviz:
         # TODO: Write other method without clusters if not walk.
         exclude_top_node = False
         for root, dirs, files in os.walk(self.top):
-            if exclude_top_node and root == self.top: continue
+            if exclude_top_node and root == self.top:
+                continue
             cluster_name = "cluster_%s" % root
-            #print("root", root, cluster_name, "dirs", dirs, "files", files, sep="\n")
+            # print("root", root, cluster_name, "dirs", dirs, "files", files, sep="\n")
 
             with g.subgraph(name=cluster_name) as d:
                 d.attr(**cluster_kwargs)
@@ -1009,18 +1063,18 @@ class Dirviz:
                         # Follow the link and use the relpath wrt link as label.
                         realp = os.path.realpath(filepath)
                         realp = os.path.relpath(realp, filepath)
-                        #realp = os.path.relpath(realp, self.top)
-                        #print(filepath, realp)
-                        #g.node(realp, **node_kwargs(realp))
+                        # realp = os.path.relpath(realp, self.top)
+                        # print(filepath, realp)
+                        # g.node(realp, **node_kwargs(realp))
                         g.edge(filepath, realp, **edge_kwargs)
 
                 for dirname in dirs:
                     dirpath = os.path.join(root, dirname)
-                    #head, basename = os.path.split(dirpath)
+                    # head, basename = os.path.split(dirpath)
                     new_cluster_name = "cluster_%s" % dirpath
-                    #rank = "source" if os.listdir(dirpath) else "sink"
-                    #g.node(dirpath, rank=rank, **node_kwargs(dirpath))
-                    #g.edge(dirpath, new_cluster_name, **edge_kwargs)
-                    #d.edge(cluster_name, new_cluster_name, minlen="2", **edge_kwargs)
+                    # rank = "source" if os.listdir(dirpath) else "sink"
+                    # g.node(dirpath, rank=rank, **node_kwargs(dirpath))
+                    # g.edge(dirpath, new_cluster_name, **edge_kwargs)
+                    # d.edge(cluster_name, new_cluster_name, minlen="2", **edge_kwargs)
                     d.edge(cluster_name, new_cluster_name, **edge_kwargs)
         return g

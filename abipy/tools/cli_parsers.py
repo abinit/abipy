@@ -1,12 +1,10 @@
-"""
-Tools and helper functions to build the command line interface of the AbiPy scripts.
-"""
+"""Tools and helper functions to build the command line interface of the AbiPy scripts."""
+
 from __future__ import annotations
 
 import argparse
-import sys
 import os
-
+import sys
 from functools import wraps
 from pprint import pformat
 
@@ -25,62 +23,79 @@ def set_loglevel(loglevel: str) -> None:
     # loglevel is bound to the string value obtained from the command line argument.
     # Convert to upper case to allow the user to specify --loglevel=DEBUG or --loglevel=debug
     import logging
+
     numeric_level = getattr(logging, loglevel.upper(), None)
     if not isinstance(numeric_level, int):
-        raise ValueError('Invalid log level: %s' % loglevel)
+        raise ValueError("Invalid log level: %s" % loglevel)
     logging.basicConfig(level=numeric_level)
 
 
 def pn_serve_parser(**kwargs) -> argparse.ArgumentParser:
-    """
-    Parent parser implementing cli options for panel.serve
-    """
+    """Parent parser implementing cli options for panel.serve."""
     p = argparse.ArgumentParser(add_help=False)
 
     p.add_argument("--port", default=0, type=int, help="Port to listen on.")
-    p.add_argument("--address", default=None,
-                              help="The address the server should listen on for HTTP requests.")
-    #p.add_argument("--show", default=True, action="store_true", help="Open app in web browser")
-    p.add_argument("--num_procs", default=1, type=int,
-                              help="Number of worker processes for the app. Defaults to 1")
-    p.add_argument('--panel-template', "-pnt", default="FastList",
-                  help="Specify template for panel dashboard." +
-                       "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
-                       "Default: FastList")
-    p.add_argument('--has-remote-server', default=False, action="store_true",
-                  help="True if we are running on the ABINIT server. " +
-                       "This flag activates limitations on what the user can do." +
-                       "Default: False")
-    p.add_argument("--websocket-origin", default=None, type=str,
-            help="Public hostnames which may connect to the Bokeh websocket.\n Syntax: " +
-                  "HOST[:PORT] or *. Default: None")
-    p.add_argument('--max_size_mb', default=150, type=int,
-                help="Maximum message size in MB allowed by Bokeh and Tornado. Default: 150")
+    p.add_argument("--address", default=None, help="The address the server should listen on for HTTP requests.")
+    # p.add_argument("--show", default=True, action="store_true", help="Open app in web browser")
+    p.add_argument("--num_procs", default=1, type=int, help="Number of worker processes for the app. Defaults to 1")
+    p.add_argument(
+        "--panel-template",
+        "-pnt",
+        default="FastList",
+        help="Specify template for panel dashboard."
+        "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla."
+        "Default: FastList",
+    )
+    p.add_argument(
+        "--has-remote-server",
+        default=False,
+        action="store_true",
+        help="True if we are running on the ABINIT server. "
+        "This flag activates limitations on what the user can do."
+        "Default: False",
+    )
+    p.add_argument(
+        "--websocket-origin",
+        default=None,
+        type=str,
+        help="Public hostnames which may connect to the Bokeh websocket.\n Syntax: HOST[:PORT] or *. Default: None",
+    )
+    p.add_argument(
+        "--max_size_mb",
+        default=150,
+        type=int,
+        help="Maximum message size in MB allowed by Bokeh and Tornado. Default: 150",
+    )
 
-    p.add_argument('--no-browser', action='store_true', default=False,
-                   help=("Start the jupyter server to serve the notebook "
-                         "but don't open the notebook in the browser.\n"
-                         "Use this option to connect remotely from localhost to the machine running the kernel"))
+    p.add_argument(
+        "--no-browser",
+        action="store_true",
+        default=False,
+        help=(
+            "Start the jupyter server to serve the notebook "
+            "but don't open the notebook in the browser.\n"
+            "Use this option to connect remotely from localhost to the machine running the kernel"
+        ),
+    )
 
     return p
 
 
 def get_pn_serve_kwargs(options) -> dict:
-    """
-    Return dict with the arguments to be passed to pn.serve.
-    """
+    """Return dict with the arguments to be passed to pn.serve."""
     import abipy.panels as mod
+
     assets_path = os.path.join(os.path.dirname(mod.__file__), "assets")
 
     serve_kwargs = dict(
         address=options.address,
         port=options.port,
-        #dev=True,
-        #start=True,
-        #show=options.show,
+        # dev=True,
+        # start=True,
+        # show=options.show,
         show=not options.no_browser,
         debug=options.verbose > 0,
-        #title=app_title,
+        # title=app_title,
         num_procs=options.num_procs,
         static_dirs={"/assets": assets_path},
         websocket_origin=options.websocket_origin,
@@ -89,10 +104,10 @@ def get_pn_serve_kwargs(options) -> dict:
         # https://panel.holoviz.org/reference/widgets/FileInput.html
         websocket_max_message_size=options.max_size_mb * 1024**2,
         # Increase the maximum buffer size allowed by Tornado
-        http_server_kwargs={'max_buffer_size': options.max_size_mb * 1024**2},
+        http_server_kwargs={"max_buffer_size": options.max_size_mb * 1024**2},
     )
 
-    if getattr(options, "verbose"):
+    if options.verbose:
         print("Calling pn.serve with serve_kwargs:\n", pformat(serve_kwargs), "\n")
 
     if options.no_browser:
@@ -104,7 +119,6 @@ Use:
 for port forwarding.
 """)
 
-
     return serve_kwargs
 
 
@@ -113,41 +127,91 @@ def customize_mpl(options) -> None:
     if options.mpl_backend is not None:
         # Set matplotlib backend
         import matplotlib
+
         matplotlib.use(options.mpl_backend)
 
     if options.seaborn:
         # Use seaborn settings.
         import seaborn as sns
-        sns.set(context=options.seaborn, style='darkgrid', palette='deep',
-                font='sans-serif', font_scale=1, color_codes=False, rc=None)
+
+        sns.set(
+            context=options.seaborn,
+            style="darkgrid",
+            palette="deep",
+            font="sans-serif",
+            font_scale=1,
+            color_codes=False,
+            rc=None,
+        )
 
 
 def add_expose_options_to_parser(parser, with_mpl_options=True) -> None:
-    """
-    Add Expose options to the parser.
-    """
-
-    parser.add_argument('-e', '--expose', action='store_true', default=False,
-        help="Open file and generate matplotlib figures automatically by calling expose method.")
-    parser.add_argument("-s", "--slide-mode", default=False, action="store_true",
-        help="Iterate over figures. Expose all figures at once if not given on the CLI.")
-    parser.add_argument("-t", "--slide-timeout", type=int, default=None,
-        help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.")
-    parser.add_argument("-ew", "--expose-web", default=False, action="store_true",
-            help='Generate matplotlib plots in $BROWSER instead of X-server. WARNING: Not all the features are supported.')
-    parser.add_argument("-ply", "--plotly", default=False, action="store_true",
-            help='Generate plotly plots in $BROWSER instead of matplotlib. WARNING: Not all the features are supported.')
-    parser.add_argument("-cs", "--chart-studio", default=False, action="store_true",
-            help="Push figure to plotly chart studio ." +
-                 "Requires --plotly option and user account at https://chart-studio.plotly.com.")
+    """Add Expose options to the parser."""
+    parser.add_argument(
+        "-e",
+        "--expose",
+        action="store_true",
+        default=False,
+        help="Open file and generate matplotlib figures automatically by calling expose method.",
+    )
+    parser.add_argument(
+        "-s",
+        "--slide-mode",
+        default=False,
+        action="store_true",
+        help="Iterate over figures. Expose all figures at once if not given on the CLI.",
+    )
+    parser.add_argument(
+        "-t",
+        "--slide-timeout",
+        type=int,
+        default=None,
+        help="Close figure after slide-timeout seconds (only if slide-mode). Block if not specified.",
+    )
+    parser.add_argument(
+        "-ew",
+        "--expose-web",
+        default=False,
+        action="store_true",
+        help="Generate matplotlib plots in $BROWSER instead of X-server. WARNING: Not all the features are supported.",
+    )
+    parser.add_argument(
+        "-ply",
+        "--plotly",
+        default=False,
+        action="store_true",
+        help="Generate plotly plots in $BROWSER instead of matplotlib. WARNING: Not all the features are supported.",
+    )
+    parser.add_argument(
+        "-cs",
+        "--chart-studio",
+        default=False,
+        action="store_true",
+        help="Push figure to plotly chart studio ."
+        "Requires --plotly option and user account at https://chart-studio.plotly.com.",
+    )
 
     if with_mpl_options:
-        parser.add_argument('-sns', "--seaborn", const="paper", default=None, action='store', nargs='?', type=str,
-            help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster"). Default: paper')
-        parser.add_argument('-mpl', "--mpl-backend", default=None,
-            help=("Set matplotlib interactive backend. "
-                  "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
-                  "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."))
+        parser.add_argument(
+            "-sns",
+            "--seaborn",
+            const="paper",
+            default=None,
+            action="store",
+            nargs="?",
+            type=str,
+            help='Use seaborn settings. Accept value defining context in ("paper", "notebook", "talk", "poster"). Default: paper',
+        )
+        parser.add_argument(
+            "-mpl",
+            "--mpl-backend",
+            default=None,
+            help=(
+                "Set matplotlib interactive backend. "
+                "Possible values: GTKAgg, GTK3Agg, GTK, GTKCairo, GTK3Cairo, WXAgg, WX, TkAgg, Qt4Agg, Qt5Agg, macosx."
+                "See also: https://matplotlib.org/faq/usage_faq.html#what-is-a-backend."
+            ),
+        )
 
 
 class EnumAction(argparse.Action):
@@ -165,7 +229,12 @@ class EnumAction(argparse.Action):
 
     Taken from https://stackoverflow.com/questions/43968006/support-for-enum-arguments-in-argparse
     """
+
     def __init__(self, **kwargs):
+        """
+        Args:
+            kwargs: Parameters passed to the parent class.
+        """
         # Pop off the type value
         enum_type = kwargs.pop("type", None)
 
@@ -183,15 +252,14 @@ class EnumAction(argparse.Action):
         self._enum = enum_type
 
     def __call__(self, parser, namespace, values, option_string=None):
+        """Call the action and set the Enum value in the namespace."""
         # Convert value back into an Enum
         value = self._enum(values)
         setattr(namespace, self.dest, value)
 
 
 def fix_omp_num_threads() -> int:
-    """
-    Set OMP_NUM_THREADS to 1 if env var is not defined. Return num_threads.
-    """
+    """Set OMP_NUM_THREADS to 1 if env var is not defined. Return num_threads."""
     num_threads = os.getenv("OMP_NUM_THREADS", default=None)
     if num_threads is None:
         num_threads = 1
@@ -201,10 +269,9 @@ def fix_omp_num_threads() -> int:
 
 
 def range_from_str(string: str) -> range:
-    """
-    Convert string into a range object.
-    """
-    if string is None: return None
+    """Convert string into a range object."""
+    if string is None:
+        return None
 
     tokens = string.split(":")
     start, stop, step = 0, None, 1
@@ -228,7 +295,6 @@ def prof_main(main):
     supported by the original main program with the keyword `prof`.
 
     Examples:
-
             $ script.py arg --foo=1
 
         becomes
@@ -261,7 +327,8 @@ def prof_main(main):
         import cProfile
         import pstats
         import tempfile
-        prof_file = kwargs.get("prof_file", None)
+
+        prof_file = kwargs.get("prof_file")
         if prof_file is None:
             _, prof_file = tempfile.mkstemp()
             print(f"Profiling data stored in: {prof_file}")

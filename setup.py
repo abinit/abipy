@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # flake8: noqa
 """Setup script for AbiPy."""
+
 from __future__ import annotations
 
 import sys
@@ -12,9 +13,9 @@ from setuptools import find_packages, setup
 
 ext_modules = []
 
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 # Useful globals and utility functions
-#-------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
 
 
 # A little utility we'll need below, since glob() does NOT allow you to do exclusion on multiple endings!
@@ -31,41 +32,42 @@ def file_doesnt_end_with(test, endings):
     return True
 
 
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # Basic project information
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 
 # release.py contains version, authors, license, url, keywords, etc.
-release_file = os.path.join('abipy', 'core', 'release.py')
+release_file = os.path.join("abipy", "core", "release.py")
 
 with open(release_file) as f:
-    code = compile(f.read(), release_file, 'exec')
+    code = compile(f.read(), release_file, "exec")
     exec(code)
 
 
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # Find package data
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+
 
 def find_package_data():
     """Find abipy's package_data."""
-    #top = os.path.join("abipy", "data", "refs")
-    #ref_files = {}
-    #for root, dirs, files in os.walk(top):
+    # top = os.path.join("abipy", "data", "refs")
+    # ref_files = {}
+    # for root, dirs, files in os.walk(top):
     #    root = root.replace("/", ".")
     #    ref_files[root] = [os.path.join(root, f) for f in files]
-    #print(ref_files)
+    # print(ref_files)
 
     # This is not enough for these things to appear in an sdist.
     # We need to muck with the MANIFEST to get this to work
     package_data = {
-        'abipy.panels': [
+        "abipy.panels": [
             "assets/img/*",
         ],
-        'abipy.htc': [
+        "abipy.htc": [
             "protocols/*.yml",
         ],
-        'abipy.data': [
+        "abipy.data": [
             "cifs/*.cif",
             "pseudos/*",
             "hgh_pseudos/*",
@@ -75,12 +77,12 @@ def find_package_data():
             "refs/*.log",
             "refs/*.abo",
         ],
-        'abipy.data.refs': [
+        "abipy.data.refs": [
             "al_eph/*",
             "al_g0w0_spfunc/*",
             "alas_nl_dfpt/*",
             "alas_phonons/*",
-            #"diamond_sigeph/*",
+            # "diamond_sigeph/*",
             "gaas_optic/*",
             "mgb2_fatbands/*",
             "ni_ebands/*",
@@ -98,20 +100,21 @@ def find_package_data():
 
 def find_exclude_package_data():
     package_data = {
-        'abipy.data': ["managers", 'benchmarks', 'runs/flow_*', 'runs/gspert'],
+        "abipy.data": ["managers", "benchmarks", "runs/flow_*", "runs/gspert"],
     }
     return package_data
 
 
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # Find scripts
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+
 
 def find_scripts():
     """Find abipy scripts."""
     scripts = []
     # All python files in abipy/scripts
-    pyfiles = glob(os.path.join('abipy', 'scripts', "*.py"))
+    pyfiles = glob(os.path.join("abipy", "scripts", "*.py"))
     scripts.extend(pyfiles)
     return scripts
 
@@ -121,26 +124,27 @@ def get_long_desc():
         return f.read()
 
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Function definitions
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 def cleanup():
     """Clean up the junk left around by the build process."""
 
     if "develop" not in sys.argv:
         try:
-            shutil.rmtree('abipy.egg-info')
+            shutil.rmtree("abipy.egg-info")
         except (IOError, OSError):
             try:
-                os.unlink('abipy.egg-info')
+                os.unlink("abipy.egg-info")
             except Exception:
                 pass
 
 
 # List of external packages we rely on.
 # Note setup install will download them from Pypi if they are not available.
-#with open("requirements.txt", "rt") as fh:
+# with open("requirements.txt", "rt") as fh:
 #    install_requires = [s.strip() for s in fh]
 
 install_requires = [
@@ -151,12 +155,12 @@ install_requires = [
     "tqdm",
     "pyyaml>=3.11",
     "pandas",
-    #"numpy",
-    "numpy<2.0.0",
+    "numpy",
+    #"numpy<2.0.0",
     "scipy",
     "spglib",
-    #"pymatgen==v2024.10.29",
-    #"monty==v2024.10.21",
+    # "pymatgen==v2024.10.29",
+    # "monty==v2024.10.21",
     "pymatgen",
     "monty",
     "netCDF4",
@@ -166,43 +170,44 @@ install_requires = [
     "ipython",
     "chart-studio",
     "click",
-    "phonopy<=2.31.2",
+    #"phonopy<=2.31.2",
+    "phonopy",
     "seekpath",
     "ase",
-    #"custodian",
-    #"pydantic',
-    #"panel",
+    # "custodian",
+    # "pydantic',
+    # "panel",
 ]
 
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 # Find all the packages, package data, and data_files
-#---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
 
 # Create a dict with the basic information
 # This dict is eventually passed to setup after additional keys are added.
 setup_args = dict(
-      name=name,
-      version=version,
-      description=description,
-      long_description=long_description,
-      long_description_content_type="text/x-rst",
-      author=author,
-      author_email=author_email,
-      maintainer=maintainer,
-      maintainer_email=maintainer_email,
-      url=url,
-      license=license,
-      platforms=platforms,
-      keywords=keywords,
-      classifiers=classifiers,
-      install_requires=install_requires,
-      packages=find_packages(exclude=()),
-      package_data=find_package_data(),
-      exclude_package_data=find_exclude_package_data(),
-      scripts=find_scripts(),
-      download_url=download_url,
-      ext_modules=ext_modules,
-      )
+    name=name,
+    version=version,
+    description=description,
+    long_description=long_description,
+    long_description_content_type="text/x-rst",
+    author=author,
+    author_email=author_email,
+    maintainer=maintainer,
+    maintainer_email=maintainer_email,
+    url=url,
+    license=license,
+    platforms=platforms,
+    keywords=keywords,
+    classifiers=classifiers,
+    install_requires=install_requires,
+    packages=find_packages(exclude=()),
+    package_data=find_package_data(),
+    exclude_package_data=find_exclude_package_data(),
+    scripts=find_scripts(),
+    download_url=download_url,
+    ext_modules=ext_modules,
+)
 
 
 if __name__ == "__main__":

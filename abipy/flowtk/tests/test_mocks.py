@@ -1,14 +1,15 @@
 """Tests for mocks module"""
-import abipy.data as abidata
-import abipy.flowtk as flowtk
 
-from abipy.core.testing import AbipyTest
+import abipy.data as abidata
+from abipy import flowtk
 from abipy.abio.factories import gs_input
+from abipy.core.testing import AbipyTest
 from abipy.flowtk import mocks
 
 
 class TestMocks(AbipyTest):
     """Unit tests for mocks module."""
+
     def test_infinite_flow(self):
         si_structure = abidata.structure_from_cif("si.cif")
         gsinp = gs_input(si_structure, pseudos=abidata.pseudos("14si.pspnc"), ecut=4)

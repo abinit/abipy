@@ -7,8 +7,8 @@ This example shows how to compute and plot multiple
 electron DOSes obtained with different values
 of the gaussian broadening.
 """
-import abipy.data as abidata
 
+import abipy.data as abidata
 from abipy import abilab
 
 # Open the wavefunction file computed with a homogeneous sampling of the BZ
@@ -40,10 +40,8 @@ title = "e-DOS of Ni for different Gaussian broadenings"
 
 edos_plotter.combiplot(dos_mode="idos+dos", title=title)
 
-edos_plotter.combiplot(dos_mode="dos", spin_mode="resolved",
-                       title=f"{title} (spin-resolved)")
+edos_plotter.combiplot(dos_mode="dos", spin_mode="resolved", title=f"{title} (spin-resolved)")
 
 edos_plotter.gridplot(title=f"{title} (gridplot version)")
 
-edos_plotter.gridplot(spin_mode="resolved",
-                      title=f"{title} (gridplot version, spin-resolved)")
+edos_plotter.gridplot(spin_mode="resolved", title=f"{title} (gridplot version, spin-resolved)")

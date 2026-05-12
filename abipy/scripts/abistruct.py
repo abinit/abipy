@@ -1,31 +1,69 @@
 #!/usr/bin/env python
 """
-Script to analyze/export/visualize the crystal structure saved in the netcdf files produced by ABINIT.
+Command-line tool for the analysis, conversion, and visualization of crystal structures.
+
+This script provides a comprehensive set of tools for manipulating crystal structures
+produced by Abinit and other codes. It supports symmetry analysis (via spglib),
+supercell generation, structure conversion (CIF, POSCAR, XYZ, etc.), k-point grid
+generation, and direct integration with online databases like Materials Project (MP)
+and the Crystallography Open Database (COD).
+
+Main Categories:
+    Symmetry:   Spglib analysis, primitive/conventional cell generation, re-symmetrization.
+    Conversion: Format conversion (Abinit, CIF, VASP, QE, etc.), supercell building.
+    K-points:   K-path generation, BZ visualization, k-mesh sampling (IBZ weights).
+    Databases:  Search and fetch structures from MP and COD using formulas or IDs.
+    Visualization: Export to VESTA, XCrySDen, OVITO, or generate interactive Dashboards.
+
+Examples:
+    Analyze the symmetry of an Abinit output file:
+        $ abistruct.py spglib out_GSR.nc
+
+    Convert a CIF file to Abinit input variables:
+        $ abistruct.py convert crystal.cif
+
+    Generate a 2x2x2 supercell from a POSCAR and save it as a CIF:
+        $ abistruct.py supercell POSCAR -s 2 2 2 --savefile super.cif
+
+    Search for MgB2 structures in the Materials Project database:
+        $ abistruct.py mp_search MgB2
+
+    Visualize a structure using VESTA:
+        $ abistruct.py visualize out_DDB -a vesta
 """
+
 from __future__ import annotations
 
-import sys
-import os
 import argparse
-import numpy as np
-import abipy.tools.cli_parsers as cli
-
+import os
+import sys
 from pprint import pprint
-from tabulate import tabulate
+
+import numpy as np
 from monty.string import marquee
 from monty.termcolor import cprint
-from abipy.core.symmetries import AbinitSpaceGroup
-from abipy.core.kpoints import Ktables, Kpoint, IrredZone
+from tabulate import tabulate
+
+import abipy.tools.cli_parsers as cli
+from abipy import abilab
+from abipy.abio import factories
+from abipy.core.kpoints import IrredZone, Kpoint, Ktables
 from abipy.core.structure import diff_structures
+from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.iotools.visualizer import Visualizer
 from abipy.iotools.xsf import xsf_write_structure
-from abipy.abio import factories
-from abipy import abilab
 
 
 def save_structure(structure, options) -> None:
-    """Save structure to file."""
-    if not options.savefile: return
+    """
+    Save the crystalline structure to a file.
+
+    Args:
+        structure: Structure object to be saved.
+        options: Namespace object containing command-line options (must have `savefile`).
+    """
+    if not options.savefile:
+        return
     print("Saving structure to file:", options.savefile)
     if os.path.exists(options.savefile):
         backup = options.savefile + ".bkp"
@@ -36,16 +74,27 @@ def save_structure(structure, options) -> None:
 
 
 def check_ordered_structure(structure) -> None:
-    """Print a warning and sys.exit 1 if structure is disordered."""
+    """
+    Check if the structure is ordered and exit if fractional occupancies are found.
+
+    Args:
+        structure: Structure object to check.
+    """
     if not structure.is_ordered:
-        cprint("""
+        cprint(
+            """
 Cannot handle disordered structure with fractional site occupancies.
 Use OrderDisorderedStructureTransformation or EnumerateStructureTransformation
-to build an appropriate supercell from partial occupancies.""", color="magenta")
+to build an appropriate supercell from partial occupancies.""",
+            color="magenta",
+        )
         sys.exit(1)
 
 
 def get_epilog() -> str:
+    """
+    Return the epilog string for the command-line parser.
+    """
     return """\
 Usage example:
 
@@ -141,121 +190,197 @@ Use `-v` to increase verbosity level (can be supplied multiple times e.g -vv).
 
 
 def get_parser(with_epilog=False):
+    """
+    Return the ArgumentParser object for the script.
 
+    Args:
+        with_epilog: If True, include the epilog in the parser.
+    """
     # Parent parser for commands that need to know the filepath
     path_selector = argparse.ArgumentParser(add_help=False)
-    path_selector.add_argument('filepath', nargs="?",
-        help="File with the crystalline structure(s) (ABINIT Netcdf files, CIF, ABINIT input/output files, POSCAR, ASE trajectory ...)")
+    path_selector.add_argument(
+        "filepath",
+        nargs="?",
+        help="File with the crystalline structure(s) (ABINIT Netcdf files, CIF, ABINIT input/output files, POSCAR, ASE trajectory ...)",
+    )
 
     # Parent parser for commands supporting (jupyter notebooks)
     nb_parser = argparse.ArgumentParser(add_help=False)
-    nb_parser.add_argument('-nb', '--notebook', default=False, action="store_true", help='Generate jupyter notebook.')
-    nb_parser.add_argument('--classic-notebook', action='store_true', default=False,
-                           help="Use classic notebook instead of jupyterlab.")
-    nb_parser.add_argument('--no-browser', action='store_true', default=False,
-                           help=("Start the jupyter server to serve the notebook "
-                                 "but don't open the notebook in the browser.\n"
-                                 "Use this option to connect remotely from localhost to the machine running the kernel"))
-    nb_parser.add_argument('--foreground', action='store_true', default=False,
-        help="Run jupyter notebook in the foreground.")
+    nb_parser.add_argument("-nb", "--notebook", default=False, action="store_true", help="Generate jupyter notebook.")
+    nb_parser.add_argument(
+        "--classic-notebook", action="store_true", default=False, help="Use classic notebook instead of jupyterlab."
+    )
+    nb_parser.add_argument(
+        "--no-browser",
+        action="store_true",
+        default=False,
+        help=(
+            "Start the jupyter server to serve the notebook "
+            "but don't open the notebook in the browser.\n"
+            "Use this option to connect remotely from localhost to the machine running the kernel"
+        ),
+    )
+    nb_parser.add_argument(
+        "--foreground", action="store_true", default=False, help="Run jupyter notebook in the foreground."
+    )
 
-    parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
-                                     formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
+    parser = argparse.ArgumentParser(
+        epilog=get_epilog() if with_epilog else "", formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument("-V", "--version", action="version", version=abilab.__version__)
 
     # Parser for commands that need to call spglib.
     spgopt_parser = argparse.ArgumentParser(add_help=False)
-    spgopt_parser.add_argument('--symprec', default=1e-3, type=float,
+    spgopt_parser.add_argument(
+        "--symprec",
+        default=1e-3,
+        type=float,
         help="""\
 symprec (float): Tolerance for symmetry finding. Defaults to 1e-3,
 which is fairly strict and works well for properly refined structures with atoms in the proper symmetry coordinates.
 For structures with slight deviations from their proper atomic positions (e.g., structures relaxed with electronic structure
-codes), a looser tolerance of 0.1 (the value used in Materials Project) is often needed.""")
-    spgopt_parser.add_argument('--angle-tolerance', default=5.0, type=float,
-        help="angle_tolerance (float): Angle tolerance for symmetry finding. Default: 5.0")
-    spgopt_parser.add_argument("--no-time-reversal", default=False, action="store_true", help="Don't use time-reversal.")
-    spgopt_parser.add_argument("--site-symmetry", default=False, action="store_true",
-                               help="Show site symmetries i.e. the point group operations that leave the site invariant.")
+codes), a looser tolerance of 0.1 (the value used in Materials Project) is often needed.""",
+    )
+    spgopt_parser.add_argument(
+        "--angle-tolerance",
+        default=5.0,
+        type=float,
+        help="angle_tolerance (float): Angle tolerance for symmetry finding. Default: 5.0",
+    )
+    spgopt_parser.add_argument(
+        "--no-time-reversal", default=False, action="store_true", help="Don't use time-reversal."
+    )
+    spgopt_parser.add_argument(
+        "--site-symmetry",
+        default=False,
+        action="store_true",
+        help="Show site symmetries i.e. the point group operations that leave the site invariant.",
+    )
 
     # Parent parser for common options.
     copts_parser = argparse.ArgumentParser(add_help=False)
-    copts_parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-        help='verbose, can be supplied multiple times to increase verbosity')
-    copts_parser.add_argument('--loglevel', default="ERROR", type=str,
-        help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+    copts_parser.add_argument(
+        "-v",
+        "--verbose",
+        default=0,
+        action="count",  # -vv --> verbose=2
+        help="verbose, can be supplied multiple times to increase verbosity",
+    )
+    copts_parser.add_argument(
+        "--loglevel",
+        default="ERROR",
+        type=str,
+        help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG",
+    )
 
     # Parent parser for commands that need to save structure to file.
     savefile_parser = argparse.ArgumentParser(add_help=False)
-    savefile_parser.add_argument("-s", "--savefile", default="", type=str,
+    savefile_parser.add_argument(
+        "-s",
+        "--savefile",
+        default="",
+        type=str,
         help="Save final structure to file. Format is detected from file extensions "
-             "e.g. out.abi for Abinit input, out.cif for CIF format.")
+        "e.g. out.abi for Abinit input, out.cif for CIF format.",
+    )
 
     # Helper functions to construct sub-parsers.
     def add_primitive_options(parser):
         """Add --no-primitive and --primitive-standard options to a parser."""
         group = parser.add_mutually_exclusive_group()
-        group.add_argument('--no-primitive', default=False, action='store_true', help="Do not enforce primitive cell.")
-        group.add_argument('--primitive-standard', default=False, action='store_true',
-                           help="Enforce primitive standard cell.")
+        group.add_argument("--no-primitive", default=False, action="store_true", help="Do not enforce primitive cell.")
+        group.add_argument(
+            "--primitive-standard", default=False, action="store_true", help="Enforce primitive standard cell."
+        )
 
     supported_formats = "(abivars, cif, xsf, poscar, qe, siesta, wannier90, cssr, json, lammps, fleur-inpgen, None)"
 
     def add_format_arg(parser, default, option=True, formats=None):
-        """
-        Add --format option to a parser with default value `default`.
-        """
+        """Add --format option to a parser with default value `default`."""
         formats = supported_formats if formats is None else formats
         if option:
-            parser.add_argument("-f", "--format", default=default, type=str,
-                help="Output format. Default: %s. Accept: %s" % (default, formats))
+            parser.add_argument(
+                "-f",
+                "--format",
+                default=default,
+                type=str,
+                help="Output format. Default: %s. Accept: %s" % (default, formats),
+            )
         else:
-            parser.add_argument('format', nargs="?", default=default, type=str,
-                help="Output format. Default: %s. Accept: %s" % (default, formats))
+            parser.add_argument(
+                "format",
+                nargs="?",
+                default=default,
+                type=str,
+                help="Output format. Default: %s. Accept: %s" % (default, formats),
+            )
 
     # Create the parsers for the sub-commands
-    subparsers = parser.add_subparsers(dest='command', help='sub-command help',
-        description="Valid subcommands, use command --help for help")
+    subparsers = parser.add_subparsers(
+        dest="command", help="sub-command help", description="Valid subcommands, use command --help for help"
+    )
 
     # Subparser for spglib command.
-    p_spglib = subparsers.add_parser('spglib', parents=[copts_parser, path_selector, spgopt_parser],
-        help="Analyze structure with spglib.")
+    p_spglib = subparsers.add_parser(
+        "spglib", parents=[copts_parser, path_selector, spgopt_parser], help="Analyze structure with spglib."
+    )
 
     # Subparser for abispg command.
-    p_abispg = subparsers.add_parser('abispg', parents=[copts_parser, path_selector, savefile_parser],
-        help="Extract/Compute Abinit space group from file with structure.")
-    p_abispg.add_argument("-t", "--tolsym", type=float, default=None, help="""\
+    p_abispg = subparsers.add_parser(
+        "abispg",
+        parents=[copts_parser, path_selector, savefile_parser],
+        help="Extract/Compute Abinit space group from file with structure.",
+    )
+    p_abispg.add_argument(
+        "-t",
+        "--tolsym",
+        type=float,
+        default=None,
+        help="""\
 Gives the tolerance on the atomic positions (reduced coordinates), primitive vectors, or magnetization,
 to be considered equivalent, thanks to symmetry operations. This value is used by ABINIT in the recognition of the set
 of symmetries of the system, or the application of the symmetry operations to generate from a reduced set of atoms,
 The internal default is 1e-8. Setting tolsym to a value larger than 1e-8 will make Abinit detect the spacegroup within
 this tolerance and re-symmetrize the input structure. This option is useful if the structure has been taken from a CIF
-file that does not have enough significant digits.""")
-    p_abispg.add_argument("-d", "--diff-mode", type=str, default="table", choices=["table", "diff"],
-        help="Select diff output format.")
+file that does not have enough significant digits.""",
+    )
+    p_abispg.add_argument(
+        "-d", "--diff-mode", type=str, default="table", choices=["table", "diff"], help="Select diff output format."
+    )
 
     # Subparser for convert command.
-    p_convert = subparsers.add_parser('convert', parents=[copts_parser, path_selector],
-        help="Convert structure to the specified format.")
+    p_convert = subparsers.add_parser(
+        "convert", parents=[copts_parser, path_selector], help="Convert structure to the specified format."
+    )
     add_format_arg(p_convert, default="cif")
 
-    p_has_quad = subparsers.add_parser('has_quad', parents=[copts_parser, path_selector],
-        help="Detect whether structure has non-zero dynamical quadrupoles.")
+    p_has_quad = subparsers.add_parser(
+        "has_quad",
+        parents=[copts_parser, path_selector],
+        help="Detect whether structure has non-zero dynamical quadrupoles.",
+    )
 
     # Subparser for supercell command.
-    p_traj2xdatcar = subparsers.add_parser('traj2xdatcar', parents=[copts_parser, path_selector],
-        help="Generate XDATCAR file from ASE trajectory file.")
-    p_traj2xdatcar.add_argument("-o", "--output", type=str, default="XDATCAR", help="Name of output XDATCAR. Default: XDATCAR")
+    p_traj2xdatcar = subparsers.add_parser(
+        "traj2xdatcar", parents=[copts_parser, path_selector], help="Generate XDATCAR file from ASE trajectory file."
+    )
+    p_traj2xdatcar.add_argument(
+        "-o", "--output", type=str, default="XDATCAR", help="Name of output XDATCAR. Default: XDATCAR"
+    )
 
     p_traj2xdatcar.add_argument("-f", "--force", default=False, action="store_true", help="Allow output file overwring")
 
     # Subparser for print command.
-    p_print = subparsers.add_parser('print', parents=[copts_parser, path_selector],
-                                    help="Print Structure to terminal.")
+    p_print = subparsers.add_parser("print", parents=[copts_parser, path_selector], help="Print Structure to terminal.")
 
     # Subparser for supercell command.
-    p_supercell = subparsers.add_parser('supercell', parents=[copts_parser, path_selector],
-        help="Generate supercell.")
-    p_supercell.add_argument("-s", "--scaling_matrix", nargs="+", required=True, type=int,
+    p_supercell = subparsers.add_parser("supercell", parents=[copts_parser, path_selector], help="Generate supercell.")
+    p_supercell.add_argument(
+        "-s",
+        "--scaling_matrix",
+        nargs="+",
+        required=True,
+        type=int,
         help="""\
 scaling_matrix: A scaling matrix for transforming the lattice vectors.
 Has to be all integers. Several options are possible:
@@ -266,252 +391,464 @@ Has to be all integers. Several options are possible:
     b. An sequence of three scaling factors. E.g., -s 2, 1, 1 specifies that the supercell should
        have dimensions 2a x b x c.
     c. A number, which simply scales all lattice vectors by the same factor.
-    """)
+    """,
+    )
     add_format_arg(p_supercell, default="abivars")
 
     # Subparser for abisanitize
-    p_abisanitize = subparsers.add_parser('abisanitize', parents=[copts_parser, path_selector, spgopt_parser, savefile_parser],
-        help="Sanitize structure with abi_sanitize, compare structures and save result to file.")
+    p_abisanitize = subparsers.add_parser(
+        "abisanitize",
+        parents=[copts_parser, path_selector, spgopt_parser, savefile_parser],
+        help="Sanitize structure with abi_sanitize, compare structures and save result to file.",
+    )
     add_primitive_options(p_abisanitize)
 
-    p_primitive = subparsers.add_parser('primitive', parents=[copts_parser, path_selector, spgopt_parser, savefile_parser],
-        help="Use spglib to find a smaller unit cell than the input")
+    p_primitive = subparsers.add_parser(
+        "primitive",
+        parents=[copts_parser, path_selector, spgopt_parser, savefile_parser],
+        help="Use spglib to find a smaller unit cell than the input",
+    )
 
     # Subparser for irefine
-    p_irefine = subparsers.add_parser('irefine', parents=[copts_parser, path_selector, spgopt_parser],
-        help="Refine structure with abi_sanitize iteratively, stop if target space group is obtained.")
+    p_irefine = subparsers.add_parser(
+        "irefine",
+        parents=[copts_parser, path_selector, spgopt_parser],
+        help="Refine structure with abi_sanitize iteratively, stop if target space group is obtained.",
+    )
     p_irefine.add_argument("--target-spgnum", required=True, type=int, help="Target space group number.")
-    p_irefine.add_argument("--symprec-step", default=0.05, type=float, help='Increment for symprec.')
-    p_irefine.add_argument("--angle-tolerance-step", default=0.0, type=float, help='Increment for angle_tolerance.')
-    p_irefine.add_argument("--ntrial", default=50, type=int, help='Number of trials. Default 50.')
+    p_irefine.add_argument("--symprec-step", default=0.05, type=float, help="Increment for symprec.")
+    p_irefine.add_argument("--angle-tolerance-step", default=0.0, type=float, help="Increment for angle_tolerance.")
+    p_irefine.add_argument("--ntrial", default=50, type=int, help="Number of trials. Default 50.")
     add_primitive_options(p_irefine)
 
     # Subparser for conventional.
-    p_conventional = subparsers.add_parser('conventional', parents=[copts_parser, path_selector, spgopt_parser, savefile_parser],
+    p_conventional = subparsers.add_parser(
+        "conventional",
+        parents=[copts_parser, path_selector, spgopt_parser, savefile_parser],
         help="Gives a structure with a conventional cell according to certain standards. "
-             "The standards are defined in Setyawan, W., & Curtarolo, S. (2010) doi:10.1016/j.commatsci.2010.05.010")
+        "The standards are defined in Setyawan, W., & Curtarolo, S. (2010) doi:10.1016/j.commatsci.2010.05.010",
+    )
 
     # Subparser for proto.
-    p_proto = subparsers.add_parser('proto', parents=[copts_parser, path_selector],
-        help=("Find prototype in the AFLOW LIBRARY OF CRYSTALLOGRAPHIC PROTOTYPES. "
-              "http://doi.org/10.1016/j.commatsci.2017.01.017"))
+    p_proto = subparsers.add_parser(
+        "proto",
+        parents=[copts_parser, path_selector],
+        help=(
+            "Find prototype in the AFLOW LIBRARY OF CRYSTALLOGRAPHIC PROTOTYPES. "
+            "http://doi.org/10.1016/j.commatsci.2017.01.017"
+        ),
+    )
     p_proto.add_argument("--ltol", default=0.2, type=float, help="fractional length tolerance.")
     p_proto.add_argument("--stol", default=0.3, type=float, help="site tolerance.")
     p_proto.add_argument("--angle-tol", default=5, type=float, help="angle tolerance.")
 
     # Subparser for wyckoff.
-    p_wyckoff = subparsers.add_parser('wyckoff', parents=[copts_parser, spgopt_parser, path_selector],
-            help="Print wyckoff positions. WARNING: still under development!")
-    p_wyckoff.add_argument("--refine", default=False, action="store_true",
-                           help="Use spglib to refine structure before computation")
+    p_wyckoff = subparsers.add_parser(
+        "wyckoff",
+        parents=[copts_parser, spgopt_parser, path_selector],
+        help="Print wyckoff positions. WARNING: still under development!",
+    )
+    p_wyckoff.add_argument(
+        "--refine", default=False, action="store_true", help="Use spglib to refine structure before computation"
+    )
 
     # Subparser for tensor_site.
-    p_tensor_site = subparsers.add_parser('tensor_site', parents=[copts_parser, spgopt_parser, path_selector],
-            help="Print symmetry properties of tensors due to site-symmetries. WARNING: still under development!")
-    p_tensor_site.add_argument("--refine", default=False, action="store_true",
-                               help="Use spglib to refine structure before computation")
+    p_tensor_site = subparsers.add_parser(
+        "tensor_site",
+        parents=[copts_parser, spgopt_parser, path_selector],
+        help="Print symmetry properties of tensors due to site-symmetries. WARNING: still under development!",
+    )
+    p_tensor_site.add_argument(
+        "--refine", default=False, action="store_true", help="Use spglib to refine structure before computation"
+    )
 
     # Subparser for neighbors.
-    p_neighbors = subparsers.add_parser('neighbors', parents=[copts_parser, path_selector],
-                                        help="Get neighbors for each atom in the unit cell, out to a distance radius.")
+    p_neighbors = subparsers.add_parser(
+        "neighbors",
+        parents=[copts_parser, path_selector],
+        help="Get neighbors for each atom in the unit cell, out to a distance radius.",
+    )
     p_neighbors.add_argument("-r", "--radius", default=2, type=float, help="Radius of the sphere in Angstrom.")
 
     # Subparser for interpolate.
-    p_interpolate = subparsers.add_parser('interpolate', parents=[copts_parser],
-        help=("Interpolate between two structures. Useful for the construction of NEB inputs."))
+    p_interpolate = subparsers.add_parser(
+        "interpolate",
+        parents=[copts_parser],
+        help=("Interpolate between two structures. Useful for the construction of NEB inputs."),
+    )
     p_interpolate.add_argument("filepaths", nargs=2, help="Files with initial and final structures.")
-    p_interpolate.add_argument("-n", "--nimages", default=10, type=int, help="No. of interpolation images. Defaults to 10.")
-    p_interpolate.add_argument("--autosort_tol", default=0.5, type=float, help="""\
+    p_interpolate.add_argument(
+        "-n", "--nimages", default=10, type=int, help="No. of interpolation images. Defaults to 10."
+    )
+    p_interpolate.add_argument(
+        "--autosort_tol",
+        default=0.5,
+        type=float,
+        help="""\
 A distance tolerance in Angstrom in which to automatically sort end_structure to match to the
 closest points in this particular structure. This is usually what you want in a NEB calculation.
-0 implies no sorting. Otherwise, a 0.5 value (default) usually works pretty well.""")
+0 implies no sorting. Otherwise, a 0.5 value (default) usually works pretty well.""",
+    )
     add_format_arg(p_interpolate, default="abivars")
 
     # Subparser for xrd.
-    p_xrd = subparsers.add_parser('xrd', parents=[copts_parser, path_selector], help="X-ray diffraction plot.")
-    p_xrd.add_argument("-w", "--wavelength", default="CuKa", type=str, help=(
-        "The wavelength can be specified as a string. It must be one of the "
-        "supported definitions in the WAVELENGTHS dict declared in pymatgen/analysis/diffraction/xrd.py."
-        "Defaults to 'CuKa', i.e, Cu K_alpha radiation."))
-    p_xrd.add_argument("-s", "--symprec", default=0, type=float, help=(
-        "Symmetry precision for structure refinement. "
-        "If set to 0, no refinement is done. Otherwise, refinement is performed using spglib with provided precision."))
-    p_xrd.add_argument("-t", "--two-theta-range", default=(0, 90), nargs=2, help=(
-        "Tuple for range of two_thetas to calculate in degrees. Defaults to (0, 90)."))
-    p_xrd.add_argument("-nap", "--no-annotate-peaks", default=False, action="store_true",
-        help="Whether to annotate the peaks with plane information.")
+    p_xrd = subparsers.add_parser("xrd", parents=[copts_parser, path_selector], help="X-ray diffraction plot.")
+    p_xrd.add_argument(
+        "-w",
+        "--wavelength",
+        default="CuKa",
+        type=str,
+        help=(
+            "The wavelength can be specified as a string. It must be one of the "
+            "supported definitions in the WAVELENGTHS dict declared in pymatgen/analysis/diffraction/xrd.py."
+            "Defaults to 'CuKa', i.e, Cu K_alpha radiation."
+        ),
+    )
+    p_xrd.add_argument(
+        "-s",
+        "--symprec",
+        default=0,
+        type=float,
+        help=(
+            "Symmetry precision for structure refinement. "
+            "If set to 0, no refinement is done. Otherwise, refinement is performed using spglib with provided precision."
+        ),
+    )
+    p_xrd.add_argument(
+        "-t",
+        "--two-theta-range",
+        default=(0, 90),
+        nargs=2,
+        help=("Tuple for range of two_thetas to calculate in degrees. Defaults to (0, 90)."),
+    )
+    p_xrd.add_argument(
+        "-nap",
+        "--no-annotate-peaks",
+        default=False,
+        action="store_true",
+        help="Whether to annotate the peaks with plane information.",
+    )
 
     # Subparser for oxistate.
-    p_oxistate = subparsers.add_parser('oxistate', parents=[copts_parser, path_selector],
-        help="Estimate oxidation states with pymatgen bond valence analysis.")
+    p_oxistate = subparsers.add_parser(
+        "oxistate",
+        parents=[copts_parser, path_selector],
+        help="Estimate oxidation states with pymatgen bond valence analysis.",
+    )
     # Subparser for ipython.
-    p_ipython = subparsers.add_parser('ipython', parents=[copts_parser, path_selector],
-        help="Open IPython shell for advanced operations on structure object.")
+    p_ipython = subparsers.add_parser(
+        "ipython",
+        parents=[copts_parser, path_selector],
+        help="Open IPython shell for advanced operations on structure object.",
+    )
     # Subparser for notebook.
-    p_notebook = subparsers.add_parser('notebook', parents=[copts_parser, path_selector],
-        help="Read structure from file and generate jupyter notebook.")
-    p_notebook.add_argument('--classic-notebook', action='store_true', default=False,
-                            help="Use classic notebook instead of jupyterlab.")
-    p_notebook.add_argument('--no-browser', action='store_true', default=False,
-                            help=("Start the jupyter server to serve the notebook "
-                                  "but don't open the notebook in the browser.\n"
-                                  "Use this option to connect remotely from localhost to the machine running the kernel"))
-    p_notebook.add_argument('--foreground', action='store_true', default=False,
-        help="Run jupyter notebook in the foreground.")
+    p_notebook = subparsers.add_parser(
+        "notebook",
+        parents=[copts_parser, path_selector],
+        help="Read structure from file and generate jupyter notebook.",
+    )
+    p_notebook.add_argument(
+        "--classic-notebook", action="store_true", default=False, help="Use classic notebook instead of jupyterlab."
+    )
+    p_notebook.add_argument(
+        "--no-browser",
+        action="store_true",
+        default=False,
+        help=(
+            "Start the jupyter server to serve the notebook "
+            "but don't open the notebook in the browser.\n"
+            "Use this option to connect remotely from localhost to the machine running the kernel"
+        ),
+    )
+    p_notebook.add_argument(
+        "--foreground", action="store_true", default=False, help="Run jupyter notebook in the foreground."
+    )
 
-    p_panel = subparsers.add_parser('panel', parents=[copts_parser, path_selector],
-        help="Open GUI in web browser, requires panel package.")
-    p_panel.add_argument("-pnt", "--panel-template", default="FastList", type=str,
-                        help="Specify template for panel dashboard." +
-                             "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla." +
-                             "Default: FastList"
-                        )
-    p_panel.add_argument("--port", default=0, type=int, help="Allows specifying a specific port when serving panel app.")
-    p_panel.add_argument('--no-browser', action='store_true', default=False,
-                           help=("Start the bokeh server to serve the panel app "
-                                 "but don't open the notebook in the browser.\n"
-                                 "Use this option to connect remotely from localhost to the machine running the kernel"))
+    p_panel = subparsers.add_parser(
+        "panel", parents=[copts_parser, path_selector], help="Open GUI in web browser, requires panel package."
+    )
+    p_panel.add_argument(
+        "-pnt",
+        "--panel-template",
+        default="FastList",
+        type=str,
+        help="Specify template for panel dashboard."
+        "Possible values are: FastList, FastGrid, Golden, Bootstrap, Material, React, Vanilla."
+        "Default: FastList",
+    )
+    p_panel.add_argument(
+        "--port", default=0, type=int, help="Allows specifying a specific port when serving panel app."
+    )
+    p_panel.add_argument(
+        "--no-browser",
+        action="store_true",
+        default=False,
+        help=(
+            "Start the bokeh server to serve the panel app "
+            "but don't open the notebook in the browser.\n"
+            "Use this option to connect remotely from localhost to the machine running the kernel"
+        ),
+    )
 
     # Subparser for kpath.
-    p_kpath = subparsers.add_parser('kpath', parents=[copts_parser, path_selector],
-        help="Read structure from file, generate k-path for band-structure calculations.")
+    p_kpath = subparsers.add_parser(
+        "kpath",
+        parents=[copts_parser, path_selector],
+        help="Read structure from file, generate k-path for band-structure calculations.",
+    )
     add_format_arg(p_kpath, default="abinit", formats=["abinit", "wannier90", "siesta"])
 
     # Subparser for bz.
-    p_bz = subparsers.add_parser('bz', parents=[copts_parser, path_selector],
-        help="Read structure from file, plot Brillouin zone with matplotlib.")
+    p_bz = subparsers.add_parser(
+        "bz",
+        parents=[copts_parser, path_selector],
+        help="Read structure from file, plot Brillouin zone with matplotlib.",
+    )
     # Subparser for ngkpt.
-    p_ngkpt = subparsers.add_parser('ngkpt', parents=[copts_parser, path_selector],
+    p_ngkpt = subparsers.add_parser(
+        "ngkpt",
+        parents=[copts_parser, path_selector],
         help="Return the Abinit k-point sampling variables "
-             "from the number of divisions used to sample the smallest "
-             "lattice vector of the reciprocal lattice.")
-    p_ngkpt.add_argument("-n", "--nksmall", required=True, type=int,
-        help="Number of divisions used to sample the smallest reciprocal lattice vector.")
+        "from the number of divisions used to sample the smallest "
+        "lattice vector of the reciprocal lattice.",
+    )
+    p_ngkpt.add_argument(
+        "-n",
+        "--nksmall",
+        required=True,
+        type=int,
+        help="Number of divisions used to sample the smallest reciprocal lattice vector.",
+    )
     # Subparser for ktables.
-    p_ktables = subparsers.add_parser('ktables', parents=[copts_parser, path_selector],
-        help=("Read structure from filepath, call spglib to sample the BZ, "
-              "print k-points in the IBZ with weights."))
+    p_ktables = subparsers.add_parser(
+        "ktables",
+        parents=[copts_parser, path_selector],
+        help=("Read structure from filepath, call spglib to sample the BZ, print k-points in the IBZ with weights."),
+    )
     p_ktables.add_argument("-m", "--mesh", nargs=3, required=True, type=int, help="Mesh divisions e.g. 2 3 4")
-    p_ktables.add_argument("-s", "--is_shift", nargs="+", default=None, type=int,
-        help=("Three integers (spglib API). The kmesh is shifted along " +
-              "the axis in half of adjacent mesh points irrespective of the mesh numbers e.g. 1 1 1 " +
-              "Default: Unshifted mesh."))
+    p_ktables.add_argument(
+        "-s",
+        "--is_shift",
+        nargs="+",
+        default=None,
+        type=int,
+        help=(
+            "Three integers (spglib API). The kmesh is shifted along "
+            "the axis in half of adjacent mesh points irrespective of the mesh numbers e.g. 1 1 1 "
+            "Default: Unshifted mesh."
+        ),
+    )
     p_ktables.add_argument("--no-time-reversal", default=False, action="store_true", help="Don't use time-reversal.")
 
     # Subparser for abikmesh.
-    p_abikmesh = subparsers.add_parser('abikmesh', parents=[copts_parser, path_selector],
-        help=("Read structure from file, call Abinit to sample the BZ with ngkpt, shiftk, and kptopt. "
-              "Print k-points in the IBZ with weights."))
-    p_abikmesh.add_argument("--kppa", default=None, type=int,
-            help="Number of k-points per reciprocal atom. Mutually exclusive with ngkpt.")
-    p_abikmesh.add_argument("--ngkpt", nargs=3, default=None, type=int,
-            help="Mesh divisions e.g. 2 3 4")
-    p_abikmesh.add_argument("--shiftk", nargs="+", default=(0.5, 0.5, 0.5), type=float,
-       help="Kmesh shifts. Default: 0.5 0.5 0.5")
-    p_abikmesh.add_argument("--kptopt", default=1, type=int,
-            help="Kptopt input variable. Default: 1")
+    p_abikmesh = subparsers.add_parser(
+        "abikmesh",
+        parents=[copts_parser, path_selector],
+        help=(
+            "Read structure from file, call Abinit to sample the BZ with ngkpt, shiftk, and kptopt. "
+            "Print k-points in the IBZ with weights."
+        ),
+    )
+    p_abikmesh.add_argument(
+        "--kppa", default=None, type=int, help="Number of k-points per reciprocal atom. Mutually exclusive with ngkpt."
+    )
+    p_abikmesh.add_argument("--ngkpt", nargs=3, default=None, type=int, help="Mesh divisions e.g. 2 3 4")
+    p_abikmesh.add_argument(
+        "--shiftk", nargs="+", default=(0.5, 0.5, 0.5), type=float, help="Kmesh shifts. Default: 0.5 0.5 0.5"
+    )
+    p_abikmesh.add_argument("--kptopt", default=1, type=int, help="Kptopt input variable. Default: 1")
 
     # Subparser for kmesh_jhu.
-    #p_kmesh_jhu = subparsers.add_parser('kmesh_jhu', parents=[copts_parser, path_selector], help="Foobar ")
+    # p_kmesh_jhu = subparsers.add_parser('kmesh_jhu', parents=[copts_parser, path_selector], help="Foobar ")
 
     # Subparser for lgk.
-    p_lgk = subparsers.add_parser('lgk', parents=[copts_parser, path_selector, spgopt_parser],
-        help="Read structure from file, find little group of k-point, print Bilbao character table.")
-    p_lgk.add_argument("-k", "--kpoint", nargs=3, required=True, type=float,
-        help="K-point in reduced coordinates e.g. 0.25 0 0")
+    p_lgk = subparsers.add_parser(
+        "lgk",
+        parents=[copts_parser, path_selector, spgopt_parser],
+        help="Read structure from file, find little group of k-point, print Bilbao character table.",
+    )
+    p_lgk.add_argument(
+        "-k", "--kpoint", nargs=3, required=True, type=float, help="K-point in reduced coordinates e.g. 0.25 0 0"
+    )
 
     # Subparser for kstar.
-    p_kstar = subparsers.add_parser('kstar', parents=[copts_parser, path_selector, spgopt_parser],
-        help="Read structure from file, print star of k-point.")
-    p_kstar.add_argument("-k", "--kpoint", nargs=3, required=True, type=float,
-        help="K-point in reduced coordinates e.g. 0.25 0 0")
+    p_kstar = subparsers.add_parser(
+        "kstar",
+        parents=[copts_parser, path_selector, spgopt_parser],
+        help="Read structure from file, print star of k-point.",
+    )
+    p_kstar.add_argument(
+        "-k", "--kpoint", nargs=3, required=True, type=float, help="K-point in reduced coordinates e.g. 0.25 0 0"
+    )
 
     # Subparser for keq.
-    p_keq = subparsers.add_parser('keq', parents=[copts_parser, path_selector, spgopt_parser],
-        help="Read structure from file, check whether two k-points are equivalent by symmetry.")
-    p_keq.add_argument("-k", "--kpoints", nargs=6, required=True, type=float,
-        help="K-points in reduced coordinates e.g. 0.25 0 0 0 0.25 0")
+    p_keq = subparsers.add_parser(
+        "keq",
+        parents=[copts_parser, path_selector, spgopt_parser],
+        help="Read structure from file, check whether two k-points are equivalent by symmetry.",
+    )
+    p_keq.add_argument(
+        "-k",
+        "--kpoints",
+        nargs=6,
+        required=True,
+        type=float,
+        help="K-points in reduced coordinates e.g. 0.25 0 0 0 0.25 0",
+    )
 
     # Subparser for visualize command.
-    p_visualize = subparsers.add_parser('visualize', parents=[copts_parser, path_selector],
-        help=("Visualize the structure with the specified application. "
-              "Requires external app or optional python modules (mayavi, vtk)."))
-    p_visualize.add_argument("-a", "--appname", type=str, default="vesta",
-        help=("Application name. Possible options: %s, mpl (matplotlib), mayavi, vtk" % ", ".join(Visualizer.all_visunames())))
+    p_visualize = subparsers.add_parser(
+        "visualize",
+        parents=[copts_parser, path_selector],
+        help=(
+            "Visualize the structure with the specified application. "
+            "Requires external app or optional python modules (mayavi, vtk)."
+        ),
+    )
+    p_visualize.add_argument(
+        "-a",
+        "--appname",
+        type=str,
+        default="vesta",
+        help=(
+            "Application name. Possible options: %s, mpl (matplotlib), mayavi, vtk"
+            % ", ".join(Visualizer.all_visunames())
+        ),
+    )
 
     # Options for commands accessing the materials project database.
     mp_rest_parser = argparse.ArgumentParser(add_help=False)
-    mp_rest_parser.add_argument("-b", "--browser", default=False, action='store_true',
-        help="Open materials-project webpages in browser")
+    mp_rest_parser.add_argument(
+        "-b", "--browser", default=False, action="store_true", help="Open materials-project webpages in browser"
+    )
 
     # Subparser for mp_id command.
-    p_mpid = subparsers.add_parser('mp_id', parents=[copts_parser, mp_rest_parser],
-        help="Get structure from the pymatgen database. Export to format. Requires internet connection and PMG_MAPI_KEY.")
+    p_mpid = subparsers.add_parser(
+        "mp_id",
+        parents=[copts_parser, mp_rest_parser],
+        help="Get structure from the pymatgen database. Export to format. Requires internet connection and PMG_MAPI_KEY.",
+    )
     p_mpid.add_argument("mpid", type=str, default=None, help="Pymatgen identifier.")
     add_format_arg(p_mpid, default="cif")
 
     # Subparser for mp_match command.
-    p_mpmatch = subparsers.add_parser('mp_match', parents=[path_selector, mp_rest_parser, copts_parser, nb_parser],
-        help="Get structure from the pymatgen database. Requires internet connection and PMG_MAPI_KEY.")
+    p_mpmatch = subparsers.add_parser(
+        "mp_match",
+        parents=[path_selector, mp_rest_parser, copts_parser, nb_parser],
+        help="Get structure from the pymatgen database. Requires internet connection and PMG_MAPI_KEY.",
+    )
     add_format_arg(p_mpmatch, default="abivars")
 
     # Subparser for mp_search command.
-    p_mpsearch = subparsers.add_parser('mp_search', parents=[mp_rest_parser, copts_parser, nb_parser],
-        help="Get structure from the pymatgen database. Requires internet connection and PMG_MAPI_KEY")
-    p_mpsearch.add_argument("chemsys_formula_id", type=str, default=None,
-        help="A chemical system (e.g., Li-Fe-O), or formula (e.g., Fe2O3) or materials_id (e.g., mp-149).")
-    p_mpsearch.add_argument("-s", "--select-spgnum", type=int, default=None,
-        help="Select structures with this space group number.")
+    p_mpsearch = subparsers.add_parser(
+        "mp_search",
+        parents=[mp_rest_parser, copts_parser, nb_parser],
+        help="Get structure from the pymatgen database. Requires internet connection and PMG_MAPI_KEY",
+    )
+    p_mpsearch.add_argument(
+        "chemsys_formula_id",
+        type=str,
+        default=None,
+        help="A chemical system (e.g., Li-Fe-O), or formula (e.g., Fe2O3) or materials_id (e.g., mp-149).",
+    )
+    p_mpsearch.add_argument(
+        "-s", "--select-spgnum", type=int, default=None, help="Select structures with this space group number."
+    )
     add_format_arg(p_mpsearch, default="abivars")
 
     # Subparser for mp_ebands command.
-    p_mp_ebands = subparsers.add_parser('mp_ebands', parents=[copts_parser, mp_rest_parser],
-        help="Get structure from the pymatgen database. Export to format. Requires internet connection and PMG_MAPI_KEY.")
-    p_mp_ebands.add_argument("chemsys_formula_id", type=str, default=None,
-        help="A chemical system (e.g., Li-Fe-O), or formula (e.g., Fe2O3) or materials_id (e.g., mp-149).")
-    #add_format_arg(p_mp_ebands, default="cif")
+    p_mp_ebands = subparsers.add_parser(
+        "mp_ebands",
+        parents=[copts_parser, mp_rest_parser],
+        help="Get structure from the pymatgen database. Export to format. Requires internet connection and PMG_MAPI_KEY.",
+    )
+    p_mp_ebands.add_argument(
+        "chemsys_formula_id",
+        type=str,
+        default=None,
+        help="A chemical system (e.g., Li-Fe-O), or formula (e.g., Fe2O3) or materials_id (e.g., mp-149).",
+    )
+    # add_format_arg(p_mp_ebands, default="cif")
 
     # Subparser for cod_search command.
-    p_codsearch = subparsers.add_parser('cod_search', parents=[copts_parser, nb_parser],
-        help="Get structure from COD database. Requires internet connection and mysql")
+    p_codsearch = subparsers.add_parser(
+        "cod_search",
+        parents=[copts_parser, nb_parser],
+        help="Get structure from COD database. Requires internet connection and mysql",
+    )
     p_codsearch.add_argument("formula", type=str, default=None, help="formula (e.g., Fe2O3).")
-    p_codsearch.add_argument("-s", "--select-spgnum", type=int, default=None,
-        help="Select structures with this space group number.")
-    p_codsearch.add_argument('--primitive', default=False, action='store_true',
-        help="Convert COD cells into primitive cells.")
+    p_codsearch.add_argument(
+        "-s", "--select-spgnum", type=int, default=None, help="Select structures with this space group number."
+    )
+    p_codsearch.add_argument(
+        "--primitive", default=False, action="store_true", help="Convert COD cells into primitive cells."
+    )
     add_format_arg(p_codsearch, default="abivars")
 
     # Subparser for cod_id command.
-    p_codid = subparsers.add_parser('cod_id', parents=[copts_parser],
-        help="Get structure from COD database. Requires internet connection and mysql")
+    p_codid = subparsers.add_parser(
+        "cod_id", parents=[copts_parser], help="Get structure from COD database. Requires internet connection and mysql"
+    )
     p_codid.add_argument("cod_identifier", type=int, default=None, help="COD identifier.")
-    p_codid.add_argument('--primitive', default=False, action='store_true', help="Convert COD cell into primitive cell.")
+    p_codid.add_argument(
+        "--primitive", default=False, action="store_true", help="Convert COD cell into primitive cell."
+    )
     add_format_arg(p_codid, default="abivars")
 
     # Subparser for animate command.
-    p_animate = subparsers.add_parser('animate', parents=[copts_parser, path_selector],
-        help="Read structures from HIST.nc or XDATCAR. Print structures in Xcrysden AXSF format to stdout.")
+    p_animate = subparsers.add_parser(
+        "animate",
+        parents=[copts_parser, path_selector],
+        help="Read structures from HIST.nc or XDATCAR. Print structures in Xcrysden AXSF format to stdout.",
+    )
 
     # Subparser for chemenv command.
-    p_chemenv = subparsers.add_parser('chemenv', parents=[copts_parser, path_selector],
-        help="Use ChemEnv to analyze chemical coordination environments. " +
-             "See D. Waroquiers, at al. Acta Cryst B 2020, 76, 683–695.")
-    p_chemenv.add_argument("-mdf", '--maximum-distance-factor', default=1.41,
-                           type=float, help="Maximum distance factor. Default 1.41.")
-    p_chemenv.add_argument("-dc", '--distance-cutoff', default=1.4, type=float,
-                           help="Distance cutoff in Ang. Default: 1.4")
-    p_chemenv.add_argument("-ac", '--angle-cutoff', default=0.3, type=float,
-                           help="Angle cutoff. Default: 0.3")
-    p_chemenv.add_argument('-mw', '--multi-weights', default=False, action="store_true",
-                           help='Use MultiWeightsChemenvStrategy instead of SimplestChemenvStrategy.')
-    p_chemenv.add_argument("-i", "--only-indices", nargs="+", default=None, type=int,
-                           help="List of site indices to analyze e.g. `-i 0 2`. Default: None i.e. all sites.")
-    p_chemenv.add_argument("-s", "--only-atoms", nargs="+", default=None, type=str,
-                           help="List of atomic symbols to analyze e.g. `-s Si O`. Default: None i.e. all sites.")
+    p_chemenv = subparsers.add_parser(
+        "chemenv",
+        parents=[copts_parser, path_selector],
+        help="Use ChemEnv to analyze chemical coordination environments. "
+        "See D. Waroquiers, at al. Acta Cryst B 2020, 76, 683–695.",
+    )
+    p_chemenv.add_argument(
+        "-mdf", "--maximum-distance-factor", default=1.41, type=float, help="Maximum distance factor. Default 1.41."
+    )
+    p_chemenv.add_argument(
+        "-dc", "--distance-cutoff", default=1.4, type=float, help="Distance cutoff in Ang. Default: 1.4"
+    )
+    p_chemenv.add_argument("-ac", "--angle-cutoff", default=0.3, type=float, help="Angle cutoff. Default: 0.3")
+    p_chemenv.add_argument(
+        "-mw",
+        "--multi-weights",
+        default=False,
+        action="store_true",
+        help="Use MultiWeightsChemenvStrategy instead of SimplestChemenvStrategy.",
+    )
+    p_chemenv.add_argument(
+        "-i",
+        "--only-indices",
+        nargs="+",
+        default=None,
+        type=int,
+        help="List of site indices to analyze e.g. `-i 0 2`. Default: None i.e. all sites.",
+    )
+    p_chemenv.add_argument(
+        "-s",
+        "--only-atoms",
+        nargs="+",
+        default=None,
+        type=str,
+        help="List of atomic symbols to analyze e.g. `-s Si O`. Default: None i.e. all sites.",
+    )
     return parser
 
 
 def serve_kwargs_from_options(options) -> dict:
+    """
+    Build and return a dictionary with keyword arguments for serving the panel app.
+
+    Args:
+        options: Namespace object containing command-line options.
+    """
     if options.no_browser:
         print("""
 Use:
@@ -522,6 +859,7 @@ for port forwarding.
 """)
 
     import abipy.panels as mod
+
     assets_path = os.path.join(os.path.dirname(mod.__file__), "assets")
 
     return dict(
@@ -529,18 +867,22 @@ for port forwarding.
         show=not options.no_browser,
         port=options.port,
         static_dirs={"/assets": assets_path},
-        #address=address,
-        #websocket_origin="{address}:{port}",
+        # address=address,
+        # websocket_origin="{address}:{port}",
     )
 
 
 @cli.prof_main
 def main():
+    """
+    Main entry point for the script.
+    """
 
     def show_examples_and_exit(err_msg=None, error_code=1):
         """Display the usage of the script."""
         sys.stderr.write(get_epilog())
-        if err_msg: sys.stderr.write("Fatal Error\n" + err_msg + "\n")
+        if err_msg:
+            sys.stderr.write("Fatal Error\n" + err_msg + "\n")
         sys.exit(error_code)
 
     parser = get_parser(with_epilog=True)
@@ -548,7 +890,7 @@ def main():
     # Parse command line.
     try:
         options = parser.parse_args()
-    except Exception as exc:
+    except Exception:
         show_examples_and_exit(error_code=1)
 
     if not options.command:
@@ -564,8 +906,14 @@ def main():
 
     if options.command == "spglib":
         structure = abilab.Structure.from_file(options.filepath)
-        print(structure.spget_summary(symprec=options.symprec, angle_tolerance=options.angle_tolerance,
-                                      site_symmetry=options.site_symmetry, verbose=options.verbose))
+        print(
+            structure.spget_summary(
+                symprec=options.symprec,
+                angle_tolerance=options.angle_tolerance,
+                site_symmetry=options.site_symmetry,
+                verbose=options.verbose,
+            )
+        )
 
     elif options.command == "abispg":
         structure = abilab.Structure.from_file(options.filepath)
@@ -584,21 +932,27 @@ def main():
                 cprint("Crystal structure will be re-symmetrized by Abinit with tolsym: %s" % options.tolsym, "yellow")
 
             from abipy.data.hgh_pseudos import HGH_TABLE
+
             gsinp = factories.gs_input(structure, HGH_TABLE, spin_mode="unpolarized")
             gsinp["chkprim"] = 0
             abistructure = gsinp.abiget_spacegroup(tolsym=options.tolsym)
             print(abistructure.spget_summary(verbose=options.verbose))
-            print("")
+            print()
 
-            diff_structures([structure, abistructure], mode=options.diff_mode,
-                            headers=["Input structure", "After Abinit symmetrization"], fmt="abivars")
+            diff_structures(
+                [structure, abistructure],
+                mode=options.diff_mode,
+                headers=["Input structure", "After Abinit symmetrization"],
+                fmt="abivars",
+            )
 
             # Save file.
             save_structure(abistructure, options)
 
     elif options.command == "convert":
         fmt = options.format
-        if fmt == "cif" and options.filepath.endswith(".cif"): fmt = "abivars"
+        if fmt == "cif" and options.filepath.endswith(".cif"):
+            fmt = "abivars"
         print(abilab.Structure.from_file(options.filepath).convert(fmt=fmt))
 
     elif options.command == "has_quad":
@@ -611,7 +965,7 @@ def main():
 
         print(f"Converting ASE trajectory into XDATCAR format. Output file: {options.output}")
         # Load the trajectory file using ASE.
-        trajectory = read(options.filepath, index=':')
+        trajectory = read(options.filepath, index=":")
         if not options.force and os.path.exists(options.output):
             raise RuntimeError(f"Cannot overwrite pre-existent file: {options.output}! Use -f to force overwriting.")
 
@@ -631,7 +985,7 @@ def main():
             print("scaling matrix: ", options.scaling_matrix)
 
         supcell = structure * options.scaling_matrix
-        #supcell = structure.make_supercell(scaling_matrix, to_unit_cell=True)
+        # supcell = structure.make_supercell(scaling_matrix, to_unit_cell=True)
         print("nsym 1")
         print("chkprim 0")
         print(supcell.convert(fmt=options.format))
@@ -643,8 +997,12 @@ def main():
         print("    * Lattice vectors are exchanged if the triple product is negative\n")
 
         structure = abilab.Structure.from_file(options.filepath)
-        sanitized = structure.abi_sanitize(symprec=options.symprec, angle_tolerance=options.angle_tolerance,
-                                           primitive=not options.no_primitive, primitive_standard=options.primitive_standard)
+        sanitized = structure.abi_sanitize(
+            symprec=options.symprec,
+            angle_tolerance=options.angle_tolerance,
+            primitive=not options.no_primitive,
+            primitive_standard=options.primitive_standard,
+        )
         index = [options.filepath, "abisanitized"]
         dfs = abilab.dataframes_from_structures([structure, sanitized], index=index, with_spglib=True)
         abilab.print_dataframe(dfs.lattice, title="Lattice parameters:")
@@ -652,19 +1010,18 @@ def main():
 
         if not options.verbose:
             print("\nUse -v for more info")
-        else:
-            #print("\nDifference between structures:")
-            if len(structure) == len(sanitized):
-                table = []
-                for line1, line2 in zip(str(structure).splitlines(), str(sanitized).splitlines()):
-                    table.append([line1, line2])
-                print(str(tabulate(table, headers=["Initial structure", "Abisanitized"])))
+        # print("\nDifference between structures:")
+        elif len(structure) == len(sanitized):
+            table = []
+            for line1, line2 in zip(str(structure).splitlines(), str(sanitized).splitlines(), strict=False):
+                table.append([line1, line2])
+            print(str(tabulate(table, headers=["Initial structure", "Abisanitized"])))
 
-            else:
-                print("\nInitial structure:")
-                print(structure)
-                print("\nabisanitized structure:")
-                print(sanitized)
+        else:
+            print("\nInitial structure:")
+            print(structure)
+            print("\nabisanitized structure:")
+            print(sanitized)
 
         # Save file.
         save_structure(sanitized, options)
@@ -688,13 +1045,23 @@ def main():
         sanitized = structure.copy()
         symprec, angle_tolerance = options.symprec, options.angle_tolerance
         print("Calling abi_sanitize with increasing tolerances to reach target space group:", options.target_spgnum)
-        print("Using symprec_step: ", options.symprec_step, ", angle_tolerance_step:", options.angle_tolerance_step,
-              "ntrial", options.ntrial)
+        print(
+            "Using symprec_step: ",
+            options.symprec_step,
+            ", angle_tolerance_step:",
+            options.angle_tolerance_step,
+            "ntrial",
+            options.ntrial,
+        )
         itrial = 0
         while itrial < options.ntrial:
             print(">>> Trying with symprec: %s, angle_tolerance: %s" % (symprec, angle_tolerance))
-            sanitized = sanitized.abi_sanitize(symprec=symprec, angle_tolerance=angle_tolerance,
-                primitive=not options.no_primitive, primitive_standard=options.primitive_standard)
+            sanitized = sanitized.abi_sanitize(
+                symprec=symprec,
+                angle_tolerance=angle_tolerance,
+                primitive=not options.no_primitive,
+                primitive_standard=options.primitive_standard,
+            )
             spg_symb, spg_num = sanitized.get_space_group_info(symprec=symprec, angle_tolerance=angle_tolerance)
             print(">>> Space-group number:", spg_symb, ", symbol:", spg_num, "for trial:", itrial)
             if spg_num == options.target_spgnum:
@@ -711,7 +1078,7 @@ def main():
             return 1
 
         # Save file.
-        #save_structure(sanitized, options)
+        # save_structure(sanitized, options)
 
     elif options.command == "conventional":
         print("\nCalling get_conventional_standard_structure to get conventional structure:")
@@ -720,8 +1087,9 @@ def main():
         print("Computational Materials Science, 49(2), 299-312. doi:10.1016/j.commatsci.2010.05.010\n")
 
         structure = abilab.Structure.from_file(options.filepath)
-        conv = structure.get_conventional_standard_structure(international_monoclinic=True,
-                                           symprec=options.symprec, angle_tolerance=options.angle_tolerance)
+        conv = structure.get_conventional_standard_structure(
+            international_monoclinic=True, symprec=options.symprec, angle_tolerance=options.angle_tolerance
+        )
         index = [options.filepath, "conventional"]
         dfs = abilab.dataframes_from_structures([structure, conv], index=index, with_spglib=True)
 
@@ -731,17 +1099,16 @@ def main():
 
         if not options.verbose:
             print("\nUse -v for more info")
-        else:
-            #print("\nDifference between structures:")
-            if len(structure) == len(conv):
-                table = []
-                for line1, line2 in zip(str(structure).splitlines(), str(conv).splitlines()):
-                    table.append([line1, line2])
-                print(str(tabulate(table, headers=["Initial structure", "Conventional"])))
+        # print("\nDifference between structures:")
+        elif len(structure) == len(conv):
+            table = []
+            for line1, line2 in zip(str(structure).splitlines(), str(conv).splitlines(), strict=False):
+                table.append([line1, line2])
+            print(str(tabulate(table, headers=["Initial structure", "Conventional"])))
 
-            else:
-                print("\nInitial structure:\n", structure)
-                print("\nConventional structure:\n", conv)
+        else:
+            print("\nInitial structure:\n", structure)
+            print("\nConventional structure:\n", conv)
 
         # Save file.
         save_structure(conv, options)
@@ -749,29 +1116,33 @@ def main():
     elif options.command == "proto":
         structure = abilab.Structure.from_file(options.filepath)
         from pymatgen.analysis.aflow_prototypes import AflowPrototypeMatcher
-        m = AflowPrototypeMatcher(initial_ltol=options.ltol, initial_stol=options.stol,
-                                  initial_angle_tol=options.angle_tol)
+
+        m = AflowPrototypeMatcher(
+            initial_ltol=options.ltol, initial_stol=options.stol, initial_angle_tol=options.angle_tol
+        )
         dlist = m.get_prototypes(structure)
         if not dlist:
             cprint("Cannot find AFLOW prototype for structure.")
             print(structure.to_string(verbose=options.verbose))
             return 1
-        else:
-            cprint("Found %d matches" % len(dlist), "green")
-            for d in dlist:
-                if "snl" in d:
-                    snl = d.pop("snl")
-                    if options.verbose: pprint(snl.as_dict())
-                pprint(d)
-                url = "http://aflow.org/CrystalDatabase/%s.html" % d["tags"]["aflow"]
-                print("AFLOW url: %s\n" % url)
-            if not options.verbose:
-                print("Use --verbose to increase output level")
+        cprint("Found %d matches" % len(dlist), "green")
+        for d in dlist:
+            if "snl" in d:
+                snl = d.pop("snl")
+                if options.verbose:
+                    pprint(snl.as_dict())
+            pprint(d)
+            url = "http://aflow.org/CrystalDatabase/%s.html" % d["tags"]["aflow"]
+            print("AFLOW url: %s\n" % url)
+        if not options.verbose:
+            print("Use --verbose to increase output level")
 
     elif options.command == "wyckoff":
         structure = abilab.Structure.from_file(options.filepath)
         if options.refine:
-            print("Refining structure with symprec: %s, angle_tolerance: %s" % (options.symprec, options.angle_tolerance))
+            print(
+                "Refining structure with symprec: %s, angle_tolerance: %s" % (options.symprec, options.angle_tolerance)
+            )
             structure = structure.refine(symprec=options.symprec, angle_tolerance=options.angle_tolerance)
         print(structure.spget_summary(verbose=options.verbose))
         ss = structure.site_symmetries
@@ -781,7 +1152,9 @@ def main():
     elif options.command == "tensor_site":
         structure = abilab.Structure.from_file(options.filepath)
         if options.refine:
-            print("Refining structure with symprec: %s, angle_tolerance: %s" % (options.symprec, options.angle_tolerance))
+            print(
+                "Refining structure with symprec: %s, angle_tolerance: %s" % (options.symprec, options.angle_tolerance)
+            )
             structure = structure.refine(symprec=options.symprec, angle_tolerance=options.angle_tolerance)
         print(structure.spget_summary(verbose=options.verbose))
         ss = structure.site_symmetries
@@ -794,9 +1167,13 @@ def main():
     elif options.command == "interpolate":
         initial_structure = abilab.Structure.from_file(options.filepaths[0])
         end_structure = abilab.Structure.from_file(options.filepaths[1])
-        structures = initial_structure.interpolate(end_structure, nimages=options.nimages,
-                                                   interpolate_lattices=False, pbc=True,
-                                                   autosort_tol=options.autosort_tol)
+        structures = initial_structure.interpolate(
+            end_structure,
+            nimages=options.nimages,
+            interpolate_lattices=False,
+            pbc=True,
+            autosort_tol=options.autosort_tol,
+        )
         structures = list(map(abilab.Structure.as_structure, structures))
         for i, s in enumerate(structures):
             print(marquee("Structure #%d" % i, mark="="))
@@ -806,8 +1183,12 @@ def main():
     elif options.command == "xrd":
         structure = abilab.Structure.from_file(options.filepath)
         two_theta_range = tuple(float(t) for t in options.two_theta_range)
-        structure.plot_xrd(wavelength=options.wavelength, two_theta_range=two_theta_range,
-                           symprec=options.symprec, annotate_peaks=not options.no_annotate_peaks)
+        structure.plot_xrd(
+            wavelength=options.wavelength,
+            two_theta_range=two_theta_range,
+            symprec=options.symprec,
+            annotate_peaks=not options.no_annotate_peaks,
+        )
 
     elif options.command == "oxistate":
         print(abilab.Structure.from_file(options.filepath).get_oxi_state_decorated())
@@ -816,13 +1197,17 @@ def main():
         structure = abilab.Structure.from_file(options.filepath)
         print("Invoking Ipython, `structure` object will be available in the Ipython terminal")
         import IPython
+
         IPython.start_ipython(argv=[], user_ns={"structure": structure})
 
     elif options.command == "notebook":
         structure = abilab.Structure.from_file(options.filepath)
-        structure.make_and_open_notebook(nbpath=None, foreground=options.foreground,
-                                         classic_notebook=options.classic_notebook,
-                                         no_browser=options.no_browser)
+        structure.make_and_open_notebook(
+            nbpath=None,
+            foreground=options.foreground,
+            classic_notebook=options.classic_notebook,
+            no_browser=options.no_browser,
+        )
 
     elif options.command == "panel":
         structure = abilab.Structure.from_file(options.filepath)
@@ -855,7 +1240,7 @@ def main():
         structure = abilab.Structure.from_file(options.filepath)
         k = Ktables(structure, options.mesh, options.is_shift, not options.no_time_reversal)
         print(k)
-        print("")
+        print()
         print("NB: These results are obtained by calling spglib with the structure read from file.")
         print("The k-points might differ from the ones expected by Abinit, especially if the space groups differ.")
 
@@ -872,16 +1257,18 @@ def main():
 
         if options.kppa is not None:
             print("Calling Abinit to compute the IBZ with kppa:", options.kppa, "and shiftk:", options.shiftk)
-            ibz = IrredZone.from_kppa(structure, options.kppa, options.shiftk,
-                                      kptopt=options.kptopt, verbose=options.verbose)
+            ibz = IrredZone.from_kppa(
+                structure, options.kppa, options.shiftk, kptopt=options.kptopt, verbose=options.verbose
+            )
         else:
             print("Calling Abinit to compute the IBZ with ngkpt:", options.ngkpt, "and shiftk:", options.shiftk)
-            ibz = IrredZone.from_ngkpt(structure, options.ngkpt, options.shiftk,
-                                       kptopt=options.kptopt, verbose=options.verbose)
+            ibz = IrredZone.from_ngkpt(
+                structure, options.ngkpt, options.shiftk, kptopt=options.kptopt, verbose=options.verbose
+            )
 
         print(ibz.to_string(verbose=options.verbose))
 
-    #elif options.command == "kmesh_jhu":
+    # elif options.command == "kmesh_jhu":
     #    structure = abilab.Structure.from_file(options.filepath)
     #    from pymatgen.ext.jhu import get_kpoints
     #    kpoints = get_kpoints(structure, min_distance=0, min_total_kpoints=1,
@@ -894,10 +1281,17 @@ def main():
         spgrp = structure.abi_spacegroup
         if spgrp is None:
             cprint("Your file does not contain Abinit symmetry operations.", "yellow")
-            cprint("Will call spglib to obtain the space group (assuming time-reversal: %s)" %
-                   (not options.no_time_reversal), "yellow")
-            spgrp = AbinitSpaceGroup.from_structure(structure, has_timerev=not options.no_time_reversal,
-                        symprec=options.symprec, angle_tolerance=options.angle_tolerance)
+            cprint(
+                "Will call spglib to obtain the space group (assuming time-reversal: %s)"
+                % (not options.no_time_reversal),
+                "yellow",
+            )
+            spgrp = AbinitSpaceGroup.from_structure(
+                structure,
+                has_timerev=not options.no_time_reversal,
+                symprec=options.symprec,
+                angle_tolerance=options.angle_tolerance,
+            )
         print()
         print(marquee("Structure", mark="="))
         print(structure.spget_summary(verbose=options.verbose))
@@ -950,11 +1344,10 @@ def main():
             return 1
 
         if options.notebook:
-            return mp.make_and_open_notebook(foreground=options.foreground,
-                                             classic_notebook=options.classic_notebook,
-                                             no_browser=options.no_browser)
-        else:
-            mp.print_results(fmt=options.format, verbose=options.verbose)
+            return mp.make_and_open_notebook(
+                foreground=options.foreground, classic_notebook=options.classic_notebook, no_browser=options.no_browser
+            )
+        mp.print_results(fmt=options.format, verbose=options.verbose)
 
         if options.browser:
             mp.open_browser(limit=None if options.verbose == 2 else 10)
@@ -964,14 +1357,14 @@ def main():
         if not mp.structures:
             cprint("No structure found in Materials Project database", "yellow")
             return 1
-        if options.select_spgnum: mp = mp.filter_by_spgnum(options.select_spgnum)
+        if options.select_spgnum:
+            mp = mp.filter_by_spgnum(options.select_spgnum)
 
         if options.notebook:
-            return mp.make_and_open_notebook(foreground=options.foreground,
-                                             classic_notebook=options.classic_notebook,
-                                             no_browser=options.no_browser)
-        else:
-            mp.print_results(fmt=options.format, verbose=options.verbose)
+            return mp.make_and_open_notebook(
+                foreground=options.foreground, classic_notebook=options.classic_notebook, no_browser=options.no_browser
+            )
+        mp.print_results(fmt=options.format, verbose=options.verbose)
 
         if options.browser:
             mp.open_browser(limit=None if options.verbose == 2 else 10)
@@ -982,41 +1375,40 @@ def main():
             for mpid in mp.ids:
                 ebands = abilab.ElectronBands.from_mpid(mpid)
                 print(ebands)
+        elif options.chemsys_formula_id.startswith("mp-"):
+            # Assume valid mp identifier.
+            mpid = options.chemsys_formula_id
+            ebands = abilab.ElectronBands.from_mpid(mpid)
+            print(ebands)
         else:
-            if options.chemsys_formula_id.startswith("mp-"):
-                # Assume valid mp identifier.
-                mpid = options.chemsys_formula_id
-                ebands = abilab.ElectronBands.from_mpid(mpid)
-                print(ebands)
-            else:
-                mp = abilab.mp_search(options.chemsys_formula_id)
-                if not mp.structures:
-                    cprint("No structure found in Materials Project database", "yellow")
-                    return 1
+            mp = abilab.mp_search(options.chemsys_formula_id)
+            if not mp.structures:
+                cprint("No structure found in Materials Project database", "yellow")
+                return 1
 
-                for mpid, structure in zip(mp.ids, mp.structures):
-                    if structure is None:
-                        cprint("ignoring mpid %s because cannot find structure" % mpid, "red")
-                        continue
-                    ebands = abilab.ElectronBands.from_mpid(mpid)
-                    if ebands is None:
-                        cprint("Cannot get ebands for structure:\n%s" % str(structure), "red")
-                    else:
-                        print(ebands)
+            for mpid, structure in zip(mp.ids, mp.structures, strict=False):
+                if structure is None:
+                    cprint("ignoring mpid %s because cannot find structure" % mpid, "red")
+                    continue
+                ebands = abilab.ElectronBands.from_mpid(mpid)
+                if ebands is None:
+                    cprint("Cannot get ebands for structure:\n%s" % str(structure), "red")
+                else:
+                    print(ebands)
 
     elif options.command == "cod_search":
         cod = abilab.cod_search(options.formula, primitive=options.primitive)
         if not cod.structures:
             cprint("No structure found in COD database", "yellow")
             return 1
-        if options.select_spgnum: cod = cod.filter_by_spgnum(options.select_spgnum)
+        if options.select_spgnum:
+            cod = cod.filter_by_spgnum(options.select_spgnum)
 
         if options.notebook:
-            return cod.make_and_open_notebook(foreground=options.foreground,
-                                              classic_notebook=options.classic_notebook,
-                                              no_browser=options.no_browser)
-        else:
-            cod.print_results(fmt=options.format, verbose=options.verbose)
+            return cod.make_and_open_notebook(
+                foreground=options.foreground, classic_notebook=options.classic_notebook, no_browser=options.no_browser
+            )
+        cod.print_results(fmt=options.format, verbose=options.verbose)
 
     elif options.command == "cod_id":
         # Get the Structure from COD
@@ -1032,11 +1424,14 @@ def main():
 
         elif "XDATCAR" in filepath:
             from pymatgen.io.vasp.outputs import Xdatcar
+
             structures = Xdatcar(filepath).structures
             if not structures:
-                raise RuntimeError("Your Xdatcar contains only one structure. Due to a bug "
+                raise RuntimeError(
+                    "Your Xdatcar contains only one structure. Due to a bug "
                     "in the pymatgen routine, your structures won't be parsed correctly"
-                    "Solution: Add another structure at the end of the file.")
+                    "Solution: Add another structure at the end of the file."
+                )
         else:
             raise ValueError("Don't know how to handle file %s" % filepath)
 
@@ -1044,14 +1439,20 @@ def main():
 
     elif options.command == "chemenv":
         # Based on https://matgenb.materialsvirtuallab.org/2018/01/01/ChemEnv-How-to-automatically-identify-coordination-environments-in-a-structure.html
-        from pymatgen.analysis.chemenv.coordination_environments.chemenv_strategies import SimplestChemenvStrategy
-        from pymatgen.analysis.chemenv.coordination_environments.coordination_geometry_finder import LocalGeometryFinder
-        from pymatgen.analysis.chemenv.coordination_environments.structure_environments import LightStructureEnvironments
-        from pymatgen.analysis.chemenv.coordination_environments.chemenv_strategies import MultiWeightsChemenvStrategy
-
         import logging
+
+        from pymatgen.analysis.chemenv.coordination_environments.chemenv_strategies import (
+            MultiWeightsChemenvStrategy,
+            SimplestChemenvStrategy,
+        )
+        from pymatgen.analysis.chemenv.coordination_environments.coordination_geometry_finder import LocalGeometryFinder
+        from pymatgen.analysis.chemenv.coordination_environments.structure_environments import (
+            LightStructureEnvironments,
+        )
+
         logging.basicConfig(
-            format="%(levelname)s:%(module)s:%(funcName)s:%(message)s", level=logging.DEBUG
+            format="%(levelname)s:%(module)s:%(funcName)s:%(message)s",
+            level=logging.DEBUG,
             # you can also save the logging to a file, just remove the comment
             # filename='chemenv_structure_environments.log',
         )
@@ -1062,12 +1463,13 @@ def main():
         lgf.setup_structure(structure=structure)
 
         # Get the StructureEnvironments
-        kws = dict(maximum_distance_factor=options.maximum_distance_factor,
-                   only_indices=options.only_indices,
-                   only_atoms=options.only_atoms,
-                   #excluded_atoms=None,
-                   #only_cations=True,
-                   )
+        kws = dict(
+            maximum_distance_factor=options.maximum_distance_factor,
+            only_indices=options.only_indices,
+            only_atoms=options.only_atoms,
+            # excluded_atoms=None,
+            # only_cations=True,
+        )
         print("Computing structure environments with:", kws)
         se = lgf.compute_structure_environments(**kws)
 
@@ -1079,8 +1481,7 @@ def main():
             print("Using SimplestChemenvStrategy with:", kws)
             strategy = SimplestChemenvStrategy(**kws)
 
-        lse = LightStructureEnvironments.from_structure_environments(
-            strategy=strategy, structure_environments=se)
+        lse = LightStructureEnvironments.from_structure_environments(strategy=strategy, structure_environments=se)
 
         lenv_keys = ["ce_symbol", "ce_fraction", "csm"]
         site_keys = ["site_index", "species", "xred1", "xred2", "xred3"]
@@ -1090,7 +1491,8 @@ def main():
             # One dataframe per site as we can have multiple csm per site.
             errored_isites = []
             for isite, site in enumerate(structure):
-                if options.only_indices is not None and isite not in options.only_indices: continue
+                if options.only_indices is not None and isite not in options.only_indices:
+                    continue
                 d_list = lse.coordination_environments[isite]
                 if d_list is None:
                     errored_isites.append(isite)
@@ -1098,29 +1500,30 @@ def main():
 
                 for i, d in enumerate(d_list):
                     d = {k: d[k] for k in lenv_keys}
-                    d.update(list(zip(site_keys, [isite, site.species, *site.frac_coords])))
+                    d.update(list(zip(site_keys, [isite, site.species, *site.frac_coords], strict=False)))
                     d_list[i] = d
 
                 df = pd.DataFrame(d_list).set_index("site_index")
-                print("")
+                print()
                 print(df.to_string())
 
         else:
             # One dataframe with all sites and one csm per site.
             d_list, errored_isites = [], []
             for isite, site in enumerate(structure):
-                if options.only_indices is not None and isite not in options.only_indices: continue
+                if options.only_indices is not None and isite not in options.only_indices:
+                    continue
                 dl = lse.coordination_environments[isite]
                 if dl is None:
                     errored_isites.append(isite)
                     continue
                 d = dl[0]
                 d = {k: d[k] for k in lenv_keys}
-                d.update(list(zip(site_keys, [isite, site.species, *site.frac_coords])))
+                d.update(list(zip(site_keys, [isite, site.species, *site.frac_coords], strict=False)))
                 d_list.append(d)
 
             df = pd.DataFrame(d_list).set_index("site_index")
-            print("")
+            print()
             print(df.to_string())
 
         if errored_isites:

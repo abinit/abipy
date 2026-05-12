@@ -1,13 +1,15 @@
-# coding: utf-8
 """Decorators for AbinitInput or MultiDataset objects."""
+
 from __future__ import annotations
 
 import abc
-import pymatgen.io.abinit.abiobjects as aobj
 
+import pymatgen.io.abinit.abiobjects as aobj
 from monty.json import MSONable
-from abipy.tools.serialization import pmg_serialize
+
 from abipy.flowtk.abiobjects import LdauParams, LexxParams
+from abipy.tools.serialization import pmg_serialize
+
 from .inputs import AbinitInput, MultiDataset
 
 
@@ -21,7 +23,6 @@ class AbinitInputDecorator(MSONable, metaclass=abc.ABCMeta):
     or an existing :class:`MultiDataset` without altering its structure. This is an abstract Base class.
 
     Example:
-
         decorator = MyDecorator(arguments)
 
         new_abinit_input = decorator(abinit_input)
@@ -38,6 +39,7 @@ class AbinitInputDecorator(MSONable, metaclass=abc.ABCMeta):
         This should  not represent a serious limitation because it's always possible to change the structure
         with its methods and then call the factory function without having to decorate an already existing object.
     """
+
     Error = InputDecoratorError
 
     def __str__(self):
@@ -51,14 +53,13 @@ class AbinitInputDecorator(MSONable, metaclass=abc.ABCMeta):
         Returns:
             New `AbinitInput` or new `MultiDataset` depending on obj.
         """
-
         if isinstance(obj, AbinitInput):
             new_inp = self._decorate(obj, deepcopy=deepcopy)
             # Log the decoration in new_inp.
             new_inp.register_decorator(self)
             return new_inp
 
-        elif isinstance(obj, MultiDataset):
+        if isinstance(obj, MultiDataset):
             new_inputs = []
             for inp in obj:
                 new_inp = self._decorate(inp, deepcopy=deepcopy)
@@ -68,8 +69,7 @@ class AbinitInputDecorator(MSONable, metaclass=abc.ABCMeta):
 
             return MultiDataset.from_inputs(new_inputs)
 
-        else:
-            raise TypeError("Don't know how to decorate type %s" % type(obj))
+        raise TypeError("Don't know how to decorate type %s" % type(obj))
 
     @abc.abstractmethod
     def _decorate(self, inp, deepcopy=True):
@@ -90,19 +90,23 @@ class SpinDecorator(AbinitInputDecorator):
     """This decorator changes the spin polarization."""
 
     def __init__(self, spinmode, kptopt_ifspinor=4):
+        """Initialize the decorator with spinmode and kptopt_ifspinor."""
         self.spinmode = aobj.SpinMode.as_spinmode(spinmode)
         self.kptopt_ifspinor = kptopt_ifspinor
 
     @pmg_serialize
     def as_dict(self) -> dict:
+        """Return dictionary with decorator parameters."""
         return dict(spinmode=self.spinmode.as_dict(), kptopt_ifspinor=self.kptopt_ifspinor)
 
     @classmethod
     def from_dict(cls, d: dict) -> SpinDecorator:
+        """Build the decorator from a dictionary."""
         return cls(aobj.SpinMode.from_dict(d["spinmode"]), kptopt_ifspinor=d["kptopt_ifspinor"])
 
     def _decorate(self, inp, deepcopy=True):
-        if deepcopy: inp = inp.deepcopy()
+        if deepcopy:
+            inp = inp.deepcopy()
 
         inp.set_vars(self.spinmode.to_abivars())
 
@@ -125,18 +129,22 @@ class SmearingDecorator(AbinitInputDecorator):
     """This decorator changes the electronic smearing."""
 
     def __init__(self, smearing):
+        """Initialize the decorator with smearing."""
         self.smearing = aobj.Smearing.as_smearing(smearing)
 
     @pmg_serialize
     def as_dict(self) -> dict:
+        """Return dictionary with decorator parameters."""
         return {"smearing": self.smearing.as_dict()}
 
     @classmethod
     def from_dict(cls, d: dict) -> SmearingDecorator:
+        """Build the decorator from a dictionary."""
         return cls(aobj.Smearing.from_dict(d["smearing"]))
 
     def _decorate(self, inp, deepcopy=True):
-        if deepcopy: inp = inp.deepcopy()
+        if deepcopy:
+            inp = inp.deepcopy()
         inp.set_vars(self.smearing.to_abivars())
         return inp
 
@@ -153,17 +161,20 @@ class XcDecorator(AbinitInputDecorator):
 
     @pmg_serialize
     def as_dict(self):
+        """Return dictionary with decorator parameters."""
         return {"ixc": self.ixc}
 
     @classmethod
     def from_dict(cls, d: dict) -> XcDecorator:
+        """Build the decorator from a dictionary."""
         return cls(d["ixc"])
 
     def _decorate(self, inp, deepcopy=True):
-        if deepcopy: inp = inp.deepcopy()
+        if deepcopy:
+            inp = inp.deepcopy()
         # TODO: Don't understand why abinit does not enable usekden if MGGA!
         usekden = None
-        #usekden = 1 if ixc.ismgga() else None
+        # usekden = 1 if ixc.ismgga() else None
         inp.set_vars(ixc=self.ixc, usekden=usekden)
 
         return inp
@@ -183,23 +194,28 @@ class LdaUDecorator(AbinitInputDecorator):
 
     @pmg_serialize
     def as_dict(self) -> dict:
+        """Return dictionary with decorator parameters."""
         return dict(symbols_luj=self.symbols_luj, usepawu=self.usepawu, unit=self.unit)
 
     @classmethod
     def from_dict(cls, d: dict) -> LdaUDecorator:
+        """Build the decorator from a dictionary."""
         return cls(**{k: v for k, v in d.items() if not k.startswith("@")})
 
     def _decorate(self, inp, deepcopy=True):
-        if not inp.ispaw: raise self.Error("LDA+U requires PAW!")
-        if deepcopy: inp = inp.deepcopy()
+        if not inp.ispaw:
+            raise self.Error("LDA+U requires PAW!")
+        if deepcopy:
+            inp = inp.deepcopy()
         luj_params = LdauParams(usepawu=self.usepawu, structure=inp.structure)
 
         # Apply UJ on all the symbols present in symbols_lui.
         for symbol in inp.structure.symbol_set:
-            if symbol not in self.symbols_luj: continue
+            if symbol not in self.symbols_luj:
+                continue
             args = self.symbols_luj[symbol]
             luj_params.luj_for_symbol(symbol, l=args["l"], u=args["u"], j=args["j"], unit=self.unit)
-            #luj_params.luj_for_symbol("Ni", l=2, u=u, j=0.1*u, unit=self.unit)
+            # luj_params.luj_for_symbol("Ni", l=2, u=u, j=0.1*u, unit=self.unit)
 
         inp.set_vars(luj_params.to_abivars())
 
@@ -224,19 +240,24 @@ class LexxDecorator(AbinitInputDecorator):
 
     @classmethod
     def from_dict(cls, d: dict) -> LexxDecorator:
-        return cls(**{k:v for k, v in d.items() if not k.startswith("@")})
+        """Build the decorator from a dictionary."""
+        return cls(**{k: v for k, v in d.items() if not k.startswith("@")})
 
     @pmg_serialize
     def as_dict(self) -> dict:
+        """Return dictionary with decorator parameters."""
         return {"symbols_lexx": self.symbols_lexx, "exchmix": self.exchmix}
 
     def _decorate(self, inp, deepcopy=True):
-        if not inp.ispaw: raise self.Error("LEXX requires PAW!")
-        if deepcopy: inp = inp.deepcopy()
+        if not inp.ispaw:
+            raise self.Error("LEXX requires PAW!")
+        if deepcopy:
+            inp = inp.deepcopy()
 
         lexx_params = LexxParams(inp.structure)
         for symbol in inp.structure.symbol_set:
-            if symbol not in self.symbols_lexx: continue
+            if symbol not in self.symbols_lexx:
+                continue
             lexx_params.lexx_for_symbol(symbol, l=self.symbols_lexx[symbol])
 
         # Context: the value of the variable useexexch is   1.
@@ -245,21 +266,23 @@ class LexxDecorator(AbinitInputDecorator):
         # Action : you should change the input variables ixc or useexexch.
         inp.set_vars(lexx_params.to_abivars())
         dt_ixc = inp.get("ixc")
-        if dt_ixc is None or dt_ixc not in [11, 23]: inp.set_vars(ixc=11)
-        if self.exchmix is not None: inp.set_vars(exchmix=self.exchmix)
+        if dt_ixc is None or dt_ixc not in [11, 23]:
+            inp.set_vars(ixc=11)
+        if self.exchmix is not None:
+            inp.set_vars(exchmix=self.exchmix)
 
         return inp
 
 
 # Stubs
-#class ScfMixingDecorator(AbinitInputDecorator):
+# class ScfMixingDecorator(AbinitInputDecorator):
 
 
-#class MagneticMomentDecorator(AbinitInputDecorator):
+# class MagneticMomentDecorator(AbinitInputDecorator):
 #    """Add reasoanble guesses for the initial magnetic moments."""
 
 
-#class SpinOrbitDecorator(AbinitInputDecorator):
+# class SpinOrbitDecorator(AbinitInputDecorator):
 #    """Enable spin-orbit in the input."""
 #     def __init__(self, no_spatial_symmetries=True, no_time_reversal=False, spnorbscl=None):
 #        self.use_spatial_symmetries = use_spati
@@ -274,7 +297,7 @@ class LexxDecorator(AbinitInputDecorator):
 #        return inp
 
 
-#class PerformanceDecorator(AbinitInputDecorator):
+# class PerformanceDecorator(AbinitInputDecorator):
 #    """Change the variables in order to speedup the calculation."""
 #    fftgw
 #    boxcutmin
@@ -289,5 +312,5 @@ class LexxDecorator(AbinitInputDecorator):
 #        return inp
 
 
-#class DmftDecorator(AbinitInputDecorator):
+# class DmftDecorator(AbinitInputDecorator):
 #    """Add DMFT variables."""

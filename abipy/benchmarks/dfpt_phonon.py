@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 """Benchmark for phonon calculation with DFPT."""
-import sys
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
-import abipy.data as abidata
 
+import sys
 from itertools import product
-from abipy.benchmarks import bench_main, BenchmarkFlow
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
+from abipy.benchmarks import BenchmarkFlow, bench_main
 
 
 def make_inputs(paw=False):
@@ -22,17 +22,34 @@ def make_inputs(paw=False):
 
     # List of q-points for the phonon calculation.
     qpoints = [
-             0.00000000E+00,  0.00000000E+00,  0.00000000E+00,
-             2.50000000E-01,  0.00000000E+00,  0.00000000E+00,
-             5.00000000E-01,  0.00000000E+00,  0.00000000E+00,
-             2.50000000E-01,  2.50000000E-01,  0.00000000E+00,
-             5.00000000E-01,  2.50000000E-01,  0.00000000E+00,
-            -2.50000000E-01,  2.50000000E-01,  0.00000000E+00,
-             5.00000000E-01,  5.00000000E-01,  0.00000000E+00,
-            -2.50000000E-01,  5.00000000E-01,  2.50000000E-01,
-            ]
+        0.00000000e00,
+        0.00000000e00,
+        0.00000000e00,
+        2.50000000e-01,
+        0.00000000e00,
+        0.00000000e00,
+        5.00000000e-01,
+        0.00000000e00,
+        0.00000000e00,
+        2.50000000e-01,
+        2.50000000e-01,
+        0.00000000e00,
+        5.00000000e-01,
+        2.50000000e-01,
+        0.00000000e00,
+        -2.50000000e-01,
+        2.50000000e-01,
+        0.00000000e00,
+        5.00000000e-01,
+        5.00000000e-01,
+        0.00000000e00,
+        -2.50000000e-01,
+        5.00000000e-01,
+        2.50000000e-01,
+    ]
     import numpy as np
-    qpoints = np.reshape(qpoints, (-1,3))
+
+    qpoints = np.reshape(qpoints, (-1, 3))
 
     # Global variables used both for the GS and the DFPT run.
     global_vars = dict(
@@ -41,11 +58,21 @@ def make_inputs(paw=False):
         pawecutdg=24.0 if paw else None,
         ngkpt=[8, 8, 8],
         nshiftk=4,
-        shiftk=[0.0, 0.0, 0.5,   # This gives the usual fcc Monkhorst-Pack grid
-                0.0, 0.5, 0.0,
-                0.5, 0.0, 0.0,
-                0.5, 0.5, 0.5],
-        #shiftk=[0, 0, 0],
+        shiftk=[
+            0.0,
+            0.0,
+            0.5,  # This gives the usual fcc Monkhorst-Pack grid
+            0.0,
+            0.5,
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.5,
+            0.5,
+            0.5,
+        ],
+        # shiftk=[0, 0, 0],
         paral_kgb=0,
         diemac=9.0,
     )
@@ -55,8 +82,8 @@ def make_inputs(paw=False):
 
     # Get the qpoints in the IBZ. Note that here we use a q-mesh with ngkpt=(4,4,4) and shiftk=(0,0,0)
     # i.e. the same parameters used for the k-mesh in gs_inp.
-    #qpoints = gs_inp.abiget_ibz(ngkpt=(4,4,4), shiftk=(0,0,0), kptopt=1).points
-    #print("get_ibz", qpoints)
+    # qpoints = gs_inp.abiget_ibz(ngkpt=(4,4,4), shiftk=(0,0,0), kptopt=1).points
+    # print("get_ibz", qpoints)
 
     ph_inp = abilab.AbinitInput(structure, pseudos)
 
@@ -65,16 +92,16 @@ def make_inputs(paw=False):
     qpt = [0.25, 0, 0]
     ph_inp.set_vars(
         global_vars,
-        rfphon=1,        # Will consider phonon-type perturbation
-        nqpt=1,          # One wavevector is to be considered
-        qpt=qpt,         # This wavevector is q=0 (Gamma)
+        rfphon=1,  # Will consider phonon-type perturbation
+        nqpt=1,  # One wavevector is to be considered
+        qpt=qpt,  # This wavevector is q=0 (Gamma)
         toldfe=1.0e10,
         kptopt=3,
         timopt=-1,
     )
-        #rfatpol   1 1   # Only the first atom is displaced
-        #rfdir   1 0 0   # Along the first reduced coordinate axis
-        #kptopt   2      # Automatic generation of k points, taking
+    # rfatpol   1 1   # Only the first atom is displaced
+    # rfdir   1 0 0   # Along the first reduced coordinate axis
+    # kptopt   2      # Automatic generation of k points, taking
 
     return gs_inp, ph_inp
 
@@ -93,12 +120,14 @@ def build_flow(options):
     print("Getting all autoparal confs up to max_ncpus:", max_ncpus, "with efficiency >=", min_eff)
 
     pconfs = ph_inp.abiget_autoparal_pconfs(max_ncpus, autoparal=1)
-    if options.verbose: print(pconfs)
+    if options.verbose:
+        print(pconfs)
 
     work = flowtk.Work()
     for conf, omp_threads in product(pconfs, options.omp_list):
         mpi_procs = conf.mpi_ncpus
-        if not options.accept_conf(conf, omp_threads): continue
+        if not options.accept_conf(conf, omp_threads):
+            continue
 
         manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
         inp = ph_inp.new_with_vars(conf.vars)
@@ -115,7 +144,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return
+        return None
     return build_flow(options)
 
 

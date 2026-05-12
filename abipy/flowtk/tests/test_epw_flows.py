@@ -15,16 +15,18 @@ class TestEphFlows(AbipyTest):
         qbounds = [[0, 0, 0], [0.5, 0, 0]]
 
         workdir = self.mkdtemp()
-        flow = EphPotFlow.from_scf_input(workdir, gs_inp, ngqpt, qbounds, ndivsm=2,
-                                         with_becs=True, with_quad=False, ddk_tolerance=None, prepgkk=1)
+        flow = EphPotFlow.from_scf_input(
+            workdir, gs_inp, ngqpt, qbounds, ndivsm=2, with_becs=True, with_quad=False, ddk_tolerance=None, prepgkk=1
+        )
 
-        #assert len(work.relax_tasks) == 3
-        #assert all(t.input["dilatmx"] == 1.05 for t in work)
+        # assert len(work.relax_tasks) == 3
+        # assert all(t.input["dilatmx"] == 1.05 for t in work)
 
         flow.allocate()
         flow.check_status()
         isok, checks = flow.abivalidate_inputs()
-        if not isok: flow.debug()
+        if not isok:
+            flow.debug()
         assert isok
 
     def test_gkqpath_flows(self):
@@ -34,15 +36,25 @@ class TestEphFlows(AbipyTest):
         qbounds = [[0, 0, 0], [0.5, 0, 0]]
 
         workdir = self.mkdtemp()
-        flow = GkqPathFlow.from_scf_input(workdir, gs_inp, ngqpt, qbounds, ndivsm=2,
-                                          with_becs=True, with_quad=False, ddk_tolerance=None,
-                                          test_ft_interpolation=True, prepgkk=0)
+        flow = GkqPathFlow.from_scf_input(
+            workdir,
+            gs_inp,
+            ngqpt,
+            qbounds,
+            ndivsm=2,
+            with_becs=True,
+            with_quad=False,
+            ddk_tolerance=None,
+            test_ft_interpolation=True,
+            prepgkk=0,
+        )
 
-        #assert len(work.relax_tasks) == 3
-        #assert all(t.input["dilatmx"] == 1.05 for t in work)
+        # assert len(work.relax_tasks) == 3
+        # assert all(t.input["dilatmx"] == 1.05 for t in work)
 
         flow.allocate()
         flow.check_status()
         isok, checks = flow.abivalidate_inputs()
-        if not isok: flow.debug()
+        if not isok:
+            flow.debug()
         assert isok

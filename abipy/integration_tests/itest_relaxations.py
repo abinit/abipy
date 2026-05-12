@@ -1,20 +1,22 @@
 """Integration tests for structural relaxations."""
+
 from __future__ import annotations
+
+import socket
 
 import numpy as np
 import pytest
-import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
 
+import abipy.data as abidata
+from abipy import abilab, flowtk
 from abipy.core.testing import has_matplotlib
 
-import socket
 hostname = socket.gethostname()
 
 skip_hosts = [
     "scope.pcpm.ucl.ac.be",
 ]
+
 
 def ion_relaxation(tvars, ntime=50):
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
@@ -24,11 +26,11 @@ def ion_relaxation(tvars, ntime=50):
 
     global_vars = dict(
         ecut=6,
-        ngkpt=[2,2,2],
-        shiftk=[0,0,0],
+        ngkpt=[2, 2, 2],
+        shiftk=[0, 0, 0],
         nshiftk=1,
         chksymbreak=0,
-        #paral_kgb=tvars.paral_kgb,
+        # paral_kgb=tvars.paral_kgb,
         paral_kgb=0,
     )
 
@@ -38,7 +40,7 @@ def ion_relaxation(tvars, ntime=50):
     inp.set_vars(global_vars)
 
     # Dataset 1 (Atom Relaxation)
-    #inp[1].set_vars(
+    # inp[1].set_vars(
     # FIXME here there's a bug
     inp.set_vars(
         optcell=0,
@@ -46,10 +48,11 @@ def ion_relaxation(tvars, ntime=50):
         tolrff=0.02,
         tolmxf=5.0e-5,
         ntime=ntime,
-        #dilatmx=1.05, # FIXME: abinit crashes if I don't use this
+        # dilatmx=1.05, # FIXME: abinit crashes if I don't use this
     )
 
     return inp
+
 
 @pytest.mark.skipif(hostname in skip_hosts, reason=f"Skipped on {hostname}")
 def itest_atomic_relaxation(fwp, tvars):
@@ -95,7 +98,7 @@ def itest_atomic_relaxation(fwp, tvars):
     assert all(work.finalized for work in flow)
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
 
     # post-processing tools
     if has_matplotlib():
@@ -117,20 +120,20 @@ def make_ion_ioncell_inputs(tvars, dilatmx, scalevol=1, ntime=50):
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
 
     # Perturb the structure (random perturbation of 0.1 Angstrom)
-    #structure.perturb(distance=0.01)
+    # structure.perturb(distance=0.01)
 
     # Compress the lattice so that ABINIT complains about dilatmx
     structure.scale_lattice(structure.volume * scalevol)
 
     global_vars = dict(
         ecut=6,
-        #nband=8,
+        # nband=8,
         ecutsm=0.5,
-        ngkpt=[4,4,4],
-        shiftk=[0,0,0],
+        ngkpt=[4, 4, 4],
+        shiftk=[0, 0, 0],
         nshiftk=1,
         chksymbreak=0,
-        #paral_kgb=tvars.paral_kgb,
+        # paral_kgb=tvars.paral_kgb,
         paral_kgb=0,
     )
 
@@ -183,7 +186,7 @@ def itest_relaxation_with_restart_from_den(fwp, tvars):
     assert all(work.finalized for work in flow)
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
 
     # we should have (0, 1) restarts and no WFK file in outdir.
     for i, task in enumerate(relax_work):
@@ -222,7 +225,7 @@ def itest_dilatmx_error_handler(fwp, tvars):
     assert all(work.finalized for work in flow)
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
 
     # t0 should have reached S_OK, and we should have DilatmxError in the corrections.
     t0 = work[0]
@@ -232,8 +235,8 @@ def itest_dilatmx_error_handler(fwp, tvars):
     assert t0.corrections[0]["event"]["@class"] == "DilatmxError"
 
 
-#@pytest.mark.skipif(hostname in skip_hosts, reason=f"Skipped on {hostname}")
-@pytest.mark.skipif(True, reason=f"This test is not portable")
+# @pytest.mark.skipif(hostname in skip_hosts, reason=f"Skipped on {hostname}")
+@pytest.mark.skipif(True, reason="This test is not portable")
 def itest_relaxation_with_target_dilatmx(fwp, tvars):
     """Test structural relaxations with automatic restart from DEN files."""
     # Build the flow
@@ -252,8 +255,8 @@ def itest_relaxation_with_target_dilatmx(fwp, tvars):
     assert all(work.finalized for work in flow)
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
-    #assert relax_work.last_dilatmx <= target_dilatmx
+        raise RuntimeError
+    # assert relax_work.last_dilatmx <= target_dilatmx
 
     # we should have (0, 1) restarts
     for i, task in enumerate(relax_work):
@@ -265,7 +268,9 @@ def itest_relaxation_with_target_dilatmx(fwp, tvars):
 
     # check that when decreasing the dilatmx it actually takes the previously relaxed
     # structure and does not start from scratch again: the lattice should not be the same.
-    assert not np.allclose(relax_work.ion_task.get_final_structure().lattice_vectors(),
-                           relax_work.ioncell_task.input.structure.lattice_vectors())
+    assert not np.allclose(
+        relax_work.ion_task.get_final_structure().lattice_vectors(),
+        relax_work.ioncell_task.input.structure.lattice_vectors(),
+    )
 
     flow.rmtree()

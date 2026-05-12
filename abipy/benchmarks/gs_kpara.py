@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 """Benchmark for k-point parallelism."""
-import sys
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
-import abipy.data as abidata
 
+import sys
 from itertools import product
-from abipy.benchmarks import bench_main, BenchmarkFlow
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
+from abipy.benchmarks import BenchmarkFlow, bench_main
 
 
 def make_input(paw=False):
@@ -15,17 +15,17 @@ def make_input(paw=False):
     structure = abidata.structure_from_ucell("Si")
 
     inp = abilab.AbinitInput(structure, pseudos)
-    inp.set_kmesh(ngkpt=[12,12,12], shiftk=[0,0,0])
+    inp.set_kmesh(ngkpt=[12, 12, 12], shiftk=[0, 0, 0])
 
     # Global variables
     ecut = 40
     inp.set_vars(
         ecut=ecut,
-        pawecutdg=ecut*4 if paw else None,
+        pawecutdg=ecut * 4 if paw else None,
         nsppol=2,
         nband=40,
         paral_kgb=0,
-        #istwfk="*1",
+        # istwfk="*1",
         timopt=-1,
         chksymbreak=0,
         prtwf=0,
@@ -43,8 +43,8 @@ def build_flow(options):
     if mpi_list is None:
         nkpt = len(inp.abiget_ibz().points)
         nks = nkpt * inp["nsppol"]
-        mpi_list = [p for p in range(1, nks+1) if nks % p == 0]
-        #print("Using mpi_list:", mpi_list)
+        mpi_list = [p for p in range(1, nks + 1) if nks % p == 0]
+        # print("Using mpi_list:", mpi_list)
     else:
         print("Using mpi_list from cmd line:", mpi_list)
 
@@ -52,7 +52,8 @@ def build_flow(options):
     work = flowtk.Work()
 
     for mpi_procs, omp_threads in product(mpi_list, options.omp_list):
-        if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
+        if not options.accept_mpi_omp(mpi_procs, omp_threads):
+            continue
         manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
         work.register_scf_task(inp, manager=manager)
 
@@ -65,7 +66,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return
+        return None
 
     return build_flow(options)
 

@@ -12,6 +12,7 @@ and different computational settings! Of course, one can always
 initialize ElectronBands and PhononBands from local netcdf files
 obtained with Abinit
 """
+
 from abipy import abilab
 
 # List of mp ids for Si, Diamond
@@ -36,14 +37,13 @@ for i, mpid in enumerate(mpids):
 # The figure has [len(mpids), 2] subplots
 # The i-th row contains electrons and phonons for the i-th mp identifier.
 nrows, ncols = len(mpids), 2
-ax_mat, fig, plt = abilab.get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                              sharex=False, sharey=False, squeeze=False)
+ax_mat, fig, plt = abilab.get_axarray_fig_plt(None, nrows=nrows, ncols=ncols, sharex=False, sharey=False, squeeze=False)
 
 # Use the `ax` keyword argument to select the matplotlib Axes used to plot the object.
 # In the band structure plot, we show the fundamental/direct gap as well as the possible
 # phonon-absorption (-emission) processes allowed by energy-conservation.
 # (This is a qualitative analysis of e-ph scattering, quasi-momentum and ph dispersion are not taken into account).
-for i, (ebands, phbands) in enumerate(zip(ebands_list, phbands_list)):
+for i, (ebands, phbands) in enumerate(zip(ebands_list, phbands_list, strict=False)):
     ebands.plot(ax=ax_mat[i, 0], with_gaps=True, ylims=(-5, 10), max_phfreq=phbands.maxfreq, show=False)
     phbands.plot(ax=ax_mat[i, 1], show=False)
 

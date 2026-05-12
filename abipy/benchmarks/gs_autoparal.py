@@ -3,12 +3,12 @@
 This benchmark uses paral_kgb=1 and compares the effective parallel efficiency with
 the one reported by autoparal.
 """
-import sys
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
-import abipy.data as abidata
 
-from abipy.benchmarks import bench_main, BenchmarkFlow
+import sys
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
+from abipy.benchmarks import BenchmarkFlow, bench_main
 
 
 def make_input(paw=False):
@@ -19,13 +19,13 @@ def make_input(paw=False):
     structure = abidata.structure_from_ucell("Si")
 
     inp = abilab.AbinitInput(structure, pseudos)
-    inp.set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
+    inp.set_kmesh(ngkpt=[8, 8, 8], shiftk=[0, 0, 0])
 
     # Global variables
     ecut = 20
     inp.set_vars(
         ecut=ecut,
-        pawecutdg=ecut*4 if paw else None,
+        pawecutdg=ecut * 4 if paw else None,
         nsppol=1,
         nband=20,
         paral_kgb=1,
@@ -49,15 +49,18 @@ def build_flow(options):
 
     print("Getting all autoparal confs up to max_ncpus:", max_ncpus, "with efficiency >=", min_eff)
     pconfs = template.abiget_autoparal_pconfs(max_ncpus, autoparal=1, verbose=options.verbose)
-    if options.verbose: print(pconfs)
+    if options.verbose:
+        print(pconfs)
 
     flow = BenchmarkFlow(workdir=options.get_workdir(__file__), remove=options.remove)
 
     omp_threads = 1
     work = flowtk.Work()
     for conf in pconfs:
-        mpi_procs = conf.mpi_ncpus; omp_threads = conf.omp_ncpus
-        if not options.accept_conf(conf, omp_threads): continue
+        mpi_procs = conf.mpi_ncpus
+        omp_threads = conf.omp_ncpus
+        if not options.accept_conf(conf, omp_threads):
+            continue
 
         manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
         inp = template.new_with_vars(conf.vars)
@@ -74,7 +77,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return
+        return None
 
     return build_flow(options)
 

@@ -14,11 +14,12 @@ Some of the variables in the input files must be changed depending on the value 
 We use relativistic NC pseudos made of two terms: scalar pseudo + SOC term.
 The SOC term can be deactivated with the input variable `so_psp`.
 """
-import sys
+
 import os
+import sys
+
 import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def build_flow(options):
@@ -29,7 +30,7 @@ def build_flow(options):
     structure = abidata.structure_from_ucell("GaAs")
     pseudos = abidata.pseudos("Ga-low_r.psp8", "As_r.psp8")
     num_electrons = structure.num_valence_electrons(pseudos)
-    #print("num_electrons:", num_electrons)
+    # print("num_electrons:", num_electrons)
 
     # Usa same shifts in all tasks.
     ngkpt = [4, 4, 4]
@@ -59,18 +60,18 @@ def build_flow(options):
             ecut=20,
             nspinor=nspinor,
             nspden=1 if nspinor == 1 else 4,
-            so_psp="*0" if nspinor == 1 else "*1",   # Important!
-            #paral_kgb=1,
+            so_psp="*0" if nspinor == 1 else "*1",  # Important!
+            # paral_kgb=1,
         )
 
         nband_occ = num_electrons // 2 if nspinor == 1 else num_electrons
-        #print(nband_occ)
+        # print(nband_occ)
 
         # Dataset 1 (GS run)
         multi[0].set_vars(tolvrs=1e-8, nband=nband_occ + 4)
         multi[0].set_kmesh(ngkpt=ngkpt, shiftk=shiftk, kptopt=1 if nspinor == 1 else 4)
 
-        multi[1].set_vars(iscf=-2, nband=nband_occ + 4, tolwfr=1.e-12)
+        multi[1].set_vars(iscf=-2, nband=nband_occ + 4, tolwfr=1.0e-12)
         multi[1].set_kpath(ndivsm=10, kptbounds=kptbounds)
 
         # Get the SCF and the NSCF input.
@@ -86,6 +87,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

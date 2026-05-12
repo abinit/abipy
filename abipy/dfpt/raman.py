@@ -1,12 +1,14 @@
 """Objects for post-processing Raman results produced by anaddb."""
+
 from __future__ import annotations
 
-import numpy as np
-import abipy.core.abinit_units as abu
-
 from collections import namedtuple
-from abipy.iotools import ETSF_Reader
+
+import numpy as np
+
+import abipy.core.abinit_units as abu
 from abipy.core.func1d import Function1D
+from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.tools.typing import Figure
 
@@ -28,7 +30,6 @@ class Raman:
         Args:
             filepath: path to the netcdf file.
         """
-
         with ETSF_Reader(filepath) as r:
             try:
                 susceptibility = r.read_value("raman_sus").T
@@ -40,20 +41,25 @@ class Raman:
                 non_anal_directions = r.read_value("non_analytical_directions", default=None)
             except Exception:
                 import traceback
+
                 msg = traceback.format_exc()
-                msg += ("Error while trying to read Raman from file.\n"
-                        "Verify that the required variables are used in anaddb: nlflag\n")
+                msg += (
+                    "Error while trying to read Raman from file.\n"
+                    "Verify that the required variables are used in anaddb: nlflag\n"
+                )
                 raise ValueError(msg)
 
-            return cls(susceptibility=susceptibility, phfreqs=phfreqs, non_anal_susceptibility=non_anal_susceptibility,
-                       non_anal_phfreqs=non_anal_phfreqs, non_anal_directions=non_anal_directions)
+            return cls(
+                susceptibility=susceptibility,
+                phfreqs=phfreqs,
+                non_anal_susceptibility=non_anal_susceptibility,
+                non_anal_phfreqs=non_anal_phfreqs,
+                non_anal_directions=non_anal_directions,
+            )
 
-    def __init__(self,
-                susceptibility,
-                 phfreqs,
-                 non_anal_susceptibility=None,
-                 non_anal_phfreqs=None,
-                 non_anal_directions=None):
+    def __init__(
+        self, susceptibility, phfreqs, non_anal_susceptibility=None, non_anal_phfreqs=None, non_anal_directions=None
+    ):
         """
         Args:
             susceptibility: a numpy array with shape (n modes, 3 3) containing the
@@ -75,8 +81,9 @@ class Raman:
         self.non_anal_phfreqs = non_anal_phfreqs
         self.non_anal_directions = non_anal_directions
 
-    def get_modes_intensities(self, temp, laser_freq, non_anal_dir=None, relative=False, units="eV",
-                              pol_in=None, pol_out=None) -> np.ndarray:
+    def get_modes_intensities(
+        self, temp, laser_freq, non_anal_dir=None, relative=False, units="eV", pol_in=None, pol_out=None
+    ) -> np.ndarray:
         """
         Calculates the Raman intensities for each mode in arbitrary units. It is possible to use the
         susceptibilities from the transverse modes only or to specify one of the directions with non
@@ -164,8 +171,7 @@ class Raman:
 
         return c
 
-    def _get_lorentz_freqs_and_factor(self, intensity, non_anal_dir, min_freq, max_freq,
-                                      num, width, units) -> tuple:
+    def _get_lorentz_freqs_and_factor(self, intensity, non_anal_dir, min_freq, max_freq, num, width, units) -> tuple:
         """
         Helper method to get the list of frequencies and the main spread factors to
         calculate the broadened Raman intensities with a Lorentz distribution.
@@ -196,25 +202,37 @@ class Raman:
         width = width / units_factor
 
         if min_freq is None:
-            min_ind = np.where(intensity/intensity.max() > 1e-10)[0].min()
+            min_ind = np.where(intensity / intensity.max() > 1e-10)[0].min()
             min_freq = w[min_ind] - 10 * width
         else:
             min_freq = min_freq / units_factor
 
         if max_freq is None:
-            max_ind = np.where(intensity/intensity.max() > 1e-10)[0].max()
+            max_ind = np.where(intensity / intensity.max() > 1e-10)[0].max()
             max_freq = w[max_ind] + 10 * width
         else:
             max_freq = max_freq / units_factor
 
         freqs = np.linspace(min_freq, max_freq, num)
 
-        lorentz = width / ((freqs - w.reshape((-1, 1)))**2 + width**2) / np.pi
+        lorentz = width / ((freqs - w.reshape((-1, 1))) ** 2 + width**2) / np.pi
 
         return freqs, lorentz
 
-    def get_lorentz_intensity(self, temp, laser_freq, width, non_anal_dir=None, min_freq=None, max_freq=None,
-                              num=1000, relative=False, units="eV", pol_in=None, pol_out=None):
+    def get_lorentz_intensity(
+        self,
+        temp,
+        laser_freq,
+        width,
+        non_anal_dir=None,
+        min_freq=None,
+        max_freq=None,
+        num=1000,
+        relative=False,
+        units="eV",
+        pol_in=None,
+        pol_out=None,
+    ):
         """
         Calculates the broadened Raman intensities in arbitrary units for frequencies in an interval. It is
         possible to use the susceptibilities from the transverse modes only or to specify one of the directions
@@ -254,12 +272,19 @@ class Raman:
             components of the intensities. Otherwise a single Function1D with the intensities of
             the selected polarizations. Each Function1D has "num" points.
         """
+        i = self.get_modes_intensities(
+            temp=temp, laser_freq=laser_freq, non_anal_dir=non_anal_dir, units=units, pol_in=pol_in, pol_out=pol_out
+        )
 
-        i = self.get_modes_intensities(temp=temp, laser_freq=laser_freq, non_anal_dir=non_anal_dir,
-                                       units=units, pol_in=pol_in, pol_out=pol_out)
-
-        freqs, lorentz = self._get_lorentz_freqs_and_factor(intensity=i, non_anal_dir=non_anal_dir, min_freq=min_freq,
-                                                            max_freq=max_freq, num=num, width=width, units=units)
+        freqs, lorentz = self._get_lorentz_freqs_and_factor(
+            intensity=i,
+            non_anal_dir=non_anal_dir,
+            min_freq=min_freq,
+            max_freq=max_freq,
+            num=num,
+            width=width,
+            units=units,
+        )
 
         # convert the frequencies to the desired units for the output
         x = freqs * abu.phfactor_ev2units(units)
@@ -271,21 +296,19 @@ class Raman:
 
             return Function1D(x, li)
 
-        else:
-            li = np.einsum("ij, ikl -> jkl", lorentz, i)
-            li_func = [[None]*3]*3
+        li = np.einsum("ij, ikl -> jkl", lorentz, i)
+        li_func = [[None] * 3] * 3
 
-            for i in range(3):
-                for j in range(3):
-                    y = li[:, i, j]
-                    if relative:
-                        y /= y.max()
-                    li_func[i][j] = Function1D(x, y)
+        for i in range(3):
+            for j in range(3):
+                y = li[:, i, j]
+                if relative:
+                    y /= y.max()
+                li_func[i][j] = Function1D(x, y)
 
-            return li_func
+        return li_func
 
-    def get_powder_intensity(self, temp, laser_freq, non_anal_dir=None,
-                             relative=False, units="eV") -> PowderIntensity:
+    def get_powder_intensity(self, temp, laser_freq, non_anal_dir=None, relative=False, units="eV") -> PowderIntensity:
         """
         Calculates the Raman intensities in arbitrary units for each mode integrated over all possible
         orientation to reproduce the powder measurements. It is possible to use the susceptibilities from
@@ -313,10 +336,15 @@ class Raman:
             w = self.non_anal_phfreqs[non_anal_dir]
             sus = self.non_anal_susceptibility[non_anal_dir]
 
-        g0 = np.trace(sus, axis1=1, axis2=2)**2 / 3
-        g1 = ((sus[:, 0, 1] - sus[:, 1, 0])**2 + (sus[:, 0, 2] - sus[:, 2, 0])**2 + (sus[:, 2, 1] - sus[:, 1, 2])**2) / 2
-        g2 = ((sus[:, 0, 1] + sus[:, 1, 0])**2 + (sus[:, 0, 2] + sus[:, 2, 0])**2 + (sus[:, 2, 1] + sus[:, 1, 2])**2) / 2 + \
-             ((sus[:, 0, 0] - sus[:, 1, 1])**2 + (sus[:, 0, 0] - sus[:, 2, 2])**2 + (sus[:, 1, 1] - sus[:, 2, 2])**2) / 3
+        g0 = np.trace(sus, axis1=1, axis2=2) ** 2 / 3
+        g1 = (
+            (sus[:, 0, 1] - sus[:, 1, 0]) ** 2 + (sus[:, 0, 2] - sus[:, 2, 0]) ** 2 + (sus[:, 2, 1] - sus[:, 1, 2]) ** 2
+        ) / 2
+        g2 = (
+            (sus[:, 0, 1] + sus[:, 1, 0]) ** 2 + (sus[:, 0, 2] + sus[:, 2, 0]) ** 2 + (sus[:, 2, 1] + sus[:, 1, 2]) ** 2
+        ) / 2 + (
+            (sus[:, 0, 0] - sus[:, 1, 1]) ** 2 + (sus[:, 0, 0] - sus[:, 2, 2]) ** 2 + (sus[:, 1, 1] - sus[:, 2, 2]) ** 2
+        ) / 3
 
         laser_freq = laser_freq / abu.phfactor_ev2units(units)
 
@@ -333,8 +361,18 @@ class Raman:
 
         return PowderIntensity(paral, perp, tot)
 
-    def get_powder_lorentz_intensity(self, temp, laser_freq, width, non_anal_dir=None, min_freq=None,
-                                     max_freq=None, num=1000, relative=False, units="eV") -> PowderIntensity:
+    def get_powder_lorentz_intensity(
+        self,
+        temp,
+        laser_freq,
+        width,
+        non_anal_dir=None,
+        min_freq=None,
+        max_freq=None,
+        num=1000,
+        relative=False,
+        units="eV",
+    ) -> PowderIntensity:
         """
         Calculates the broadened Raman intensities in arbitrary units integrated over all possible
         orientation to reproduce the powder measurements for frequencies in an interval. It is possible to
@@ -367,8 +405,15 @@ class Raman:
         """
         pi = self.get_powder_intensity(temp=temp, laser_freq=laser_freq, non_anal_dir=non_anal_dir, units=units)
 
-        freqs, lorentz = self._get_lorentz_freqs_and_factor(intensity=pi.tot, non_anal_dir=non_anal_dir, min_freq=min_freq,
-                                                            max_freq=max_freq, num=num, width=width, units=units)
+        freqs, lorentz = self._get_lorentz_freqs_and_factor(
+            intensity=pi.tot,
+            non_anal_dir=non_anal_dir,
+            min_freq=min_freq,
+            max_freq=max_freq,
+            num=num,
+            width=width,
+            units=units,
+        )
 
         lpi = np.array([i.dot(lorentz) for i in pi])
         if relative:
@@ -380,9 +425,22 @@ class Raman:
         return PowderIntensity(*(Function1D(x, y) for y in lpi))
 
     @add_fig_kwargs
-    def plot_intensity(self, temp, laser_freq, width, value, non_anal_dir=None, min_freq=None, max_freq=None,
-                       num=1000, relative=False, units="eV", ax=None,
-                       plot_phfreqs=False, **kwargs) -> Figure:
+    def plot_intensity(
+        self,
+        temp,
+        laser_freq,
+        width,
+        value,
+        non_anal_dir=None,
+        min_freq=None,
+        max_freq=None,
+        num=1000,
+        relative=False,
+        units="eV",
+        ax=None,
+        plot_phfreqs=False,
+        **kwargs,
+    ) -> Figure:
         """
         Plot one representation of the broadened Raman intensities.
 
@@ -419,15 +477,33 @@ class Raman:
 
         if width:
             if value == "powder":
-                f = self.get_powder_lorentz_intensity(temp=temp, laser_freq=laser_freq, width=width,
-                                                      non_anal_dir=non_anal_dir, min_freq=min_freq, max_freq=max_freq,
-                                                      num=num, relative=relative, units=units).tot
+                f = self.get_powder_lorentz_intensity(
+                    temp=temp,
+                    laser_freq=laser_freq,
+                    width=width,
+                    non_anal_dir=non_anal_dir,
+                    min_freq=min_freq,
+                    max_freq=max_freq,
+                    num=num,
+                    relative=relative,
+                    units=units,
+                ).tot
             else:
                 pol_in = value[0]
                 pol_out = value[1]
-                f = self.get_lorentz_intensity(temp=temp, laser_freq=laser_freq, width=width, non_anal_dir=non_anal_dir,
-                                               min_freq=min_freq, max_freq=max_freq, num=num, relative=relative,
-                                               units=units, pol_in=pol_in, pol_out=pol_out)
+                f = self.get_lorentz_intensity(
+                    temp=temp,
+                    laser_freq=laser_freq,
+                    width=width,
+                    non_anal_dir=non_anal_dir,
+                    min_freq=min_freq,
+                    max_freq=max_freq,
+                    num=num,
+                    relative=relative,
+                    units=units,
+                    pol_in=pol_in,
+                    pol_out=pol_out,
+                )
 
             f.plot(ax=ax, **kwargs)
 
@@ -448,16 +524,24 @@ class Raman:
 
         else:
             if value == "powder":
-                ri = self.get_powder_intensity(temp=temp, laser_freq=laser_freq, non_anal_dir=non_anal_dir,
-                                               relative=relative, units=units)
+                ri = self.get_powder_intensity(
+                    temp=temp, laser_freq=laser_freq, non_anal_dir=non_anal_dir, relative=relative, units=units
+                )
                 i = ri.tot
             else:
                 if len(value) != 2:
                     raise ValueError("The value should contain the ingoing and outgoing polarizations.")
                 pol_in = value[0]
                 pol_out = value[1]
-                i = self.get_modes_intensities(temp=temp, laser_freq=laser_freq, non_anal_dir=non_anal_dir,
-                                               relative=relative, units=units, pol_in=pol_in, pol_out=pol_out)
+                i = self.get_modes_intensities(
+                    temp=temp,
+                    laser_freq=laser_freq,
+                    non_anal_dir=non_anal_dir,
+                    relative=relative,
+                    units=units,
+                    pol_in=pol_in,
+                    pol_out=pol_out,
+                )
 
             if non_anal_dir is None:
                 w = self.phfreqs * abu.phfactor_ev2units(units)

@@ -1,10 +1,11 @@
 """Optical spectra with Optic."""
+
 from __future__ import annotations
 
 import pytest
+
 import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def make_inputs(tvars):
@@ -14,12 +15,9 @@ def make_inputs(tvars):
     multi = abilab.MultiDataset(structure, pseudos=abidata.pseudos("31ga.pspnc", "33as.pspnc"), ndtset=5)
 
     # Global variables
-    kmesh = dict(ngkpt=[4, 4, 4],
-                 nshiftk=4,
-                 shiftk=[[0.5, 0.5, 0.5],
-                         [0.5, 0.0, 0.0],
-                         [0.0, 0.5, 0.0],
-                         [0.0, 0.0, 0.5]])
+    kmesh = dict(
+        ngkpt=[4, 4, 4], nshiftk=4, shiftk=[[0.5, 0.5, 0.5], [0.5, 0.0, 0.0], [0.0, 0.5, 0.0], [0.0, 0.0, 0.5]]
+    )
 
     global_vars = dict(ecut=2, paral_kgb=tvars.paral_kgb)
     global_vars.update(kmesh)
@@ -27,18 +25,11 @@ def make_inputs(tvars):
     multi.set_vars(global_vars)
 
     # Dataset 1 (GS run)
-    multi[0].set_vars(
-        tolvrs=1e-6,
-        nband=4)
+    multi[0].set_vars(tolvrs=1e-6, nband=4)
 
     # NSCF run with large number of bands, and points in the the full BZ
-    multi[1].set_vars(
-        iscf=-2,
-        nband=20,
-        nstep=25,
-        kptopt=1,
-        tolwfr=1.e-8)
-        #kptopt=3)
+    multi[1].set_vars(iscf=-2, nband=20, nstep=25, kptopt=1, tolwfr=1.0e-8)
+    # kptopt=3)
 
     # Fourth dataset: ddk response function along axis 1
     # Fifth dataset: ddk response function along axis 2
@@ -47,7 +38,7 @@ def make_inputs(tvars):
         rfdir = 3 * [0]
         rfdir[idir] = 1
 
-        multi[2+idir].set_vars(
+        multi[2 + idir].set_vars(
             iscf=-3,
             nband=20,
             nstep=1,
@@ -58,7 +49,7 @@ def make_inputs(tvars):
             qpt=[0.0, 0.0, 0.0],
             rfdir=rfdir,
             rfelfd=2,
-            tolwfr=1.e-9,
+            tolwfr=1.0e-9,
         )
 
     # scf_inp, nscf_inp, ddk1, ddk2, ddk3
@@ -91,7 +82,7 @@ def itest_optic_flow(fwp, tvars):
         num_nonlin_comp=2,
         nonlin_comp=(123, 222),
     )
-    #print(optic_input)
+    # print(optic_input)
 
     scf_inp, nscf_inp, ddk1, ddk2, ddk3 = make_inputs(tvars)
 
@@ -117,14 +108,15 @@ def itest_optic_flow(fwp, tvars):
     flow.check_status(show=True)
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
 
     # Optic does not support MPI with ncores > 1 hence we have to construct a manager with mpi_procs==1
     shell_manager = fwp.manager.to_shell_manager(mpi_procs=1)
 
     # Build optic task and register it
-    optic_task1 = flowtk.OpticTask(optic_input, nscf_node=bands_work.nscf_task, ddk_nodes=ddk_work,
-                                   manager=shell_manager)
+    optic_task1 = flowtk.OpticTask(
+        optic_input, nscf_node=bands_work.nscf_task, ddk_nodes=ddk_work, manager=shell_manager
+    )
 
     flow.register_task(optic_task1)
     flow.allocate()
@@ -136,11 +128,11 @@ def itest_optic_flow(fwp, tvars):
     # Now we do a similar calculation but the dependencies are represented by
     # strings with the path to the input files instead of task objects.
     ddk_nodes = [task.outdir.has_abiext("1WF") for task in ddk_work]
-    #ddk_nodes = [task.outdir.has_abiext("DDK") for task in ddk_work]
-    #print("ddk_nodes:", ddk_nodes)
+    # ddk_nodes = [task.outdir.has_abiext("DDK") for task in ddk_work]
+    # print("ddk_nodes:", ddk_nodes)
     assert all(ddk_nodes)
 
-    #nscf_node = bands_work.nscf_task
+    # nscf_node = bands_work.nscf_task
     nscf_node = bands_work.nscf_task.outdir.has_abiext("WFK")
     assert nscf_node
 
@@ -157,11 +149,11 @@ def itest_optic_flow(fwp, tvars):
     flow.check_status(show=True)
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
 
     assert all(work.finalized for work in flow)
 
-    #assert flow.validate_json_schema()
+    # assert flow.validate_json_schema()
 
     # Test get_results
     optic_task2.get_results()

@@ -1,13 +1,11 @@
-# coding: utf-8
 import os
-import abipy.data as abidata
 
+import abipy.data as abidata
 from abipy.core.testing import AbipyTest
 from abipy.flowtk.utils import *
 
-
 # FIXME
-#class FilePathFixerTest(AbipyTest):
+# class FilePathFixerTest(AbipyTest):
 #
 #    def test_base(self):
 #        fixer = FilepathFixer()
@@ -17,9 +15,7 @@ from abipy.flowtk.utils import *
 #        assert fixer.fix_paths('/foo/out_1DEN5.nc') == {'/foo/out_1DEN5.nc': '/foo/out_1DEN.nc'}
 
 
-
 class DirectorTest(AbipyTest):
-
     def test_directory_api(self):
         path1 = os.path.join(abidata.dirpath, "refs", "si_ebands")
         direc1 = Directory(path1)
@@ -47,27 +43,26 @@ class DirectorTest(AbipyTest):
 
 
 class RpnTest(AbipyTest):
-
     def test_mongodb_like_conditions(self):
-        class Foo(object):
+        class Foo:
             one = 1.0
             two = 2.0
             three = 3.0
             four = 4.0
 
         map_res = [
-            ( {"one": 1.0}, True),
-            ( {"one": {"$eq": 1.0}}, True),
-            ( {"one": {"$eq": "one"}}, True),
-            ( {"one": {"$ne": "two"}}, True),
-            ( {"one": {"$ne": 1.0}}, False),
-            ( {"four": {"$divisible": 2.0}}, True),
-            ( {"four": {"$divisible": 3.0}}, False),
-            ( {"two": {"$gt": "one"}}, True ),
-            ( {"$and": [ {"one": 1.0}, {"two": {"$lt": 3}}]}, True),
-            ( {"$and": [{"one": {"$ge": 0.8}}, {"two": {"$le": 6.0}}]}, True),
-            ( {"$or": [ {"$not": {"one": 1.0}}, {"two": {"$lt": 20}}]}, True),
-            ( {"$not": {"$and": [ {"$not": {"one": 1.0}}, {"two": {"$lt": 3}}] }}, True),
+            ({"one": 1.0}, True),
+            ({"one": {"$eq": 1.0}}, True),
+            ({"one": {"$eq": "one"}}, True),
+            ({"one": {"$ne": "two"}}, True),
+            ({"one": {"$ne": 1.0}}, False),
+            ({"four": {"$divisible": 2.0}}, True),
+            ({"four": {"$divisible": 3.0}}, False),
+            ({"two": {"$gt": "one"}}, True),
+            ({"$and": [{"one": 1.0}, {"two": {"$lt": 3}}]}, True),
+            ({"$and": [{"one": {"$ge": 0.8}}, {"two": {"$le": 6.0}}]}, True),
+            ({"$or": [{"$not": {"one": 1.0}}, {"two": {"$lt": 20}}]}, True),
+            ({"$not": {"$and": [{"$not": {"one": 1.0}}, {"two": {"$lt": 3}}]}}, True),
         ]
 
         for map, res in map_res:
@@ -83,7 +78,7 @@ class ConditionTest(AbipyTest):
         assert not c
         print(c)
 
-        class A(object):
+        class A:
             def __init__(self):
                 self.one = 1.0
 
@@ -98,7 +93,7 @@ class SparseHistogramTest(AbipyTest):
         hist = SparseHistogram(items, step=1)
         assert hist.binvals == [1.0, 2.0, 3.0]
         assert hist.values == [[1], [2, 2.9], [4]]
-        #hist.plot()
+        # hist.plot()
 
         hist = SparseHistogram([iv for iv in enumerate(items)], key=lambda t: t[1], step=1)
         assert hist.binvals == [1.0, 2.0, 3.0]

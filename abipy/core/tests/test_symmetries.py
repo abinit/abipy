@@ -1,15 +1,16 @@
 """Tests for symmetries module"""
-import numpy as np
-import abipy.data as abidata
 
-from abipy.core import Structure
-from abipy.core.symmetries import LatticeRotation, AbinitSpaceGroup, mati3inv
-from abipy.core.testing import AbipyTest
+import numpy as np
+
+import abipy.data as abidata
 from abipy.abilab import abiopen
+from abipy.core import Structure
+from abipy.core.symmetries import AbinitSpaceGroup, LatticeRotation, mati3inv
+from abipy.core.testing import AbipyTest
 
 
 class TestSymmetries(AbipyTest):
-    """"Test symmetries."""
+    """ "Test symmetries."""
 
     def test_mati3inv(self):
         """Testing mati3inv."""
@@ -33,7 +34,8 @@ class TestSymmetries(AbipyTest):
         assert structure.has_abi_spacegroup
         assert structure.abi_spacegroup.is_symmorphic
         spgrp = structure.abi_spacegroup
-        repr(spgrp); str(spgrp)
+        repr(spgrp)
+        str(spgrp)
         self.serialize_with_pickle(spgrp, test_eq=True)
 
         # Classes cover the entire group.
@@ -49,7 +51,7 @@ class TestSymmetries(AbipyTest):
 
         # Operation in the same class have the same trace and determinant.
         for cls in spgrp.groupby_class():
-            #print(cls)
+            # print(cls)
             op0 = cls[0]
             ref_trace, ref_det = op0.trace, op0.det
             for op in cls[1:]:
@@ -58,7 +60,7 @@ class TestSymmetries(AbipyTest):
 
         assert spgrp == spgrp
         # FIXME: Temporary disabled spgid is set to 0 in the WFK file.
-        #assert spgrp.spgid == 227
+        # assert spgrp.spgid == 227
         assert spgrp.has_timerev
         assert len(spgrp) == 48 * 2
         assert spgrp.num_spatial_symmetries == 48
@@ -66,7 +68,7 @@ class TestSymmetries(AbipyTest):
 
         assert spgrp.is_group()
         # TODO
-        #si_symrel =
+        # si_symrel =
         si_tnons = np.reshape(24 * [0, 0, 0, 0.25, 0.25, 0.25], (48, 3))
         si_symafm = np.ones(48, dtype=int)
 
@@ -75,19 +77,21 @@ class TestSymmetries(AbipyTest):
         assert not spgrp.afm_symmops
 
         for idx, symmop in enumerate(spgrp):
-            repr(symmop); str(symmop)
+            repr(symmop)
+            str(symmop)
             symmop.to_string(verbose=2)
             assert symmop in spgrp
             assert spgrp.count(symmop) == 1
             assert spgrp.find(symmop) == idx
-            if symmop.det == 1: assert symmop.is_proper
+            if symmop.det == 1:
+                assert symmop.is_proper
 
         # Test pickle
         self.serialize_with_pickle(spgrp[0], protocols=None, test_eq=True)
 
-        for idx in range(len(spgrp)-1):
+        for idx in range(len(spgrp) - 1):
             assert spgrp[idx] == spgrp[idx]
-            assert spgrp[idx] != spgrp[idx+1]
+            assert spgrp[idx] != spgrp[idx + 1]
 
         for fmop in spgrp.fm_symmops:
             assert fmop.is_fm and not fmop.is_afm
@@ -100,8 +104,8 @@ class TestSymmetries(AbipyTest):
                 rot_coords = symop.rotate_r(site.frac_coords, in_ucell=True)
 
                 for atom_coords in ucell_coords:
-                    #print (atom_coords - rot_coords)
-                    if np.allclose(atom_coords,  rot_coords):
+                    # print (atom_coords - rot_coords)
+                    if np.allclose(atom_coords, rot_coords):
                         break
                 else:
                     err_msg += "Cannot find symmetrical image of %s\n" % str(rot_coords)
@@ -120,9 +124,10 @@ class TestSymmetries(AbipyTest):
         # Test little group with Gamma point.
         lg_gamma = spgrp.find_little_group(kpoint=[0, 0, 0])
         assert len(lg_gamma) == len(spgrp)
-        repr(lg_gamma); str(lg_gamma)
+        repr(lg_gamma)
+        str(lg_gamma)
         assert lg_gamma.is_symmorphic and not lg_gamma.on_bz_border
-        for o1, (o2, g0) in zip(spgrp, lg_gamma.iter_symmop_g0()):
+        for o1, (o2, g0) in zip(spgrp, lg_gamma.iter_symmop_g0(), strict=False):
             assert o1 == o2
             assert np.all(g0 == 0)
 
@@ -136,7 +141,8 @@ class TestSymmetries(AbipyTest):
 
         lg_x = spgrp.find_little_group(kpoint=[0.5, 0, 0.5])
         assert len(lg_x) == 32
-        repr(lg_x); str(lg_x)
+        repr(lg_x)
+        str(lg_x)
         assert lg_x.is_symmorphic and lg_x.on_bz_border
 
         # This is just to test from_structure but one should always try to init from file.
@@ -147,11 +153,10 @@ class TestSymmetries(AbipyTest):
 
 
 class LatticeRotationTest(AbipyTest):
-
     def test_base(self):
         """Testing LatticeRotation."""
         E = LatticeRotation([1, 0, 0, 0, 1, 0, 0, 0, 1])
-        I = LatticeRotation([-1,  0,  0, 0, -1,  0, 0,  0, -1])
+        I = LatticeRotation([-1, 0, 0, 0, -1, 0, 0, 0, -1])
 
         assert E.isE and E.is_proper and E.inverse() == E
         assert E.name == "1+"
@@ -163,56 +168,58 @@ class LatticeRotationTest(AbipyTest):
         assert +E == E
         assert -I == E
         assert E * I == I
-        assert E ** 2 == E
-        assert E ** -1 == E
-        assert I ** 0 == E
-        assert I ** -1 == I
-        assert I ** 3 == I
-        assert I ** -3 == I
+        assert E**2 == E
+        assert E**-1 == E
+        assert I**0 == E
+        assert I**-1 == I
+        assert I**3 == I
+        assert I**-3 == I
 
         # Test pickle.
         self.serialize_with_pickle([E, I])
 
 
 class BilbaoPointGroupTest(AbipyTest):
-
     def test_database(self):
         """Testing BilbaoPointGroup database."""
         from abipy.core.symmetries import bilbao_ptgroup, sch_symbols
+
         for sch_symbol in sch_symbols:
             print(sch_symbol)
             ptg = bilbao_ptgroup(sch_symbol)
-            repr(ptg); str(ptg)
+            repr(ptg)
+            str(ptg)
             assert len(ptg.to_string())
-            #for irrep_name in ptg.irrep_names: ptg.show_irrep(irrep_name)
+            # for irrep_name in ptg.irrep_names: ptg.show_irrep(irrep_name)
             assert ptg.auto_test() == 0
 
 
 class LittleGroupTest(AbipyTest):
-
     def test_silicon_little_group(self):
         """Testing little group in Silicon."""
         with abiopen(abidata.ref_file("si_scf_WFK.nc")) as wfk_file:
-
             spgrp = wfk_file.structure.abi_spacegroup
             assert spgrp is not None
-            repr(spgrp); str(spgrp)
+            repr(spgrp)
+            str(spgrp)
 
-            kpoints = [[0,0,0],
-                       [0.5, 0, 0],
-                       [1/3, 1/3, 1/3],
-                       [1/4,1/4,0],
-                      ]
+            kpoints = [
+                [0, 0, 0],
+                [0.5, 0, 0],
+                [1 / 3, 1 / 3, 1 / 3],
+                [1 / 4, 1 / 4, 0],
+            ]
 
             for ik, kpoint in enumerate(kpoints):
                 ltk = spgrp.find_little_group(kpoint)
-                repr(ltk); str(ltk)
-                #if ik == 1:
+                repr(ltk)
+                str(ltk)
+                # if ik == 1:
                 #    assert ltk.onborder_and_nonsymmorphic
-                #else:
+                # else:
                 #    assert not ltk.onborder_and_nonsymmorphic
 
-                #wfk_file.classify_ebands(0, kpoint, bands_range=range(0,5))
+                # wfk_file.classify_ebands(0, kpoint, bands_range=range(0,5))
 
 
 # reduced_symmetry_matrices =

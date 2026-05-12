@@ -1,18 +1,19 @@
 """
 Integration tests for flows (require pytest, ABINIT and a properly configured environment)
 """
+
 from __future__ import annotations
 
-import pytest
 import os
-import numpy as np
-import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+import socket
 
+import numpy as np
+import pytest
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
 from abipy.core.testing import has_matplotlib
 
-import socket
 hostname = socket.gethostname()
 
 skip_hosts = [
@@ -24,8 +25,7 @@ def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):
     """
     Returns two input files: GS run and NSCF on a high symmetry k-mesh
     """
-    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"),
-                                pseudos=abidata.pseudos(pp_paths), ndtset=2)
+    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"), pseudos=abidata.pseudos(pp_paths), ndtset=2)
 
     nval = multi[0].num_valence_electrons
     assert all(inp.num_valence_electrons == 8 for inp in multi)
@@ -47,7 +47,7 @@ def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):
 
     # Dataset 1 (GS run)
     multi[0].set_kmesh(ngkpt=[4, 4, 4], shiftk=[0, 0, 0])
-    #multi[0].set_vars(prtden=1, prtpot=1, prtvha=1, prtvxc=1, prtvhxc=1)
+    # multi[0].set_vars(prtden=1, prtpot=1, prtvha=1, prtvxc=1, prtvhxc=1)
     multi[0].set_vars(tolvrs=1e-4)
 
     # Dataset 2 (NSCF run)
@@ -68,7 +68,7 @@ def make_scf_nscf_inputs(tvars, pp_paths, nstep=50):
 
 def itest_unconverged_scf(fwp, tvars):
     """Testing the treatment of unconverged GS calculations."""
-    #print("tvars:\n %s" % str(tvars))
+    # print("tvars:\n %s" % str(tvars))
 
     # Build the SCF and the NSCF input (note nstep to have an unconverged run)
     scf_input, nscf_input = make_scf_nscf_inputs(tvars, pp_paths="14si.pspnc", nstep=1)
@@ -130,7 +130,7 @@ def itest_unconverged_scf(fwp, tvars):
     flow.show_status()
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
 
     assert flow.explain(verbose=1)
 
@@ -150,16 +150,16 @@ def itest_unconverged_scf(fwp, tvars):
     assert t0.status == t0.S_READY
     # Datetime counters should be set to None
     # FIXME: This does not work
-    #dt = t0.datetimes
-    #assert (dt.submission, dt.start, dt.end) == (None, None, None)
+    # dt = t0.datetimes
+    # assert (dt.submission, dt.start, dt.end) == (None, None, None)
 
     t0.start_and_wait()
     t0.reset_from_scratch()
 
     # Datetime counters should be set to None
     # FIXME: This does not work
-    #dt = t0.datetimes
-    #assert (dt.submission, dt.start, dt.end) == (None, None, None)
+    # dt = t0.datetimes
+    # assert (dt.submission, dt.start, dt.end) == (None, None, None)
 
 
 @pytest.mark.skipif(hostname in skip_hosts, reason=f"Skipped on {hostname}")
@@ -167,7 +167,7 @@ def itest_bandstructure_flow(fwp, tvars):
     """
     Testing band-structure flow with one dependency: SCF -> NSCF.
     """
-    #print("tvars:\n %s" % str(tvars))
+    # print("tvars:\n %s" % str(tvars))
 
     # Get the SCF and the NSCF input.
     scf_input, nscf_input = make_scf_nscf_inputs(tvars, pp_paths="14si.pspnc")
@@ -230,19 +230,19 @@ def itest_bandstructure_flow(fwp, tvars):
     assert not t1.can_run
 
     # FIXME This one does not work yet
-    #fired = t1.restart()
-    #atrue(fired)
-    #t1.wait()
-    #aequal(t1.num_restarts, 1)
-    #aequal(t1.status, t1.S_DONE)
-    #t1.check_status()
-    #aequal(t1.status, t1.S_OK)
-    #afalse(t1.can_run)
+    # fired = t1.restart()
+    # atrue(fired)
+    # t1.wait()
+    # aequal(t1.num_restarts, 1)
+    # aequal(t1.status, t1.S_DONE)
+    # t1.check_status()
+    # aequal(t1.status, t1.S_OK)
+    # afalse(t1.can_run)
 
     flow.show_status()
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
 
     assert all(work.finalized for work in flow)
 
@@ -253,7 +253,7 @@ def itest_bandstructure_flow(fwp, tvars):
     with abilab.Robot.from_flow(flow, ext="GSR") as robot:
         table = robot.get_dataframe()
         assert table is not None
-        #print(table)
+        # print(table)
 
     # Test AbinitTimer.
     timer = t0.parse_timing()
@@ -264,9 +264,7 @@ def itest_bandstructure_flow(fwp, tvars):
         assert timer.plot_stacked_hist(show=False)
         assert timer.plot_efficiency(show=False)
 
-    df, ebands_plotter = flow.compare_ebands(
-                            verbose=2,
-                            with_spglib=False, printout=True, with_colors=True)
+    df, ebands_plotter = flow.compare_ebands(verbose=2, with_spglib=False, printout=True, with_colors=True)
 
     # Test CUT3D API provided by DensityFortranFile.
     den_path = t0.outdir.has_abiext("DEN")
@@ -300,7 +298,7 @@ def itest_bandstructure_schedflow(fwp, tvars):
     """
     Testing bandstructure flow with the scheduler.
     """
-    #print("tvars:\n %s" % str(tvars))
+    # print("tvars:\n %s" % str(tvars))
 
     # Get the SCF and the NSCF input.
     scf_input, nscf_input = make_scf_nscf_inputs(tvars, pp_paths="Si.GGA_PBE-JTH-paw.xml")
@@ -313,7 +311,7 @@ def itest_bandstructure_schedflow(fwp, tvars):
     flow.build_and_pickle_dump(abivalidate=True)
 
     fwp.scheduler.add_flow(flow)
-    #print(fwp.scheduler)
+    # print(fwp.scheduler)
     # scheduler cannot handle more than one flow.
     with pytest.raises(fwp.scheduler.Error):
         fwp.scheduler.add_flow(flow)
@@ -325,7 +323,7 @@ def itest_bandstructure_schedflow(fwp, tvars):
     flow.show_status()
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
 
     assert all(work.finalized for work in flow)
 
@@ -338,7 +336,7 @@ def itest_bandstructure_schedflow(fwp, tvars):
         with task.open_gsr() as gsr:
             assert gsr.nsppol == 1
             assert gsr.to_string(verbose=2)
-            #assert gsr.structure == structure
+            # assert gsr.structure == structure
 
             # TODO: This does not work yet because GSR files do not contain
             # enough info to understand if we have a path or a mesh.
@@ -367,8 +365,9 @@ def itest_htc_bandstructure(fwp, tvars):
     flow = abilab.Flow(workdir=fwp.workdir, manager=fwp.manager)
 
     # Use ebands_input factory function to build inputs.
-    multi = abilab.ebands_input(structure, pseudos, kppa=20, nscf_nband=6, ndivsm=5,
-                                ecut=4, dos_kppa=40, spin_mode="unpolarized")
+    multi = abilab.ebands_input(
+        structure, pseudos, kppa=20, nscf_nband=6, ndivsm=5, ecut=4, dos_kppa=40, spin_mode="unpolarized"
+    )
 
     work = flowtk.BandStructureWork(scf_input=multi[0], nscf_input=multi[1], dos_inputs=multi[2:])
     multi.set_vars(paral_kgb=tvars.paral_kgb)
@@ -385,7 +384,7 @@ def itest_htc_bandstructure(fwp, tvars):
     flow.show_status()
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
 
     assert all(work.finalized for work in flow)
 
@@ -393,7 +392,7 @@ def itest_htc_bandstructure(fwp, tvars):
     for i, task in enumerate(work):
         with task.open_gsr() as gsr:
             assert gsr.nsppol == 1
-            #assert gsr.structure == structure
+            # assert gsr.structure == structure
             if i == 0:
                 gsr.to_string(verbose=2)
 
@@ -420,8 +419,8 @@ def itest_metagga_ebands_flow(fwp, tvars):
         pytest.skip("itest_metagga_ebands_flow requires libxc support in Abinit.")
 
     from abipy.data.hgh_pseudos import HGH_TABLE
-    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"),
-                                pseudos=HGH_TABLE, ndtset=2)
+
+    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"), pseudos=HGH_TABLE, ndtset=2)
 
     # Global variables
     shiftk = [float(s) for s in "0.5 0.5 0.5 0.5 0.0 0.0 0.0 0.5 0.0 0.0 0.0 0.5".split()]
@@ -445,10 +444,10 @@ def itest_metagga_ebands_flow(fwp, tvars):
     fwp.scheduler.add_flow(flow)
     assert fwp.scheduler.start() == 0
     assert not fwp.scheduler.exceptions
-    #assert fwp.scheduler.nlaunch == 3
+    # assert fwp.scheduler.nlaunch == 3
 
     flow.show_status()
     if not flow.all_ok:
         flow.debug()
-        raise RuntimeError()
+        raise RuntimeError
     assert all(work.finalized for work in flow)

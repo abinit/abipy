@@ -1,21 +1,22 @@
-# coding: utf-8
 """
 Workflows for calculations within the VZISA approximation to the quasi-harmonic approximation.
 
 See [Phys. Rev. B 110, 014103](https://doi.org/10.1103/PhysRevB.110.014103)
 """
+
 from __future__ import annotations
 
 import dataclasses
+
 import numpy as np
 
-from abipy.tools.serialization import Serializable
-from abipy.core.structure import Structure
-from abipy.tools.typing import PathLike, VectorLike
 from abipy.abio.inputs import AbinitInput
+from abipy.core.structure import Structure
 from abipy.dfpt.vzsisa import Vzsisa
-from abipy.flowtk.works import Work, PhononWork
 from abipy.flowtk.flows import Flow
+from abipy.flowtk.works import PhononWork, Work
+from abipy.tools.serialization import Serializable
+from abipy.tools.typing import PathLike, VectorLike
 
 
 class VzsisaFlow(Flow):
@@ -28,17 +29,19 @@ class VzsisaFlow(Flow):
     """
 
     @classmethod
-    def from_scf_input(cls,
-                       workdir: PathLike,
-                       scf_input: AbinitInput,
-                       bo_vol_scales,
-                       ph_vol_scales,
-                       ngqpt: VectorLike,
-                       with_becs: bool,
-                       with_quad: bool,
-                       ndivsm: int = 0,
-                       edos_ngkpt=None,
-                       manager=None) -> VzsisaFlow:
+    def from_scf_input(
+        cls,
+        workdir: PathLike,
+        scf_input: AbinitInput,
+        bo_vol_scales,
+        ph_vol_scales,
+        ngqpt: VectorLike,
+        with_becs: bool,
+        with_quad: bool,
+        ndivsm: int = 0,
+        edos_ngkpt=None,
+        manager=None,
+    ) -> VzsisaFlow:
         """
         Build a flow from an |AbinitInput| for GS-SCF calculation.
 
@@ -65,8 +68,19 @@ class VzsisaFlow(Flow):
         """
         flow = cls(workdir=workdir, manager=manager)
 
-        flow.register_work(VzsisaWork.from_scf_input(scf_input, bo_vol_scales, ph_vol_scales, ngqpt, with_becs, with_quad,
-                                                     ndivsm, ionmov=2, edos_ngkpt=edos_ngkpt))
+        flow.register_work(
+            VzsisaWork.from_scf_input(
+                scf_input,
+                bo_vol_scales,
+                ph_vol_scales,
+                ngqpt,
+                with_becs,
+                with_quad,
+                ndivsm,
+                ionmov=2,
+                edos_ngkpt=edos_ngkpt,
+            )
+        )
         return flow
 
     def finalize(self):
@@ -85,12 +99,14 @@ class VzsisaFlow(Flow):
         gsr_relax_entries, gsr_relax_volumes = [], []
         for task in work.relax_tasks_vol:
             with task.open_gsr() as gsr:
-                gsr_relax_entries.append(dict(
-                    volume=gsr.structure.volume,
-                    energy_eV=float(gsr.energy),
-                    pressure_GPa=float(gsr.pressure),
-                    #structure=gsr.structure,
-                ))
+                gsr_relax_entries.append(
+                    dict(
+                        volume=gsr.structure.volume,
+                        energy_eV=float(gsr.energy),
+                        pressure_GPa=float(gsr.pressure),
+                        # structure=gsr.structure,
+                    )
+                )
                 gsr_relax_volumes.append(gsr.structure.volume)
 
         data["gsr_relax_entries"] = gsr_relax_entries
@@ -102,8 +118,9 @@ class VzsisaFlow(Flow):
         data["gsr_relax_edos_paths"] = [] if not work.edos_work else [task.gsr_path for task in work.edos_work]
         data["gsr_relax_ebands_paths"] = []
         if work.ndivsm != 0:
-            data["gsr_relax_ebands_paths"] = [ph_work.ebands_task.gsr_path
-                for ph_work in work.ph_works if ph_work.ebands_task is not None]
+            data["gsr_relax_ebands_paths"] = [
+                ph_work.ebands_task.gsr_path for ph_work in work.ph_works if ph_work.ebands_task is not None
+            ]
 
         # Write json file.
         VzsisaResults(**data).json_write(self.outdir.path_in("vzsisa.json"), indent=4)
@@ -122,16 +139,18 @@ class VzsisaWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls,
-                       scf_input,
-                       bo_vol_scales,
-                       ph_vol_scales,
-                       ngqpt,
-                       with_becs: bool,
-                       with_quad: bool,
-                       ndivsm: int,
-                       ionmov: int,
-                       edos_ngkpt=None) -> VzsisaWork:
+    def from_scf_input(
+        cls,
+        scf_input,
+        bo_vol_scales,
+        ph_vol_scales,
+        ngqpt,
+        with_becs: bool,
+        with_quad: bool,
+        ndivsm: int,
+        ionmov: int,
+        edos_ngkpt=None,
+    ) -> VzsisaWork:
         """
         Build the work from an |AbinitInput| representing a GS-SCF calculation.
         See VzsisaFlow for the meaning of the arguments.
@@ -159,7 +178,7 @@ class VzsisaWork(Work):
         relax_template.pop_tolerances()
         relax_template.set_vars(optcell=3, ionmov=ionmov, tolvrs=1e-8, tolmxf=1e-6)
         relax_template.set_vars_ifnotin(ecutsm=1.0, dilatmx=1.05)
-        #work.initial_relax_task = work.register_relax_task(relax_template)
+        # work.initial_relax_task = work.register_relax_task(relax_template)
         work.initial_relax_task = work.register_multi_relax_task(relax_template)
 
         return work
@@ -195,14 +214,21 @@ class VzsisaWork(Work):
         self.ph_works = []
 
         # Build phonon works for the different relaxed structures associated to ph_vol_scales.
-        for task, bo_scale in zip(self.relax_tasks_vol, self.bo_vol_scales):
-            if all(abs(bo_scale - self.ph_vol_scales)) > 1e-3: continue
+        for task, bo_scale in zip(self.relax_tasks_vol, self.bo_vol_scales, strict=False):
+            if all(abs(bo_scale - self.ph_vol_scales)) > 1e-3:
+                continue
             relaxed_structure = task.get_final_structure()
             scf_input = self.initial_scf_input.new_with_structure(relaxed_structure)
 
-            ph_work = PhononWork.from_scf_input(scf_input, self.ngqpt, is_ngqpt=True, tolerance=None,
-                                                with_becs=self.with_becs, with_quad=self.with_quad,
-                                                ndivsm=0 if bo_scale != 1.0 else self.ndivsm)
+            ph_work = PhononWork.from_scf_input(
+                scf_input,
+                self.ngqpt,
+                is_ngqpt=True,
+                tolerance=None,
+                with_becs=self.with_becs,
+                with_quad=self.with_quad,
+                ndivsm=0 if bo_scale != 1.0 else self.ndivsm,
+            )
             ph_work.set_name(f"PH for {bo_scale=}")
 
             # Reduce the number of files produced in the DFPT tasks to avoid possible disk quota issues.
@@ -225,8 +251,8 @@ class VzsisaWork(Work):
         return super().on_all_ok()
 
 
-#@dataclasses.dataclass(kw_only=True)
-#class GsrRelaxEntry:
+# @dataclasses.dataclass(kw_only=True)
+# class GsrRelaxEntry:
 #    volume: float
 #    energy_eV: float
 #    pressure_GPa: float
@@ -251,12 +277,13 @@ class VzsisaResults(Serializable):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: VzsisaResults
     """
+
     bo_vol_scales: np.ndarray
     ph_vol_scales: np.ndarray
     initial_structure: Structure
 
     gsr_relax_paths: list[str]
-    #gsr_relax_entries: list[GsrRelaxEntry]
+    # gsr_relax_entries: list[GsrRelaxEntry]
     gsr_relax_entries: list[dict]
     gsr_relax_volumes_ang3: list[float]
 
@@ -266,11 +293,13 @@ class VzsisaResults(Serializable):
     gsr_relax_edos_paths: list[str]
     gsr_relax_ebands_paths: list[str]
 
-    def get_vzsisa(self,
-                   nqsmall_or_qppa: int,
-                   anaget_kwargs: dict | None = None,
-                   smearing_ev: float | None = None,
-                   verbose: int = 0) -> Vzsisa:
+    def get_vzsisa(
+        self,
+        nqsmall_or_qppa: int,
+        anaget_kwargs: dict | None = None,
+        smearing_ev: float | None = None,
+        verbose: int = 0,
+    ) -> Vzsisa:
         """
         Build an instance of Vzsisa to plot the results.
 
@@ -282,5 +311,6 @@ class VzsisaResults(Serializable):
             smearing_ev: Gaussian smearing in eV.
             verbose: Verbosity level.
         """
-        return Vzsisa.from_gsr_ddb_paths(nqsmall_or_qppa, self.gsr_relax_paths, self.ddb_relax_paths,
-                                         anaget_kwargs, smearing_ev, verbose)
+        return Vzsisa.from_gsr_ddb_paths(
+            nqsmall_or_qppa, self.gsr_relax_paths, self.ddb_relax_paths, anaget_kwargs, smearing_ev, verbose
+        )

@@ -1,71 +1,90 @@
-# coding: utf-8
 """
 Objects to read and analyze optical properties stored in the optic.nc file produced
 by optic executable.
 """
-from __future__ import annotations
 
-import numpy as np
-import abipy.core.abinit_units as abu
+from __future__ import annotations
 
 from collections import OrderedDict
 from functools import cached_property
-from monty.string import marquee, list_strings
-from abipy.core.structure import Structure
-from abipy.core.mixins import AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, NotebookWriter
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, data_from_cplx_mode
+
+import numpy as np
+from monty.string import list_strings, marquee
+
+import abipy.core.abinit_units as abu
 from abipy.abio.robots import Robot
+from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Header, Has_Structure, NotebookWriter
+from abipy.core.structure import Structure
 from abipy.electrons.ebands import ElectronBands, ElectronsReader, RobotWithEbands
+from abipy.tools.plotting import add_fig_kwargs, data_from_cplx_mode, get_ax_fig_plt, get_axarray_fig_plt, set_axlims
 
+ALL_CHIS = OrderedDict(
+    [
+        (
+            "linopt",
+            {
+                "longname": "Dielectric function",
+                "rank": 2,
+                # "terms":
+                # "latex": r"\chi(\omega)"
+            },
+        ),
+        (
+            "shg",
+            {
+                "longname": "Second Harmonic Generation",
+                "rank": 3,
+                "terms": [
+                    "shg_inter2w",
+                    "shg_inter1w",
+                    "shg_intra2w",
+                    "shg_intra1w",
+                    "shg_intra1wS",
+                    "shg_chi2tot",
+                    "shg_inter2w_AR",
+                    "shg_inter1w_AR",
+                    "shg_intra2w_AR",
+                    "shg_intra1w_AR",
+                    "shg_intra1wS_AR",
+                    "shg_chi2tot_AR",
+                    "shg_chi2full",
+                ],
+            },
+            # "latex": r"\chi(-2\omega, \omega, \omega)"
+        ),
+        (
+            "leo",
+            {
+                "longname": "Linear Electro-optic",
+                "rank": 3,
+                "terms": ["leo_chi", "leo_eta", "leo_sigma", "leo_chi2tot"],
+            },
+            # "latex": r"\chi(-\omega, \omega, 0)"
+        ),
+    ]
+)
 
-ALL_CHIS = OrderedDict([
-    ("linopt", {
-        "longname": "Dielectric function",
-        "rank": 2,
-        #"terms":
-        #"latex": r"\chi(\omega)"
-        }
-    ),
-    ("shg", {
-        "longname": "Second Harmonic Generation",
-        "rank": 3,
-        "terms": ["shg_inter2w", "shg_inter1w", "shg_intra2w",
-                  "shg_intra1w", "shg_intra1wS", "shg_chi2tot",
-                  "shg_inter2w_AR", "shg_inter1w_AR", "shg_intra2w_AR",
-                  "shg_intra1w_AR", "shg_intra1wS_AR", "shg_chi2tot_AR",
-                  "shg_chi2full"],
-        }
-        #"latex": r"\chi(-2\omega, \omega, \omega)"
-    ),
-    ("leo", {
-        "longname": "Linear Electro-optic",
-        "rank": 3,
-        "terms": ["leo_chi", "leo_eta", "leo_sigma", "leo_chi2tot"],
-        }
-        #"latex": r"\chi(-\omega, \omega, 0)"
-    )
-])
-
-#LEO2_TERMS = OrderedDict([
+# LEO2_TERMS = OrderedDict([
 #    ("leo2_chiw", None),
 #    ("leo2_etaw", None),
 #    ("leo2_chi2w", None),
 #    ("leo2_eta2w", None),
 #    ("leo2_sigmaw", None),
 #    ("leo2_chi2tot", None),
-#])
+# ])
 
 
 #####################################
 # Helper functions for linear optic #
 #####################################
 
+
 def reflectivity(eps):
     """Reflectivity(w) from vacuum, at normal incidence"""
     return np.power(np.abs((np.sqrt(eps) - 1) / (np.sqrt(eps) + 1)), 2)
 
 
-#def abs_coeff(eps):
+# def abs_coeff(eps):
 #    """absorption coeff (in m-1) = omega Im(eps) / c n(eps)"""
 #    if (abs(eps(iw)) + dble(eps(iw)) > zero) then
 #       tmpabs = aimag(eps(iw))*ene / sqrt(half*( abs(eps(iw)) + dble(eps(iw)) )) / Sp_Lt / Bohr_meter
@@ -82,7 +101,7 @@ def n(eps):
     return np.sqrt(0.5 * (np.abs(eps) + eps.real))
 
 
-#def eels(eps):
+# def eels(eps):
 #    np.where(np.abs(eps)
 #    return - (1 / eps).imag
 
@@ -93,10 +112,10 @@ LINEPS_WHAT2EFUNC = dict(
     kappa=kappa,
     re=lambda eps: eps.real,
     im=lambda eps: eps.imag,
-    #abs: lambda: eps: np.abs(eps),
-    #angle: lambda: eps: np.angle(eps, deg=False),
-    #abs_coeff=abs_coeff
-    #eels=lambda: eps /
+    # abs: lambda: eps: np.abs(eps),
+    # angle: lambda: eps: np.angle(eps, deg=False),
+    # abs_coeff=abs_coeff
+    # eels=lambda: eps /
 )
 
 
@@ -123,6 +142,10 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
         return cls(filepath)
 
     def __init__(self, filepath: str):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
         self.reader = OpticReader(filepath)
 
@@ -130,7 +153,13 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
         keys = [
             "kptopt",
             # optic input variables
-            "broadening", "maxomega", "domega", "scissor", "tolerance", "do_antiresonant", "do_ep_renorm",
+            "broadening",
+            "maxomega",
+            "domega",
+            "scissor",
+            "tolerance",
+            "do_antiresonant",
+            "do_ep_renorm",
         ]
         for key in keys:
             setattr(self, key, self.reader.read_value(key))
@@ -154,7 +183,8 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
 
     def to_string(self, verbose: int = 0) -> str:
         """String representation."""
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
 
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
@@ -176,9 +206,9 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
 
         # Show available tensors and computed components.
         for key, info in ALL_CHIS.items():
-            if not self.reader.computed_components[key]: continue
-            app("%s components computed: %s" % (
-                info["longname"], ", ".join(self.reader.computed_components[key])))
+            if not self.reader.computed_components[key]:
+                continue
+            app("%s components computed: %s" % (info["longname"], ", ".join(self.reader.computed_components[key])))
 
         if verbose > 1:
             app(marquee("Abinit Header", mark="="))
@@ -211,8 +241,8 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
         """True if the ncfile contains the Linear Electro-optic tensor"""
         return "leo" in self.reader.computed_components
 
-    #@cached_property
-    #def xc(self):
+    # @cached_property
+    # def xc(self):
     #    """:class:`XcFunc object with info on the exchange-correlation functional."""
     #    return self.reader.read_abinit_xcfunc()
 
@@ -237,9 +267,9 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
             kappa=r"$\kappa_{%s}$" % comp,
             re=r"$\Re(\epsilon_{%s})$" % comp,
             im=r"$\Im(\epsilon_{%s})$" % comp,
-            #abs=r"$|\epsilon_{%s}|$" % comp,
-            #abs_coeff=abs_coeff_{%s}} % comp,
-            #eels:r"EELS_{%s}" % comp,
+            # abs=r"$|\epsilon_{%s}|$" % comp,
+            # abs_coeff=abs_coeff_{%s}} % comp,
+            # eels:r"EELS_{%s}" % comp,
         )[what]
 
     def get_chi2_latex_label(self, key: str, what: str, comp: str) -> str:
@@ -254,8 +284,18 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
         )[what]
 
     @add_fig_kwargs
-    def plot_linear_epsilon(self, components="all", what="im", itemp=0,
-                            ax=None, xlims=None, with_xlabel=True, label=None, fontsize=12, **kwargs):
+    def plot_linear_epsilon(
+        self,
+        components="all",
+        what="im",
+        itemp=0,
+        ax=None,
+        xlims=None,
+        with_xlabel=True,
+        label=None,
+        fontsize=12,
+        **kwargs,
+    ):
         """
         Plot components of the linear dielectric function.
 
@@ -280,11 +320,13 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
             values = LINEPS_WHAT2EFUNC[what](eps)
             # Note: I'm skipping the first point at w=0 because optic does not compute it!
             # The same trick is used in the other plots.
-            ax.plot(self.wmesh[1:], values[1:],
-                    label=self.get_linopt_latex_label(what, comp) if label is None else label)
+            ax.plot(
+                self.wmesh[1:], values[1:], label=self.get_linopt_latex_label(what, comp) if label is None else label
+            )
 
         ax.grid(True)
-        if with_xlabel: ax.set_xlabel('Photon Energy (eV)')
+        if with_xlabel:
+            ax.set_xlabel("Photon Energy (eV)")
         set_axlims(ax, xlims, "x")
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
@@ -304,24 +346,43 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
         Returns: |matplotlib-Figure|
         """
         key = "linopt"
-        if not self.reader.computed_components[key]: return None
-        if select == "all": select = list(LINEPS_WHAT2EFUNC.keys())
+        if not self.reader.computed_components[key]:
+            return None
+        if select == "all":
+            select = list(LINEPS_WHAT2EFUNC.keys())
         select = list_strings(select)
 
         nrows, ncols = len(select), 1
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=False, squeeze=True)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols, sharex=True, sharey=False, squeeze=True)
 
         components = self.reader.computed_components[key]
-        for i, (what, ax) in enumerate(zip(select, ax_mat)):
-            self.plot_linear_epsilon(what=what, itemp=itemp, components=components,
-                                     ax=ax, xlims=xlims, with_xlabel=(i == len(select) - 1),
-                                     show=False)
+        for i, (what, ax) in enumerate(zip(select, ax_mat, strict=False)):
+            self.plot_linear_epsilon(
+                what=what,
+                itemp=itemp,
+                components=components,
+                ax=ax,
+                xlims=xlims,
+                with_xlabel=(i == len(select) - 1),
+                show=False,
+            )
         return fig
 
     @add_fig_kwargs
-    def plot_chi2(self, key, components="all", what="abs", itemp=0, decompose=False,
-                  ax=None, xlims=None, with_xlabel=True, label=None, fontsize=12, **kwargs):
+    def plot_chi2(
+        self,
+        key,
+        components="all",
+        what="abs",
+        itemp=0,
+        decompose=False,
+        ax=None,
+        xlims=None,
+        with_xlabel=True,
+        label=None,
+        fontsize=12,
+        **kwargs,
+    ):
         """
         Low-level function to plot chi2 tensor.
 
@@ -341,20 +402,25 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
 
         Returns: |matplotlib-Figure|
         """
-        if not self.reader.computed_components[key]: return None
+        if not self.reader.computed_components[key]:
+            return None
         comp2terms = self.reader.read_tensor3_terms(key, components, itemp=itemp)
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
         for comp, terms in comp2terms.items():
             for name, values in terms.items():
-                if not decompose and not name.endswith("tot"): continue
+                if not decompose and not name.endswith("tot"):
+                    continue
                 values = data_from_cplx_mode(what, values)
-                ax.plot(self.wmesh[1:], values[1:],
-                        label=self.get_chi2_latex_label(key, what, comp) if label is None else label,
+                ax.plot(
+                    self.wmesh[1:],
+                    values[1:],
+                    label=self.get_chi2_latex_label(key, what, comp) if label is None else label,
                 )
 
         ax.grid(True)
-        if with_xlabel: ax.set_xlabel('Photon Energy (eV)')
+        if with_xlabel:
+            ax.set_xlabel("Photon Energy (eV)")
         set_axlims(ax, xlims, "x")
         ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
@@ -391,19 +457,24 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        nb.cells.extend([
-            nbv.new_code_cell("optic = abilab.abiopen('%s')" % self.filepath),
-            nbv.new_code_cell("print(optic)"),
-            nbv.new_code_cell("optic.ebands.plot();"),
-        ])
+        nb.cells.extend(
+            [
+                nbv.new_code_cell("optic = abilab.abiopen('%s')" % self.filepath),
+                nbv.new_code_cell("print(optic)"),
+                nbv.new_code_cell("optic.ebands.plot();"),
+            ]
+        )
 
         # Add plot calls if quantities have been computed.
         for key, info in ALL_CHIS.items():
-            if not self.reader.computed_components[key]: continue
+            if not self.reader.computed_components[key]:
+                continue
             pycall = "optic.plot_%s();" % key
-            nb.cells.extend([
-                nbv.new_code_cell(pycall),
-            ])
+            nb.cells.extend(
+                [
+                    nbv.new_code_cell(pycall),
+                ]
+            )
 
         return self._write_nb_nbpath(nb, nbpath)
 
@@ -416,7 +487,12 @@ class OpticReader(ElectronsReader):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: OpticReader
     """
+
     def __init__(self, filepath: str) -> None:
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
         self.ntemp = self.read_dimvalue("ntemp")
 
@@ -429,9 +505,9 @@ class OpticReader(ElectronsReader):
             else:
                 fi_comps = [str(i) for i in self.read_value(comp_name)]
                 if info["rank"] == 2:
-                    ids = [(int(i[0])-1, int(i[1])-1) for i in fi_comps]
+                    ids = [(int(i[0]) - 1, int(i[1]) - 1) for i in fi_comps]
                 elif info["rank"] == 3:
-                    ids = [(int(i[0])-1, int(i[1])-1, int(i[2])-1) for i in fi_comps]
+                    ids = [(int(i[0]) - 1, int(i[1]) - 1, int(i[2]) - 1) for i in fi_comps]
                 else:
                     raise NotImplementedError("rank %s" % info["rank"])
 
@@ -447,7 +523,8 @@ class OpticReader(ElectronsReader):
         """
         # linopt_epsilon has *Fortran* shape [two, nomega, num_comp, ntemp]
         key = "linopt"
-        if components == "all": components = self.computed_components[key]
+        if components == "all":
+            components = self.computed_components[key]
         if not (self.ntemp > itemp >= 0):
             raise ValueError("Invalid itemp: %s, ntemp: %s" % (itemp, self.ntemp))
 
@@ -476,14 +553,15 @@ class OpticReader(ElectronsReader):
             Individual entries are listed in ALL_CHIS[key]["terms"].
         """
         # arrays have Fortran shape [two, nomega, num_comp, ntemp]
-        if components == "all": components = self.computed_components[key]
+        if components == "all":
+            components = self.computed_components[key]
         components = list_strings(components)
         if not (self.ntemp > itemp >= 0):
             raise ValueError("Invalid itemp: %s, ntemp: %s" % (itemp, self.ntemp))
 
         od = OrderedDict([(comp, {}) for comp in components])
         for chiname in ALL_CHIS[key]["terms"]:
-            #print("About to read:", chiname)
+            # print("About to read:", chiname)
 
             try:
                 var = self.read_variable(chiname)
@@ -509,6 +587,7 @@ class OpticRobot(Robot, RobotWithEbands):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: OpticRobot
     """
+
     EXT = "OPTIC"
 
     @cached_property
@@ -529,8 +608,9 @@ class OpticRobot(Robot, RobotWithEbands):
         return od
 
     @add_fig_kwargs
-    def plot_linopt_convergence(self, components="all", what_list=("re", "im"),
-                                sortby="nkpt", itemp=0, xlims=None, **kwargs):
+    def plot_linopt_convergence(
+        self, components="all", what_list=("re", "im"), sortby="nkpt", itemp=0, xlims=None, **kwargs
+    ):
         """
         Plot the convergence of the dielectric function tensor with respect to
         parameter defined by ``sortby``.
@@ -556,19 +636,23 @@ class OpticRobot(Robot, RobotWithEbands):
         components = self.computed_components_intersection[key]
 
         nrows, ncols = len(components), len(what_list)
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=False, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols, sharex=True, sharey=False, squeeze=False)
 
         label_ncfile_param = self.sortby(sortby)
         for i, comp in enumerate(components):
             for j, what in enumerate(what_list):
                 ax = ax_mat[i, j]
                 for ifile, (label, ncfile, param) in enumerate(label_ncfile_param):
-
-                    ncfile.plot_linear_epsilon(components=comp, what=what, itemp=itemp, ax=ax,
-                        xlims=xlims, with_xlabel=(i == len(components) - 1),
+                    ncfile.plot_linear_epsilon(
+                        components=comp,
+                        what=what,
+                        itemp=itemp,
+                        ax=ax,
+                        xlims=xlims,
+                        with_xlabel=(i == len(components) - 1),
                         label="%s %s" % (sortby, param) if not callable(sortby) else str(param),
-                        show=False)
+                        show=False,
+                    )
 
                     if ifile == 0:
                         ax.set_title(ncfile.get_linopt_latex_label(what, comp))
@@ -581,18 +665,21 @@ class OpticRobot(Robot, RobotWithEbands):
     @add_fig_kwargs
     def plot_shg_convergence(self, **kwargs):
         """Plot Second Harmonic Generation. See plot_convergence_rank3 for args supported."""
-        if "what_list" not in kwargs: kwargs["what_list"] = ["abs"]
+        if "what_list" not in kwargs:
+            kwargs["what_list"] = ["abs"]
         return self.plot_convergence_rank3(key="shg", **kwargs)
 
     @add_fig_kwargs
     def plot_leo_convergence(self, **kwargs):
         """Plot Linear electron-optic. See plot_convergence_rank3 for args supported."""
-        if "what_list" not in kwargs: kwargs["what_list"] = ["abs"]
+        if "what_list" not in kwargs:
+            kwargs["what_list"] = ["abs"]
         return self.plot_convergence_rank3(key="leo", **kwargs)
 
     @add_fig_kwargs
-    def plot_convergence_rank3(self, key, components="all", itemp=0, what_list=("abs",),
-                               sortby="nkpt", decompose=False, xlims=None, **kwargs):
+    def plot_convergence_rank3(
+        self, key, components="all", itemp=0, what_list=("abs",), sortby="nkpt", decompose=False, xlims=None, **kwargs
+    ):
         """
         Plot convergence of arbitrary rank3 tensor. This is a low-level routine used in other plot methods.
 
@@ -617,19 +704,26 @@ class OpticRobot(Robot, RobotWithEbands):
         components = self.computed_components_intersection[key]
 
         nrows, ncols = len(components), len(what_list)
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=False, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols, sharex=True, sharey=False, squeeze=False)
 
         label_ncfile_param = self.sortby(sortby)
         for i, comp in enumerate(components):
             for j, what in enumerate(what_list):
                 ax = ax_mat[i, j]
                 for ifile, (label, ncfile, param) in enumerate(label_ncfile_param):
-
-                    ncfile.plot_chi2(key=key, components=comp, what=what, itemp=itemp, decompose=decompose,
-                        ax=ax, xlims=xlims, with_xlabel=(i == len(components) - 1),
+                    ncfile.plot_chi2(
+                        key=key,
+                        components=comp,
+                        what=what,
+                        itemp=itemp,
+                        decompose=decompose,
+                        ax=ax,
+                        xlims=xlims,
+                        with_xlabel=(i == len(components) - 1),
                         label="%s %s" % (sortby, param) if not callable(sortby) else str(param),
-                        show=False, **kwargs)
+                        show=False,
+                        **kwargs,
+                    )
 
                     if ifile == 0:
                         ax.set_title(ncfile.get_chi2_latex_label(key, what, comp))
@@ -645,7 +739,8 @@ class OpticRobot(Robot, RobotWithEbands):
         Used in abiview.py to get a quick look at the results.
         """
         for key, comps in self.computed_components_intersection.items():
-            if not comps: continue
+            if not comps:
+                continue
             plot_fig = getattr(self, "plot_%s_convergence" % key)
             yield plot_fig(show=False)
 
@@ -657,17 +752,22 @@ class OpticRobot(Robot, RobotWithEbands):
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
         args = [(l, f.filepath) for l, f in self.items()]
-        nb.cells.extend([
-            #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("robot = abilab.OpticRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-        ])
+        nb.cells.extend(
+            [
+                # nbv.new_markdown_cell("# This is a markdown cell"),
+                nbv.new_code_cell("robot = abilab.OpticRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+            ]
+        )
 
         for key, comps in self.computed_components_intersection.items():
-            if not comps: continue
+            if not comps:
+                continue
             pycall = "robot.plot_%s_convergence();" % key
-            nb.cells.extend([
-                nbv.new_code_cell(pycall),
-            ])
+            nb.cells.extend(
+                [
+                    nbv.new_code_cell(pycall),
+                ]
+            )
 
         # Mixins
         nb.cells.extend(self.get_baserobot_code_cells())

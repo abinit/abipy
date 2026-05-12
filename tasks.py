@@ -2,6 +2,7 @@
 Deployment file to facilitate AbiPy releases.
 Use invoke --list to get list of tasks
 """
+
 from __future__ import annotations
 
 import shutil
@@ -22,7 +23,7 @@ from monty.os import cd
 if TYPE_CHECKING:
     from invoke import Context
 
-#from abipy.core.release import __version__ as CURRENT_VER
+# from abipy.core.release import __version__ as CURRENT_VER
 
 ABIPY_ROOTDIR = os.path.dirname(__file__)
 DOCS_DIR = os.path.join(ABIPY_ROOTDIR, "docs")
@@ -30,7 +31,7 @@ DOCS_DIR = os.path.join(ABIPY_ROOTDIR, "docs")
 
 @task
 def pull(ctx):
-    """"Execute `git stash && git pull --recurse-submodules && git stash apply && makemake`"""
+    """ "Execute `git stash && git pull --recurse-submodules && git stash apply && makemake`"""
     ctx.run("git stash")
     ctx.run("git pull --recurse-submodules")
     ctx.run("git stash apply")
@@ -50,11 +51,15 @@ def make_doc(ctx):
     """Build the website"""
     with cd(DOCS_DIR):
         ctx.run("touch api/index.rst", warn=True)
-        ctx.run("sphinx-apidoc --implicit-namespaces -M -d 1 -o api -f ../abipy ../**/tests/* ../abipy/benchmarks ../abipy/data ../abipy/integration_tests ../abipy/test_files ../abipy/examples")
+        ctx.run(
+            "sphinx-apidoc --implicit-namespaces -M -d 1 -o api -f ../abipy ../**/tests/* ../abipy/benchmarks ../abipy/data ../abipy/integration_tests ../abipy/test_files ../abipy/examples"
+        )
 
-        rst_files = sorted([f for f in os.listdir(os.path.join(DOCS_DIR, "api")) if f.endswith(".rst") and f != "modules.rst"])
+        rst_files = sorted(
+            [f for f in os.listdir(os.path.join(DOCS_DIR, "api")) if f.endswith(".rst") and f != "modules.rst"]
+        )
         rst_files = [3 * " " + f for f in rst_files]
-        #print(rst_files)
+        # print(rst_files)
 
         header = """\
 .. _api-index:
@@ -80,6 +85,7 @@ API documentation
 def open_doc(ctx):
     """Open the index.html in docs/_build/html/."""
     import webbrowser
+
     webbrowser.open_new_tab("file://" + os.path.join(ABIPY_ROOTDIR, "docs/_build/html/index.html"))
 
 
@@ -88,7 +94,7 @@ def twine(ctx):
     """Upload new release with twine."""
     with cd(ABIPY_ROOTDIR):
         ctx.run("rm dist/*.*", warn=True)
-        ctx.run("python setup.py register sdist bdist_wheel")
+        ctx.run("python setup.py sdist bdist_wheel")
         ctx.run("twine upload dist/*")
 
 
@@ -109,7 +115,7 @@ def style(ctx):
     """Execute pycodestyle."""
     with cd(ABIPY_ROOTDIR):
         ctx.run("pycodestyle 2>&1 | tee style.log", pty=True)
-        #ctx.run("pydocstyle abipy | tee -a style.log", pty=True)
+        # ctx.run("pydocstyle abipy | tee -a style.log", pty=True)
 
 
 @task
@@ -135,16 +141,19 @@ def flows(ctx):
 
 @task
 def pygrep(ctx, pattern):
-    """
-    Grep for `pattern` in all py files contained in the project.
-    """
+    """Grep for `pattern` in all py files contained in the project."""
     # grep -r -i --include \*.h
     # Syntax notes:
     #    -r - search recursively
     #    -i - case-insensitive search
     #    --include=\*.${file_extension} - search files that match the extension(s) or file pattern only
-    with cd(os.path.join(ABIPY_ROOTDIR, "abipy",)):
-        #cmd = 'grep -r -i --color --include "*.py" "%s" .' % pattern
+    with cd(
+        os.path.join(
+            ABIPY_ROOTDIR,
+            "abipy",
+        )
+    ):
+        # cmd = 'grep -r -i --color --include "*.py" "%s" .' % pattern
         cmd = 'grep -r --color --include "*.py" "%s" .' % pattern
         print("Executing:", cmd)
         ctx.run(cmd, pty=True)
@@ -171,14 +180,16 @@ def update_vars(ctx, abinit_repo_path):
 @task
 def pyclean(ctx):
     """remove all pyc files and all __pycache__ directory."""
+
     def rm_pycaches(top: str) -> None:
         """remove __pycache__ directory."""
         count = 0
         for dirpath, dirnames, filenames in os.walk(top):
             for d in dirnames:
-                if not d ==  "__pycache__": continue
+                if not d == "__pycache__":
+                    continue
                 path = os.path.join(dirpath, d)
-                #print("Will remove %s" % path)
+                # print("Will remove %s" % path)
                 shutil.rmtree(path)
                 count += 1
 
@@ -189,9 +200,10 @@ def pyclean(ctx):
         count = 0
         for dirpath, dirnames, filenames in os.walk(top):
             for f in filenames:
-                if not f.endswith(".pyc"): continue
+                if not f.endswith(".pyc"):
+                    continue
                 path = os.path.join(dirpath, f)
-                #print("Will remove %s" % path)
+                # print("Will remove %s" % path)
                 os.remove(path)
                 count += 1
 
@@ -219,27 +231,24 @@ def git_info(ctx: Context, top_n=20) -> None:
     def get_git_objects():
         """Return list of all Git objects (hash, path)."""
         result = subprocess.run(
-            ['git', 'rev-list', '--objects', '--all'],
-            stdout=subprocess.PIPE,
-            text=True,
-            check=True
+            ["git", "rev-list", "--objects", "--all"], stdout=subprocess.PIPE, text=True, check=True
         )
         objects = []
         for line in result.stdout.splitlines():
-            parts = line.split(' ', 1)
+            parts = line.split(" ", 1)
             if len(parts) == 2:
                 objects.append((parts[0], parts[1]))
         return objects
 
     def get_blob_sizes(hashes):
         """Return a dict of {hash: (size_in_bytes, path)} for blobs."""
-        input_text = '\n'.join(hashes)
+        input_text = "\n".join(hashes)
         result = subprocess.run(
-            ['git', 'cat-file', '--batch-check=%(objectname) %(objecttype) %(objectsize)'],
+            ["git", "cat-file", "--batch-check=%(objectname) %(objecttype) %(objectsize)"],
             input=input_text,
             stdout=subprocess.PIPE,
             text=True,
-            check=True
+            check=True,
         )
 
         sizes = {}
@@ -258,13 +267,12 @@ def git_info(ctx: Context, top_n=20) -> None:
     sizes = get_blob_sizes(hashes)
 
     sorted_blobs = sorted(
-        ((size, paths[_hash], _hash) for _hash, size in sizes.items() if _hash in paths),
-        reverse=True
+        ((size, paths[_hash], _hash) for _hash, size in sizes.items() if _hash in paths), reverse=True
     )
 
     print(f"\nTop {top_n} largest files ever committed:")
     for size, path, obj_hash in sorted_blobs[:top_n]:
-        print(f"{size / (1024*1024):7.2f} MB\t{path}")
+        print(f"{size / (1024 * 1024):7.2f} MB\t{path}")
 
     ctx.run("git count-objects -vH", pty=True)
 
@@ -312,6 +320,7 @@ def system(ctx):
     import psutil
     import platform
     from tabulate import tabulate
+
     info = []
     info.append(["OS", f"{platform.system()} {platform.release()}"])
     info.append(["Kernel", platform.version()])
@@ -319,7 +328,7 @@ def system(ctx):
     info.append(["Processor", platform.processor()])
     info.append(["CPU Cores (Physical)", psutil.cpu_count(logical=False)])
     info.append(["CPU Cores (Logical)", psutil.cpu_count()])
-    info.append(["Memory (Total)", f"{psutil.virtual_memory().total / (1024 ** 3):.2f} GB"])
+    info.append(["Memory (Total)", f"{psutil.virtual_memory().total / (1024**3):.2f} GB"])
     print(tabulate(info, headers=["Item", "Value"], tablefmt="grid"))
 
 
@@ -327,6 +336,7 @@ def system(ctx):
 def pid(ctx, pid):
     import psutil
     from tabulate import tabulate
+
     pid = int(pid)
     try:
         p = psutil.Process(pid)
@@ -339,7 +349,7 @@ def pid(ctx, pid):
         info.append(["User", p.username()])
         info.append(["CPU %", f"{p.cpu_percent(interval=0.1):.1f} %"])
         info.append(["Memory %", f"{p.memory_percent():.2f} %"])
-        info.append(["Memory RSS", f"{p.memory_info().rss / (1024 ** 2):.2f} MB"])
+        info.append(["Memory RSS", f"{p.memory_info().rss / (1024**2):.2f} MB"])
         info.append(["Threads", p.num_threads()])
         info.append(["CWD", p.cwd()])
         info.append(["Parent PID", p.ppid()])

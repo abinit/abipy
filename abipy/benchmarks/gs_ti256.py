@@ -3,16 +3,17 @@
 Titanium with 256 atoms and k-point sampling.
 GS calculations with paralkgb == 1 and wfoptalg in [default, 1]
 """
-import sys
-import operator
-import numpy as np
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
-import abipy.data as abidata
 
+import operator
+import sys
 from functools import reduce
 from itertools import product
-from abipy.benchmarks import bench_main, BenchmarkFlow
+
+import numpy as np
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
+from abipy.benchmarks import BenchmarkFlow, bench_main
 
 
 def make_input(paw=True):
@@ -22,7 +23,8 @@ def make_input(paw=True):
     pseudos = abidata.pseudos("ti.paw") if paw else abidata.pseudos("Ti-sp.psp8")
 
     # Atomic Positions.
-    xred = np.fromstring("""
+    xred = np.fromstring(
+        """
 0.00000000000000 0.00000000000000 0.00000000000000
 0.06250000000000 0.12500000000000 0.12500000000000
 0.00000000000000 0.00000000000000 0.25000000000000
@@ -279,13 +281,15 @@ def make_input(paw=True):
 0.93254833333333 0.97751666666666 0.81711666666667
 0.91770833333333 0.93970666666666 0.99482666666667
 0.92680333333333 0.14577666666666 0.95922666666667
-""", sep=" ").reshape((-1, 3))
+""",
+        sep=" ",
+    ).reshape((-1, 3))
 
     # Crystal structure.
     structure = abilab.Structure.from_abivars(
         acell=[50.4, 25.2, 25.2],
         rprim=np.eye(3),
-        typat=256*[1],
+        typat=256 * [1],
         znucl=22,
         xred=xred,
     )
@@ -294,33 +298,28 @@ def make_input(paw=True):
     inp.set_vars(
         # SCF algorithm
         paral_kgb=1,
-        #wfoptalg=1,
-        #fftalg=402,
-        #fftalg-302,  # To use FFTW instead of ABINIT FFT
-
+        # wfoptalg=1,
+        # fftalg=402,
+        # fftalg-302,  # To use FFTW instead of ABINIT FFT
         # Basis set
         ecut=5,
         pawecutdg=10,
-
         # SCF cycle
-        tolvrs=1.e-3,
+        tolvrs=1.0e-3,
         nstep=20,
-
         # K-Points and symmetries
         nkpt=2,
-        kpt=[3*[0.5], [0, 0, 0.5]],
+        kpt=[3 * [0.5], [0, 0, 0.5]],
         kptopt=0,
         istwfk="*1",
         nsym=0,
         chksymbreak=0,
         chkprim=0,
         pawovlp=-1,
-
         # bands and occupation scheme.
         nband=2048,
         occopt=3,
         tsmear="1800. K",
-
         # IO
         optforces=2,
         optstress=1,
@@ -340,22 +339,24 @@ def build_flow(options):
 
     # Processor distribution.
     pconfs = [
-       dict(npkpt=2, npband=8 , npfft=8),   # 128
-       dict(npkpt=2, npband=8 , npfft=16),  # 256
-       dict(npkpt=2, npband=16, npfft=16),  # 512
-       dict(npkpt=2, npband=16, npfft=32),  # 1024
-       dict(npkpt=2, npband=32, npfft=32),  # 2048
+        dict(npkpt=2, npband=8, npfft=8),  # 128
+        dict(npkpt=2, npband=8, npfft=16),  # 256
+        dict(npkpt=2, npband=16, npfft=16),  # 512
+        dict(npkpt=2, npband=16, npfft=32),  # 1024
+        dict(npkpt=2, npband=32, npfft=32),  # 2048
     ]
 
     for wfoptalg in [None, 1]:
         work = flowtk.Work()
         for d, omp_threads in product(pconfs, options.omp_list):
             mpi_procs = reduce(operator.mul, d.values(), 1)
-            if not options.accept_mpi_omp(mpi_procs, omp_threads): continue
+            if not options.accept_mpi_omp(mpi_procs, omp_threads):
+                continue
             manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
-            if options.verbose: print("wfoptalg:", wfoptalg, "done with MPI_PROCS:", mpi_procs, "and:", d)
+            if options.verbose:
+                print("wfoptalg:", wfoptalg, "done with MPI_PROCS:", mpi_procs, "and:", d)
             inp = template.new_with_vars(d, wfoptalg=wfoptalg, np_slk=32)
-            #inp.abivalidate()
+            # inp.abivalidate()
             work.register_scf_task(inp, manager=manager)
 
         flow.register_work(work)
@@ -368,7 +369,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return
+        return None
     return build_flow(options)
 
 

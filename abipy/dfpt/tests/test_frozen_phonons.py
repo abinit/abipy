@@ -1,30 +1,31 @@
 """Tests for frozen_phonons"""
-import os
-import abipy.data as abidata
 
+import os
+
+import abipy.data as abidata
+from abipy.core.testing import AbipyTest
 from abipy.dfpt.frozen_phonons import FrozenPhonon
 from abipy.dfpt.phonons import PhononBands
-from abipy.core.testing import AbipyTest
 
-test_dir = os.path.join(os.path.dirname(__file__), "..", "..", 'test_files')
+test_dir = os.path.join(os.path.dirname(__file__), "..", "..", "test_files")
 
 
 class FrozenPhononTest(AbipyTest):
-
     def test_frozen(self):
         """Base tests for FrozenPhonon"""
         filename = abidata.ref_file("trf2_5.out_PHBST.nc")
         phbands = PhononBands.from_file(filename)
 
         qpt_frac_coords = [0.5, 0.5, 0.5]
-        fp = FrozenPhonon.from_phbands(phbands, qpt_frac_coords, 0,
-                                       etas=[-0.2, -0.1, 0, 0.1, 0.2], max_supercell=[5, 5, 5])
+        fp = FrozenPhonon.from_phbands(
+            phbands, qpt_frac_coords, 0, etas=[-0.2, -0.1, 0, 0.1, 0.2], max_supercell=[5, 5, 5]
+        )
 
         self.assert_equal(fp.scale_matrix, [[-1, 0, 1], [-1, 1, 0], [-1, -1, 0]])
 
         w = phbands.phfreqs[phbands.qindex(qpt_frac_coords), 0]
 
-        energies = [0.0704, 0.0176, 0., 0.0175, 0.0703]
+        energies = [0.0704, 0.0176, 0.0, 0.0175, 0.0703]
 
         with self.assertRaises(ValueError):
             fp.energies = energies[:3]

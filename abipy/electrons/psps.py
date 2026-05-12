@@ -1,21 +1,22 @@
-# coding: utf-8
 """
 Interface to the PSPS.nc file containing the splined form factors computed by ABINIT.
 """
+
 from __future__ import annotations
 
 import os
-import numpy as np
-import pandas as pd
-
 from collections import OrderedDict
 from functools import cached_property
+
+import numpy as np
+import pandas as pd
 from monty.bisect import find_gt
-from monty.string import marquee # list_strings,
-from abipy.iotools import ETSF_Reader
-from abipy.core.structure import Structure
-from abipy.core.mixins import AbinitNcFile, NotebookWriter
+from monty.string import marquee  # list_strings,
+
 from abipy.abio.robots import Robot
+from abipy.core.mixins import AbinitNcFile, NotebookWriter
+from abipy.core.structure import Structure
+from abipy.iotools import ETSF_Reader
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible
 from abipy.tools.typing import Figure
 
@@ -26,9 +27,8 @@ def _mklabel(fsym: str, der: int, arg: str) -> str:
     """
     if der == 0:
         return "$%s(%s)$" % (fsym, arg)
-    else:
-        fsym = fsym + "^{" + (der * r"\prime") + "}"
-        return "$%s(%s)$" % (fsym, arg)
+    fsym = fsym + "^{" + (der * r"\prime") + "}"
+    return "$%s(%s)$" % (fsym, arg)
 
 
 def _rescale(arr, scale=1.0):
@@ -52,6 +52,7 @@ def dataframe_from_pseudos(pseudos, index=None) -> pd.DataFrame:
     Return: pandas Dataframe.
     """
     from abipy.flowtk import PseudoTable
+
     pseudos = PseudoTable.as_table(pseudos)
 
     attr_names = ["Z_val", "l_max", "l_local", "nlcc_radius", "xc", "supports_soc", "type"]
@@ -62,7 +63,8 @@ def dataframe_from_pseudos(pseudos, index=None) -> pd.DataFrame:
         if p.has_hints:
             hint = p.hint_for_accuracy(accuracy="normal")
             row["ecut_normal"] = hint.ecut
-            if hint.pawecutdg: row["pawecutdg_normal"] = hint.pawecutdg
+            if hint.pawecutdg:
+                row["pawecutdg_normal"] = hint.pawecutdg
         rows.append(row)
 
     return pd.DataFrame(rows, index=index, columns=list(rows[0].keys()) if rows else None)
@@ -70,7 +72,9 @@ def dataframe_from_pseudos(pseudos, index=None) -> pd.DataFrame:
 
 _LW = 1.0
 
-_Q2VQ_LATEX = r"$f(q) = q^2 V(q) = -\frac{Z_v}{\pi} + q^2 4\pi\int (\frac{\sin(2\pi q r)}{2\pi q r})(r^2 V(r)+r Z_v) dr$"
+_Q2VQ_LATEX = (
+    r"$f(q) = q^2 V(q) = -\frac{Z_v}{\pi} + q^2 4\pi\int (\frac{\sin(2\pi q r)}{2\pi q r})(r^2 V(r)+r Z_v) dr$"
+)
 
 
 class PspsFile(AbinitNcFile, NotebookWriter):
@@ -84,7 +88,8 @@ class PspsFile(AbinitNcFile, NotebookWriter):
         with PspsFile("out_PSPS.nc") as psps:
             psps.plot_tcore_rspace()
     """
-    linestyles_der = ["-", "--", '-.', ':', ":", ":"]
+
+    linestyles_der = ["-", "--", "-.", ":", ":", ":"]
 
     color_der = ["black", "red", "green", "orange", "cyan"]
 
@@ -103,31 +108,44 @@ class PspsFile(AbinitNcFile, NotebookWriter):
             vloc_rcut: Radial cutoff in Bohr (Abinit input variable).
         """
         from abipy.flowtk.pseudos import Pseudo
+
         pseudo = Pseudo.as_pseudo(pseudo)
         structure = Structure.boxed_atom(pseudo)
 
         from abipy.abio.factories import gs_input
-        inp = gs_input(structure, pseudo,
-                       kppa=1, ecut=ecut, pawecutdg=None, accuracy="normal", spin_mode="unpolarized",
-                       smearing="fermi_dirac:0.1 eV", charge=0.0)
 
-        inp.set_vars(prtpsps=-1,       # Print PSPS.nc and exit immediately
-                     vloc_rcut=vloc_rcut,
-                     )
+        inp = gs_input(
+            structure,
+            pseudo,
+            kppa=1,
+            ecut=ecut,
+            pawecutdg=None,
+            accuracy="normal",
+            spin_mode="unpolarized",
+            smearing="fermi_dirac:0.1 eV",
+            charge=0.0,
+        )
+
+        inp.set_vars(
+            prtpsps=-1,  # Print PSPS.nc and exit immediately
+            vloc_rcut=vloc_rcut,
+        )
 
         from abipy.flowtk import AbinitTask
+
         task = AbinitTask.temp_shell_task(inp, workdir=workdir)
-        retcode = task.start_and_wait(autoparal=False) #, exec_args=["--dry-run"])
-        #if retcode != 0:
+        retcode = task.start_and_wait(autoparal=False)  # , exec_args=["--dry-run"])
+        # if retcode != 0:
         #    print("task.workdir:", task.workdir, "returned retcode", retcode)
 
         return cls(os.path.join(task.outdir.path_in("out_PSPS.nc")))
 
     def __init__(self, filepath: str):
+        """Initialize the object from a file path."""
         super().__init__(filepath)
         self.r = PspsReader(filepath)
         # TODO
-        #self.ecut = self.r.read_value("ecut")
+        # self.ecut = self.r.read_value("ecut")
 
     def close(self) -> None:
         """Close the file."""
@@ -144,14 +162,15 @@ class PspsFile(AbinitNcFile, NotebookWriter):
 
     def to_string(self, verbose: int = 0) -> str:
         """String representation."""
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
         app("")
 
         if verbose > 1:
             app("")
-            #app(self.hdr.to_string(verbose=verbose, title="Abinit Header"))
+            # app(self.hdr.to_string(verbose=verbose, title="Abinit Header"))
 
         return "\n".join(lines)
 
@@ -172,11 +191,10 @@ class PspsFile(AbinitNcFile, NotebookWriter):
             "plot_q2vq",
         ]
 
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=2, ncols=2,
-                                                sharex=False, sharey=False, squeeze=True)
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=2, ncols=2, sharex=False, sharey=False, squeeze=True)
 
         ecut_ffnl = kwargs.pop("ecut_ffnl", None)
-        for m, ax in zip(methods, ax_list.ravel()):
+        for m, ax in zip(methods, ax_list.ravel(), strict=False):
             getattr(self, m)(ax=ax, ecut_ffnl=ecut_ffnl, show=False)
 
         return fig
@@ -194,21 +212,28 @@ class PspsFile(AbinitNcFile, NotebookWriter):
 
         Returns: |matplotlib-Figure|
         """
-        if not isinstance(ders, (list, tuple)): ders = [ders]
+        if not isinstance(ders, (list, tuple)):
+            ders = [ders]
 
         rmeshes, coresd = self.r.read_coresd(rmax=rmax)
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
-        for rmesh, mcores in zip(rmeshes, coresd):
+        for rmesh, mcores in zip(rmeshes, coresd, strict=False):
             for der, values in enumerate(mcores):
-                if der not in ders: continue
-                yvals, fact, = _rescale(values, scale=scale)
-                ax.plot(rmesh, yvals,
-                        color=kwargs.get("color", self.color_der[der]),
-                        linewidth=kwargs.get("linewidth", _LW),
-                        linestyle=kwargs.get("linestyle", self.linestyles_der[der]),
-                        label=_mklabel(r"\tilde{n}_c", der, "r") + " x %.4f" % fact
-                       )
+                if der not in ders:
+                    continue
+                (
+                    yvals,
+                    fact,
+                ) = _rescale(values, scale=scale)
+                ax.plot(
+                    rmesh,
+                    yvals,
+                    color=kwargs.get("color", self.color_der[der]),
+                    linewidth=kwargs.get("linewidth", _LW),
+                    linestyle=kwargs.get("linestyle", self.linestyles_der[der]),
+                    label=_mklabel(r"\tilde{n}_c", der, "r") + " x %.4f" % fact,
+                )
 
         ax.grid(True)
         ax.set_xlabel("r (Bohr)")
@@ -231,7 +256,8 @@ class PspsFile(AbinitNcFile, NotebookWriter):
 
         Returns: |matplotlib-Figure|
         """
-        if not isinstance(ders, (list, tuple)): ders = [ders]
+        if not isinstance(ders, (list, tuple)):
+            ders = [ders]
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
@@ -239,26 +265,37 @@ class PspsFile(AbinitNcFile, NotebookWriter):
         linewidth = kwargs.pop("linewidth", _LW)
 
         qmesh, tcore_spl = self.r.read_tcorespl()
-        ecuts = 2 * (np.pi * qmesh)**2
+        ecuts = 2 * (np.pi * qmesh) ** 2
 
         lines = []
         for atype, tcore_atype in enumerate(tcore_spl):
             for der, values in enumerate(tcore_atype):
-                #_ider = {0: 0, 1: 2}[der]
-                if der not in ders: continue
+                # _ider = {0: 0, 1: 2}[der]
+                if der not in ders:
+                    continue
                 yvals, fact = _rescale(values, scale=scale)
 
                 label = _mklabel("\\tilde{n}_{c}", der, "q")
-                if with_fact: label += " x %.4f" % fact
+                if with_fact:
+                    label += " x %.4f" % fact
 
-                line, = ax.plot(ecuts, yvals, color=color, linewidth=linewidth,
-                                linestyle=self.linestyles_der[der], label=label)
+                (line,) = ax.plot(
+                    ecuts, yvals, color=color, linewidth=linewidth, linestyle=self.linestyles_der[der], label=label
+                )
                 lines.append(line)
 
                 if with_qn and der == 0:
                     yvals, fact = _rescale(qmesh * values, scale=scale)
-                    line, ax.plot(ecuts, yvals, color=color, linewidth=linewidth,
-                                  label=_mklabel("q f", der, "q") + " x %.4f" % fact)
+                    (
+                        line,
+                        ax.plot(
+                            ecuts,
+                            yvals,
+                            color=color,
+                            linewidth=linewidth,
+                            label=_mklabel("q f", der, "q") + " x %.4f" % fact,
+                        ),
+                    )
                     lines.append(line)
 
         ax.grid(True)
@@ -286,7 +323,8 @@ class PspsFile(AbinitNcFile, NotebookWriter):
 
         Returns: |matplotlib-Figure|
         """
-        if not isinstance(ders, (list, tuple)): ders = [ders]
+        if not isinstance(ders, (list, tuple)):
+            ders = [ders]
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
@@ -294,23 +332,24 @@ class PspsFile(AbinitNcFile, NotebookWriter):
         linewidth = kwargs.pop("linewidth", _LW)
 
         qmesh, vlspl = self.r.read_vlspl()
-        ecuts = 2 * (np.pi * qmesh)**2
+        ecuts = 2 * (np.pi * qmesh) ** 2
         for atype, vl_atype in enumerate(vlspl):
             for der, values in enumerate(vl_atype):
-                if der not in ders: continue
-                #_ider = {0: 0, 1: 2}[der]
+                if der not in ders:
+                    continue
+                # _ider = {0: 0, 1: 2}[der]
                 yvals, fact = _rescale(values, scale=scale)
                 label = _mklabel("q^2 v_{loc}", der, "q")
-                if with_fact: label += " x %.4f" % fact
+                if with_fact:
+                    label += " x %.4f" % fact
 
-                ax.plot(ecuts, yvals, color=color, linewidth=linewidth,
-                        linestyle=self.linestyles_der[der], label=label)
+                ax.plot(ecuts, yvals, color=color, linewidth=linewidth, linestyle=self.linestyles_der[der], label=label)
 
-                #if with_qn and der == 0:
+                # if with_qn and der == 0:
                 #    yvals, fact = _rescale(qmesh * values, scale=scale)
                 #    ax.plot(ecuts, yvals, color=color, linewidth=linewidth, label="q*f(q) x %2.f" % fact)
 
-                #if der == 0:
+                # if der == 0:
                 #   z_val = self.r.zion_typat[atype]
                 #   ax.axhline(y=-z_val / np.pi, linewidth=1, color='k', linestyle="dashed")
 
@@ -323,8 +362,9 @@ class PspsFile(AbinitNcFile, NotebookWriter):
         return fig
 
     @add_fig_kwargs
-    def plot_ffspl(self, ax=None, ecut_ffnl=None, ders=(0,), l_select=None,
-                   with_qn=0, with_fact=False, scale=None, **kwargs) -> Figure:
+    def plot_ffspl(
+        self, ax=None, ecut_ffnl=None, ders=(0,), l_select=None, with_qn=0, with_fact=False, scale=None, **kwargs
+    ) -> Figure:
         """
         Plot the nonlocal part of the pseudopotential in q-space.
 
@@ -337,9 +377,11 @@ class PspsFile(AbinitNcFile, NotebookWriter):
 
         Returns: |matplotlib-Figure|
         """
-        if not isinstance(ders, (list, tuple)): ders = [ders]
+        if not isinstance(ders, (list, tuple)):
+            ders = [ders]
         if l_select is not None:
-            if not isinstance(l_select, (list, tuple)): l_select = [l_select]
+            if not isinstance(l_select, (list, tuple)):
+                l_select = [l_select]
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 
@@ -347,7 +389,7 @@ class PspsFile(AbinitNcFile, NotebookWriter):
         linewidth = kwargs.pop("linewidth", _LW)
 
         color_l = {-1: "black", 0: "red", 1: "blue", 2: "green", 3: "orange"}
-        linestyles_n = ["solid", '-', '--', '-.', ":"]
+        linestyles_n = ["solid", "-", "--", "-.", ":"]
         l_seen = set()
 
         # vlspl has shape [ntypat, 2, mqgrid_vl]
@@ -357,41 +399,48 @@ class PspsFile(AbinitNcFile, NotebookWriter):
         for itypat, projs_type in enumerate(all_projs):
             # Loop over the projectors for this atom type.
             for p in projs_type:
-                if l_select is not None and p.l not in l_select: continue
+                if l_select is not None and p.l not in l_select:
+                    continue
                 print("Printing:", p)
 
                 for der, values in enumerate(p.data):
-                    if der not in ders: continue
-                    #_ider = {0: 0, 1: 2}[der]
-                    #yvals, fact = _rescale(values, scale=scale)
+                    if der not in ders:
+                        continue
+                    # _ider = {0: 0, 1: 2}[der]
+                    # yvals, fact = _rescale(values, scale=scale)
 
                     label = None
                     if p.l not in l_seen:
                         l_seen.add(p.l)
                         label = _mklabel("v_{nl}", der, "q") + ", l=%d" % p.l
 
-                    stop = len(p.ecuts) +  1
+                    stop = len(p.ecuts) + 1
                     if ecut_ffnl is not None:
                         stop = find_gt(p.ecuts, ecut_ffnl)
 
-                    #values = p.ekb * p.values - vlspl[itypat, 0, :]
-                    #values = vlspl[itypat, der] + p.sign_sqrtekb * p.values
-                    #values = p.sign_sqrtekb * p.values
+                    # values = p.ekb * p.values - vlspl[itypat, 0, :]
+                    # values = vlspl[itypat, der] + p.sign_sqrtekb * p.values
+                    # values = p.sign_sqrtekb * p.values
                     values = p.data[der]
 
-                    #print(values.min(), values.max())
-                    ax.plot(p.ecuts[:stop], values[:stop],
-                            color=color_l[p.l], linewidth=linewidth,
-                            linestyle=linestyles_n[p.n], label=label)
+                    # print(values.min(), values.max())
+                    ax.plot(
+                        p.ecuts[:stop],
+                        values[:stop],
+                        color=color_l[p.l],
+                        linewidth=linewidth,
+                        linestyle=linestyles_n[p.n],
+                        label=label,
+                    )
 
         ax.grid(True)
         ax.set_xlabel("Ecut (Hartree)")
-        #ax.set_title("ffnl(q)")
+        # ax.set_title("ffnl(q)")
         if kwargs.get("with_legend", False):
             ax.legend(loc="best")
 
-        #ax.axvline(x=self.ecut, linewidth=linewidth, color='k', linestyle="solid")
-        #ax.axhline(y=0, linewidth=linewidth, color='k', linestyle="solid")
+        # ax.axvline(x=self.ecut, linewidth=linewidth, color='k', linestyle="solid")
+        # ax.axhline(y=0, linewidth=linewidth, color='k', linestyle="solid")
 
         fig.tight_layout()
 
@@ -410,10 +459,12 @@ class PspsFile(AbinitNcFile, NotebookWriter):
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        nb.cells.extend([
-            #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("psps = abilab.abiopen(%s)" % self.filepath),
-        ])
+        nb.cells.extend(
+            [
+                # nbv.new_markdown_cell("# This is a markdown cell"),
+                nbv.new_code_cell("psps = abilab.abiopen(%s)" % self.filepath),
+            ]
+        )
 
         return self._write_nb_nbpath(nb, nbpath)
 
@@ -432,6 +483,7 @@ class PspsRobot(Robot):
     def from_abinit_run(cls, pseudos, ecut) -> PspsRobot:
         """
         Initialize the object from a list of filepaths or Pseudo objects
+        by invoking abinit with cutoff energy `ecut`.
         """
         filepaths = []
         for p in pseudos:
@@ -457,10 +509,10 @@ class PspsRobot(Robot):
         npseudos = len(self)
         if npseudos <= 2:
             return {0: "red", 1: "blue", 2: "green"}[count]
-        else:
-            import matplotlib.pyplot as plt
-            cmap = plt.get_cmap(cmap)
-            return cmap(float(count) / (npseudos - 1))
+        import matplotlib.pyplot as plt
+
+        cmap = plt.get_cmap(cmap)
+        return cmap(float(count) / (npseudos - 1))
 
     @add_fig_kwargs
     def plot_tcore_rspace(self, ders=(0, 1, 2, 3), scale=None, fontsize=8, **kwargs) -> Figure:
@@ -473,23 +525,22 @@ class PspsRobot(Robot):
         Returns: |matplotlib-Figure|
         """
         nrows, ncols = len(self), len(ders)
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=False, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols, sharex=True, sharey=False, squeeze=False)
 
-        fig.suptitle(f"Model core in r-space")
+        fig.suptitle("Model core in r-space")
         for i, (label, psps) in enumerate(self.items()):
             kws = dict(color=self._mkcolor(i), show=False)
             for j, der in enumerate(ders):
-                ax = ax_mat[i,j]
+                ax = ax_mat[i, j]
                 psps.plot_tcore_rspace(ax=ax, ders=der, with_legend=False, scale=scale, **kws)
                 ax.set_title(f"$rho_M^{der}(r)$", fontsize=fontsize) if i == 0 else ax.set_title("")
-                if i != len(self) - 1: set_visible(ax, False, "xlabel")
+                if i != len(self) - 1:
+                    set_visible(ax, False, "xlabel")
 
         return fig
 
     @add_fig_kwargs
-    def plot_tcore_qspace(self, ders=(0, 1), with_qn=0, scale=None,
-                          fontsize=8, **kwargs) -> Figure:
+    def plot_tcore_qspace(self, ders=(0, 1), with_qn=0, scale=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot the model core charge and its derivatives in q-space.
 
@@ -499,65 +550,63 @@ class PspsRobot(Robot):
         Returns: |matplotlib-Figure|
         """
         nrows, ncols = len(self), len(ders)
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=False, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols, sharex=True, sharey=False, squeeze=False)
 
-        fig.suptitle(f"Model core in q-space")
+        fig.suptitle("Model core in q-space")
         for i, (label, psps) in enumerate(self.items()):
             kws = dict(color=self._mkcolor(i), show=False)
             for j, der in enumerate(ders):
-                #_ider = {0: 0, 1: 2}[der]
-                ax = ax_mat[i,j]
+                # _ider = {0: 0, 1: 2}[der]
+                ax = ax_mat[i, j]
                 psps.plot_tcore_qspace(ax=ax, ders=der, with_qn=with_qn, scale=scale, **kws)
                 ax.set_title(f"$rho_M^{der}(q)$", fontsize=fontsize) if i == 0 else ax.set_title("")
-                if i != len(self) - 1: set_visible(ax, False, "xlabel")
+                if i != len(self) - 1:
+                    set_visible(ax, False, "xlabel")
 
         return fig
 
     @add_fig_kwargs
-    def plot_q2vq(self, ders=(0, 1), with_qn=0, with_fact=True, scale=None,
-                  fontsize=8, **kwargs) -> Figure:
+    def plot_q2vq(self, ders=(0, 1), with_qn=0, with_fact=True, scale=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot the local part of the pseudopotential in q space.
         """
         nrows, ncols = len(self), len(ders)
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=False, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols, sharex=True, sharey=False, squeeze=False)
 
         fig.suptitle(_Q2VQ_LATEX)
         for i, (label, psps) in enumerate(self.items()):
             kws = dict(color=self._mkcolor(i), show=False)
             for j, der in enumerate(ders):
-                #_ider = {0: 0, 1: 2}[der]
-                ax = ax_mat[i,j]
+                # _ider = {0: 0, 1: 2}[der]
+                ax = ax_mat[i, j]
                 psps.plot_q2vq(ax=ax, ders=der, with_qn=with_qn, scale=scale, **kws)
                 _ = "$f(q)$" if der == 0 else "$f''(q)$"
                 ax.set_title(_, fontsize=fontsize) if i == 0 else ax.set_title("")
-                if i != len(self) - 1: set_visible(ax, False, "xlabel")
+                if i != len(self) - 1:
+                    set_visible(ax, False, "xlabel")
 
         return fig
 
     @add_fig_kwargs
-    def plot_ffspl(self, ecut_ffnl=None, ders=(0, 1), with_qn=0,
-                   scale=None, fontsize=8, **kwargs) -> Figure:
+    def plot_ffspl(self, ecut_ffnl=None, ders=(0, 1), with_qn=0, scale=None, fontsize=8, **kwargs) -> Figure:
         """
         Plot the nonlocal part of the pseudopotential in q-space.
         """
         l_select = [0, 1, 2]
         nrows, ncols = len(self), len(l_select)
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=False, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols, sharex=True, sharey=False, squeeze=False)
 
-        fig.suptitle(f"ffnl in q-space")
+        fig.suptitle("ffnl in q-space")
         for i, (label, psps) in enumerate(self.items()):
             kws = dict(color=self._mkcolor(i), show=False)
             for j, l in enumerate(l_select):
-                ax = ax_mat[i,j]
+                ax = ax_mat[i, j]
                 psps.plot_ffspl(ax=ax, ders=ders, l_select=l, with_qn=with_qn, scale=scale, **kws)
-                #ax.set_title(f"$ff_{nl}{der}(q)$", fontsize=fontsize) if i == 0 else ax.set_title("")
-                if i != len(self) - 1: set_visible(ax, False, "xlabel")
+                # ax.set_title(f"$ff_{nl}{der}(q)$", fontsize=fontsize) if i == 0 else ax.set_title("")
+                if i != len(self) - 1:
+                    set_visible(ax, False, "xlabel")
 
-        #fig.suptitle(r"$V_{loc} in q-space$")
+        # fig.suptitle(r"$V_{loc} in q-space$")
 
         return fig
 
@@ -572,7 +621,7 @@ class PspsRobot(Robot):
         yield self.plot_tcore_rspace(**kws)
         yield self.plot_tcore_qspace(**kws)
 
-    #def yield_plotly_figs(self, **kwargs):  # pragma: no cover
+    # def yield_plotly_figs(self, **kwargs):  # pragma: no cover
     #    """
     #    This function *generates* a predefined list of plotly figures with minimal input from the user.
     #    """
@@ -589,10 +638,12 @@ class PspsRobot(Robot):
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
         args = [(l, f.filepath) for l, f in self.items()]
-        nb.cells.extend([
-            #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("robot = abilab.PspsRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-        ])
+        nb.cells.extend(
+            [
+                # nbv.new_markdown_cell("# This is a markdown cell"),
+                nbv.new_code_cell("robot = abilab.PspsRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+            ]
+        )
 
         return self._write_nb_nbpath(nb, nbpath)
 
@@ -602,7 +653,9 @@ class PspsReader(ETSF_Reader):
     This object reads the results stored in the PSPS file produced by ABINIT.
     It provides helper functions to access the most important quantities.
     """
+
     def __init__(self, filepath: str):
+        """Initialize the reader from a file path."""
         super().__init__(filepath)
 
         # Get important dimensions.
@@ -636,7 +689,6 @@ class PspsReader(ETSF_Reader):
         xccc1d(n1xccc,ideriv,ntypat) give the ideriv-th derivative of the
         pseudo-core charge with respect to the radial distance.
         """
-
         xcccrc = self.read_value("xcccrc")
         try:
             all_coresd = self.read_value("xccc1d")
@@ -652,10 +704,10 @@ class PspsReader(ETSF_Reader):
             if rmax is not None:
                 # Truncate the mesh
                 ir_stop = min(int(rmax / step), npts) + 1
-                #print(rmax, step, ir_stop, npts)
+                # print(rmax, step, ir_stop, npts)
 
             rmeshes.append(rvals[:ir_stop])
-            coresd.append(all_coresd[itypat,:,:ir_stop])
+            coresd.append(all_coresd[itypat, :, :ir_stop])
 
         return rmeshes, coresd
 
@@ -703,9 +755,10 @@ class PspsReader(ETSF_Reader):
         Return a list of (l, n) indices for this atom type.
         """
         # indlmn(6,lmn_size,ntypat) = array giving l,m,n,lm,ln,s for i=lmn
-        indlmn_type = self.indlmn[itypat,:,:]
+        indlmn_type = self.indlmn[itypat, :, :]
 
-        iln0 = 0; ln_list = []
+        iln0 = 0
+        ln_list = []
         for ilmn in range(self.lmnmax):
             iln = indlmn_type[ilmn, 4]
             if iln > iln0:
@@ -724,6 +777,8 @@ class VnlProjector:
 
     def __init__(self, itypat, ln, ekb, qmesh, data):
         """
+        Initialize the projector with its data.
+
         Args:
             itypat: Type atom index (C index >= 0)
             ln: Tuple with l and n.
@@ -742,15 +797,17 @@ class VnlProjector:
 
     def to_string(self, verbose: int = 0) -> str:
         """String representation."""
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
         app(f"Projector: l: {self.l}, n: {self.n}, ekb: {self.ekb} (Ha)")
         return "\n".join(lines)
 
     @property
     def ecuts(self) -> np.ndarray:
         """List of cutoff energies in Ha corresponding to self.qmesh."""
-        return 2 * (np.pi * self.qmesh)**2
+        return 2 * (np.pi * self.qmesh) ** 2
 
     @property
     def sign_sqrtekb(self) -> np.ndarray:
+        """Sign(ekb) * sqrt(abs(ekb))."""
         return np.sign(self.ekb) * np.sqrt(np.abs(self.ekb))

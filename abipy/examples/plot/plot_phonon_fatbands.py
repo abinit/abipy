@@ -6,8 +6,9 @@ Phonon fatbands
 This example shows how to plot the phonon fatbands of AlAs.
 See tutorial/lesson_rf2.html
 """
-from abipy.abilab import abiopen
+
 import abipy.data as abidata
+from abipy.abilab import abiopen
 
 # Open the PHBST file produced by anaddb and get the phonon bands.
 with abiopen(abidata.ref_file("trf2_5.out_PHBST.nc")) as ncfile:

@@ -1,10 +1,11 @@
-# coding: utf-8
 """Work subclasses for the computation of luminiscent properties."""
+
 from __future__ import annotations
 
-from .works import Work
 from abipy.abilab import abiopen
 from abipy.lumi.deltaSCF import DeltaSCF
+
+from .works import Work
 
 
 class LumiWork(Work):
@@ -19,8 +20,19 @@ class LumiWork(Work):
     """
 
     @classmethod
-    def from_scf_inputs(cls, gs_scf_inp, ex_scf_inp, relax_kwargs_gs, relax_kwargs_ex, ndivsm=0, nb_extra=10,
-                        tolwfr=1e-12, four_points=True, meta=None, manager=None) -> LumiWork:
+    def from_scf_inputs(
+        cls,
+        gs_scf_inp,
+        ex_scf_inp,
+        relax_kwargs_gs,
+        relax_kwargs_ex,
+        ndivsm=0,
+        nb_extra=10,
+        tolwfr=1e-12,
+        four_points=True,
+        meta=None,
+        manager=None,
+    ) -> LumiWork:
         """
         Args:
             gs_scf_inp: |AbinitInput| representing a GS SCF run for the ground-state.
@@ -80,8 +92,8 @@ class LumiWork(Work):
         since we need to generate input files with relaxed structures.
         """
         # Get Ag relaxed structure
-        #with self.gs_relax_task.open_gsr() as gsr:
-           # ag_relaxed_structure = gsr.structure
+        # with self.gs_relax_task.open_gsr() as gsr:
+        # ag_relaxed_structure = gsr.structure
         with abiopen(self.gs_relax_task.output_file.path) as relax_gs_abo:
             ag_relaxed_structure = relax_gs_abo.final_structure
 
@@ -92,7 +104,7 @@ class LumiWork(Work):
             # Relax geometry with excited configuration starting from Ag*.
             relax_ex_inp = self.ex_scf_inp.new_with_vars(self.relax_kwargs_ex)
             relax_ex_inp_2 = relax_ex_inp.new_with_structure(ag_relaxed_structure)
-            self.ex_relax_task = self.register_relax_task(relax_ex_inp_2)#,deps={self.gs_relax_task: "DEN"})
+            self.ex_relax_task = self.register_relax_task(relax_ex_inp_2)  # ,deps={self.gs_relax_task: "DEN"})
 
             # if only the two relaxation, go to results writing step directly
             if not self.four_points:
@@ -100,7 +112,7 @@ class LumiWork(Work):
 
             return self.postpone_on_all_ok()
 
-        elif self.iteration_step == 1:
+        if self.iteration_step == 1:
             print("in iteration step 1")
             self.iteration_step += 1
 
@@ -109,15 +121,15 @@ class LumiWork(Work):
             # Build GS SCF input for the Ag configuration:
             # use same structure as Ag with ground occupation factors.
             ag_scf_inp = self.gs_scf_inp.new_with_structure(ag_relaxed_structure)
-            self.ag_scf_task = self.register_scf_task((ag_scf_inp),deps={self.gs_relax_task: "DEN"})
+            self.ag_scf_task = self.register_scf_task((ag_scf_inp), deps={self.gs_relax_task: "DEN"})
 
             # Build GS SCF input for the Ag* configuration:
             # use same structure as Ag but with excited occupation factors.
             agstar_scf_inp = self.ex_scf_inp.new_with_structure(ag_relaxed_structure)
-            self.agstar_scf_task = self.register_scf_task((agstar_scf_inp),deps={self.gs_relax_task: "DEN"})
+            self.agstar_scf_task = self.register_scf_task((agstar_scf_inp), deps={self.gs_relax_task: "DEN"})
 
             # Get Aestar relaxed structure.
-            #with self.ex_relax_task.open_gsr() as gsr:
+            # with self.ex_relax_task.open_gsr() as gsr:
             #    aestar_relaxed_structure = gsr.structure
             with abiopen(self.ex_relax_task.output_file.path) as relax_ex_abo:
                 aestar_relaxed_structure = relax_ex_abo.final_structure
@@ -125,71 +137,78 @@ class LumiWork(Work):
             # Build ex SCF input for the Aestar configuration:
             # use same structure as Aestar with excited occupation factors.
             aestar_scf_inp = self.ex_scf_inp.new_with_structure(aestar_relaxed_structure)
-            self.aestar_scf_task = self.register_scf_task((aestar_scf_inp),deps={self.ex_relax_task: "DEN"})
+            self.aestar_scf_task = self.register_scf_task((aestar_scf_inp), deps={self.ex_relax_task: "DEN"})
 
             # Build GS SCF task for the Ae configuration:
             # use same structure as Aestar but with ground occupation factors.
             ae_scf_inp = self.gs_scf_inp.new_with_structure(aestar_relaxed_structure)
-            self.ae_scf_task = self.register_scf_task((ae_scf_inp),deps={self.ex_relax_task: "DEN"})
+            self.ae_scf_task = self.register_scf_task((ae_scf_inp), deps={self.ex_relax_task: "DEN"})
 
             if self.ndivsm != 0:
                 # Compute band structure for Ag configuration.
-                self.ag_scf_task.add_ebands_task_to_work(self, ndivsm=self.ndivsm,
-                                                         tolwfr=self.tolwfr, nb_extra=self.nb_extra)
+                self.ag_scf_task.add_ebands_task_to_work(
+                    self, ndivsm=self.ndivsm, tolwfr=self.tolwfr, nb_extra=self.nb_extra
+                )
 
                 # Compute band structure for Agstar configuration.
-                self.agstar_scf_task.add_ebands_task_to_work(self, ndivsm=self.ndivsm,
-                                                             tolwfr=self.tolwfr, nb_extra=self.nb_extra)
+                self.agstar_scf_task.add_ebands_task_to_work(
+                    self, ndivsm=self.ndivsm, tolwfr=self.tolwfr, nb_extra=self.nb_extra
+                )
 
                 # Compute band structure for aestar configuration.
-                self.aestar_scf_task.add_ebands_task_to_work(self, ndivsm=self.ndivsm,
-                                                             tolwfr=self.tolwfr, nb_extra=self.nb_extra)
+                self.aestar_scf_task.add_ebands_task_to_work(
+                    self, ndivsm=self.ndivsm, tolwfr=self.tolwfr, nb_extra=self.nb_extra
+                )
 
                 # Compute band structure for Ae configuration.
-                self.ae_scf_task.add_ebands_task_to_work(self, ndivsm=self.ndivsm,
-                                                         tolwfr=self.tolwfr, nb_extra=self.nb_extra)
+                self.ae_scf_task.add_ebands_task_to_work(
+                    self, ndivsm=self.ndivsm, tolwfr=self.tolwfr, nb_extra=self.nb_extra
+                )
 
             return self.postpone_on_all_ok()
 
-        elif self.iteration_step == 2:
-
+        if self.iteration_step == 2:
             print("in iteration step 2")
             self.iteration_step += 1
             ##### Writing the results in json files #####
 
             self.json_data["meta"] = self.meta
 
-            #with self.gs_relax_task.open_gsr() as gsr:
+            # with self.gs_relax_task.open_gsr() as gsr:
             self.json_data["gs_relax_filepath"] = self.gs_relax_task.gsr_path
 
-            #with self.ex_relax_task.open_gsr() as gsr:
+            # with self.ex_relax_task.open_gsr() as gsr:
             self.json_data["ex_relax_filepath"] = self.ex_relax_task.gsr_path
 
             if self.four_points:
                 # Get Ag total energy.
-                #with self.ag_scf_task.open_gsr() as gsr:
+                # with self.ag_scf_task.open_gsr() as gsr:
                 self.json_data["Ag_gsr_filepath"] = self.ag_scf_task.gsr_path
 
                 # Get Agstar total energy.
-                #with self.ex_relax_task.open_gsr() as gsr:
+                # with self.ex_relax_task.open_gsr() as gsr:
                 self.json_data["Agstar_gsr_filepath"] = self.agstar_scf_task.gsr_path
 
                 # Get Aestar total energy.
-                #with self.aestar_scf_task.open_gsr() as gsr:
+                # with self.aestar_scf_task.open_gsr() as gsr:
                 self.json_data["Aestar_gsr_filepath"] = self.aestar_scf_task.gsr_path
 
                 # Get Aestar total energy.
-                #with self.ae_scf_task.open_gsr() as gsr:
+                # with self.ae_scf_task.open_gsr() as gsr:
                 self.json_data["Ae_gsr_filepath"] = self.ae_scf_task.gsr_path
 
             # Write json file in the outdir of the work
             self.write_json_in_outdir("lumi.json", self.json_data)
 
             # Build deltascf results
-            delta_scf = DeltaSCF.from_four_points_file([self.ag_scf_task.gsr_path,
-                                                        self.agstar_scf_task.gsr_path,
-                                                        self.aestar_scf_task.gsr_path,
-                                                        self.ae_scf_task.gsr_path])
+            delta_scf = DeltaSCF.from_four_points_file(
+                [
+                    self.ag_scf_task.gsr_path,
+                    self.agstar_scf_task.gsr_path,
+                    self.aestar_scf_task.gsr_path,
+                    self.ae_scf_task.gsr_path,
+                ]
+            )
 
             # Create dict with all post-processed results
             d = delta_scf.get_dict_results()
@@ -265,9 +284,20 @@ class LumiWorkFromRelax(Work):
     The two relaxed structures (in ground and excited state) are given as input. No creation at run-time
 
     """
+
     @classmethod
-    def from_scf_inputs(cls, gs_scf_inp, ex_scf_inp, gs_structure, ex_structure, ndivsm=0, nb_extra=10,
-                        tolwfr=1e-12, meta=None ,manager=None):
+    def from_scf_inputs(
+        cls,
+        gs_scf_inp,
+        ex_scf_inp,
+        gs_structure,
+        ex_structure,
+        ndivsm=0,
+        nb_extra=10,
+        tolwfr=1e-12,
+        meta=None,
+        manager=None,
+    ):
         """
         Args:
             gs_scf_inp: |AbinitInput| representing a GS SCF run for the ground-state.
@@ -325,22 +355,22 @@ class LumiWorkFromRelax(Work):
 
         if new.ndivsm != 0:
             # Compute band structure for Ag configuration.
-            new.ag_scf_task.add_ebands_task_to_work(new, ndivsm=new.ndivsm,
-                                                    tolwfr=new.tolwfr, nb_extra=new.nb_extra)
+            new.ag_scf_task.add_ebands_task_to_work(new, ndivsm=new.ndivsm, tolwfr=new.tolwfr, nb_extra=new.nb_extra)
             # Compute band structure for Ag* configuration.
-            new.agstar_scf_task.add_ebands_task_to_work(new, ndivsm=new.ndivsm,
-                                                        tolwfr=new.tolwfr, nb_extra=new.nb_extra)
+            new.agstar_scf_task.add_ebands_task_to_work(
+                new, ndivsm=new.ndivsm, tolwfr=new.tolwfr, nb_extra=new.nb_extra
+            )
             # Compute band structure for aestar configuration.
-            new.aestar_scf_task.add_ebands_task_to_work(new, ndivsm=new.ndivsm,
-                                                        tolwfr=new.tolwfr, nb_extra=new.nb_extra)
+            new.aestar_scf_task.add_ebands_task_to_work(
+                new, ndivsm=new.ndivsm, tolwfr=new.tolwfr, nb_extra=new.nb_extra
+            )
             # Compute band structure for Ae configuration.
-            new.ae_scf_task.add_ebands_task_to_work(new, ndivsm=new.ndivsm,
-                                                    tolwfr=new.tolwfr, nb_extra=new.nb_extra)
+            new.ae_scf_task.add_ebands_task_to_work(new, ndivsm=new.ndivsm, tolwfr=new.tolwfr, nb_extra=new.nb_extra)
 
         return new
 
     def on_all_ok(self):
-
+        """This method is called when all the tasks in the work have reached S_OK."""
         self.json_data["meta"] = self.meta
 
         # Get Ag total energy.
@@ -363,10 +393,14 @@ class LumiWorkFromRelax(Work):
         self.write_json_in_outdir("lumi.json", self.json_data)
 
         # Build deltascf results
-        delta_scf = DeltaSCF.from_four_points_file([self.ag_scf_task.gsr_path,
-                                                    self.agstar_scf_task.gsr_path,
-                                                    self.aestar_scf_task.gsr_path,
-                                                    self.ae_scf_task.gsr_path])
+        delta_scf = DeltaSCF.from_four_points_file(
+            [
+                self.ag_scf_task.gsr_path,
+                self.agstar_scf_task.gsr_path,
+                self.aestar_scf_task.gsr_path,
+                self.ae_scf_task.gsr_path,
+            ]
+        )
 
         # Create dict with all post-processed results
         d = delta_scf.get_dict_results()

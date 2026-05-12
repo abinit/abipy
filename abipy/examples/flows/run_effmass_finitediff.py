@@ -7,11 +7,11 @@ Flow to compute effective masses with finite difference methods.
 Derivatives are computed along lines in k-space.
 """
 
-import sys
 import os
+import sys
+
 import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def make_scf_input(nspinor=1, usepaw=0):
@@ -22,17 +22,14 @@ def make_scf_input(nspinor=1, usepaw=0):
         pseudos = abidata.pseudos("Si_r.psp8") if usepaw == 0 else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml")
 
     structure = dict(
-         ntypat=1,
-         natom=2,
-         typat=[1, 1],
-         znucl=14,
-         #acell=3 * [10.26310667319252], # https://docs.abinit.org/tests/v7/Input/t82.in
-         acell=3 * [10.2073557], # 5.4015 Ang
-         rprim=[[0.0,  0.5,  0.5],
-                [0.5,  0.0,  0.5],
-                [0.5,  0.5,  0.0]],
-         xred=[ [0.0 , 0.0 , 0.0],
-                [0.25, 0.25, 0.25]],
+        ntypat=1,
+        natom=2,
+        typat=[1, 1],
+        znucl=14,
+        # acell=3 * [10.26310667319252], # https://docs.abinit.org/tests/v7/Input/t82.in
+        acell=3 * [10.2073557],  # 5.4015 Ang
+        rprim=[[0.0, 0.5, 0.5], [0.5, 0.0, 0.5], [0.5, 0.5, 0.0]],
+        xred=[[0.0, 0.0, 0.0], [0.25, 0.25, 0.25]],
     )
 
     # Build input
@@ -64,21 +61,28 @@ def build_flow(options):
 
     # Build the flow with different steps.
     from abipy.flowtk.effmass_works import EffMassLineWork
+
     flow = flowtk.Flow(workdir=options.workdir, manager=options.manager)
 
     # Multiple calculations with different step for finite difference.
     # Use ndivsm != 0 at the first iteration to compute band structure along
     for i, step in enumerate((0.01, 0.005)):
-        if i == 0: den_node = None
-        work = EffMassLineWork.from_scf_input(scf_input, k0_list=(0, 0, 0),
-                                              step=step, npts=10,
-                                              red_dirs=[[1, 0, 0], [1, 1, 0]],
-                                              #cart_dirs=[[1, 0, 0], [1, 1, 1], [1, 1, 0]],
-                                              ndivsm=-20 if i == 0 else 0,
-                                              den_node=den_node)
+        if i == 0:
+            den_node = None
+        work = EffMassLineWork.from_scf_input(
+            scf_input,
+            k0_list=(0, 0, 0),
+            step=step,
+            npts=10,
+            red_dirs=[[1, 0, 0], [1, 1, 0]],
+            # cart_dirs=[[1, 0, 0], [1, 1, 1], [1, 1, 0]],
+            ndivsm=-20 if i == 0 else 0,
+            den_node=den_node,
+        )
 
         # Will start from the DEN file produced in the first iteration.
-        if i == 0: den_node = work[0]
+        if i == 0:
+            den_node = work[0]
         flow.register_work(work)
 
     return flow
@@ -89,6 +93,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

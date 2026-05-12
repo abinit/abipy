@@ -1,17 +1,17 @@
 """Tests for electrons.arpes module"""
-import abipy.data as abidata
 
+import abipy.data as abidata
 from abipy.core.testing import AbipyTest
 from abipy.electrons.arpes import ArpesPlotter
 
 
 class TestArpesPlotter(AbipyTest):
-
     def test_arpes_plotter_api(self):
         """Testing ArpesPlotter API."""
         path = abidata.ref_file("si_nscf_GSR.nc")
         plotter = ArpesPlotter.model_from_ebands(path)
-        repr(plotter); str(plotter)
+        repr(plotter)
+        str(plotter)
         assert plotter.to_string(verbose=2)
 
         if self.has_matplotlib():

@@ -1,26 +1,54 @@
 #!/usr/bin/env python
 """
-This script checks that the options in ``manager.yml``, ``scheduler.yml``,
-and the environment on the local machine are properly configured.
+Diagnostic tool to verify the AbiPy environment and configuration.
+
+This script checks that the required Python packages are installed, the 
+Abinit executable is reachable, and the configuration files (manager.yml, 
+scheduler.yml) are correctly set up.
+
+It can also be used to automatically install template configuration files 
+and run a small test flow to verify the entire toolchain.
+
+Examples:
+    Run basic consistency checks:
+        $ abicheck.py
+
+    Run a full test including the execution of a small Abinit flow:
+        $ abicheck.py --with-flow
+
+    Install template configuration files in ~/.abinit/abipy/:
+        $ abicheck.py -c
+
+    Show available manager templates provided by AbiPy:
+        $ abicheck.py -m
 """
+
 from __future__ import annotations
 
-import sys
-import os
 import argparse
-import abipy.flowtk as flowtk
-import abipy.data as abidata
-import abipy.tools.cli_parsers as cli
+import os
+import sys
 
 from monty import termcolor
 from monty.termcolor import cprint
-from abipy import abilab
+
+import abipy.data as abidata
+import abipy.tools.cli_parsers as cli
+from abipy import abilab, flowtk
+
 
 def show_managers(options):
     """
-    Print table with manager files provided by AbiPy.
+    Print a table with manager configuration files provided by AbiPy.
+
+    Args:
+        options: Namespace object containing command-line options.
+
+    Returns:
+        int: System exit code.
     """
     from tabulate import tabulate
+
     table = []
     root = os.path.join(abidata.dirpath, "managers")
     yaml_paths = [os.path.join(root, f) for f in os.listdir(root) if f.endswith(".yml") and "_manager" in f]
@@ -35,6 +63,9 @@ def show_managers(options):
 
 
 def get_epilog() -> str:
+    """
+    Return the epilog string for the command-line parser.
+    """
     return """\
 Usage example:
     abicheck.py                ==> Test abipy installation and requirements.
@@ -45,31 +76,71 @@ Usage example:
 
 
 def get_parser(with_epilog=False):
+    """
+    Return the ArgumentParser object for the script.
 
-    parser = argparse.ArgumentParser(epilog=get_epilog() if with_epilog else "",
-                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    Args:
+        with_epilog: If True, include the epilog in the parser.
+    """
+    parser = argparse.ArgumentParser(
+        epilog=get_epilog() if with_epilog else "", formatter_class=argparse.RawDescriptionHelpFormatter
+    )
 
-    parser.add_argument('--loglevel', default="ERROR", type=str,
-                        help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
-    parser.add_argument('-V', '--version', action='version', version=abilab.__version__)
-    parser.add_argument('-v', '--verbose', default=0, action='count', # -vv --> verbose=2
-                        help='verbose, can be supplied multiple times to increase verbosity.')
-    parser.add_argument('--no-colors', default=False, action="store_true", help='Disable ASCII colors.')
-    parser.add_argument('--with-flow', default=False, action="store_true", help='Build and run small abipy flow for testing.')
-    parser.add_argument("-d", '--flow-dir', type=str, default=None,
-                        help='Create AbiPy flow in this directory. If None, a default directory is used,')
-    parser.add_argument("-m", '--show-managers', default=False, action="store_true",
-                        help="Print table with manager files provided by AbiPy.")
+    parser.add_argument(
+        "--loglevel",
+        default="ERROR",
+        type=str,
+        help="Set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG",
+    )
+    parser.add_argument("-V", "--version", action="version", version=abilab.__version__)
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        default=0,
+        action="count",  # -vv --> verbose=2
+        help="verbose, can be supplied multiple times to increase verbosity.",
+    )
+    parser.add_argument("--no-colors", default=False, action="store_true", help="Disable ASCII colors.")
+    parser.add_argument(
+        "--with-flow", default=False, action="store_true", help="Build and run small abipy flow for testing."
+    )
+    parser.add_argument(
+        "-d",
+        "--flow-dir",
+        type=str,
+        default=None,
+        help="Create AbiPy flow in this directory. If None, a default directory is used,",
+    )
+    parser.add_argument(
+        "-m",
+        "--show-managers",
+        default=False,
+        action="store_true",
+        help="Print table with manager files provided by AbiPy.",
+    )
 
-    parser.add_argument("-c", '--create-config', default=False, action="store_true",
-                        help="Create yaml configuration files in ~/abinit/.abipy with predefined settings.")
-    parser.add_argument("-f", '--force-reinstall', default=False, action="store_true",
-                        help="Overwrite yaml configuration files if --create-config and files already exist.")
+    parser.add_argument(
+        "-c",
+        "--create-config",
+        default=False,
+        action="store_true",
+        help="Create yaml configuration files in ~/abinit/.abipy with predefined settings.",
+    )
+    parser.add_argument(
+        "-f",
+        "--force-reinstall",
+        default=False,
+        action="store_true",
+        help="Overwrite yaml configuration files if --create-config and files already exist.",
+    )
     return parser
 
 
 @cli.prof_main
 def main():
+    """
+    Main entry point for the script.
+    """
 
     def show_examples_and_exit(err_msg=None, error_code=1):
         """Display the usage of the script."""
@@ -103,12 +174,13 @@ def main():
     errmsg = abilab.abicheck(verbose=options.verbose)
     if errmsg:
         cprint(errmsg, "red")
-        cprint("TIP: Use `--show-managers` to print the manager files provided by AbiPy.\n" +
-               "If abicheck.py is failing because it cannot find the manager.yml configuration file",
-               "yellow")
+        cprint(
+            "TIP: Use `--show-managers` to print the manager files provided by AbiPy.\n"
+            "If abicheck.py is failing because it cannot find the manager.yml configuration file",
+            "yellow",
+        )
         return 2
-    else:
-        cprint("\nAbipy requirements are properly configured\n", "green")
+    cprint("\nAbipy requirements are properly configured\n", "green")
 
     if not options.with_flow:
         return 0
@@ -123,35 +195,36 @@ def main():
 def make_scf_nscf_inputs(paral_kgb=0):
     """Returns two input files: GS run and NSCF on a high symmetry k-mesh."""
     pseudos = abidata.pseudos("14si.pspnc")
-    #pseudos = data.pseudos("Si.GGA_PBE-JTH-paw.xml")
+    # pseudos = data.pseudos("Si.GGA_PBE-JTH-paw.xml")
 
     multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"), pseudos=pseudos, ndtset=2)
 
     # Global variables
     ecut = 6
-    global_vars = dict(ecut=ecut,
-                       nband=8,
-                       timopt=-1,
-                       istwfk="*1",
-                       nstep=15,
-                       paral_kgb=paral_kgb,
-                       iomode=3,
-                    )
+    global_vars = dict(
+        ecut=ecut,
+        nband=8,
+        timopt=-1,
+        istwfk="*1",
+        nstep=15,
+        paral_kgb=paral_kgb,
+        iomode=3,
+    )
 
     if multi.ispaw:
-        global_vars.update(pawecutdg=2*ecut)
+        global_vars.update(pawecutdg=2 * ecut)
 
     multi.set_vars(global_vars)
 
     # Dataset 1 (GS run)
-    multi[0].set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
+    multi[0].set_kmesh(ngkpt=[8, 8, 8], shiftk=[0, 0, 0])
     multi[0].set_vars(tolvrs=1e-6)
 
     # Dataset 2 (NSCF run)
     kptbounds = [
-        [0.5, 0.0, 0.0], # L point
-        [0.0, 0.0, 0.0], # Gamma point
-        [0.0, 0.5, 0.5], # X point
+        [0.5, 0.0, 0.0],  # L point
+        [0.0, 0.0, 0.0],  # Gamma point
+        [0.0, 0.5, 0.5],  # X point
     ]
 
     multi[1].set_kpath(ndivsm=6, kptbounds=kptbounds)
@@ -163,8 +236,17 @@ def make_scf_nscf_inputs(paral_kgb=0):
 
 
 def run_flow(options):
-    """Run test flow, return exit code."""
+    """
+    Build and run a small Abinit flow to test the environment.
+
+    Args:
+        options: Namespace object containing command-line options.
+
+    Returns:
+        int: Exit code of the scheduler.
+    """
     import tempfile
+
     workdir = tempfile.mkdtemp(dir=options.flow_dir)
     cprint("Running small flow in workdir: %s" % workdir, "yellow")
     print()

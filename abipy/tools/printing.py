@@ -1,14 +1,16 @@
 """Utilities for pandas dataframes"""
+
 from __future__ import annotations
 
 import sys
-import pandas as pd
-
 from io import StringIO
 
+import pandas as pd
 
-def print_dataframe(df: pd.DataFrame,
-                    title=None, precision=6, sortby=None, file=sys.stdout, end=None, display=None) -> None | str:
+
+def print_dataframe(
+    df: pd.DataFrame, title=None, precision=6, sortby=None, file=sys.stdout, end=None, display=None
+) -> None | str:
     """
     Print entire pandas DataFrame.
 
@@ -28,21 +30,28 @@ def print_dataframe(df: pd.DataFrame,
     if return_string:
         file = StringIO()
 
-    if title is not None: print(title, file=file)
+    if title is not None:
+        print(title, file=file)
     if sortby is not None and sortby in df:
         df = df.sort_values(sortby, inplace=False)
 
-    with pd.option_context("display.max_rows", len(df),
-                           "display.max_columns", len(list(df.keys())),
-                           "display.precision", precision,
-                           ):
+    with pd.option_context(
+        "display.max_rows",
+        len(df),
+        "display.max_columns",
+        len(list(df.keys())),
+        "display.precision",
+        precision,
+    ):
         if display is None:
             print(df, file=file)
             print(" ", file=file)
             if end is not None:
                 print(end, file=file)
-            if return_string: return file.getvalue()
+            if return_string:
+                return file.getvalue()
         else:
             from IPython.core.display import HTML
+
             output = getattr(df, "_repr_%s_" % display)()
             return HTML(output)

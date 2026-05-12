@@ -1,27 +1,34 @@
-# coding: utf-8
 """
 Interface with the HIST.nc file containing ABINIT structural relaxation results or MD
 """
+
 from __future__ import annotations
 
 import os
+from functools import cached_property
+
 import numpy as np
 import pandas as pd
-import pymatgen.core.units as units
-import abipy.core.abinit_units as abu
-
-from functools import cached_property
 from monty.collections import AttrDict
-from monty.string import marquee, list_strings
-
+from monty.string import list_strings, marquee
 from pymatgen.analysis.structure_analyzer import RelaxationAnalyzer
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_visible, get_figs_plotly, \
-    get_fig_plotly, add_plotly_fig_kwargs, plotlyfigs_to_browser, push_to_chart_studio, PlotlyRowColDesc, plotly_set_lims, \
-    latex_greek_2unicode
-from abipy.core.structure import Structure
-from abipy.core.mixins import AbinitNcFile, NotebookWriter
+from pymatgen.core import units
+
+import abipy.core.abinit_units as abu
 from abipy.abio.robots import Robot
+from abipy.core.mixins import AbinitNcFile, NotebookWriter
+from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader
+from abipy.tools.plotting import (
+    PlotlyRowColDesc,
+    add_fig_kwargs,
+    add_plotly_fig_kwargs,
+    get_ax_fig_plt,
+    get_axarray_fig_plt,
+    get_figs_plotly,
+    latex_greek_2unicode,
+    set_visible,
+)
 from abipy.tools.typing import Figure
 
 
@@ -39,12 +46,17 @@ class HistFile(AbinitNcFile, NotebookWriter):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: HistFile
     """
+
     @classmethod
     def from_file(cls, filepath: str) -> HistFile:
         """Initialize the object from a netcdf_ file"""
         return cls(filepath)
 
     def __init__(self, filepath: str):
+        """
+        Args:
+            filepath: Path to the HIST.nc file.
+        """
         super().__init__(filepath)
         self.reader = self.r = HistReader(filepath)
 
@@ -54,27 +66,27 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
     @cached_property
     def params(self) -> dict:
-        """dict with parameters that might be subject to convergence studies."""
+        """Dict with parameters that might be subject to convergence studies."""
         return {}
 
     def __str__(self) -> str:
         return self.to_string()
 
-    #def read_structures(self, index: str):
+    # def read_structures(self, index: str):
 
     # TODO: Add more metadata.
-    #@cached_property
-    #def nsppol(self):
+    # @cached_property
+    # def nsppol(self):
     #    """Number of independent spins."""
     #    return self.r.read_dimvalue("nsppol")
 
-    #@cached_property
-    #def nspden(self):
+    # @cached_property
+    # def nspden(self):
     #    """Number of independent spin densities."""
     #    return self.r.read_dimvalue("nspden")
 
-    #@cached_property
-    #def nspinor(self):
+    # @cached_property
+    # def nspinor(self):
     #    """Number of spinor components."""
     #    return self.r.read_dimvalue("nspinor")
 
@@ -89,8 +101,8 @@ class HistFile(AbinitNcFile, NotebookWriter):
         cart_stress_tensors, pressures = self.r.read_cart_stress_tensors()
         return pressures[-1]
 
-    #@cached_property
-    #def final_max_force(self):
+    # @cached_property
+    # def final_max_force(self):
 
     def get_fstats_dict(self, step) -> AttrDict:
         """
@@ -111,8 +123,10 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
     def to_string(self, verbose: int = 0, title: str | None = None) -> str:
         """String representation."""
-        lines = []; app = lines.append
-        if title is not None: app(marquee(title, mark="="))
+        lines = []
+        app = lines.append
+        if title is not None:
+            app(marquee(title, mark="="))
 
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
@@ -128,7 +142,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         d = an.get_percentage_lattice_parameter_changes()
         vals = tuple(d[k] * 100 for k in ("a", "b", "c"))
         app("Percentage lattice parameter changes:\n\ta: %.2f%%, b: %.2f%%, c: %2.f%%" % vals)
-        #an.get_percentage_bond_dist_changes(max_radius=3.0)
+        # an.get_percentage_bond_dist_changes(max_radius=3.0)
         app("")
 
         cart_stress_tensors, pressures = self.r.read_cart_stress_tensors()
@@ -173,7 +187,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         """
         return RelaxationAnalyzer(self.initial_structure, self.final_structure)
 
-    def to_xdatcar(self, filepath=None, groupby_type=True, to_unit_cell=False, **kwargs): #-> Xdatcar:
+    def to_xdatcar(self, filepath=None, groupby_type=True, to_unit_cell=False, **kwargs):  # -> Xdatcar:
         """
         Return Xdatcar pymatgen object. See write_xdatcar for the meaning of arguments.
 
@@ -182,8 +196,10 @@ class HistFile(AbinitNcFile, NotebookWriter):
             kwargs: keywords arguments passed to Xdatcar constructor.
         """
         from pymatgen.io.vasp.outputs import Xdatcar
-        filepath = self.write_xdatcar(filepath=filepath, groupby_type=groupby_type,
-                                      to_unit_cell=to_unit_cell, overwrite=True)
+
+        filepath = self.write_xdatcar(
+            filepath=filepath, groupby_type=groupby_type, to_unit_cell=to_unit_cell, overwrite=True
+        )
 
         return Xdatcar(filepath, **kwargs)
 
@@ -204,13 +220,14 @@ class HistFile(AbinitNcFile, NotebookWriter):
             path to Xdatcar file.
         """
         # This library takes 13s to import on HPC (07/02/24) so moved to class method instead of header
-        #from pymatgen.io.vasp.outputs import Xdatcar
+        # from pymatgen.io.vasp.outputs import Xdatcar
 
         if filepath is not None and os.path.exists(filepath) and not overwrite:
             raise RuntimeError(f"Cannot overwrite pre-existing file: {filepath}")
 
         if filepath is None:
             import tempfile
+
             fd, filepath = tempfile.mkstemp(text=True, suffix="_XDATCAR")
 
         # int typat[natom], double znucl[npsp]
@@ -221,14 +238,16 @@ class HistFile(AbinitNcFile, NotebookWriter):
         num_pseudos = self.r.read_dimvalue("npsp")
         if num_pseudos != ntypat:
             raise NotImplementedError("Alchemical mixing is not supported, {num_pseudos=} != {ntypat=}")
-        #print("znucl:", znucl, "\ntypat:", typat)
+        # print("znucl:", znucl, "\ntypat:", typat)
         from pymatgen.core.periodic_table import Element
+
         symb2pos = {}
         symbols_atom = []
         for iatom, itype in enumerate(typat):
             itype = itype - 1
             symbol = Element.from_Z(int(znucl[itype])).symbol
-            if symbol not in symb2pos: symb2pos[symbol] = []
+            if symbol not in symb2pos:
+                symb2pos[symbol] = []
             symb2pos[symbol].append(iatom)
             symbols_atom.append(symbol)
 
@@ -241,12 +260,11 @@ class HistFile(AbinitNcFile, NotebookWriter):
             group_ids = np.array(group_ids, dtype=int)
 
         comment = " %s\n" % self.initial_structure.formula
-        with open(filepath, "wt") as fh:
+        with open(filepath, "w") as fh:
             # comment line  + scaling factor set to 1.0
             fh.write(comment)
             fh.write("1.0\n")
-            for vec in self.initial_structure.lattice.matrix:
-                fh.write("%.12f %.12f %.12f\n" % (vec[0], vec[1], vec[2]))
+            fh.writelines("%.12f %.12f %.12f\n" % (vec[0], vec[1], vec[2]) for vec in self.initial_structure.lattice.matrix)
             if not groupby_type:
                 fh.write(" ".join(symbols_atom) + "\n")
                 fh.write("1 " * len(symbols_atom) + "\n")
@@ -262,8 +280,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
             for step in range(self.num_steps):
                 fh.write("Direct configuration= %d\n" % (step + 1))
                 frac_coords = xred_list[step, group_ids]
-                for fs in frac_coords:
-                    fh.write("%.12f %.12f %.12f\n" % (fs[0], fs[1], fs[2]))
+                fh.writelines("%.12f %.12f %.12f\n" % (fs[0], fs[1], fs[2]) for fs in frac_coords)
 
         return filepath
 
@@ -275,10 +292,12 @@ class HistFile(AbinitNcFile, NotebookWriter):
         Args:
             to_unit_cell (bool): Whether to translate sites into the unit cell.
         """
-        if appname == "mayavi": return self.mayaview()
+        if appname == "mayavi":
+            return self.mayaview()
 
         # Get the Visualizer subclass from the string.
         from abipy.iotools import Visualizer
+
         visu = Visualizer.from_name(appname)
         if visu.name != "ovito":
             raise NotImplementedError(f"{visu.name=} is not supported")
@@ -286,9 +305,9 @@ class HistFile(AbinitNcFile, NotebookWriter):
         filepath = self.write_xdatcar(filepath=None, groupby_type=True, to_unit_cell=to_unit_cell)
 
         return visu(filepath)()
-        #if options.trajectories:
+        # if options.trajectories:
         #    hist.mvplot_trajectories()
-        #else:
+        # else:
         #    hist.mvanimate()
 
     def plot_ax(self, ax, what: str, fontsize=8, **kwargs) -> None:
@@ -306,15 +325,16 @@ class HistFile(AbinitNcFile, NotebookWriter):
             marker = kwargs.pop("marker", "o")
             label = kwargs.pop("label", "Energy")
             ax.plot(self.steps, self.etotals, label=label, marker=marker, **kwargs)
-            ax.set_ylabel('Energy (eV)')
+            ax.set_ylabel("Energy (eV)")
 
         elif what == "abc":
             # Lattice parameters.
             mark = kwargs.pop("marker", None)
             markers = ["o", "^", "v"] if mark is None else 3 * [mark]
             for i, label in enumerate(["a", "b", "c"]):
-                ax.plot(self.steps, [s.lattice.abc[i] for s in self.structures], label=label,
-                        marker=markers[i], **kwargs)
+                ax.plot(
+                    self.steps, [s.lattice.abc[i] for s in self.structures], label=label, marker=markers[i], **kwargs
+                )
             ax.set_ylabel("abc (A)")
 
         elif what in ("a", "b", "c"):
@@ -323,17 +343,17 @@ class HistFile(AbinitNcFile, NotebookWriter):
             if marker is None:
                 marker = {"a": "o", "b": "^", "c": "v"}[what]
             label = kwargs.pop("label", what)
-            ax.plot(self.steps, [s.lattice.abc[i] for s in self.structures], label=label,
-                    marker=marker, **kwargs)
-            ax.set_ylabel('%s (A)' % what)
+            ax.plot(self.steps, [s.lattice.abc[i] for s in self.structures], label=label, marker=marker, **kwargs)
+            ax.set_ylabel("%s (A)" % what)
 
         elif what == "angles":
             # Lattice Angles
             mark = kwargs.pop("marker", None)
             markers = ["o", "^", "v"] if mark is None else 3 * [mark]
             for i, label in enumerate(["alpha", "beta", "gamma"]):
-                ax.plot(self.steps, [s.lattice.angles[i] for s in self.structures], label=label,
-                        marker=markers[i], **kwargs)
+                ax.plot(
+                    self.steps, [s.lattice.angles[i] for s in self.structures], label=label, marker=markers[i], **kwargs
+                )
             ax.set_ylabel(r"$\alpha\beta\gamma$ (degree)")
 
         elif what in ("alpha", "beta", "gamma"):
@@ -343,21 +363,20 @@ class HistFile(AbinitNcFile, NotebookWriter):
                 marker = {"alpha": "o", "beta": "^", "gamma": "v"}[what]
 
             label = kwargs.pop("label", what)
-            ax.plot(self.steps, [s.lattice.angles[i] for s in self.structures], label=label,
-                    marker=marker, **kwargs)
+            ax.plot(self.steps, [s.lattice.angles[i] for s in self.structures], label=label, marker=marker, **kwargs)
             ax.set_ylabel(r"$\%s$ (degree)" % what)
 
         elif what == "volume":
             marker = kwargs.pop("marker", "o")
             ax.plot(self.steps, [s.lattice.volume for s in self.structures], marker=marker, **kwargs)
-            ax.set_ylabel(r'$V\, (A^3)$')
+            ax.set_ylabel(r"$V\, (A^3)$")
 
         elif what == "pressure":
             stress_cart_tensors, pressures = self.r.read_cart_stress_tensors()
             marker = kwargs.pop("marker", "o")
             label = kwargs.pop("label", "P")
             ax.plot(self.steps, pressures, label=label, marker=marker, **kwargs)
-            ax.set_ylabel('P (GPa)')
+            ax.set_ylabel("P (GPa)")
 
         elif what == "forces":
             forces_hist = self.r.read_cart_forces()
@@ -377,15 +396,15 @@ class HistFile(AbinitNcFile, NotebookWriter):
             ax.plot(self.steps, fmean_steps, label="mean |F|", marker=markers[2], **kwargs)
             ax.plot(self.steps, fstd_steps, label="std |F|", marker=markers[3], **kwargs)
             label = "std |F|"
-            ax.set_ylabel('F stats (eV/A)')
+            ax.set_ylabel("F stats (eV/A)")
 
         else:
             raise ValueError(f"Invalid value for {what=}")
 
-        ax.set_xlabel('Step')
+        ax.set_xlabel("Step")
         ax.grid(True)
         if label is not None:
-            ax.legend(loc='best', fontsize=fontsize, shadow=True)
+            ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
     def plotly_traces(self, fig, what, rcd=None, fontsize=8, showlegend=False, **kwargs):
         """
@@ -404,18 +423,34 @@ class HistFile(AbinitNcFile, NotebookWriter):
             # Total energy in eV.
             marker = kwargs.pop("marker", 0)
             label = kwargs.pop("label", "Energy")
-            fig.add_scatter(x=self.steps, y=self.etotals, mode='lines+markers', name=label, marker_symbol=marker,
-                            row=ply_row, col=ply_col, **kwargs)
-            fig.layout['yaxis%u' % rcd.iax].title.text = 'Energy (eV)'
+            fig.add_scatter(
+                x=self.steps,
+                y=self.etotals,
+                mode="lines+markers",
+                name=label,
+                marker_symbol=marker,
+                row=ply_row,
+                col=ply_col,
+                **kwargs,
+            )
+            fig.layout["yaxis%u" % rcd.iax].title.text = "Energy (eV)"
 
         elif what == "abc":
             # Lattice parameters.
             mark = kwargs.pop("marker", None)
             markers = [0, 5, 6] if mark is None else 3 * [mark]
             for i, label in enumerate(["a", "b", "c"]):
-                fig.add_scatter(x=self.steps, y=[s.lattice.abc[i] for s in self.structures], mode='lines+markers',
-                                name=label, marker_symbol=markers[i], row=ply_row, col=ply_col, **kwargs)
-            fig.layout['yaxis%u' % rcd.iax].title.text = "abc (A)"
+                fig.add_scatter(
+                    x=self.steps,
+                    y=[s.lattice.abc[i] for s in self.structures],
+                    mode="lines+markers",
+                    name=label,
+                    marker_symbol=markers[i],
+                    row=ply_row,
+                    col=ply_col,
+                    **kwargs,
+                )
+            fig.layout["yaxis%u" % rcd.iax].title.text = "abc (A)"
 
         elif what in ("a", "b", "c"):
             i = ("a", "b", "c").index(what)
@@ -423,19 +458,35 @@ class HistFile(AbinitNcFile, NotebookWriter):
             if marker is None:
                 marker = {"a": 0, "b": 5, "c": 6}[what]
             label = kwargs.pop("label", what)
-            fig.add_scatter(x=self.steps, y=[s.lattice.abc[i] for s in self.structures], mode='lines+markers',
-                            name=label, marker_symbol=marker, row=ply_row, col=ply_col, **kwargs)
-            fig.layout['yaxis%u' % rcd.iax].title.text = '%s (A)' % what
+            fig.add_scatter(
+                x=self.steps,
+                y=[s.lattice.abc[i] for s in self.structures],
+                mode="lines+markers",
+                name=label,
+                marker_symbol=marker,
+                row=ply_row,
+                col=ply_col,
+                **kwargs,
+            )
+            fig.layout["yaxis%u" % rcd.iax].title.text = "%s (A)" % what
 
         elif what == "angles":
             # Lattice Angles
             mark = kwargs.pop("marker", None)
             markers = [0, 5, 6] if mark is None else 3 * [mark]
             for i, label in enumerate(["α ", "β ", "ɣ"]):
-                fig.add_scatter(x=self.steps, y=[s.lattice.angles[i] for s in self.structures], mode='lines+markers',
-                                name=label, marker_symbol=markers[i], row=ply_row, col=ply_col, **kwargs)
-            fig.layout['yaxis%u' % rcd.iax].title.text = "αβɣ (degree)" + "  "
-            fig.layout['yaxis%u' % rcd.iax].tickformat = ".3r"
+                fig.add_scatter(
+                    x=self.steps,
+                    y=[s.lattice.angles[i] for s in self.structures],
+                    mode="lines+markers",
+                    name=label,
+                    marker_symbol=markers[i],
+                    row=ply_row,
+                    col=ply_col,
+                    **kwargs,
+                )
+            fig.layout["yaxis%u" % rcd.iax].title.text = "αβɣ (degree)" + "  "
+            fig.layout["yaxis%u" % rcd.iax].tickformat = ".3r"
 
         elif what in ("alpha", "beta", "gamma"):
             i = ("alpha", "beta", "gamma").index(what)
@@ -443,25 +494,49 @@ class HistFile(AbinitNcFile, NotebookWriter):
             if marker is None:
                 marker = {"alpha": 0, "beta": 5, "gamma": 6}[what]
             label = kwargs.pop("label", what)
-            fig.add_scatter(x=self.steps, y=[s.lattice.angles[i] for s in self.structures], mode='lines+markers',
-                            name=label, marker_symbol=marker, row=ply_row, col=ply_col, **kwargs)
-            fig.layout['yaxis%u' % rcd.iax].title.text = r"%s (degree)" % latex_greek_2unicode(what)
-            fig.layout['yaxis%u' % rcd.iax].tickformat = ".3r"
+            fig.add_scatter(
+                x=self.steps,
+                y=[s.lattice.angles[i] for s in self.structures],
+                mode="lines+markers",
+                name=label,
+                marker_symbol=marker,
+                row=ply_row,
+                col=ply_col,
+                **kwargs,
+            )
+            fig.layout["yaxis%u" % rcd.iax].title.text = r"%s (degree)" % latex_greek_2unicode(what)
+            fig.layout["yaxis%u" % rcd.iax].tickformat = ".3r"
 
         elif what == "volume":
             marker = kwargs.pop("marker", 0)
             label = kwargs.pop("label", "Volume")
-            fig.add_scatter(x=self.steps, y=[s.lattice.volume for s in self.structures], mode='lines+markers',
-                            name=label, marker_symbol=marker, row=ply_row, col=ply_col, **kwargs)
-            fig.layout['yaxis%u' % rcd.iax].title.text = 'V (A³)'
+            fig.add_scatter(
+                x=self.steps,
+                y=[s.lattice.volume for s in self.structures],
+                mode="lines+markers",
+                name=label,
+                marker_symbol=marker,
+                row=ply_row,
+                col=ply_col,
+                **kwargs,
+            )
+            fig.layout["yaxis%u" % rcd.iax].title.text = "V (A³)"
 
         elif what == "pressure":
             stress_cart_tensors, pressures = self.r.read_cart_stress_tensors()
             marker = kwargs.pop("marker", 0)
             label = kwargs.pop("label", "P")
-            fig.add_scatter(x=self.steps, y=pressures, mode='lines+markers',
-                            name=label, marker_symbol=marker, row=ply_row, col=ply_col, **kwargs)
-            fig.layout['yaxis%u' % rcd.iax].title.text = 'P (GPa)'
+            fig.add_scatter(
+                x=self.steps,
+                y=pressures,
+                mode="lines+markers",
+                name=label,
+                marker_symbol=marker,
+                row=ply_row,
+                col=ply_col,
+                **kwargs,
+            )
+            fig.layout["yaxis%u" % rcd.iax].title.text = "P (GPa)"
 
         elif what == "forces":
             forces_hist = self.r.read_cart_forces()
@@ -476,16 +551,48 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
             mark = kwargs.pop("marker", None)
             markers = [0, 5, 6, 4] if mark is None else 4 * [mark]
-            fig.add_scatter(x=self.steps, y=fmin_steps, mode='lines+markers',
-                            name="min |F|", marker_symbol=markers[0], row=ply_row, col=ply_col, **kwargs)
-            fig.add_scatter(x=self.steps, y=fmax_steps, mode='lines+markers',
-                            name="max |F|", marker_symbol=markers[1], row=ply_row, col=ply_col, **kwargs)
-            fig.add_scatter(x=self.steps, y=fmean_steps, mode='lines+markers',
-                            name="mean |F|", marker_symbol=markers[2], row=ply_row, col=ply_col, **kwargs)
-            fig.add_scatter(x=self.steps, y=fstd_steps, mode='lines+markers',
-                            name="std |F|", marker_symbol=markers[3], row=ply_row, col=ply_col, **kwargs)
+            fig.add_scatter(
+                x=self.steps,
+                y=fmin_steps,
+                mode="lines+markers",
+                name="min |F|",
+                marker_symbol=markers[0],
+                row=ply_row,
+                col=ply_col,
+                **kwargs,
+            )
+            fig.add_scatter(
+                x=self.steps,
+                y=fmax_steps,
+                mode="lines+markers",
+                name="max |F|",
+                marker_symbol=markers[1],
+                row=ply_row,
+                col=ply_col,
+                **kwargs,
+            )
+            fig.add_scatter(
+                x=self.steps,
+                y=fmean_steps,
+                mode="lines+markers",
+                name="mean |F|",
+                marker_symbol=markers[2],
+                row=ply_row,
+                col=ply_col,
+                **kwargs,
+            )
+            fig.add_scatter(
+                x=self.steps,
+                y=fstd_steps,
+                mode="lines+markers",
+                name="std |F|",
+                marker_symbol=markers[3],
+                row=ply_row,
+                col=ply_col,
+                **kwargs,
+            )
             label = "std |F|"
-            fig.layout['yaxis%u' % rcd.iax].title.text = 'F stats (eV/A)'
+            fig.layout["yaxis%u" % rcd.iax].title.text = "F stats (eV/A)"
 
         else:
             raise ValueError(f"Invalid value for {what=}")
@@ -516,14 +623,16 @@ class HistFile(AbinitNcFile, NotebookWriter):
             ncols = 2
             nrows = nplots // ncols + nplots % ncols
 
-        ax_list, fig, plt = get_axarray_fig_plt(ax_list, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=False, squeeze=False)
+        ax_list, fig, plt = get_axarray_fig_plt(
+            ax_list, nrows=nrows, ncols=ncols, sharex=True, sharey=False, squeeze=False
+        )
         ax_list = ax_list.ravel()
 
         # don't show the last ax if nplots is odd.
-        if nplots % ncols != 0: ax_list[-1].axis("off")
+        if nplots % ncols != 0:
+            ax_list[-1].axis("off")
 
-        for what, ax in zip(what_list, ax_list):
+        for what, ax in zip(what_list, ax_list, strict=False):
             self.plot_ax(ax, what, fontsize=fontsize, marker="o")
 
         return fig
@@ -553,16 +662,17 @@ class HistFile(AbinitNcFile, NotebookWriter):
             nrows = nplots // ncols + nplots % ncols
 
         if fig is None:
-            fig, _ = get_figs_plotly(nrows=nrows, ncols=ncols, subplot_titles=[], sharex=True, sharey=False,
-                                     vertical_spacing=0.05)
+            fig, _ = get_figs_plotly(
+                nrows=nrows, ncols=ncols, subplot_titles=[], sharex=True, sharey=False, vertical_spacing=0.05
+            )
 
         for i, what in enumerate(what_list):
             rcd = PlotlyRowColDesc(i // ncols, i % ncols, nrows, ncols)
             self.plotly_traces(fig, what, rcd=rcd, fontsize=fontsize, marker=0)
 
-        fig.layout['xaxis%u' % rcd.iax].title.text = 'Step'
+        fig.layout["xaxis%u" % rcd.iax].title.text = "Step"
         if nplots > 1:
-            fig.layout['xaxis%s' % str(rcd.iax-1)].title.text = 'Step'
+            fig.layout["xaxis%s" % str(rcd.iax - 1)].title.text = "Step"
 
         return fig
 
@@ -589,13 +699,14 @@ class HistFile(AbinitNcFile, NotebookWriter):
 
         terms = self.r.read_eterms()
         for key, values in terms.items():
-            if np.all(values == 0.0): continue
+            if np.all(values == 0.0):
+                continue
             ax.plot(self.steps, values, marker="o", label=key)
 
-        ax.set_xlabel('Step')
-        ax.set_ylabel('Energies (eV)')
+        ax.set_xlabel("Step")
+        ax.set_ylabel("Energies (eV)")
         ax.grid(True)
-        ax.legend(loc='best', fontsize=fontsize, shadow=True)
+        ax.legend(loc="best", fontsize=fontsize, shadow=True)
 
         return fig
 
@@ -613,12 +724,14 @@ class HistFile(AbinitNcFile, NotebookWriter):
         yield self.plotly(show=False)
         yield self.plotly_energies(show=False)
 
-    def mvplot_trajectories(self, colormap="hot", sampling=1, figure=None, show=True,
-                            with_forces=True, **kwargs):  # pragma: no cover
+    def mvplot_trajectories(
+        self, colormap="hot", sampling=1, figure=None, show=True, with_forces=True, **kwargs
+    ):  # pragma: no cover
         """
         Call mayavi_ to plot atomic trajectories and the variation of the unit cell.
         """
         from abipy.display import mvtk
+
         figure, mlab = mvtk.get_fig_mlab(figure=figure)
         style = "labels"
         line_width = 100
@@ -629,57 +742,67 @@ class HistFile(AbinitNcFile, NotebookWriter):
         xcart_list = self.r.read_value("xcart") * units.bohr_to_ang
         for iatom in range(self.r.natom):
             x, y, z = xcart_list[::sampling, iatom, :].T
-            #for i in zip(x, y, z): print(i)
-            trajectory = mlab.plot3d(x, y, z, steps, colormap=colormap, tube_radius=None,
-                                    line_width=line_width, figure=figure)
-            mlab.colorbar(trajectory, title='Iteration', orientation='vertical')
+            # for i in zip(x, y, z): print(i)
+            trajectory = mlab.plot3d(
+                x, y, z, steps, colormap=colormap, tube_radius=None, line_width=line_width, figure=figure
+            )
+            mlab.colorbar(trajectory, title="Iteration", orientation="vertical")
 
         if with_forces:
             fcart_list = self.r.read_cart_forces(unit="eV ang^-1")
             for iatom in range(self.r.natom):
                 x, y, z = xcart_list[::sampling, iatom, :].T
                 u, v, w = fcart_list[::sampling, iatom, :].T
-                q = mlab.quiver3d(x, y, z, u, v, w, figure=figure, colormap=colormap,
-                                  line_width=line_width, scale_factor=10)
-                #mlab.colorbar(q, title='Forces [eV/Ang]', orientation='vertical')
+                q = mlab.quiver3d(
+                    x, y, z, u, v, w, figure=figure, colormap=colormap, line_width=line_width, scale_factor=10
+                )
+                # mlab.colorbar(q, title='Forces [eV/Ang]', orientation='vertical')
 
-        if show: mlab.show()
+        if show:
+            mlab.show()
         return figure
 
     def mvanimate(self, delay=500):  # pragma: no cover
+        """
+        Animate the relaxation with mayavi.
+
+        Args:
+            delay: Delay in ms between frames.
+        """
         from abipy.display import mvtk
+
         figure, mlab = mvtk.get_fig_mlab(figure=None)
         style = "points"
-        #mvtk.plot_structure(self.initial_structure, style=style, figure=figure)
-        #mvtk.plot_structure(self.final_structure, style=style, figure=figure)
+        # mvtk.plot_structure(self.initial_structure, style=style, figure=figure)
+        # mvtk.plot_structure(self.final_structure, style=style, figure=figure)
 
         xcart_list = self.r.read_value("xcart") * units.bohr_to_ang
-        #t = np.arange(self.num_steps)
-        #line_width = 2
-        #for iatom in range(self.r.natom):
+        # t = np.arange(self.num_steps)
+        # line_width = 2
+        # for iatom in range(self.r.natom):
         #    x, y, z = xcart_list[:, iatom, :].T
         #    trajectory = mlab.plot3d(x, y, z, t, colormap=colormap, tube_radius=None, line_width=line_width, figure=figure)
-        #mlab.colorbar(trajectory, title='Iteration', orientation='vertical')
+        # mlab.colorbar(trajectory, title='Iteration', orientation='vertical')
 
-        #x, y, z = xcart_list[0, :, :].T
-        #nodes = mlab.points3d(x, y, z)
-        #nodes.glyph.scale_mode = 'scale_by_vector'
-        #this sets the vectors to be a 3x5000 vector showing some random scalars
-        #nodes.mlab_source.dataset.point_data.vectors = np.tile( np.random.random((5000,)), (3,1))
-        #nodes.mlab_source.dataset.point_data.scalars = np.random.random((5000,))
+        # x, y, z = xcart_list[0, :, :].T
+        # nodes = mlab.points3d(x, y, z)
+        # nodes.glyph.scale_mode = 'scale_by_vector'
+        # this sets the vectors to be a 3x5000 vector showing some random scalars
+        # nodes.mlab_source.dataset.point_data.vectors = np.tile( np.random.random((5000,)), (3,1))
+        # nodes.mlab_source.dataset.point_data.scalars = np.random.random((5000,))
 
         @mlab.show
         @mlab.animate(delay=delay, ui=True)
         def anim():
             """Animate."""
-            #for it in range(self.num_steps):
+            # for it in range(self.num_steps):
             for it, structure in enumerate(self.structures):
-                print('Updating scene for iteration:', it)
-                #mlab.clf(figure=figure)
+                print("Updating scene for iteration:", it)
+                # mlab.clf(figure=figure)
                 mvtk.plot_structure(structure, style=style, figure=figure)
-                #x, y, z = xcart_list[it, :, :].T
-                #nodes.mlab_source.set(x=x, y=y, z=z)
-                #figure.scene.render()
+                # x, y, z = xcart_list[it, :, :].T
+                # nodes.mlab_source.set(x=x, y=y, z=z)
+                # figure.scene.render()
                 mlab.draw(figure=figure)
                 yield
 
@@ -690,6 +813,7 @@ class HistFile(AbinitNcFile, NotebookWriter):
         Build panel with widgets to interact with the |HistFile| either in a notebook or in panel app.
         """
         from abipy.panels.hist import HistFilePanel
+
         return HistFilePanel(self).get_panel(**kwargs)
 
     def write_notebook(self, nbpath=None) -> str:
@@ -699,13 +823,15 @@ class HistFile(AbinitNcFile, NotebookWriter):
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        nb.cells.extend([
-            #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("hist = abilab.abiopen('%s')" % self.filepath),
-            nbv.new_code_cell("print(hist)"),
-            nbv.new_code_cell("hist.plot_energies();"),
-            nbv.new_code_cell("hist.plot();"),
-        ])
+        nb.cells.extend(
+            [
+                # nbv.new_markdown_cell("# This is a markdown cell"),
+                nbv.new_code_cell("hist = abilab.abiopen('%s')" % self.filepath),
+                nbv.new_code_cell("print(hist)"),
+                nbv.new_code_cell("hist.plot_energies();"),
+                nbv.new_code_cell("hist.plot();"),
+            ]
+        )
 
         return self._write_nb_nbpath(nb, nbpath)
 
@@ -717,6 +843,7 @@ class HistRobot(Robot):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: HistRobot
     """
+
     EXT = "HIST"
 
     def to_string(self, verbose: int = 0) -> str:
@@ -728,11 +855,11 @@ class HistRobot(Robot):
         s_df = "Table with final structures, pressures in GPa and force stats in eV/Ang:\n\n%s" % str(df)
         if s:
             return "\n".join([s, str(s_df)])
-        else:
-            return str(s_df)
+        return str(s_df)
 
-    def get_dataframe(self, with_geo=True, index=None, abspath=False,
-                      with_spglib=True, funcs=None, **kwargs) -> pd.DataFrame:
+    def get_dataframe(
+        self, with_geo=True, index=None, abspath=False, with_spglib=True, funcs=None, **kwargs
+    ) -> pd.DataFrame:
         """
         Return a |pandas-DataFrame| with the most important final results and the filenames as index.
 
@@ -751,12 +878,22 @@ class HistRobot(Robot):
         """
         # Add attributes specified by the users
         attrs = [
-            "num_steps", "final_energy", "final_pressure",
-            "final_fmin", "final_fmax", "final_fmean", "final_fstd", "final_drift",
-            "initial_fmin", "initial_fmax", "initial_fmean", "initial_fstd", "initial_drift",
+            "num_steps",
+            "final_energy",
+            "final_pressure",
+            "final_fmin",
+            "final_fmax",
+            "final_fmean",
+            "final_fstd",
+            "final_drift",
+            "initial_fmin",
+            "initial_fmax",
+            "initial_fmean",
+            "initial_fstd",
+            "initial_drift",
             # TODO add more columns but must update HIST file
-            #"nsppol", "nspinor", "nspden",
-            #"ecut", "pawecutdg", "tsmear", "nkpt",
+            # "nsppol", "nspinor", "nspden",
+            # "ecut", "pawecutdg", "tsmear", "nkpt",
         ] + kwargs.pop("attrs", [])
 
         rows, row_names = [], []
@@ -772,7 +909,13 @@ class HistRobot(Robot):
                 d.update(hist.final_structure.get_dict4pandas(with_spglib=with_spglib))
 
             for aname in attrs:
-                if aname in ("final_fmin", "final_fmax", "final_fmean", "final_fstd", "final_drift",):
+                if aname in (
+                    "final_fmin",
+                    "final_fmax",
+                    "final_fmean",
+                    "final_fstd",
+                    "final_drift",
+                ):
                     value = final_fstas_dict[aname.replace("final_", "")]
                 elif aname in ("initial_fmin", "initial_fmax", "initial_fmean", "initial_fstd", "initial_drift"):
                     value = initial_fstas_dict[aname.replace("initial_", "")]
@@ -781,7 +924,8 @@ class HistRobot(Robot):
                 d[aname] = value
 
             # Execute functions
-            if funcs is not None: d.update(self._exec_funcs(funcs, hist))
+            if funcs is not None:
+                d.update(self._exec_funcs(funcs, hist))
             rows.append(d)
 
         row_names = row_names if not abspath else self._to_relpaths(row_names)
@@ -812,8 +956,9 @@ class HistRobot(Robot):
         # Build grid of plots.
         nrows, ncols = len(what_list), len(self)
 
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=sharex, sharey=sharey, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(
+            None, nrows=nrows, ncols=ncols, sharex=sharex, sharey=sharey, squeeze=False
+        )
         ax_mat = np.reshape(ax_mat, (nrows, ncols))
 
         for irow, what in enumerate(what_list):
@@ -843,20 +988,24 @@ class HistRobot(Robot):
 
         Returns: |matplotlib-Figure|.
         """
-        what_list = (list_strings(what_list) if what_list is not None
-            else ["energy", "a", "b", "c", "alpha", "beta", "gamma", "volume", "pressure"])
+        what_list = (
+            list_strings(what_list)
+            if what_list is not None
+            else ["energy", "a", "b", "c", "alpha", "beta", "gamma", "volume", "pressure"]
+        )
 
         num_plots, ncols, nrows = len(what_list), 1, 1
         if num_plots > 1:
             ncols = 2
             nrows = (num_plots // ncols) + (num_plots % ncols)
 
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=False, squeeze=False)
+        ax_list, fig, plt = get_axarray_fig_plt(
+            None, nrows=nrows, ncols=ncols, sharex=True, sharey=False, squeeze=False
+        )
         ax_list = ax_list.ravel()
         cmap = plt.get_cmap(colormap)
 
-        for i, (ax, what) in enumerate(zip(ax_list, what_list)):
+        for i, (ax, what) in enumerate(zip(ax_list, what_list, strict=False)):
             for ih, hist in enumerate(self.abifiles):
                 label = None if i != 0 else hist.relpath
                 hist.plot_ax(ax, what, color=cmap(ih / len(self)), label=label, fontsize=fontsize)
@@ -870,7 +1019,8 @@ class HistRobot(Robot):
                 ax.set_xlabel("")
 
         # Get around a bug in matplotlib.
-        if num_plots % ncols != 0: ax_list[-1].axis('off')
+        if num_plots % ncols != 0:
+            ax_list[-1].axis("off")
 
         return fig
 
@@ -889,15 +1039,17 @@ class HistRobot(Robot):
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
         args = [(l, f.filepath) for l, f in self.items()]
-        nb.cells.extend([
-            #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("robot = abilab.HistRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-            nbv.new_code_cell("robot.get_dataframe()"),
-            nbv.new_code_cell("for what in robot.what_list: robot.gridplot(what=what, tight_layout=True);"),
-        ])
+        nb.cells.extend(
+            [
+                # nbv.new_markdown_cell("# This is a markdown cell"),
+                nbv.new_code_cell("robot = abilab.HistRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+                nbv.new_code_cell("robot.get_dataframe()"),
+                nbv.new_code_cell("for what in robot.what_list: robot.gridplot(what=what, tight_layout=True);"),
+            ]
+        )
 
         # Mixins
-        #nb.cells.extend(self.get_baserobot_code_cells())
+        # nb.cells.extend(self.get_baserobot_code_cells())
 
         return self._write_nb_nbpath(nb, nbpath)
 
@@ -933,11 +1085,11 @@ class HistReader(ETSF_Reader):
             raise NotImplementedError("Alchemical mixing is not supported, {num_pseudos=} != {ntypat=}")
 
         znucl, typat = self.read_value("znucl"), self.read_value("typat").astype(int)
-        #print(znucl.dtype, typat)
+        # print(znucl.dtype, typat)
         cart_forces_step = self.read_cart_forces(unit="eV ang^-1")
 
         structures = []
-        #print("typat", type(typat))
+        # print("typat", type(typat))
         for step in range(self.num_steps):
             s = Structure.from_abivars(
                 xred=xred_list[step],
@@ -985,14 +1137,15 @@ class HistReader(ETSF_Reader):
         tensors = np.empty((self.num_steps, 3, 3), dtype=float)
 
         for step in range(self.num_steps):
-            for i in range(3): tensors[step, i, i] = c[step, i]
+            for i in range(3):
+                tensors[step, i, i] = c[step, i]
             for p, (i, j) in enumerate(((2, 1), (2, 0), (1, 0))):
-                tensors[step, i, j] = c[step, 3+p]
-                tensors[step, j, i] = c[step, 3+p]
+                tensors[step, i, j] = c[step, 3 + p]
+                tensors[step, j, i] = c[step, 3 + p]
 
         tensors *= abu.HaBohr3_GPa
         pressures = np.empty(self.num_steps)
         for step, tensor in enumerate(tensors):
-            pressures[step] = - tensor.trace() / 3
+            pressures[step] = -tensor.trace() / 3
 
         return tensors, pressures

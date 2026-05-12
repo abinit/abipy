@@ -5,23 +5,25 @@ Requires PHDOS.nc and DDB files for GSR calculations or _GSR.nc files.
 If PHDOS.nc is available for all structures, normal interpolation for QHA will be applied.
 Supports the use of six PHDOS.nc files for specific structures to employ the EinfVib2 approximation.
 """
+
 from __future__ import annotations
 
 import os
-import abc
-import numpy as np
-import abipy.core.abinit_units as abu
-
-from scipy.interpolate import RectBivariateSpline
 from functools import cached_property
-#from monty.collections import dict2namedtuple
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
-from abipy.tools.typing import PathLike, Figure, VectorLike
-from abipy.tools.serialization import HasPickleIO, mjson_load
-from abipy.electrons.gsr import GsrFile
+
+import numpy as np
+from scipy.interpolate import RectBivariateSpline
+
+import abipy.core.abinit_units as abu
 from abipy.dfpt.ddb import DdbFile
-from abipy.dfpt.phonons import PhdosFile # PhononBandsPlotter, PhononDos,
+from abipy.dfpt.phonons import PhdosFile  # PhononBandsPlotter, PhononDos,
 from abipy.dfpt.vzsisa import anaget_phdoses_with_gauss
+from abipy.electrons.gsr import GsrFile
+
+# from monty.collections import dict2namedtuple
+from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
+from abipy.tools.serialization import HasPickleIO
+from abipy.tools.typing import Figure, PathLike, VectorLike
 
 
 class QHA_2D(HasPickleIO):
@@ -35,8 +37,8 @@ class QHA_2D(HasPickleIO):
     Provides methods for calculating and visualizing energy, free energy, and thermal expansion.
     """
 
-    #@classmethod
-    #def from_json_file(cls,
+    # @classmethod
+    # def from_json_file(cls,
     #                   filepath: PathLike,
     #                   nqsmall_or_qppa: int,
     #                   anaget_kwargs: dict | None = None,
@@ -53,15 +55,17 @@ class QHA_2D(HasPickleIO):
     #                                  anaget_kwargs=anaget_kwargs, smearing_ev=smearing_ev, verbose=verbose)
 
     @classmethod
-    def from_gsr_ddb_paths(cls,
-                           nqsmall_or_qppa: int,
-                           gsr_paths: list[PathLike],
-                           ddb_paths: list[PathLike],
-                           bo_strains_ac: VectorLike,
-                           phdos_strains_ac: VectorLike,
-                           anaget_kwargs: dict | None = None,
-                           smearing_ev: float | None = None,
-                           verbose: int = 0) -> QHA_2D:
+    def from_gsr_ddb_paths(
+        cls,
+        nqsmall_or_qppa: int,
+        gsr_paths: list[PathLike],
+        ddb_paths: list[PathLike],
+        bo_strains_ac: VectorLike,
+        phdos_strains_ac: VectorLike,
+        anaget_kwargs: dict | None = None,
+        smearing_ev: float | None = None,
+        verbose: int = 0,
+    ) -> QHA_2D:
         """
         Creates an instance from a list of GSR files and a list of DDB files.
         This is a simplified interface that computes the PHDOS.nc files automatically
@@ -79,19 +83,16 @@ class QHA_2D(HasPickleIO):
             smearing_ev: Gaussian smearing in eV.
             verbose: Verbosity level.
         """
-        phdos_paths, phbands_paths = anaget_phdoses_with_gauss(nqsmall_or_qppa, smearing_ev, ddb_paths, anaget_kwargs, verbose)
+        phdos_paths, phbands_paths = anaget_phdoses_with_gauss(
+            nqsmall_or_qppa, smearing_ev, ddb_paths, anaget_kwargs, verbose
+        )
 
         new = cls.from_files(ddb_paths, phdos_paths_2D, bo_strains_ac, phdos_strains_ac, gsr_file="GSR.nc")
-        #new.pickle_dump(workdir, basename=None)
+        # new.pickle_dump(workdir, basename=None)
         return new
 
     @classmethod
-    def from_files(cls,
-                   gsr_paths_2D,
-                   phdos_paths_2D,
-                   bo_strains_ac,
-                   phdos_strains_ac,
-                   gsr_file="GSR.nc") -> QHA_2D:
+    def from_files(cls, gsr_paths_2D, phdos_paths_2D, bo_strains_ac, phdos_strains_ac, gsr_file="GSR.nc") -> QHA_2D:
         """
         Creates an instance of QHA from a 2D array of GSR and PHDOS files.
 
@@ -101,11 +102,11 @@ class QHA_2D(HasPickleIO):
             bo_strains_ac: List of strains for the a and the c lattice vector.
             phdos_strains_ac: List of strains for the a and the c lattice vector.
         """
-        energies, structures, phdoses , structures_from_phdos = [], [], [],[]
+        energies, structures, phdoses, structures_from_phdos = [], [], [], []
 
-        #shape = (len(strains_a), len(strains_c))
-        #gsr_paths_2d = np.reshape(gsr_paths_2D, shape)
-        #phdos_paths_2d = np.reshape(phdos_paths_2D, shape)
+        # shape = (len(strains_a), len(strains_c))
+        # gsr_paths_2d = np.reshape(gsr_paths_2D, shape)
+        # phdos_paths_2d = np.reshape(phdos_paths_2D, shape)
 
         if gsr_file == "GSR.nc":
             # Process GSR files
@@ -142,7 +143,7 @@ class QHA_2D(HasPickleIO):
 
         # Process PHDOS files
         for row in phdos_paths_2D:
-            row_doses , row_structures = [],[]
+            row_doses, row_structures = [], []
             for path in row:
                 if os.path.exists(path):
                     with PhdosFile(path) as p:
@@ -157,15 +158,17 @@ class QHA_2D(HasPickleIO):
 
         return cls(structures, phdoses, energies, structures_from_phdos, bo_strains_ac, phdos_strains_ac)
 
-    def __init__(self,
-                 structures,
-                 phdoses,
-                 energies,
-                 structures_from_phdos,
-                 bo_strains_ac,
-                 phdos_strains_ac,
-                 eos_name: str='vinet',
-                 pressure: float=0.0):
+    def __init__(
+        self,
+        structures,
+        phdoses,
+        energies,
+        structures_from_phdos,
+        bo_strains_ac,
+        phdos_strains_ac,
+        eos_name: str = "vinet",
+        pressure: float = 0.0,
+    ):
         """
         Args:
             structures (list): List of structures at different volumes.
@@ -197,8 +200,12 @@ class QHA_2D(HasPickleIO):
         self.lattice_a = np.array([[s.lattice.abc[0] if s is not None else None for s in row] for row in structures])
         self.lattice_c = np.array([[s.lattice.abc[2] if s is not None else None for s in row] for row in structures])
 
-        self.lattice_a_from_phdos = np.array([[s.lattice.abc[0] if s is not None else None for s in row] for row in structures_from_phdos])
-        self.lattice_c_from_phdos = np.array([[s.lattice.abc[2] if s is not None else None for s in row] for row in structures_from_phdos])
+        self.lattice_a_from_phdos = np.array(
+            [[s.lattice.abc[0] if s is not None else None for s in row] for row in structures_from_phdos]
+        )
+        self.lattice_c_from_phdos = np.array(
+            [[s.lattice.abc[2] if s is not None else None for s in row] for row in structures_from_phdos]
+        )
 
         # Find index of minimum energy
         self.min_energy_idx = np.unravel_index(np.nanargmin(self.energies), self.energies.shape)
@@ -206,15 +213,18 @@ class QHA_2D(HasPickleIO):
     @cached_property
     def use_qha(self) -> bool:
         """True if we are in full QHA_2D mode."""
-        return len(self.lattice_a_from_phdos) == len(self.lattice_a) and len(self.lattice_c_from_phdos) == len(self.lattice_c)
+        return len(self.lattice_a_from_phdos) == len(self.lattice_a) and len(self.lattice_c_from_phdos) == len(
+            self.lattice_c
+        )
 
     @cached_property
     def use_einfvib2(self) -> bool:
+        """True if we are in EinfVib2 mode."""
         return len(self.lattice_a_from_phdos) == 3 and len(self.lattice_c_from_phdos) == 3
 
     def get_initial_guess_ac(self) -> np.array:
         """Return the initial guess for (a, c):"""
-        initial_guess = [1.005 * self.lattice_a[self.ix0, 0], 1.005 * self.lattice_c[0,self.iy0]]
+        initial_guess = [1.005 * self.lattice_a[self.ix0, 0], 1.005 * self.lattice_c[0, self.iy0]]
         return np.array(initial_guess)
 
     @add_fig_kwargs
@@ -226,36 +236,42 @@ class QHA_2D(HasPickleIO):
             ax: Matplotlib axis for the plot. If None, creates a new figure.
         """
         ax, fig, plt = get_ax_fig_plt(ax, figsize=(10, 8))
-        ax = fig.add_subplot(111, projection='3d')  # Create a 3D subplot
+        ax = fig.add_subplot(111, projection="3d")  # Create a 3D subplot
 
-        a0 = self.lattice_a[:,0]
-        c0 = self.lattice_c[0,:]
+        a0 = self.lattice_a[:, 0]
+        c0 = self.lattice_c[0, :]
 
         X, Y = np.meshgrid(c0, a0)
 
         # Plot the surface
-        ax.plot_wireframe(X, Y, self.energies, cmap='viridis')
-        ax.scatter(self.lattice_c[0,self.iy0], self.lattice_a[self.ix0,0], self.energies[self.ix0, self.iy0], color='red', s=100)
+        ax.plot_wireframe(X, Y, self.energies, cmap="viridis")
+        ax.scatter(
+            self.lattice_c[0, self.iy0],
+            self.lattice_a[self.ix0, 0],
+            self.energies[self.ix0, self.iy0],
+            color="red",
+            s=100,
+        )
 
         f_interp = RectBivariateSpline(a0, c0, self.energies, kx=4, ky=4)
 
         xy_init = self.get_initial_guess_ac()
 
-        min_x0, min_y0, min_energy = self.find_minimum( f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
+        min_x0, min_y0, min_energy = self.find_minimum(f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
 
-        x_new = np.linspace(min(self.lattice_a[:,0]), max(self.lattice_a[:,0]), 100)
-        y_new = np.linspace(min(self.lattice_c[0,:]), max(self.lattice_c[0,:]), 100)
+        x_new = np.linspace(min(self.lattice_a[:, 0]), max(self.lattice_a[:, 0]), 100)
+        y_new = np.linspace(min(self.lattice_c[0, :]), max(self.lattice_c[0, :]), 100)
         x_grid, y_grid = np.meshgrid(y_new, x_new)
 
         energy_interp = f_interp(x_new, y_new)
 
-        ax.plot_surface(x_grid, y_grid, energy_interp, cmap='viridis', alpha=0.6)
+        ax.plot_surface(x_grid, y_grid, energy_interp, cmap="viridis", alpha=0.6)
 
         # Set labels
-        ax.set_xlabel('Lattice parameter C (Å)')
-        ax.set_ylabel('Lattice parameter A (Å)')
-        ax.set_zlabel('Energy (eV)')
-        ax.set_title('BO Energy Surface in 3D')
+        ax.set_xlabel("Lattice parameter C (Å)")
+        ax.set_ylabel("Lattice parameter A (Å)")
+        ax.set_zlabel("Energy (eV)")
+        ax.set_title("BO Energy Surface in 3D")
 
         return fig
 
@@ -283,7 +299,7 @@ class QHA_2D(HasPickleIO):
             ]
             xy -= step_size * np.ravel(grad)
             if np.linalg.norm(grad) < tol:
-                #print(f"Converged after {it} iterations with {tol=}")
+                # print(f"Converged after {it} iterations with {tol=}")
                 break
         else:
             raise RuntimeError(f"Could not reach {tol=} after {max_iter=}")
@@ -300,20 +316,24 @@ class QHA_2D(HasPickleIO):
             ax: Matplotlib axis for the plot.
         """
         ax, fig, plt = get_ax_fig_plt(ax, figsize=(10, 8))
-        ax = fig.add_subplot(111, projection='3d')  # Create a 3D subplot
+        ax = fig.add_subplot(111, projection="3d")  # Create a 3D subplot
 
         tmesh = np.linspace(tstart, tstop, num)
         ph_energies = self.get_vib_free_energies(tstart, tstop, num)
-        a0 = self.lattice_a[:,0]
-        c0 = self.lattice_c[0,:]
+        a0 = self.lattice_a[:, 0]
+        c0 = self.lattice_c[0, :]
 
         if self.use_qha:
-            tot_en = self.energies[np.newaxis, :].T + ph_energies + self.volumes[np.newaxis, :].T * self.pressure / abu.eVA3_GPa
+            tot_en = (
+                self.energies[np.newaxis, :].T
+                + ph_energies
+                + self.volumes[np.newaxis, :].T * self.pressure / abu.eVA3_GPa
+            )
 
-            X, Y = np.meshgrid(self.lattice_c[0,:], self.lattice_a[:,0])
-            for  e in ( tot_en.T ):
-                ax.plot_surface(X, Y, e, cmap='viridis', alpha=0.7)
-                ax.plot_wireframe(X, Y, e, cmap='viridis')
+            X, Y = np.meshgrid(self.lattice_c[0, :], self.lattice_a[:, 0])
+            for e in tot_en.T:
+                ax.plot_surface(X, Y, e, cmap="viridis", alpha=0.7)
+                ax.plot_wireframe(X, Y, e, cmap="viridis")
 
             xy_init = self.get_initial_guess_ac()
             min_x, min_y, min_tot_en = np.zeros(num), np.zeros(num), np.zeros(num)
@@ -326,32 +346,46 @@ class QHA_2D(HasPickleIO):
 
                 xy_init = min_x[j], min_y[j]
 
-            ax.scatter(min_y, min_x, min_tot_en, color='c', s=100)
-            ax.plot(min_y, min_x, min_tot_en, color='c')
+            ax.scatter(min_y, min_x, min_tot_en, color="c", s=100)
+            ax.plot(min_y, min_x, min_tot_en, color="c")
 
         elif self.use_einfvib2:
-            a0 = self.lattice_a[1,1]
-            c0 = self.lattice_c[1,1]
-            da = self.lattice_a[0,1]-self.lattice_a[1,1]
-            dc = self.lattice_c[1,0]-self.lattice_c[1,1]
+            a0 = self.lattice_a[1, 1]
+            c0 = self.lattice_c[1, 1]
+            da = self.lattice_a[0, 1] - self.lattice_a[1, 1]
+            dc = self.lattice_c[1, 0] - self.lattice_c[1, 1]
             dF_dA, dF_dC, d2F_dA2, d2F_dC2, d2F_dAdC = (np.zeros(num) for _ in range(5))
 
             for i, e in enumerate(ph_energies.T):
-                dF_dA[i]=(e[0,1]-e[2,1])/(2*da)
-                dF_dC[i]=(e[1,0]-e[1,2])/(2*dc)
-                d2F_dA2[i]=(e[0,1]-2*e[1,1]+e[2,1])/(da)**2
-                d2F_dC2[i]=(e[1,0]-2*e[1,1]+e[1,2])/(dc)**2
-                d2F_dAdC[i] = (e[1,1] - e[1, 0] - e[0, 1] + e[0, 0]) / ( da * dc)
+                dF_dA[i] = (e[0, 1] - e[2, 1]) / (2 * da)
+                dF_dC[i] = (e[1, 0] - e[1, 2]) / (2 * dc)
+                d2F_dA2[i] = (e[0, 1] - 2 * e[1, 1] + e[2, 1]) / (da) ** 2
+                d2F_dC2[i] = (e[1, 0] - 2 * e[1, 1] + e[1, 2]) / (dc) ** 2
+                d2F_dAdC[i] = (e[1, 1] - e[1, 0] - e[0, 1] + e[0, 0]) / (da * dc)
 
-            tot_en2 = self.energies[np.newaxis, :].T + ph_energies[1,1] + self.volumes[np.newaxis, :].T * self.pressure / abu.eVA3_GPa
-            tot_en2 = tot_en2+ (self.lattice_a[np.newaxis, :].T - a0)*dF_dA + 0.5*(self.lattice_a[np.newaxis, :].T - a0)**2*d2F_dA2
-            tot_en2 = tot_en2+ (self.lattice_c[np.newaxis, :].T - c0)*dF_dC + 0.5*(self.lattice_c[np.newaxis, :].T - c0)**2*d2F_dC2
-            tot_en2 = tot_en2+ (self.lattice_c[np.newaxis, :].T - c0)*(self.lattice_a[np.newaxis, :].T - a0)*d2F_dAdC
+            tot_en2 = (
+                self.energies[np.newaxis, :].T
+                + ph_energies[1, 1]
+                + self.volumes[np.newaxis, :].T * self.pressure / abu.eVA3_GPa
+            )
+            tot_en2 = (
+                tot_en2
+                + (self.lattice_a[np.newaxis, :].T - a0) * dF_dA
+                + 0.5 * (self.lattice_a[np.newaxis, :].T - a0) ** 2 * d2F_dA2
+            )
+            tot_en2 = (
+                tot_en2
+                + (self.lattice_c[np.newaxis, :].T - c0) * dF_dC
+                + 0.5 * (self.lattice_c[np.newaxis, :].T - c0) ** 2 * d2F_dC2
+            )
+            tot_en2 = (
+                tot_en2 + (self.lattice_c[np.newaxis, :].T - c0) * (self.lattice_a[np.newaxis, :].T - a0) * d2F_dAdC
+            )
 
-            a = self.lattice_a[:,0]
-            c = self.lattice_c[0,:]
-            a_phdos = self.lattice_a[:,0]
-            c_phdos = self.lattice_c[0,:]
+            a = self.lattice_a[:, 0]
+            c = self.lattice_c[0, :]
+            a_phdos = self.lattice_a[:, 0]
+            c_phdos = self.lattice_c[0, :]
 
             xy_init = self.get_initial_guess_ac()
             min_x, min_y, min_tot_en2 = np.zeros(num), np.zeros(num), np.zeros(num)
@@ -367,21 +401,27 @@ class QHA_2D(HasPickleIO):
 
             X, Y = np.meshgrid(c, a)
             for e in tot_en2.T:
-                ax.plot_wireframe(X, Y, e, cmap='viridis')
-                ax.plot_surface(X, Y, e, cmap='viridis', alpha=0.7)
+                ax.plot_wireframe(X, Y, e, cmap="viridis")
+                ax.plot_surface(X, Y, e, cmap="viridis", alpha=0.7)
 
-            ax.scatter(min_y, min_x, min_tot_en2, color='c', s=100)
-            ax.plot(min_y, min_x, min_tot_en2, color='c')
+            ax.scatter(min_y, min_x, min_tot_en2, color="c", s=100)
+            ax.plot(min_y, min_x, min_tot_en2, color="c")
 
         else:
             raise RuntimeError("Invalid branch")
 
-        ax.scatter(self.lattice_c[0,self.iy0], self.lattice_a[self.ix0,0], self.energies[self.ix0, self.iy0], color='red', s=100)
+        ax.scatter(
+            self.lattice_c[0, self.iy0],
+            self.lattice_a[self.ix0, 0],
+            self.energies[self.ix0, self.iy0],
+            color="red",
+            s=100,
+        )
 
-        ax.set_xlabel('C')
-        ax.set_ylabel('A')
-        ax.set_zlabel('Free energy (eV)')
-        #ax.set_title('Free energies as a 3D Plot')
+        ax.set_xlabel("C")
+        ax.set_ylabel("A")
+        ax.set_zlabel("Free energy (eV)")
+        # ax.set_title('Free energies as a 3D Plot')
         plt.savefig("energy.pdf", format="pdf", bbox_inches="tight")
 
         return fig
@@ -405,7 +445,11 @@ class QHA_2D(HasPickleIO):
         min_x, min_y, min_tot_energy = np.zeros(num), np.zeros(num), np.zeros(num)
 
         if self.use_qha:
-            tot_energies = self.energies[np.newaxis, :].T + ph_energies + self.volumes[np.newaxis, :].T * self.pressure / abu.eVA3_GPa
+            tot_energies = (
+                self.energies[np.newaxis, :].T
+                + ph_energies
+                + self.volumes[np.newaxis, :].T * self.pressure / abu.eVA3_GPa
+            )
 
             # Initial guess for minimization
             xy_init = self.get_initial_guess_ac()
@@ -413,7 +457,7 @@ class QHA_2D(HasPickleIO):
             # Perform minimization for each temperature
             for j, energy in enumerate(tot_energies.T):
                 f_interp = RectBivariateSpline(self.lattice_a[:, 0], self.lattice_c[0, :], energy, kx=4, ky=4)
-                x, y, e = self.find_minimum( f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
+                x, y, e = self.find_minimum(f_interp, xy_init, tol=1e-6, max_iter=1000, step_size=0.01)
                 min_x[j] = x.item()
                 min_y[j] = y.item()
                 min_tot_energy[j] = e.item()
@@ -430,29 +474,42 @@ class QHA_2D(HasPickleIO):
             alpha_c = (min_y[2:] - min_y[:-2]) / (2 * dt) / min_y[1:-1]
             alpha_v = (min_volumes[2:] - min_volumes[:-2]) / (2 * dt) / min_volumes[1:-1]
 
-            ax.plot(tmesh[1:-1], alpha_a, color='b', label=r"$\alpha_a$ (QHA)", linewidth=2)
-            ax.plot(tmesh[1:-1], alpha_c, color='r', label=r"$\alpha_c$ (QHA)", linewidth=2)
-            #ax.plot(tmesh[1:-1], alpha_v, color='purple', label=r"$\alpha_v$ (QHA)", linewidth=2)
+            ax.plot(tmesh[1:-1], alpha_a, color="b", label=r"$\alpha_a$ (QHA)", linewidth=2)
+            ax.plot(tmesh[1:-1], alpha_c, color="r", label=r"$\alpha_c$ (QHA)", linewidth=2)
+            # ax.plot(tmesh[1:-1], alpha_v, color='purple', label=r"$\alpha_v$ (QHA)", linewidth=2)
 
         elif self.use_einfvib2:
-
-            a0 = self.lattice_a_from_phdos[1,1]
-            c0 = self.lattice_c_from_phdos[1,1]
-            da = self.lattice_a_from_phdos[0,1]-self.lattice_a_from_phdos[1,1]
-            dc = self.lattice_c_from_phdos[1,0]-self.lattice_c_from_phdos[1,1]
+            a0 = self.lattice_a_from_phdos[1, 1]
+            c0 = self.lattice_c_from_phdos[1, 1]
+            da = self.lattice_a_from_phdos[0, 1] - self.lattice_a_from_phdos[1, 1]
+            dc = self.lattice_c_from_phdos[1, 0] - self.lattice_c_from_phdos[1, 1]
 
             dF_dA, dF_dC, d2F_dA2, d2F_dC2, d2F_dAdC = (np.zeros(num) for _ in range(5))
             for i, e in enumerate(ph_energies.T):
-                dF_dA[i]=(e[0,1]-e[2,1])/(2*da)
-                dF_dC[i]=(e[1,0]-e[1,2])/(2*dc)
-                d2F_dA2[i]=(e[0,1]-2*e[1,1]+e[2,1])/(da)**2
-                d2F_dC2[i]=(e[1,0]-2*e[1,1]+e[1,2])/(dc)**2
-                d2F_dAdC[i] = (e[1,1] - e[1, 0] - e[0, 1] + e[0, 0]) / ( da * dc)
+                dF_dA[i] = (e[0, 1] - e[2, 1]) / (2 * da)
+                dF_dC[i] = (e[1, 0] - e[1, 2]) / (2 * dc)
+                d2F_dA2[i] = (e[0, 1] - 2 * e[1, 1] + e[2, 1]) / (da) ** 2
+                d2F_dC2[i] = (e[1, 0] - 2 * e[1, 1] + e[1, 2]) / (dc) ** 2
+                d2F_dAdC[i] = (e[1, 1] - e[1, 0] - e[0, 1] + e[0, 0]) / (da * dc)
 
-            tot_en2 = self.energies[np.newaxis, :].T + ph_energies[1,1] + self.volumes[np.newaxis, :].T * self.pressure / abu.eVA3_GPa
-            tot_en2 = tot_en2+ (self.lattice_a[np.newaxis, :].T - a0)*dF_dA + 0.5*(self.lattice_a[np.newaxis, :].T - a0)**2*d2F_dA2
-            tot_en2 = tot_en2+ (self.lattice_c[np.newaxis, :].T - c0)*dF_dC + 0.5*(self.lattice_c[np.newaxis, :].T - c0)**2*d2F_dC2
-            tot_en2 = tot_en2+ (self.lattice_c[np.newaxis, :].T - c0)*(self.lattice_a[np.newaxis, :].T - a0)*d2F_dAdC
+            tot_en2 = (
+                self.energies[np.newaxis, :].T
+                + ph_energies[1, 1]
+                + self.volumes[np.newaxis, :].T * self.pressure / abu.eVA3_GPa
+            )
+            tot_en2 = (
+                tot_en2
+                + (self.lattice_a[np.newaxis, :].T - a0) * dF_dA
+                + 0.5 * (self.lattice_a[np.newaxis, :].T - a0) ** 2 * d2F_dA2
+            )
+            tot_en2 = (
+                tot_en2
+                + (self.lattice_c[np.newaxis, :].T - c0) * dF_dC
+                + 0.5 * (self.lattice_c[np.newaxis, :].T - c0) ** 2 * d2F_dC2
+            )
+            tot_en2 = (
+                tot_en2 + (self.lattice_c[np.newaxis, :].T - c0) * (self.lattice_a[np.newaxis, :].T - a0) * d2F_dAdC
+            )
 
             gradient = np.zeros(2)
 
@@ -468,34 +525,34 @@ class QHA_2D(HasPickleIO):
 
                 xy_init = min_x[j], min_y[j]
 
-            A0 = self.lattice_a[self.ix0,self.iy0]
-            C0 = self.lattice_c[self.ix0,self.iy0]
-            scale = self.volumes[self.ix0,self.iy0]/A0**2/C0
-            min_v = min_x**2*min_y*scale
+            A0 = self.lattice_a[self.ix0, self.iy0]
+            C0 = self.lattice_c[self.ix0, self.iy0]
+            scale = self.volumes[self.ix0, self.iy0] / A0**2 / C0
+            min_v = min_x**2 * min_y * scale
 
             dt = tmesh[1] - tmesh[0]
             alpha_a = (min_x[2:] - min_x[:-2]) / (2 * dt) / min_x[1:-1]
             alpha_c = (min_y[2:] - min_y[:-2]) / (2 * dt) / min_y[1:-1]
             alpha_v = (min_v[2:] - min_v[:-2]) / (2 * dt) / min_v[1:-1]
 
-            ax.plot(tmesh[1:-1], alpha_a, linestyle='--', color='gold', label=r"$\alpha_a$ E$\infty$Vib2")
-            ax.plot(tmesh[1:-1], alpha_c, linestyle='--', color='teal', label=r"$\alpha_c$ E$\infty$Vib2")
-            #ax.plot(tmesh[1:-1], alpha_v, linestyle='--', color='darkorange', label=r"$\alpha_v$ E$\infty$Vib2")
+            ax.plot(tmesh[1:-1], alpha_a, linestyle="--", color="gold", label=r"$\alpha_a$ E$\infty$Vib2")
+            ax.plot(tmesh[1:-1], alpha_c, linestyle="--", color="teal", label=r"$\alpha_c$ E$\infty$Vib2")
+            # ax.plot(tmesh[1:-1], alpha_v, linestyle='--', color='darkorange', label=r"$\alpha_v$ E$\infty$Vib2")
 
         else:
             raise RuntimeError("Invalid branch.")
 
         # Save the data
         data_to_save = np.column_stack((tmesh[1:-1], alpha_v, alpha_a, alpha_c))
-        columns = ['#Tmesh', 'alpha_v', 'alpha_a', 'alpha_c']
-        file_path = 'thermal-expansion_data.txt'
+        columns = ["#Tmesh", "alpha_v", "alpha_a", "alpha_c"]
+        file_path = "thermal-expansion_data.txt"
         print(f"Writing thermal expansion data to: {file_path}")
-        np.savetxt(file_path, data_to_save, fmt='%4.6e', delimiter='\t\t',  header='\t\t\t'.join(columns), comments='')
+        np.savetxt(file_path, data_to_save, fmt="%4.6e", delimiter="\t\t", header="\t\t\t".join(columns), comments="")
 
         ax.grid(True)
         ax.legend(loc="best", shadow=True)
-        ax.set_xlabel('Temperature (K)')
-        ax.set_ylabel(r'Thermal Expansion Coefficients ($\alpha$)')
+        ax.set_xlabel("Temperature (K)")
+        ax.set_ylabel(r"Thermal Expansion Coefficients ($\alpha$)")
         plt.savefig("thermal_expansion.pdf", format="pdf", bbox_inches="tight")
 
         return fig
@@ -513,6 +570,7 @@ class QHA_2D(HasPickleIO):
             ax: Matplotlib axis object for plotting.
         """
         import matplotlib.pyplot as plt
+
         fig, axs = plt.subplots(1, 3, figsize=(18, 6), sharex=True)
 
         tmesh = np.linspace(tstart, tstop, num)
@@ -520,7 +578,11 @@ class QHA_2D(HasPickleIO):
         min_x, min_y, min_tot_energy = np.zeros(num), np.zeros(num), np.zeros(num)
 
         if self.use_qha:
-            tot_energies = self.energies[np.newaxis, :].T + ph_energies+ self.volumes[np.newaxis, :].T * self.pressure / abu.eVA3_GPa
+            tot_energies = (
+                self.energies[np.newaxis, :].T
+                + ph_energies
+                + self.volumes[np.newaxis, :].T * self.pressure / abu.eVA3_GPa
+            )
 
             # Initial guess for minimization
             xy_init = self.get_initial_guess_ac()
@@ -541,30 +603,43 @@ class QHA_2D(HasPickleIO):
             min_volumes = min_x**2 * min_y * scale
 
             # Plot min_x in the first subplot
-            axs[0].plot(tmesh, min_x, color='c', label=r"$a$ (QHA)", linewidth=2)
+            axs[0].plot(tmesh, min_x, color="c", label=r"$a$ (QHA)", linewidth=2)
             axs[1].set_title("Plots of a, c, and V (QHA)")
-            axs[1].plot(tmesh, min_y, color='r', label=r"$c$ (QHA)", linewidth=2)
-            axs[2].plot(tmesh, min_volumes, color='b', label=r"$V$ (QHA)", linewidth=2)
+            axs[1].plot(tmesh, min_y, color="r", label=r"$c$ (QHA)", linewidth=2)
+            axs[2].plot(tmesh, min_volumes, color="b", label=r"$V$ (QHA)", linewidth=2)
 
         elif self.use_einfvib2:
-
-            a0 = self.lattice_a[1,1]
-            c0 = self.lattice_c[1,1]
-            da = self.lattice_a[0,1]-self.lattice_a[1,1]
-            dc = self.lattice_c[1,0]-self.lattice_c[1,1]
+            a0 = self.lattice_a[1, 1]
+            c0 = self.lattice_c[1, 1]
+            da = self.lattice_a[0, 1] - self.lattice_a[1, 1]
+            dc = self.lattice_c[1, 0] - self.lattice_c[1, 1]
 
             dF_dA, dF_dC, d2F_dA2, d2F_dC2, d2F_dAdC = (np.zeros(num) for _ in range(5))
             for i, e in enumerate(ph_energies.T):
-                dF_dA[i]=(e[0,1]-e[2,1])/(2*da)
-                dF_dC[i]=(e[1,0]-e[1,2])/(2*dc)
-                d2F_dA2[i]=(e[0,1]-2*e[1,1]+e[2,1])/(da)**2
-                d2F_dC2[i]=(e[1,0]-2*e[1,1]+e[1,2])/(dc)**2
-                d2F_dAdC[i] = (e[1,1] - e[1, 0] - e[0, 1] + e[0, 0]) / ( da * dc)
+                dF_dA[i] = (e[0, 1] - e[2, 1]) / (2 * da)
+                dF_dC[i] = (e[1, 0] - e[1, 2]) / (2 * dc)
+                d2F_dA2[i] = (e[0, 1] - 2 * e[1, 1] + e[2, 1]) / (da) ** 2
+                d2F_dC2[i] = (e[1, 0] - 2 * e[1, 1] + e[1, 2]) / (dc) ** 2
+                d2F_dAdC[i] = (e[1, 1] - e[1, 0] - e[0, 1] + e[0, 0]) / (da * dc)
 
-            tot_en2 = self.energies[np.newaxis, :].T + ph_energies[1,1] + self.volumes[np.newaxis, :].T * self.pressure / abu.eVA3_GPa
-            tot_en2 = tot_en2 + (self.lattice_a[np.newaxis, :].T - a0)*dF_dA + 0.5*(self.lattice_a[np.newaxis, :].T - a0)**2*d2F_dA2
-            tot_en2 = tot_en2 + (self.lattice_c[np.newaxis, :].T - c0)*dF_dC + 0.5*(self.lattice_c[np.newaxis, :].T - c0)**2*d2F_dC2
-            tot_en2 = tot_en2 + (self.lattice_c[np.newaxis, :].T - c0)*(self.lattice_a[np.newaxis, :].T - a0)*d2F_dAdC
+            tot_en2 = (
+                self.energies[np.newaxis, :].T
+                + ph_energies[1, 1]
+                + self.volumes[np.newaxis, :].T * self.pressure / abu.eVA3_GPa
+            )
+            tot_en2 = (
+                tot_en2
+                + (self.lattice_a[np.newaxis, :].T - a0) * dF_dA
+                + 0.5 * (self.lattice_a[np.newaxis, :].T - a0) ** 2 * d2F_dA2
+            )
+            tot_en2 = (
+                tot_en2
+                + (self.lattice_c[np.newaxis, :].T - c0) * dF_dC
+                + 0.5 * (self.lattice_c[np.newaxis, :].T - c0) ** 2 * d2F_dC2
+            )
+            tot_en2 = (
+                tot_en2 + (self.lattice_c[np.newaxis, :].T - c0) * (self.lattice_a[np.newaxis, :].T - a0) * d2F_dAdC
+            )
 
             # Initial guess for minimization
             xy_init = self.get_initial_guess_ac()
@@ -583,10 +658,10 @@ class QHA_2D(HasPickleIO):
             scale = self.volumes[self.ix0, self.iy0] / A0**2 / C0
             min_volumes = min_x**2 * min_y * scale
 
-            axs[0].plot(tmesh, min_x, color='c', label=r"$a$ (E$\infty$Vib2)", linewidth=2)
+            axs[0].plot(tmesh, min_x, color="c", label=r"$a$ (E$\infty$Vib2)", linewidth=2)
             axs[1].set_title(r"Plots of a, c, and V (E$\infty$Vib2)")
-            axs[1].plot(tmesh, min_y, color='r', label=r"$c$ (E$\infty$Vib2)", linewidth=2)
-            axs[2].plot(tmesh, min_volumes, color='b', label=r"$V$ (E$\infty$Vib2)", linewidth=2)
+            axs[1].plot(tmesh, min_y, color="r", label=r"$c$ (E$\infty$Vib2)", linewidth=2)
+            axs[2].plot(tmesh, min_volumes, color="b", label=r"$V$ (E$\infty$Vib2)", linewidth=2)
 
         else:
             raise RuntimeError("Invalid branch.")

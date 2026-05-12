@@ -1,50 +1,55 @@
 #!/usr/bin/env python
 """GS+NSCF calculation for FeBiO3"""
-import sys
-import numpy as np
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
-import abipy.data as abidata
 
+import sys
 from itertools import product
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
+from abipy.benchmarks import BenchmarkFlow, bench_main
 from abipy.flowtk import ParalHints
-from abipy.benchmarks import bench_main, BenchmarkFlow
 
 unit_cell = dict(
-            acell=3*[1.0385008112E+01],
-            natom=10,
-           ntypat=3,
-            typat=[1,1,2,2,3,3,3,3,3,3],
-            znucl=[26,83,8],
-             xred=[[1.4071110772E-03,1.4071110772E-03,1.4071110772E-03],
-                   [ 5.0140711108E-01, 5.0140711108E-01, 5.0140711108E-01],
-                   [ 2.7037366934E-01, 2.7037366934E-01, 2.7037366934E-01],
-                   [ 7.7037366934E-01, 7.7037366934E-01, 7.7037366934E-01],
-                   [ 3.1190076695E-01, 1.6941360694E-01, 7.1602835037E-01],
-                   [ 1.6941360694E-01, 7.1602835037E-01, 3.1190076695E-01],
-                   [ 7.1602835037E-01, 3.1190076695E-01, 1.6941360694E-01],
-                   [ 2.1602835037E-01, 6.6941360694E-01, 8.1190076695E-01],
-                   [ 8.1190076695E-01, 2.1602835037E-01, 6.6941360694E-01],
-                   [ 6.6941360694E-01, 8.1190076695E-01, 2.1602835037E-01]],
-            rprim=[[ 5.7864276271E-01,  0.0000000000E+00,  8.1558111379E-01],
-                   [ -2.8932138135E-01,  5.0111933222E-01,  8.1558111379E-01],
-                   [ -2.8932138135E-01, -5.0111933222E-01,  8.1558111379E-01]],
+    acell=3 * [1.0385008112e01],
+    natom=10,
+    ntypat=3,
+    typat=[1, 1, 2, 2, 3, 3, 3, 3, 3, 3],
+    znucl=[26, 83, 8],
+    xred=[
+        [1.4071110772e-03, 1.4071110772e-03, 1.4071110772e-03],
+        [5.0140711108e-01, 5.0140711108e-01, 5.0140711108e-01],
+        [2.7037366934e-01, 2.7037366934e-01, 2.7037366934e-01],
+        [7.7037366934e-01, 7.7037366934e-01, 7.7037366934e-01],
+        [3.1190076695e-01, 1.6941360694e-01, 7.1602835037e-01],
+        [1.6941360694e-01, 7.1602835037e-01, 3.1190076695e-01],
+        [7.1602835037e-01, 3.1190076695e-01, 1.6941360694e-01],
+        [2.1602835037e-01, 6.6941360694e-01, 8.1190076695e-01],
+        [8.1190076695e-01, 2.1602835037e-01, 6.6941360694e-01],
+        [6.6941360694e-01, 8.1190076695e-01, 2.1602835037e-01],
+    ],
+    rprim=[
+        [5.7864276271e-01, 0.0000000000e00, 8.1558111379e-01],
+        [-2.8932138135e-01, 5.0111933222e-01, 8.1558111379e-01],
+        [-2.8932138135e-01, -5.0111933222e-01, 8.1558111379e-01],
+    ],
 )
 
 global_vars = dict(
     paral_kgb=0,
     ecut=50,
     nstep=500,
-    spinat=[[0.0000000000E+00,  0.0000000000E+00,  3.5716762600E+00],
-            [0.0000000000E+00,  0.0000000000E+00, -3.5716762600E+00],
-            [0.0000000000E+00,  0.0000000000E+00,  0.0000000000E+00],
-            [0.0000000000E+00,  0.0000000000E+00,  0.0000000000E+00],
-            [0.0000000000E+00,  0.0000000000E+00,  0.0000000000E+00],
-            [0.0000000000E+00,  0.0000000000E+00,  0.0000000000E+00],
-            [0.0000000000E+00,  0.0000000000E+00,  0.0000000000E+00],
-            [0.0000000000E+00,  0.0000000000E+00,  0.0000000000E+00],
-            [0.0000000000E+00,  0.0000000000E+00,  0.0000000000E+00],
-            [0.0000000000E+00,  0.0000000000E+00,  0.0000000000E+00]],
+    spinat=[
+        [0.0000000000e00, 0.0000000000e00, 3.5716762600e00],
+        [0.0000000000e00, 0.0000000000e00, -3.5716762600e00],
+        [0.0000000000e00, 0.0000000000e00, 0.0000000000e00],
+        [0.0000000000e00, 0.0000000000e00, 0.0000000000e00],
+        [0.0000000000e00, 0.0000000000e00, 0.0000000000e00],
+        [0.0000000000e00, 0.0000000000e00, 0.0000000000e00],
+        [0.0000000000e00, 0.0000000000e00, 0.0000000000e00],
+        [0.0000000000e00, 0.0000000000e00, 0.0000000000e00],
+        [0.0000000000e00, 0.0000000000e00, 0.0000000000e00],
+        [0.0000000000e00, 0.0000000000e00, 0.0000000000e00],
+    ],
     nsppol=2,
     nspden=2,
     diemac=5,
@@ -55,10 +60,10 @@ global_vars = dict(
     ecutsm=0.5,
     nband=60,
     nbdbuf=5,
-    ngkpt=[8,8,8],
-    shiftk=[0.0,0.0,0.0],
+    ngkpt=[8, 8, 8],
+    shiftk=[0.0, 0.0, 0.0],
     nsym=1,
-    #iomode=3
+    # iomode=3
 )
 
 
@@ -67,9 +72,8 @@ def make_inputs(options):
 
     if options.paw:
         raise RuntimeError("PAW is not implemented")
-    else:
-        pseudos = abidata.pseudos("26fe.pspnc", "83-Bi.GGA.fhi", '8o.pspnc')
-        #pseudos = ["fe.pot", "bi.pot", 'o.pot']
+    pseudos = abidata.pseudos("26fe.pspnc", "83-Bi.GGA.fhi", "8o.pspnc")
+    # pseudos = ["fe.pot", "bi.pot", 'o.pot']
 
     gs_inp = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=2)
     gs_inp.set_vars(global_vars)
@@ -104,13 +108,15 @@ def build_flow(options):
     else:
         print("Initializing autoparal from command line options")
         pconfs = ParalHints.from_mpi_omp_lists(mpi_list, options.omp_list)
-        if options.verbose: print(pconfs)
+        if options.verbose:
+            print(pconfs)
 
     work = flowtk.Work()
     for conf, omp_threads in product(pconfs, options.omp_list):
         mpi_procs = conf.mpi_ncpus
-        #if not options.accept_mpi_omp(mpi_procs,omp_threads): continue
-        if not options.accept_conf(conf,omp_threads): continue
+        # if not options.accept_mpi_omp(mpi_procs,omp_threads): continue
+        if not options.accept_conf(conf, omp_threads):
+            continue
 
         manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
         inp = gs_inp.new_with_vars(conf.vars)
@@ -130,7 +136,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return
+        return None
     return build_flow(options)
 
 

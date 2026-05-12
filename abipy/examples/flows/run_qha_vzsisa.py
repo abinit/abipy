@@ -5,12 +5,12 @@ Flow for v-ZSISA-QHA calculations
 
 See [Phys. Rev. B 110, 014103](https://doi.org/10.1103/PhysRevB.110.014103)
 """
-import sys
-import os
-import abipy.abilab as abilab
-import abipy.data as abidata
 
-from abipy import flowtk
+import os
+import sys
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
 from abipy.flowtk.vzsisa import VzsisaFlow
 
 
@@ -28,6 +28,7 @@ def build_flow(options):
 
     # Get NC pseudos from pseudodojo.
     from abipy.flowtk.psrepos import get_oncvpsp_pseudos
+
     pseudos = get_oncvpsp_pseudos(xc_name="PBEsol", version="0.4")
 
     # Select k-mesh for electrons and q-mesh for phonons. NB: ngqpt should be a divisor of ngkpt.
@@ -38,13 +39,13 @@ def build_flow(options):
     # BECS are not needed for Si.
     with_becs = True
     with_quad = True
-    #with_quad = not structure.has_zero_dynamical_quadrupoles
+    # with_quad = not structure.has_zero_dynamical_quadrupoles
 
     # List of volumetric scaling factors for the BO energies and the phonon part.
-    #bo_vol_scales = [0.96, 0.98, 1.0, 1.02, 1.04, 1.06]
-    #ph_vol_scales = [0.98, 1.0, 1.02, 1.04, 1.06] # EinfVib4(D)
-    bo_vol_scales = [0.96, 0.98, 1, 1.02, 1.04]    # EinfVib4(S)
-    ph_vol_scales = [1, 1.02, 1.04]                # EinfVib2(D)
+    # bo_vol_scales = [0.96, 0.98, 1.0, 1.02, 1.04, 1.06]
+    # ph_vol_scales = [0.98, 1.0, 1.02, 1.04, 1.06] # EinfVib4(D)
+    bo_vol_scales = [0.96, 0.98, 1, 1.02, 1.04]  # EinfVib4(S)
+    ph_vol_scales = [1, 1.02, 1.04]  # EinfVib2(D)
 
     scf_input = abilab.AbinitInput(structure, pseudos)
 
@@ -56,16 +57,17 @@ def build_flow(options):
         nbdbuf=0,
         nstep=100,
         ecutsm=1.0,
-        tolvrs=1.0e-8,   # SCF stopping criterion (modify default)
-        #tolvrs=1.0e-18, # SCF stopping criterion (modify default)
+        tolvrs=1.0e-8,  # SCF stopping criterion (modify default)
+        # tolvrs=1.0e-18, # SCF stopping criterion (modify default)
         paral_kgb=0,
     )
 
     scf_input.set_kmesh(ngkpt=ngkpt, shiftk=[0, 0, 0])
     print("scf_input\n", scf_input)
 
-    return VzsisaFlow.from_scf_input(options.workdir, scf_input, bo_vol_scales, ph_vol_scales, ngqpt,
-                                     with_becs, with_quad, edos_ngkpt=None)
+    return VzsisaFlow.from_scf_input(
+        options.workdir, scf_input, bo_vol_scales, ph_vol_scales, ngqpt, with_becs, with_quad, edos_ngkpt=None
+    )
 
 
 # This block generates the thumbnails in the Abipy gallery.
@@ -73,6 +75,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

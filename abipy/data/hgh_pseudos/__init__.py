@@ -1,4 +1,5 @@
 import os
+
 from abipy.flowtk import PseudoTable
 
 _root = os.path.dirname(__file__)
@@ -22,4 +23,4 @@ for pseudo in HGH_TABLE:
     pseudo.dojo_report["hints"] = {}
     for accuracy in ["low", "normal", "high"]:
         pseudo.dojo_report["hints"][accuracy] = {"ecut": 50}
-    #assert pseudo.has_hints
+    # assert pseudo.has_hints

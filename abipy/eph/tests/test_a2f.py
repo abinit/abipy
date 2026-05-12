@@ -1,17 +1,18 @@
 """Tests for a2f module."""
-import numpy as np
-import abipy.data as abidata
 
+import numpy as np
+
+import abipy.data as abidata
 from abipy import abilab
 from abipy.core.testing import AbipyTest
 
 
 class A2fFileTest(AbipyTest):
-
     def test_a2fnc_file(self):
         """Tests for A2fFile."""
         ncfile = abilab.abiopen(abidata.ref_file("al_888k_161616q_A2F.nc"))
-        repr(ncfile); str(ncfile)
+        repr(ncfile)
+        str(ncfile)
         assert ncfile.to_string(verbose=2)
         assert ncfile.params["nspinor"] == ncfile.nspinor
         assert "eph_fsewin" in ncfile.params
@@ -19,7 +20,7 @@ class A2fFileTest(AbipyTest):
         # Ebands
         assert ncfile.nsppol == 1 and ncfile.nspden == 1 and ncfile.nspinor == 1
         assert ncfile.ebands.kpoints.is_ibz
-        #self.assert_equal(ncfile.ebands.kpoints.ksampling.mpdivs, [8, 8, 8])
+        # self.assert_equal(ncfile.ebands.kpoints.ksampling.mpdivs, [8, 8, 8])
         self.assert_equal(ncfile.ebands.kpoints.ksampling.mpdivs, [12, 12, 12])
         # Phbands
         assert ncfile.phbands.qpoints.is_path
@@ -36,28 +37,29 @@ class A2fFileTest(AbipyTest):
 
         # Test edos
         # TODO
-        #ncfile.edos
-        #if self.has_matplotlib():
-            #assert ncfile.edos.plot(show=False)
+        # ncfile.edos
+        # if self.has_matplotlib():
+        # assert ncfile.edos.plot(show=False)
 
         # Test A2f(w) function.
         a2f = ncfile.a2f_qcoarse
         assert ncfile.get_a2f_qsamp("qcoarse") is a2f
-        repr(a2f); str(a2f)
+        repr(a2f)
+        str(a2f)
         a2f.to_string(verbose=2)
         assert a2f.nsppol == ncfile.nsppol and a2f.nmodes == 3 * len(ncfile.structure)
         assert a2f.iw0 == 0
-        #assert a2f.mesh
-        #assert a2f.values_spin
+        # assert a2f.mesh
+        # assert a2f.values_spin
         m1 = a2f.get_moment(n=1)
-        #self.assert_almost_equal(m1/2, a2f.get_moment(n=1, spin=0))
-        #self.assert_almost_equal(self.lambda_iso, )
-        #self.assert_almost_equal(self.omega_log, )
+        # self.assert_almost_equal(m1/2, a2f.get_moment(n=1, spin=0))
+        # self.assert_almost_equal(self.lambda_iso, )
+        # self.assert_almost_equal(self.omega_log, )
         tc = a2f.get_mcmillan_tc(mustar=0.1)
-        #self.assert_almost_equal(tc, )
+        # self.assert_almost_equal(tc, )
         mustar = a2f.get_mustar_from_tc(tc)
         self.assert_almost_equal(mustar, 0.1)
-        #self.assert_almost_equal(a2f.get_mcmillan_tc(mustar), tc)
+        # self.assert_almost_equal(a2f.get_mcmillan_tc(mustar), tc)
 
         assert not ncfile.has_a2ftr
         assert ncfile.a2ftr_qcoarse is None
@@ -88,25 +90,25 @@ class A2fFileTest(AbipyTest):
 
 
 class A2fRobotTest(AbipyTest):
-
     def test_a2f_robot(self):
         """Test A2fRobot."""
         files = abidata.ref_files(
-                "al_888k_161616q_A2F.nc",
-                #"al_888k_161616q_A2F.nc",
+            "al_888k_161616q_A2F.nc",
+            # "al_888k_161616q_A2F.nc",
         )
         with abilab.A2fRobot.from_files(files[0]) as robot:
             robot.add_file("same_a2f", files[0])
             assert len(robot) == 2
-            repr(robot); str(robot)
+            repr(robot)
+            str(robot)
             robot.to_string(verbose=2)
-            #assert [t[2] for t in robot.sortby("nkpt")] == [10, 60, 182]
+            # assert [t[2] for t in robot.sortby("nkpt")] == [10, 60, 182]
 
             df_params = robot.get_params_dataframe()
             self.assert_equal(df_params["nspden"].values, 1)
 
             data = robot.get_dataframe(with_geo=True)
-            #assert "lambda_qcoarse" in data and "omegalog_qintp" in data
+            # assert "lambda_qcoarse" in data and "omegalog_qintp" in data
 
             # Mixin
             phbands_plotter = robot.get_phbands_plotter()
@@ -132,7 +134,7 @@ class A2fRobotTest(AbipyTest):
                 assert robot.plot_a2fdata_convergence(show=False, sortby=None, hue="nkpt")
                 assert robot.gridplot_a2f(show=False)
 
-                #assert robot.plot_a2ftr_convergence(show=False, sortby=None, hue="nkpt")
+                # assert robot.plot_a2ftr_convergence(show=False, sortby=None, hue="nkpt")
 
             if self.has_nbformat():
                 robot.write_notebook(nbpath=self.get_tmpname(text=True))

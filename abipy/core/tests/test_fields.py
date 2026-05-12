@@ -1,12 +1,21 @@
 #!/usr/bin/env python
 """Tests for core.field module"""
-import numpy as np
-import os
-import pymatgen.core.units as pmgu
-import abipy.data as abidata
 
-from pymatgen.core.units import bohr_to_angstrom
-from abipy.core.fields import _Field, FieldReader, Density, VxcPotential, VhartreePotential, VhxcPotential, core_density_from_file
+import os
+
+import numpy as np
+import pymatgen.core.units as pmgu
+
+import abipy.data as abidata
+from abipy.core.fields import (
+    Density,
+    FieldReader,
+    VhartreePotential,
+    VhxcPotential,
+    VxcPotential,
+    _Field,
+    core_density_from_file,
+)
 from abipy.core.testing import AbipyTest
 from abipy.iotools import *
 
@@ -23,8 +32,9 @@ class TestScalarField(AbipyTest):
 
         field = _Field(nspinor, nsppol, nspden, datar, structure, iorder="c")
 
-        repr(field); str(field)
-        assert field.datar.ndim ==  4
+        repr(field)
+        str(field)
+        assert field.datar.ndim == 4
         assert len(field) == nsppol
         assert field.shape == datar.shape
         assert datar.shape == (field.nspden, field.nx, field.ny, field.nz)
@@ -38,14 +48,14 @@ class TestScalarField(AbipyTest):
         self.assert_equal(field.std(space="g"), field.datag.std(axis=0))
 
         field.export(self.get_tmpname(text=True, suffix=".xsf"))
-        #visu = field.visualize(appname="vesta")
-        #assert callable(visu)
+        # visu = field.visualize(appname="vesta")
+        # assert callable(visu)
 
         # Field "algebra"
-        #assert field.datar_xyz.ndim == 4
-        #assert field.datar_xyz.shape[-3:], xyz_shape)
+        # assert field.datar_xyz.ndim == 4
+        # assert field.datar_xyz.shape[-3:], xyz_shape)
         other = field + field
-        assert other.nspden == field.nspden  and np.all(other.datar == 2 * field.datar)
+        assert other.nspden == field.nspden and np.all(other.datar == 2 * field.datar)
         other = other - field
         assert other.nspden == field.nspden
         self.assert_almost_equal(other.datar, field.datar)
@@ -60,15 +70,15 @@ class TestScalarField(AbipyTest):
         self.assert_almost_equal(other.datag, field.datag * np.pi)
         self.assert_equal((np.pi * field).datar, other.datar)
 
-        other = - field / np.pi
-        self.assert_equal(other.datar, - field.datar / np.pi)
+        other = -field / np.pi
+        self.assert_equal(other.datar, -field.datar / np.pi)
         other = abs(field)
         self.assert_equal(other.datar, abs(field.datar))
-        #other = np.pi / field
-        #self.assert_equal(other.datar, np.pi / field.datar)
+        # other = np.pi / field
+        # self.assert_equal(other.datar, np.pi / field.datar)
 
         other = field + 3
-        other = (field / field)
+        other = field / field
         self.assert_equal(other.datar, 1.0)
 
         with self.assertRaises(TypeError):
@@ -86,7 +96,8 @@ class TestScalarField(AbipyTest):
     def test_silicon_density(self):
         """Testing density object (spin unpolarized)."""
         si_den = Density.from_file(abidata.ref_file("si_DEN.nc"))
-        repr(si_den); str(si_den)
+        repr(si_den)
+        str(si_den)
         assert si_den.nspinor == 1 and si_den.nsppol == 1 and si_den.nspden == 1
         assert si_den.is_collinear
         assert si_den.structure.formula == "Si2"
@@ -172,26 +183,41 @@ class TestScalarField(AbipyTest):
 
         # Test creation of AE core density. Use low parameters to reduce time
         rhoc = {"Si": core_density_from_file(os.path.join(abidata.pseudo_dir, "Si.fc"))}
-        core_den_1 = Density.ae_core_density_on_mesh(si_den, si_den.structure, rhoc, maxr=1.5,
-                                                     method='get_sites_in_sphere', small_dist_mesh=(6, 6, 6))
-        core_den_2 = Density.ae_core_density_on_mesh(si_den, si_den.structure, rhoc, maxr=1.5,
-                                                     method='mesh3d_dist_gridpoints', small_dist_mesh=(6, 6, 6))
+        core_den_1 = Density.ae_core_density_on_mesh(
+            si_den, si_den.structure, rhoc, maxr=1.5, method="get_sites_in_sphere", small_dist_mesh=(6, 6, 6)
+        )
+        core_den_2 = Density.ae_core_density_on_mesh(
+            si_den, si_den.structure, rhoc, maxr=1.5, method="mesh3d_dist_gridpoints", small_dist_mesh=(6, 6, 6)
+        )
         self.assertAlmostEqual(np.sum(core_den_1.datar) * si_den.mesh.dv, 20, delta=0.5)
         self.assert_almost_equal(core_den_1.datar, core_den_2.datar, decimal=1)
         with self.assertRaises(ValueError):
-            Density.ae_core_density_on_mesh(si_den, si_den.structure, rhoc, maxr=1, nelec=20, tol=0.001,
-                                            method='get_sites_in_sphere', small_dist_mesh=(2, 2, 2))
+            Density.ae_core_density_on_mesh(
+                si_den,
+                si_den.structure,
+                rhoc,
+                maxr=1,
+                nelec=20,
+                tol=0.001,
+                method="get_sites_in_sphere",
+                small_dist_mesh=(2, 2, 2),
+            )
 
     def test_ni_density(self):
         """Testing density object (spin polarized, collinear)."""
         ni_den = Density.from_file(abidata.ref_file("ni_666k_DEN.nc"))
-        repr(ni_den); str(ni_den)
+        repr(ni_den)
+        str(ni_den)
         assert ni_den.to_string(verbose=1)
 
-        self.assert_almost_equal(ni_den.mesh.vectors, pmgu.bohr_to_angstrom *
-            np.reshape([0.0000000, 3.3259180, 3.3259180,
-                        3.3259180, 0.0000000, 3.3259180,
-                        3.3259180, 3.3259180, 0.0000000], (3, 3)))
+        self.assert_almost_equal(
+            ni_den.mesh.vectors,
+            pmgu.bohr_to_angstrom
+            * np.reshape(
+                [0.0000000, 3.3259180, 3.3259180, 3.3259180, 0.0000000, 3.3259180, 3.3259180, 3.3259180, 0.0000000],
+                (3, 3),
+            ),
+        )
 
         assert ni_den.nspinor == 1 and ni_den.nsppol == 2 and ni_den.nspden == 2
         assert ni_den.is_collinear
@@ -241,7 +267,7 @@ class TestScalarField(AbipyTest):
         self.assert_almost_equal(avg_a, avg_c)
 
         if self.has_matplotlib():
-            assert ni_den.plot_line([0, 0, 0],  [1, 1, 1], num=1000, show=False)
+            assert ni_den.plot_line([0, 0, 0], [1, 1, 1], num=1000, show=False)
             assert ni_den.plot_line_neighbors(site_index=0, radius=1, num=50, max_nn=10) is None
             assert ni_den.plot_line_neighbors(site_index=0, radius=3, num=50, max_nn=10, show=False)
             assert ni_den.plot_planar_average(direction="a", spin=1, show=True)
@@ -278,13 +304,13 @@ class TestScalarField(AbipyTest):
         assert vxc.is_collinear
         assert not vxc.is_density_like
         assert vxc.is_potential_like
-        #assert vxc.datar.dtype == np.float
+        # assert vxc.datar.dtype == np.float
         fact = pmgu.Ha_to_eV
         self.assert_almost_equal(vxc.datar[0, 0, 0, 0], -2.40411892342838 * fact)
         self.assert_almost_equal(vxc.datar[0, 0, 0, 1], -2.31753083824603 * fact)
 
         if self.has_matplotlib():
-            assert vxc.plot_line([0, 0, 0],  [1, 1, 1], num=1000, show=False)
+            assert vxc.plot_line([0, 0, 0], [1, 1, 1], num=1000, show=False)
 
         vh = VhartreePotential.from_file(abidata.ref_file("ni_666k_VHA.nc"))
         assert vh.nsppol == 2 and vh.nspden == 2

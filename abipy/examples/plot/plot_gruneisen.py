@@ -7,6 +7,7 @@ This example shows how to analyze the Gruneisen parameters
 computed by anaddb via finite difference.
 See also v8/Input/t45.in
 """
+
 import abipy.data as abidata
 from abipy import abilab
 
@@ -24,10 +25,11 @@ ncfile.plot_phbands_with_gruns(title="Phonon bands with markers proportional to 
 
 ncfile.plot_gruns_bs(title="Gruneisen along high-symmetry path.")
 
-ncfile.plot_phbands_with_gruns(fill_with="gruns_fd",
-                               title="Gruneisen parameters with finite differences.", with_phdoses=None)
+ncfile.plot_phbands_with_gruns(
+    fill_with="gruns_fd", title="Gruneisen parameters with finite differences.", with_phdoses=None
+)
 
-ncfile.plot_gruns_scatter(units='cm-1',title="Scatter plot with Gruneisen parameters")
+ncfile.plot_gruns_scatter(units="cm-1", title="Scatter plot with Gruneisen parameters")
 
 # Construct plotter object to analyze multiple phonon bands.
 plotter = ncfile.get_plotter()

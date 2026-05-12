@@ -7,12 +7,13 @@ Warning: This code is still under development.
 This example shows to run calculations with the
 ZSISA quasi-harmonic approximation and two degrees of freedom.
 """
-import sys
-import os
-import numpy as np
-import abipy.abilab as abilab
 
-from abipy import flowtk
+import os
+import sys
+
+import numpy as np
+
+from abipy import abilab, flowtk
 from abipy.flowtk.qha_2d import Qha2dFlow
 
 
@@ -47,6 +48,7 @@ rprim
 
     # Use NC PBEsol pseudos from pseudodojo v0.4
     from abipy.flowtk.psrepos import get_oncvpsp_pseudos
+
     pseudos = get_oncvpsp_pseudos(xc_name="PBEsol", version="0.4")
 
     scf_input = abilab.AbinitInput(structure, pseudos)
@@ -54,30 +56,33 @@ rprim
     # Set other important variables
     scf_input.set_vars(
         nband=scf_input.num_valence_electrons // 2,
-        #nline=10,
+        # nline=10,
         nbdbuf=0,
         nstep=100,
         ecutsm=1.0,
-        #tolvrs=1.0e-18,    # SCF stopping criterion.
-        tolvrs=1.0e-6,      # SCF stopping criterion.
+        # tolvrs=1.0e-18,    # SCF stopping criterion.
+        tolvrs=1.0e-6,  # SCF stopping criterion.
         paral_kgb=0,
     )
 
     # Select k-mesh for electrons and q-mesh for phonons.
-    #ngkpt = [6, 6, 4]; ngqpt = [1, 1, 1]
-    ngkpt = [2, 2, 2]; ngqpt = [1, 1, 1]
+    # ngkpt = [6, 6, 4]; ngqpt = [1, 1, 1]
+    ngkpt = [2, 2, 2]
+    ngqpt = [1, 1, 1]
 
-    #scf_input.set_scf_nband_semicond()
+    # scf_input.set_scf_nband_semicond()
     scf_input.set_kmesh(ngkpt=ngkpt, shiftk=[0, 0, 0])
 
     bo_strains_a = [-5, 0, 5, 10, 15]
     bo_strains_c = [-5, 0, 5, 10, 15]
-    #bo_strains_a = [0, 5, 10, 15, 20]
-    #bo_strains_c = [0, 5, 10, 15, 20]
+    # bo_strains_a = [0, 5, 10, 15, 20]
+    # bo_strains_c = [0, 5, 10, 15, 20]
     # This is just for testing purposes
-    #bo_strains_a = [0, 5]
-    #bo_strains_c = [0, 5]
-    bo_strains_a = [0, ]
+    # bo_strains_a = [0, 5]
+    # bo_strains_c = [0, 5]
+    bo_strains_a = [
+        0,
+    ]
     bo_strains_c = [0, 5]
     bo_strains_a = np.array(bo_strains_a) / 100
     bo_strains_c = np.array(bo_strains_c) / 100
@@ -87,10 +92,11 @@ rprim
 
     with_becs = True
     with_quad = False
-    #with_quad = not structure.has_zero_dynamical_quadrupoles
+    # with_quad = not structure.has_zero_dynamical_quadrupoles
 
-    return Qha2dFlow.from_scf_input(options.workdir, scf_input, bo_strains_ac, phdos_strains_ac, ngqpt,
-                                    with_becs, with_quad, edos_ngkpt=None)
+    return Qha2dFlow.from_scf_input(
+        options.workdir, scf_input, bo_strains_ac, phdos_strains_ac, ngqpt, with_becs, with_quad, edos_ngkpt=None
+    )
 
 
 # This block generates the thumbnails in the Abipy gallery.
@@ -98,6 +104,7 @@ rprim
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

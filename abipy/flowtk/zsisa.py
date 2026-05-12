@@ -1,28 +1,36 @@
-# coding: utf-8
 """
 Workflows for calculations within the ZSISA approximation to the QHA.
 """
+
 from __future__ import annotations
 
-import itertools
 import dataclasses
+import itertools
+from functools import cached_property
+
 import numpy as np
 import pandas as pd
-import abipy.core.abinit_units as abu
 
-from functools import cached_property
-from abipy.tools.serialization import Serializable
-from abipy.tools.typing import PathLike, VectorLike, Figure
-from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, plot_xy_with_hue, set_visible, set_grid_legend
+import abipy.core.abinit_units as abu
 from abipy.abio.inputs import AbinitInput
-from abipy.electrons import GsrFile
 from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.deformation_utils import generate_deformations
-from abipy.dfpt.qha_general_stress import QHA_ZSISA, spgnum_to_crystal_system, cmat_inds_names
-from abipy.flowtk.tasks import RelaxTask
-from abipy.flowtk.works import Work, PhononWork
+from abipy.dfpt.qha_general_stress import QHA_ZSISA, cmat_inds_names, spgnum_to_crystal_system
+from abipy.electrons import GsrFile
 from abipy.flowtk.dfpt_works import ElasticWork
 from abipy.flowtk.flows import Flow
+from abipy.flowtk.tasks import RelaxTask
+from abipy.flowtk.works import PhononWork, Work
+from abipy.tools.plotting import (
+    add_fig_kwargs,
+    get_ax_fig_plt,
+    get_axarray_fig_plt,
+    plot_xy_with_hue,
+    set_grid_legend,
+    set_visible,
+)
+from abipy.tools.serialization import Serializable
+from abipy.tools.typing import Figure, PathLike, VectorLike
 
 
 class ZsisaFlow(Flow):
@@ -80,25 +88,27 @@ class ZsisaFlow(Flow):
     """
 
     @classmethod
-    def from_scf_input(cls,
-                       workdir: PathLike,
-                       scf_input: AbinitInput,
-                       eps: float,
-                       mode: str,
-                       ngqpt: VectorLike,
-                       with_becs: bool,
-                       with_quad: bool,
-                       temperatures: VectorLike,
-                       pressures_gpa: VectorLike,
-                       nqsmall_or_qppa: int,
-                       with_elastic: bool = True,
-                       ndivsm: int = 0,
-                       edos_ngkpt: VectorLike | None = None,
-                       ionmov: int = 2,
-                       tolmxf: float = 1e-5,
-                       qha_model: str = "zsisa",
-                       with_piezo: bool = False,
-                       manager=None) -> ZsisaFlow:
+    def from_scf_input(
+        cls,
+        workdir: PathLike,
+        scf_input: AbinitInput,
+        eps: float,
+        mode: str,
+        ngqpt: VectorLike,
+        with_becs: bool,
+        with_quad: bool,
+        temperatures: VectorLike,
+        pressures_gpa: VectorLike,
+        nqsmall_or_qppa: int,
+        with_elastic: bool = True,
+        ndivsm: int = 0,
+        edos_ngkpt: VectorLike | None = None,
+        ionmov: int = 2,
+        tolmxf: float = 1e-5,
+        qha_model: str = "zsisa",
+        with_piezo: bool = False,
+        manager=None,
+    ) -> ZsisaFlow:
         """
         Build a flow for ZSISA calculations from an |AbinitInput| representing a GS-SCF calculation.
 
@@ -159,9 +169,21 @@ class ZsisaFlow(Flow):
         if not with_elastic and mode == "ECs":
             raise ValueError(f"with_elastic = False is not compatible with {mode=}")
 
-        flow.register_work(ZsisaWork.from_scf_input(scf_input, eps, mode, ngqpt, with_becs, with_quad,
-                                                    nqsmall_or_qppa, ndivsm, ionmov, tolmxf,
-                                                    edos_ngkpt=edos_ngkpt))
+        flow.register_work(
+            ZsisaWork.from_scf_input(
+                scf_input,
+                eps,
+                mode,
+                ngqpt,
+                with_becs,
+                with_quad,
+                nqsmall_or_qppa,
+                ndivsm,
+                ionmov,
+                tolmxf,
+                edos_ngkpt=edos_ngkpt,
+            )
+        )
         return flow
 
     def on_all_ok(self):
@@ -172,6 +194,7 @@ class ZsisaFlow(Flow):
         for each temperature and pressure.
         """
         json_filepath = self.outdir.path_in("ZsisaResults.json")
+
         def _path(basename: str):
             return self.outdir.path_in(basename)
 
@@ -215,8 +238,11 @@ class ZsisaFlow(Flow):
 
         data["ddb_relax_paths"] = [ph_work.outdir.has_abiext("DDB") for ph_work in work.ph_works]
         data["gsr_relax_edos_paths"] = [] if not work.edos_work else [task.gsr_path for task in work.edos_work]
-        data["gsr_relax_ebands_paths"] = [] if work.ndivsm == 0 else \
-            [ph_work.ebands_task.gsr_path for ph_work in work.ph_works if ph_work.ebands_task is not None]
+        data["gsr_relax_ebands_paths"] = (
+            []
+            if work.ndivsm == 0
+            else [ph_work.ebands_task.gsr_path for ph_work in work.ph_works if ph_work.ebands_task is not None]
+        )
 
         # Init with empty list.
         data["thermal_relax_entries"] = []
@@ -236,19 +262,21 @@ class ZsisaWork(Work):
     """
 
     @classmethod
-    def from_scf_input(cls,
-                       scf_input: AbinitInput,
-                       eps: float,
-                       mode: str,
-                       ngqpt: VectorLike,
-                       with_becs: bool,
-                       with_quad: bool,
-                       nqsmall_or_qppa: int,
-                       ndivsm: int = 0,
-                       ionmov: int = 2,
-                       tolmxf: float = 1e-5,
-                       edos_ngkpt: VectorLike | None = None,
-                       manager=None) -> ZsisaWork:
+    def from_scf_input(
+        cls,
+        scf_input: AbinitInput,
+        eps: float,
+        mode: str,
+        ngqpt: VectorLike,
+        with_becs: bool,
+        with_quad: bool,
+        nqsmall_or_qppa: int,
+        ndivsm: int = 0,
+        ionmov: int = 2,
+        tolmxf: float = 1e-5,
+        edos_ngkpt: VectorLike | None = None,
+        manager=None,
+    ) -> ZsisaWork:
         """
         Build the work from an |AbinitInput| representing a GS-SCF calculation.
         See ZsisaFlow for the meaning of the arguments.
@@ -293,12 +321,15 @@ class ZsisaWork(Work):
 
             # Generate deformed structures with the associated indices in the phdos_6d matrix.
             self.strained_structures_dict, self.inds_6d, self.spgrp_number = generate_deformations(
-                relaxed_structure, self.eps, mode=self.mode)
+                relaxed_structure, self.eps, mode=self.mode
+            )
 
             # Relax each deformed structure with fixed unit cell (optcell 0).
             self.relax_tasks_strained = []
             for structure in self.strained_structures_dict.values():
-                task = self.register_relax_task(self.relax_template.new_with_structure(structure, optcell=0, dilatmx=1.0))
+                task = self.register_relax_task(
+                    self.relax_template.new_with_structure(structure, optcell=0, dilatmx=1.0)
+                )
                 self.relax_tasks_strained.append(task)
 
             self.flow.allocate(build=True)
@@ -314,12 +345,20 @@ class ZsisaWork(Work):
         self.ph_works = []
         self.edos_work = Work()
 
-        for task, strain_name, strain_ind in zip(self[1:], self.strained_structures_dict.keys(), self.inds_6d, strict=True):
+        for task, strain_name, strain_ind in zip(
+            self[1:], self.strained_structures_dict.keys(), self.inds_6d, strict=True
+        ):
             relaxed_structure = task.get_final_structure()
             scf_input = self.initial_scf_input.new_with_structure(relaxed_structure)
-            ph_work = PhononWork.from_scf_input(scf_input, self.ngqpt, is_ngqpt=True, tolerance=None,
-                                                with_becs=self.with_becs, with_quad=self.with_quad,
-                                                ndivsm=0 if np.any(strain_ind != 0) else self.ndivsm)
+            ph_work = PhononWork.from_scf_input(
+                scf_input,
+                self.ngqpt,
+                is_ngqpt=True,
+                tolerance=None,
+                with_becs=self.with_becs,
+                with_quad=self.with_quad,
+                ndivsm=0 if np.any(strain_ind != 0) else self.ndivsm,
+            )
 
             ph_work.set_name(strain_name)
             self.ph_works.append(ph_work)
@@ -347,12 +386,14 @@ class ThermalRelaxWork(Work):
     """
 
     @classmethod
-    def from_zsisa_flow(cls,
-                        zsisa_flow: Flow | PathLike,
-                        temperatures: VectorLike,
-                        pressures_gpa: VectorLike,
-                        nqsmall_or_qppa: int | None = None,
-                        verbose: int = 0) -> ThermalRelaxWork:
+    def from_zsisa_flow(
+        cls,
+        zsisa_flow: Flow | PathLike,
+        temperatures: VectorLike,
+        pressures_gpa: VectorLike,
+        nqsmall_or_qppa: int | None = None,
+        verbose: int = 0,
+    ) -> ThermalRelaxWork:
         """
         Args:
             zsisa_flow: instance of ZsisaFlow or directory hosting the Flow.
@@ -394,9 +435,9 @@ class ThermalRelaxWork(Work):
         # Generate initial ThermalRelaxTask tasks.
         work.thermal_relax_tasks = []
         for pressure_gpa, temperature in itertools.product(work.pressures_gpa, work.temperatures):
-            tdata = work.zsisa.get_tstress(temperature, pressure_gpa, work.mode,
-                                           structure_guess, stress_guess, energy_guess,
-                                           bo_elastic_voigt=None)
+            tdata = work.zsisa.get_tstress(
+                temperature, pressure_gpa, work.mode, structure_guess, stress_guess, energy_guess, bo_elastic_voigt=None
+            )
 
             # TODO: Relax options with ecutsm and strfact?
             extra_vars = {
@@ -406,7 +447,7 @@ class ThermalRelaxWork(Work):
                 "optcell": 2,
                 "dilatmx": 1.04,
                 "tolmxf": 1.0e-5,
-                "strfact": 1000.,  # Give more weight to the stress in the relaxation.
+                "strfact": 1000.0,  # Give more weight to the stress in the relaxation.
             }
 
             new_relax_input = relax_template.new_with_vars(**extra_vars)
@@ -448,10 +489,16 @@ class ThermalRelaxWork(Work):
                 stress_guess = gsr.cart_stress_tensor * abu.GPa_to_au
                 energy_guess = gsr.energy
 
-            tdata = zsisa.get_tstress(task.temperature, task.pressure_gpa, self.mode,
-                                      relaxed_structure, energy_guess, stress_guess,
-                                      bo_elastic_voigt=elastic_relaxed.voigt)
-            #print(tdata)
+            tdata = zsisa.get_tstress(
+                task.temperature,
+                task.pressure_gpa,
+                self.mode,
+                relaxed_structure,
+                energy_guess,
+                stress_guess,
+                bo_elastic_voigt=elastic_relaxed.voigt,
+            )
+            # print(tdata)
 
             # Init entry and add it to list.
             entry = dict(
@@ -483,6 +530,7 @@ class ThermalRelaxTask(RelaxTask):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: ThermalRelaxTask
     """
+
     def _post_init_(self):
         self.num_converged = 0
 
@@ -496,9 +544,15 @@ class ThermalRelaxTask(RelaxTask):
             energy_guess = gsr.energy
 
         zsisa = self.work.zsisa
-        tdata = zsisa.get_tstress(self.temperature, self.pressure_gpa, self.mode,
-                                  relaxed_structure, energy_guess, stress_guess,
-                                  bo_elastic_voigt=None)
+        tdata = zsisa.get_tstress(
+            self.temperature,
+            self.pressure_gpa,
+            self.mode,
+            relaxed_structure,
+            energy_guess,
+            stress_guess,
+            bo_elastic_voigt=None,
+        )
         if tdata.converged:
             self.num_converged += 1
         else:
@@ -515,43 +569,45 @@ class ThermalRelaxTask(RelaxTask):
             # NB: Restart will take care of using the output structure as input.
             self.restart()
 
-        else:
-            if self.flow.with_elastic:
-                # Build work for elastic constants and attach it to the task.
-                scf_input = self.input.new_with_structure(relaxed_structure, ionmov=0, optcell=0)
-                # Remove all irdvars before running. Important!
-                scf_input.pop_irdvars()
-                self.elastic_work = ElasticWork.from_scf_input(
-                    scf_input, with_relaxed_ion=True, with_piezo=self.flow.with_piezo
-                )
-                self.flow.register_work(self.elastic_work)
-                self.flow.allocate(build=True)
+        elif self.flow.with_elastic:
+            # Build work for elastic constants and attach it to the task.
+            scf_input = self.input.new_with_structure(relaxed_structure, ionmov=0, optcell=0)
+            # Remove all irdvars before running. Important!
+            scf_input.pop_irdvars()
+            self.elastic_work = ElasticWork.from_scf_input(
+                scf_input, with_relaxed_ion=True, with_piezo=self.flow.with_piezo
+            )
+            self.flow.register_work(self.elastic_work)
+            self.flow.allocate(build=True)
 
         return results
 
 
 # TODO: Why Voigt notation for alpha? The matrix is not necessarily symmetric
 _ALPHA_COMPS = (
-    'alpha_xx',
-    'alpha_yy',
-    'alpha_zz',
-    'alpha_yz',
-    'alpha_xz',
-    'alpha_xy',
+    "alpha_xx",
+    "alpha_yy",
+    "alpha_zz",
+    "alpha_yz",
+    "alpha_xz",
+    "alpha_xy",
 )
 
 
 @dataclasses.dataclass(kw_only=True)
 class ThermalRelaxEntry:
+    """
+    Entry with the results of a thermal relaxation run for a given (T, P).
+    """
 
-    nqsmall_or_qppa: int          # Define the q-mesh for the computation of the PHDOS.
-    pressure_gpa: float           # Pressure in GPa.
-    temperature: float            # Temperature in K.
-    gsr_path: str                 # Path to the GSR file.
-    elastic_ddb_path: str         # Path to the DDB file with the 2nd order derivatives wrt strain.
-    therm: np.ndarray | None      # Thermal_expansion (Voigt notation).
-    elastic: np.ndarray | None    # Elastic constants (6,6) matrix in GPa (Voigt notation, relaxed-ions).
-    gibbs_atom: float             # Gibbs free energy per atom in eV.
+    nqsmall_or_qppa: int  # Define the q-mesh for the computation of the PHDOS.
+    pressure_gpa: float  # Pressure in GPa.
+    temperature: float  # Temperature in K.
+    gsr_path: str  # Path to the GSR file.
+    elastic_ddb_path: str  # Path to the DDB file with the 2nd order derivatives wrt strain.
+    therm: np.ndarray | None  # Thermal_expansion (Voigt notation).
+    elastic: np.ndarray | None  # Elastic constants (6,6) matrix in GPa (Voigt notation, relaxed-ions).
+    gibbs_atom: float  # Gibbs free energy per atom in eV.
 
     def get_dict4pandas(self) -> dict:
         """
@@ -570,7 +626,7 @@ class ThermalRelaxEntry:
             for inds, value in np.ndenumerate(self.elastic):
                 inds = np.array(inds, dtype=int)
                 # Start to count from 1.
-                key = f"C_{inds[0]+1}{inds[1]+1}"
+                key = f"C_{inds[0] + 1}{inds[1] + 1}"
                 dct[key] = value
 
         return dct
@@ -600,19 +656,23 @@ class ZsisaResults(Serializable):
     .. inheritance-diagram:: ZsisaResults
     """
 
-    spgrp_number: int                  # Space group number.
-    eps: float                         # Strain magnitude to be applied to the lattice.
-    mode: str                          # "TEC" or "ECs".
+    spgrp_number: int  # Space group number.
+    eps: float  # Strain magnitude to be applied to the lattice.
+    mode: str  # "TEC" or "ECs".
     qha_model: str
 
     # TODO: Should have inds_6d as well as strain_inds
-    inds_6d: np.ndarray                # List of indices in the phdos 6D grid used for finite differences.
+    inds_6d: np.ndarray  # List of indices in the phdos 6D grid used for finite differences.
 
-    gsr_bo_path: str                   # Path to GSR file with the relaxed BO configuration.
-    gsr_relax_paths: list[str]         # Paths to GSR files for the deformed structures after relaxation.
-    ddb_relax_paths: list[str]         # Paths to DDB files with phonons for the deformed structures after relaxation.
-    gsr_relax_edos_paths: list[str]    # Paths to GSR files with electron DOS for the deformed structures after relaxation.
-    gsr_relax_ebands_paths: list[str]  # Paths to GSR files with electron bands for the deformed structures after relaxation.
+    gsr_bo_path: str  # Path to GSR file with the relaxed BO configuration.
+    gsr_relax_paths: list[str]  # Paths to GSR files for the deformed structures after relaxation.
+    ddb_relax_paths: list[str]  # Paths to DDB files with phonons for the deformed structures after relaxation.
+    gsr_relax_edos_paths: list[
+        str
+    ]  # Paths to GSR files with electron DOS for the deformed structures after relaxation.
+    gsr_relax_ebands_paths: list[
+        str
+    ]  # Paths to GSR files with electron bands for the deformed structures after relaxation.
 
     thermal_relax_entries: list[ThermalRelaxEntry]
 
@@ -622,7 +682,8 @@ class ZsisaResults(Serializable):
         Here we convert dict to ThermalRelaxEntry.
         """
         for ie, entry in enumerate(self.thermal_relax_entries):
-            if isinstance(entry, ThermalRelaxEntry): continue
+            if isinstance(entry, ThermalRelaxEntry):
+                continue
             self.thermal_relax_entries[ie] = ThermalRelaxEntry(**entry)
 
     @property
@@ -639,7 +700,8 @@ class ZsisaResults(Serializable):
     def cycle_markers(self):
         """Create a list of markers you want to cycle through."""
         from itertools import cycle
-        return cycle(('o', 's', '^', 'D', 'v', '>', '<', 'p', '*', 'h', '+', 'x'))
+
+        return cycle(("o", "s", "^", "D", "v", ">", "<", "p", "*", "h", "+", "x"))
 
     def get_dataframe(self) -> pd.DataFrame:
         """
@@ -699,10 +761,7 @@ class ZsisaResults(Serializable):
         return p_key, df
 
     @add_fig_kwargs
-    def plot_lattice_vs_temp(self,
-                             df: pd.DataFrame | None = None,
-                             fontsize: int = 8,
-                             **kwargs) -> Figure:
+    def plot_lattice_vs_temp(self, df: pd.DataFrame | None = None, fontsize: int = 8, **kwargs) -> Figure:
         """
         Plot lattice parameters and angles as a function of T grouped by pressure P.
 
@@ -713,8 +772,7 @@ class ZsisaResults(Serializable):
         angles = ["alpha", "beta", "gamma"]
         lengths = ["a", "b", "c"]
 
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=3, ncols=2,
-                                               sharex=True, sharey=False, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=3, ncols=2, sharex=True, sharey=False, squeeze=False)
         if df is None:
             df = self.get_dataframe()
         one_pressure = df["pressure_gpa"].nunique() == 1
@@ -722,12 +780,9 @@ class ZsisaResults(Serializable):
         # Add new column with p_key to have nicer labels.
         p_key, df = self._add_pga_col(df)
 
-        plt_kwargs = dict(fontsize=fontsize,
-                          hue=p_key if not one_pressure else None,
-                          col2label=self.col2label,
-                          marker="o",
-                          show=False
-                          )
+        plt_kwargs = dict(
+            fontsize=fontsize, hue=p_key if not one_pressure else None, col2label=self.col2label, marker="o", show=False
+        )
 
         for ix, length in enumerate(lengths):
             ax = ax_mat[ix, 0]
@@ -750,10 +805,7 @@ class ZsisaResults(Serializable):
         return fig
 
     @add_fig_kwargs
-    def plot_thermal_expansion(self,
-                               df: pd.DataFrame | None = None,
-                               fontsize: int = 8,
-                               **kwargs) -> Figure:
+    def plot_thermal_expansion(self, df: pd.DataFrame | None = None, fontsize: int = 8, **kwargs) -> Figure:
         """
         Plot thermal expansion alpha as a function of T grouped by pressure P.
 
@@ -765,8 +817,7 @@ class ZsisaResults(Serializable):
             raise ValueError("Thermal expansion coefficients are not available!")
 
         nrows, ncols = 3, 2
-        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=False, squeeze=False)
+        ax_mat, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols, sharex=True, sharey=False, squeeze=False)
         if df is None:
             df = self.get_dataframe()
         one_pressure = df["pressure_gpa"].nunique() == 1
@@ -774,12 +825,9 @@ class ZsisaResults(Serializable):
         # Add new column with p_key to have nicer labels.
         p_key, df = self._add_pga_col(df)
 
-        plt_kwargs = dict(fontsize=fontsize,
-                          hue=p_key if not one_pressure else None,
-                          col2label=self.col2label,
-                          marker="o",
-                          show=False
-                          )
+        plt_kwargs = dict(
+            fontsize=fontsize, hue=p_key if not one_pressure else None, col2label=self.col2label, marker="o", show=False
+        )
 
         alpha_comps_mat = np.reshape(_ALPHA_COMPS, (2, 3)).T
 
@@ -800,14 +848,16 @@ class ZsisaResults(Serializable):
         return fig
 
     @add_fig_kwargs
-    def plot_elastic_vs_t(self,
-                          pressure_gpa: float | None = None,
-                          c_select: str = "symmetry",
-                          df: pd.DataFrame | None = None,
-                          ax=None,
-                          colormap: str = "jet",
-                          fontsize: int = 8,
-                          **kwargs) -> Figure:
+    def plot_elastic_vs_t(
+        self,
+        pressure_gpa: float | None = None,
+        c_select: str = "symmetry",
+        df: pd.DataFrame | None = None,
+        ax=None,
+        colormap: str = "jet",
+        fontsize: int = 8,
+        **kwargs,
+    ) -> Figure:
         """
         Plot elastic constants as a function of T for fixed pressure on a single figure.
 
@@ -854,13 +904,15 @@ class ZsisaResults(Serializable):
         return fig
 
     @add_fig_kwargs
-    def plot_elastic_vs_t_and_p(self,
-                                c_select: str = "symmetry",
-                                df: pd.DataFrame | None = None,
-                                ax=None,
-                                colormap: str = "jet",
-                                fontsize: int = 8,
-                                **kwargs) -> Figure:
+    def plot_elastic_vs_t_and_p(
+        self,
+        c_select: str = "symmetry",
+        df: pd.DataFrame | None = None,
+        ax=None,
+        colormap: str = "jet",
+        fontsize: int = 8,
+        **kwargs,
+    ) -> Figure:
         """
         Plot elastic constants as a function of T grouped by pressure.
         One subplot for each element of the C tensor.
@@ -885,8 +937,7 @@ class ZsisaResults(Serializable):
 
         c_names = self._get_cnames_from_c_select(c_select)
         nrows, ncols = len(c_names), 1
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                               sharex=True, sharey=False, squeeze=True)
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols, sharex=True, sharey=False, squeeze=True)
         cmap = plt.get_cmap(colormap)
 
         for ix, (c_name, ax) in enumerate(zip(c_names, ax_list, strict=True)):
@@ -906,20 +957,17 @@ class ZsisaResults(Serializable):
             if ix != len(c_names) - 1:
                 set_visible(ax, False, *["xlabel"])
 
-            #set_grid_legend(ax, fontsize, xlabel="T (K)", ylabel="Elastic constant (GPa)")
+            # set_grid_legend(ax, fontsize, xlabel="T (K)", ylabel="Elastic constant (GPa)")
 
-        #if "title" not in kwargs:
+        # if "title" not in kwargs:
         #    fig.suptitle(f"Temperature-dependent elastic constants at P={pressure_gpa} (GPa)")
 
         return fig
 
     @add_fig_kwargs
-    def plot_gibbs(self,
-                   df: pd.DataFrame | None = None,
-                   ax=None,
-                   colormap: str = "jet",
-                   fontsize: int = 8,
-                   **kwargs) -> Figure:
+    def plot_gibbs(
+        self, df: pd.DataFrame | None = None, ax=None, colormap: str = "jet", fontsize: int = 8, **kwargs
+    ) -> Figure:
         """
         Plot Gibbs energy per atom in eV as a function of T grouped by pressure in Gpa.
 
@@ -949,7 +997,7 @@ class ZsisaResults(Serializable):
 
         plot_xy_with_hue(df, "temperature", "gibbs_atom", ax=ax, **plt_kwargs)
 
-        #if "title" not in kwargs:
+        # if "title" not in kwargs:
         #    fig.suptitle(f"Temperature-dependent elastic constants at P={pressure_gpa} (GPa)")
 
         return fig

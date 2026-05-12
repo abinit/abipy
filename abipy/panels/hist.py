@@ -1,21 +1,24 @@
-""""Panels for HIST files."""
+"""Panels for HIST files."""
+
 from __future__ import annotations
 
-#import param
+# import param
 import panel as pn
 import panel.widgets as pnw
-import bokeh.models.widgets as bkw
 
 from abipy.dynamics.hist import HistFile
-from abipy.panels.core import AbipyParameterized, mpl, ply, depends_on_btn_click
+from abipy.panels.core import AbipyParameterized, depends_on_btn_click, ply
 
 
 class HistFilePanel(AbipyParameterized):
-    """
-    Panel with widgets to interact with a |HistFile|.
-    """
+    """Panel with widgets to interact with a |HistFile|."""
 
     def __init__(self, hist: HistFile, **params):
+        """
+        Args:
+            hist: |HistFile| object.
+            params: Parameters passed to the parent class.
+        """
         self.hist = hist
 
         _what_list = ["abc", "angles", "energy", "volume", "pressure", "forces"]
@@ -28,24 +31,23 @@ class HistFilePanel(AbipyParameterized):
 
         super().__init__(**params)
 
-    @depends_on_btn_click('plot_relax_btn')
+    @depends_on_btn_click("plot_relax_btn")
     def on_plot_relax_btn(self) -> pn.Column:
         """
         Plot the evolution of structural parameters (lattice lengths, angles and volume)
         as well as pressure, info on forces and total energy.
         """
-        col = pn.Column(sizing_mode="stretch_width"); ca = col.append
+        col = pn.Column(sizing_mode="stretch_width")
+        ca = col.append
         for what in self.what_list.value:
-            #ca(f"## {what}")
+            # ca(f"## {what}")
             ca(ply(self.hist.plotly(what, title=what, show=False)))
 
         return col
 
-    @depends_on_btn_click('view_relax_btn')
+    @depends_on_btn_click("view_relax_btn")
     def on_view_relax_btn(self):
-        """
-        Visalize the structural relaxation with an external application.
-        """
+        """Visalize the structural relaxation with an external application."""
         return self.hist.visualize(appname=self.appname.value, to_unit_cell=self.to_unit_cell.value)
 
     def get_panel(self, as_dict=False, **kwargs):
@@ -53,19 +55,16 @@ class HistFilePanel(AbipyParameterized):
         d = {}
 
         d["Summary"] = self.get_summary_view_for_abiobj(self.hist)
-        d["Plot"] = pn.Row(
-                self.pws_col(["## Plot Options", "what_list", "plot_relax_btn"]),
-                self.on_plot_relax_btn
-        )
+        d["Plot"] = pn.Row(self.pws_col(["## Plot Options", "what_list", "plot_relax_btn"]), self.on_plot_relax_btn)
 
         if not self.has_remote_server:
             # As we don't have visualizers that can work in remote server mode,
             # this tab should not be created.
             d["Visualize"] = pn.Row(
-                    pn.Column(self.appname, self.to_unit_cell, self.view_relax_btn),
-                    self.on_view_relax_btn
+                pn.Column(self.appname, self.to_unit_cell, self.view_relax_btn), self.on_view_relax_btn
             )
 
-        if as_dict: return d
+        if as_dict:
+            return d
 
-        return self.get_template_from_tabs(d, template=kwargs.get("template", None))
+        return self.get_template_from_tabs(d, template=kwargs.get("template"))

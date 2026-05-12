@@ -13,12 +13,11 @@ overestimate the lattice parameters and ecut is way too low.
 If you replace GGA with LDA, you will observe that LDA tends to underestimate the parameters.
 """
 
-import sys
 import os
+import sys
 
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
 import abipy.data as abidata
+from abipy import abilab, flowtk
 
 
 def build_flow(options):
@@ -45,14 +44,14 @@ def build_flow(options):
     # Set global variables for structural relaxation. Note dilatmx and ecutsm
     # Ecut should depend on pseudos.
     multi.set_vars(
-        ecut=15,       # Too low
+        ecut=15,  # Too low
         optcell=2,
         ionmov=3,
         tolrff=5.0e-2,
         tolmxf=5.0e-5,
         ntime=50,
         dilatmx=1.05,  # Important!
-        ecutsm=0.5,    # Important!
+        ecutsm=0.5,  # Important!
     )
 
     # Here we set the k-meshes (Gamma-centered for simplicity)
@@ -62,8 +61,7 @@ def build_flow(options):
     # As the calculations are independent, we can use Flow.from_inputs
     # and call split_datasets to create len(ngkpt_list) inputs.
     # Note that it's a good idea to specify the task_class so that AbiPy knows how to restart the calculation.
-    return flowtk.Flow.from_inputs(options.workdir, inputs=multi.split_datasets(),
-                                   task_class=flowtk.RelaxTask)
+    return flowtk.Flow.from_inputs(options.workdir, inputs=multi.split_datasets(), task_class=flowtk.RelaxTask)
 
 
 # This block generates the thumbnails in the AbiPy gallery.
@@ -71,6 +69,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

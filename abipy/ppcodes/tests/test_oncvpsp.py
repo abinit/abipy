@@ -1,12 +1,13 @@
 """Unit tests for oncvpsp"""
 
-import sys
 import os
-import numpy as np
-import abipy.data as abidata
+import sys
 
-from abipy.core.testing import AbipyTest
+import numpy as np
+
+import abipy.data as abidata
 from abipy.core.atom import NlkState
+from abipy.core.testing import AbipyTest
 from abipy.ppcodes.oncv_parser import OncvParser
 from abipy.ppcodes.oncv_plotter import MultiOncvPlotter, psp8_get_densities
 
@@ -16,17 +17,18 @@ def filepath(basename):
 
 
 class OncvOutputParserTest(AbipyTest):
-
     def test_nonrelativistic_oxygen_v2(self):
         """
         Parsing the non-relativistic output file produced by ONCVPSPS v2
         """
         # Non-relativistic results
         p = OncvParser(filepath("08_O_nr.out"))
-        repr(p); str(p)
+        repr(p)
+        str(p)
 
         p.scan(verbose=1)
-        repr(p); str(p)
+        repr(p)
+        str(p)
         assert p.run_completed
 
         assert p.calc_type == "non-relativistic"
@@ -52,10 +54,11 @@ class OncvOutputParserTest(AbipyTest):
 
         # Build the plotter
         plotter = p.get_plotter()
-        repr(plotter); str(plotter)
+        repr(plotter)
+        str(plotter)
         self._call_plotter_methods(plotter)
 
-        #if self.has_nbformat():
+        # if self.has_nbformat():
 
     def test_scalar_relativistic_oxygen_v2(self):
         """
@@ -64,7 +67,8 @@ class OncvOutputParserTest(AbipyTest):
         # Scalar relativistic output
         p = OncvParser(filepath("08_O_sr.out"))
         p.scan(verbose=1)
-        repr(p); str(p)
+        repr(p)
+        str(p)
         assert p.run_completed
 
         assert not p.relativistic
@@ -78,11 +82,11 @@ class OncvOutputParserTest(AbipyTest):
         assert p.nv == 2
         assert p.lmax == 1
 
-        #assert p.hints["low"]["ecut"] ==
-        #assert p.hints["normal"]["ecut"] ==
-        #assert p.hints["high"]["ecut"] ==
+        # assert p.hints["low"]["ecut"] ==
+        # assert p.hints["normal"]["ecut"] ==
+        # assert p.hints["high"]["ecut"] ==
 
-        #results = p.get_results()
+        # results = p.get_results()
 
         # Test potentials
         vloc = p.potentials[-1]
@@ -100,7 +104,7 @@ class OncvOutputParserTest(AbipyTest):
         nlk = (1, 0, None)
         ae10, ps10 = ae_wfs[nlk], ps_wfs[nlk]
         assert ae10[0] == (0.009945, -0.092997)
-        assert ps10[0] == (0.009945,  0.015273)
+        assert ps10[0] == (0.009945, 0.015273)
         assert ae10[-1] == (3.964744, 0.037697)
         assert ps10[-1] == (3.964744, 0.037694)
 
@@ -141,7 +145,8 @@ class OncvOutputParserTest(AbipyTest):
 
         # Build the plotter
         plotter = p.get_plotter()
-        repr(plotter); str(plotter)
+        repr(plotter)
+        str(plotter)
         assert plotter is not None
         self._call_plotter_methods(plotter)
 
@@ -152,7 +157,8 @@ class OncvOutputParserTest(AbipyTest):
         p = OncvParser(filepath("08_O_r.out"))
 
         p.scan(verbose=1)
-        repr(p); str(p)
+        repr(p)
+        str(p)
         assert p.run_completed
 
         assert p.relativistic
@@ -173,7 +179,8 @@ class OncvOutputParserTest(AbipyTest):
 
         # Build the plotter
         plotter = p.get_plotter()
-        repr(plotter); str(plotter)
+        repr(plotter)
+        str(plotter)
         self._call_plotter_methods(plotter)
 
     def test_scalar_relativistic_oxygen_v4(self):
@@ -183,7 +190,8 @@ class OncvOutputParserTest(AbipyTest):
         # Scalar relativistic output
         p = OncvParser(filepath("O_sr_v4.out"))
         p.scan(verbose=1)
-        repr(p); str(p)
+        repr(p)
+        str(p)
         assert p.run_completed
 
         assert not p.relativistic
@@ -212,7 +220,7 @@ class OncvOutputParserTest(AbipyTest):
         self.assert_almost_equal(ke.values_ha, [0.01000, 0.00100, 0.00010, 0.00001])
         self.assert_almost_equal(ke.ecuts, [12.17, 21.67, 27.75, 32.41])
 
-        #Calculating optimized projector #   2
+        # Calculating optimized projector #   2
         # for l=   1
         nlk = NlkState(n=2, l=1, k=None)
         ke = p.kinerr_nlk[nlk]
@@ -235,7 +243,7 @@ class OncvOutputParserTest(AbipyTest):
         nlk = (2, 0, None)
         ae20, ps20 = ae_wfs[nlk], ps_wfs[nlk]
         assert ae20[0] == (0.009958, -0.093703)
-        assert ps20[0] == (0.009958,  0.013614)
+        assert ps20[0] == (0.009958, 0.013614)
         assert ae20[-1] == (5.998219, 0.002734)
         assert ps20[-1] == (5.998219, 0.002734)
 
@@ -277,7 +285,8 @@ class OncvOutputParserTest(AbipyTest):
 
         # Build the plotter
         plotter = p.get_plotter()
-        repr(plotter); str(plotter)
+        repr(plotter)
+        str(plotter)
         self._call_plotter_methods(plotter)
 
     def test_relativistic_oxygen_v4(self):
@@ -287,7 +296,8 @@ class OncvOutputParserTest(AbipyTest):
         # Fully relativistic output
         p = OncvParser(filepath("O_fr_v4.out"))
         p.scan(verbose=1)
-        repr(p); str(p)
+        repr(p)
+        str(p)
         assert p.run_completed
         assert p.is_oncvpsp and not p.is_metapsp
 
@@ -323,14 +333,14 @@ class OncvOutputParserTest(AbipyTest):
         self.assert_almost_equal(ke.values_ha, [0.01000, 0.00100, 0.00010, 0.00001])
         self.assert_almost_equal(ke.ecuts, [4.55, 15.25, 22.10, 26.79])
 
-        #Calculating optimized projector #   1
+        # Calculating optimized projector #   1
         # for l=   1
         nlk = NlkState(n=1, l=1, k=1)
         ke = p.kinerr_nlk[nlk]
         self.assert_almost_equal(ke.values_ha, [0.01000, 0.00100, 0.00010, 0.00001])
         self.assert_almost_equal(ke.ecuts, [19.49, 24.68, 28.68, 35.11])
 
-        #Calculating optimized projector #   2
+        # Calculating optimized projector #   2
         # for l=   1
         nlk = NlkState(n=2, l=1, k=1)
         ke = p.kinerr_nlk[nlk]
@@ -339,15 +349,15 @@ class OncvOutputParserTest(AbipyTest):
 
         # Check values associated to Fortran ikap = 2
 
-        #Calculating optimized projector #   1
+        # Calculating optimized projector #   1
         # for l=   1
         nlk = NlkState(n=1, l=1, k=2)
         ke = p.kinerr_nlk[nlk]
         self.assert_almost_equal(ke.values_ha, [0.01000, 0.00100, 0.00010, 0.00001])
         self.assert_almost_equal(ke.ecuts, [19.50, 24.69, 28.69, 35.19])
 
-        #Calculating optimized projector #   2
-        #for l=   1
+        # Calculating optimized projector #   2
+        # for l=   1
         nlk = NlkState(n=2, l=1, k=2)
         ke = p.kinerr_nlk[nlk]
         self.assert_almost_equal(ke.values_ha, [0.01000, 0.00100, 0.00010, 0.00001])
@@ -355,9 +365,9 @@ class OncvOutputParserTest(AbipyTest):
 
         # Test potentials
         vloc = p.potentials[-1]
-        #pl0 = {0: -4.6445128, 1: -15.3234007, 2: 20.9698547, -1: -10.0124145}
+        # pl0 = {0: -4.6445128, 1: -15.3234007, 2: 20.9698547, -1: -10.0124145}
 
-        #for l, pot in p.potentials.items():
+        # for l, pot in p.potentials.items():
         #    assert (pot.rmesh[0], pot.rmesh[-1]) == (0.0099582, 2.4161798)
         #    str(l)
         #    assert pot.values[0] == pl0[l]
@@ -383,7 +393,7 @@ class OncvOutputParserTest(AbipyTest):
         assert ae20[-1] == (3.976916, 0.315387)
         assert ps20[-1] == (3.976916, 0.315347)
 
-        #n= 2,  l= 1, kap=-2, all-electron wave function, pseudo w-f
+        # n= 2,  l= 1, kap=-2, all-electron wave function, pseudo w-f
         nlk = NlkState.from_nlkap(n=2, l=1, kap=-2)
         ae21, ps21 = ae_wfs[nlk], ps_wfs[nlk]
         assert ae21[0] == (0.020088, 0.005663)
@@ -403,12 +413,12 @@ class OncvOutputParserTest(AbipyTest):
 
         nlk_2 = NlkState(n=2, l=0, k=1)
         assert prjs[nlk_2][0] == (0.009976, 0.060936)
-        assert prjs[nlk_2][-1] == (1.741907,  0.000000)
+        assert prjs[nlk_2][-1] == (1.741907, 0.000000)
 
         #!J    -1    0.009976     0.001728    -0.000948
         nlk_1 = NlkState(n=1, l=1, k=1)
         nlk_2 = NlkState(n=2, l=1, k=1)
-        #print(prjs.keys())
+        # print(prjs.keys())
         assert prjs[nlk_1][0] == (0.009976, 0.001728)
         assert prjs[nlk_2][0] == (0.009976, -0.000948)
 
@@ -451,7 +461,8 @@ class OncvOutputParserTest(AbipyTest):
 
         ## Build the plotter
         plotter = p.get_plotter()
-        repr(plotter); str(plotter)
+        repr(plotter)
+        str(plotter)
         self._call_plotter_methods(plotter)
 
     def test_multi_oncv_plotter(self):
@@ -478,21 +489,27 @@ class OncvOutputParserTest(AbipyTest):
                 assert plotter.plot_vtau(show=False)
                 assert plotter.plot_tau(show=False)
 
-        #if self.has_plotly():
+        # if self.has_plotly():
 
     def test_psp8_get_densities(self):
         """
         Testing get_densities from psp8 format.
         """
-        n = psp8_get_densities(filepath("Lu-sp.psp8"),
-                               fc_file=sys.stdout,
-                               ae_file=sys.stdout, plot=False)
+        n = psp8_get_densities(filepath("Lu-sp.psp8"), fc_file=sys.stdout, ae_file=sys.stdout, plot=False)
         assert len(n.rmesh) == 600
 
-        self.assert_almost_equal([n.rmesh[0], n.psval[0], n.aeval[0], n.aecore[0]],
-            np.fromstring("0.0000000000000E+00  5.9161585718320E-02  3.9966212837901E+03  3.9211427139394E+06", sep=" "))
-        self.assert_almost_equal([n.rmesh[-1], n.psval[-1], n.aeval[-1], n.aecore[-1]],
-            np.fromstring("5.9900000000000E+00  4.1502186898788E-03  4.1500999839310E-03  4.6618962684673E-06", sep=" "))
+        self.assert_almost_equal(
+            [n.rmesh[0], n.psval[0], n.aeval[0], n.aecore[0]],
+            np.fromstring(
+                "0.0000000000000E+00  5.9161585718320E-02  3.9966212837901E+03  3.9211427139394E+06", sep=" "
+            ),
+        )
+        self.assert_almost_equal(
+            [n.rmesh[-1], n.psval[-1], n.aeval[-1], n.aecore[-1]],
+            np.fromstring(
+                "5.9900000000000E+00  4.1502186898788E-03  4.1500999839310E-03  4.6618962684673E-06", sep=" "
+            ),
+        )
 
         with self.assertRaises(RuntimeError):
             path = os.path.join(abidata.pseudo_dir, "O.psp8")
@@ -507,7 +524,8 @@ class OncvOutputParserTest(AbipyTest):
         # Scalar relativistic output
         p = OncvParser(filepath("29_Cu_m.out"))
         p.scan(verbose=1)
-        repr(p); str(p)
+        repr(p)
+        str(p)
         assert p.run_completed
         assert not p.is_oncvpsp and p.is_metapsp
 
@@ -527,9 +545,9 @@ class OncvOutputParserTest(AbipyTest):
         assert p.rc_l[2] == 2.10000
 
         # In this output, psfile is none
-        #assert p.get_input_str()
-        #assert p.get_psp8_str()
-        #assert p.get_upf_str()
+        # assert p.get_input_str()
+        # assert p.get_psp8_str()
+        # assert p.get_upf_str()
 
         # Calculating optimized projector #   1
         # for l=   0
@@ -538,16 +556,16 @@ class OncvOutputParserTest(AbipyTest):
         self.assert_almost_equal(ke.values_ha, [0.01000, 0.00100, 0.00010, 0.00001])
         self.assert_almost_equal(ke.ecuts, [12.99, 16.73, 19.91, 22.56])
 
-        #Calculating optimized projector #   2
+        # Calculating optimized projector #   2
         # for l=   1
         nlk = NlkState(n=2, l=1, k=None)
         ke = p.kinerr_nlk[nlk]
         self.assert_almost_equal(ke.values_ha, [0.01000, 0.00100, 0.00010, 0.00001])
-        self.assert_almost_equal(ke.ecuts, [14.68, 20.8 , 25.39, 29.03])
+        self.assert_almost_equal(ke.ecuts, [14.68, 20.8, 25.39, 29.03])
 
         # Test potentials
         vloc = p.potentials[-1]
-        pl0 = {0: -29.089934, 1: -31.848153, 2: -34.020455, -1:  -27.027998}
+        pl0 = {0: -29.089934, 1: -31.848153, 2: -34.020455, -1: -27.027998}
 
         for l, pot in p.potentials.items():
             assert (pot.rmesh[0], pot.rmesh[-1]) == (0.009994, 3.088443)
@@ -560,10 +578,10 @@ class OncvOutputParserTest(AbipyTest):
 
         nlk = (3, 2, None)
         ae32, ps32 = ae_wfs[nlk], ps_wfs[nlk]
-        assert ae32[0] == (0.009994  , 0.000226)
-        assert ps32[0] == (0.009994  , 0.000007)
-        assert ae32[-1] == (5.987503 , 0.021621)
-        assert ps32[-1] == (5.987503 , 0.021621)
+        assert ae32[0] == (0.009994, 0.000226)
+        assert ps32[0] == (0.009994, 0.000007)
+        assert ae32[-1] == (5.987503, 0.021621)
+        assert ps32[-1] == (5.987503, 0.021621)
 
         # Test projectors
         prjs = p.projectors
@@ -593,5 +611,6 @@ class OncvOutputParserTest(AbipyTest):
 
         # Build the plotter
         plotter = p.get_plotter()
-        repr(plotter); str(plotter)
+        repr(plotter)
+        str(plotter)
         self._call_plotter_methods(plotter)

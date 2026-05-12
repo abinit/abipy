@@ -1,17 +1,16 @@
 """Tests for v1qavg module."""
-import abipy.data as abidata
 
-from abipy import abilab
+import abipy.data as abidata
 from abipy.core.testing import AbipyTest
 from abipy.eph.v1qavg import V1qAvgFile, V1qAvgRobot
 
 
 class V1qavgTest(AbipyTest):
-
     def test_v1qavg_file(self):
         """Testing V1qAvgFile."""
         with V1qAvgFile(abidata.ref_file("abinitio_qpath_V1QAVG.nc")) as ncfile:
-            repr(ncfile); str(ncfile)
+            repr(ncfile)
+            str(ncfile)
             assert ncfile.to_string(verbose=2)
             assert not ncfile.params
             assert ncfile.structure.formula == "Ga1 P1" and len(ncfile.structure) == 2
@@ -40,7 +39,6 @@ class V1qavgTest(AbipyTest):
 
 
 class V1qAvgRobotTest(AbipyTest):
-
     def test_v1qavg_robot(self):
         """Testing V1qAvgRobot."""
         files = abidata.ref_files(
@@ -51,7 +49,8 @@ class V1qAvgRobotTest(AbipyTest):
         with V1qAvgRobot.from_files(files[0]) as robot:
             robot.add_file("interpolated_v1qavg", files[1])
             assert len(robot) == 2
-            repr(robot); str(robot)
+            repr(robot)
+            str(robot)
             robot.to_string(verbose=2)
 
             interp_ncfile = robot.abifiles[1]

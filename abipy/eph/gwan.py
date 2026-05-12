@@ -4,32 +4,36 @@ the GWAN.nc file with the e-ph vertex in the Wannier representation.
 
 For a theoretical introduction see :cite:`Giustino2017`
 """
+
 from __future__ import annotations
 
 import dataclasses
+
+# import abipy.core.abinit_units as abu
+from functools import cached_property
+
 import numpy as np
 import pandas as pd
-#import abipy.core.abinit_units as abu
-
-from functools import cached_property
-from monty.string import marquee #, list_strings
+from monty.string import marquee  # , list_strings
 from monty.termcolor import cprint
-from abipy.core.structure import Structure
-from abipy.core.kpoints import kpoints_indices
-from abipy.core.mixins import AbinitNcFile, Has_Structure, Has_ElectronBands, Has_Header #, NotebookWriter
-from abipy.tools.typing import PathLike
-from abipy.tools.numtools import BzRegularGridInterpolator, nparr_to_df
-#from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
-#    rotate_ticklabels, ax_append_title, set_ax_xylabels, linestyles)
-#from abipy.tools import duck
-from abipy.electrons.ebands import ElectronBands, RobotWithEbands
-#from abipy.tools.typing import Figure
+
+# from abipy.tools.typing import Figure
 from abipy.abio.robots import Robot
+from abipy.core.kpoints import kpoints_indices
+from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Header, Has_Structure  # , NotebookWriter
+from abipy.core.structure import Structure
+
+# from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
+#    rotate_ticklabels, ax_append_title, set_ax_xylabels, linestyles)
+# from abipy.tools import duck
+from abipy.electrons.ebands import ElectronBands, RobotWithEbands
 from abipy.eph.common import BaseEphReader
-from abipy.eph.gstore import GstoreFile #, GstoreReader, Gqk
+from abipy.eph.gstore import GstoreFile  # , GstoreReader, Gqk
+from abipy.tools.numtools import BzRegularGridInterpolator, nparr_to_df
+from abipy.tools.typing import PathLike
 
 
-class GwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # , NotebookWriter):
+class GwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):  # , NotebookWriter):
     """
     This file stores the e-ph matrix elements in the wannier representation
     and provides methods to analyze and plot results.
@@ -53,12 +57,17 @@ class GwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # , 
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GwanFile
     """
+
     @classmethod
     def from_file(cls, filepath: PathLike) -> GwanFile:
         """Initialize the object from a netcdf file."""
         return cls(filepath)
 
     def __init__(self, filepath: PathLike):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
         self.r = GwanReader(filepath)
 
@@ -76,19 +85,19 @@ class GwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # , 
         """Close the file."""
         self.r.close()
 
-    #@cached_property
-    #def gqk_spin(self) -> list:
+    # @cached_property
+    # def gqk_spin(self) -> list:
     #    return [Gqk.from_gstore(self, spin) for spin in range(self.nsppol)]
 
     @cached_property
     def params(self) -> dict:
-        """dict with the convergence parameters, e.g. ``nbsum``."""
-        #od = OrderedDict([
+        """Dict with the convergence parameters, e.g. ``nbsum``."""
+        # od = OrderedDict([
         #    ("nbsum", self.nbsum),
         #    ("nqibz", self.r.nqibz),
-        #])
+        # ])
         ## Add EPH parameters.
-        #od.update(self.r.common_eph_params)
+        # od.update(self.r.common_eph_params)
 
         od = {}
         return od
@@ -98,7 +107,8 @@ class GwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # , 
 
     def to_string(self, verbose=0) -> str:
         """String representation with verbosiy level ``verbose``."""
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
 
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
@@ -116,14 +126,14 @@ class GwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands): # , 
         app(f"gstore_cplex: {self.r.cplex}")
         app(f"gstore_kptopt: {self.r.kptopt}")
         app(f"gstore_qptopt: {self.r.qptopt}")
-        #for spin in range(self.r.nsppol):
+        # for spin in range(self.r.nsppol):
         #    app(f"gstore_brange_spin[{spin}]: {self.r.brange_spin[spin]}")
         #    app(f"gstore_erange_spin[{spin}]: {self.r.erange_spin[spin]}")
         #    app(f"gstore_glob_spin_nq[{spin}]: {self.r.glob_spin_nq[spin]}")
 
         return "\n".join(lines)
 
-    #def write_epw_hdf5(self, filepath: PathLike) -> None:
+    # def write_epw_hdf5(self, filepath: PathLike) -> None:
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -132,16 +142,17 @@ class Gqk:
     This object stores the e-ph matrix elements (g or g^2) and the matrix elements
     of the velocity operator for a given spin.
     """
-    cplex: int         # 1 if |g|^2 is stored
-                       # 2 if complex valued g (mind the gauge)
-    spin: int          # Spin index.
-    nb: int            # Number of bands
-    bstart: int
-    #bstop: int
 
-    glob_nk: int       # Total number of k/q points in global matrix.
-    glob_nq: int       # Note that k-points/q-points can be filtered.
-                       # Use kzone, qzone and kfilter to interpret these dimensions.
+    cplex: int  # 1 if |g|^2 is stored
+    # 2 if complex valued g (mind the gauge)
+    spin: int  # Spin index.
+    nb: int  # Number of bands
+    bstart: int
+    # bstop: int
+
+    glob_nk: int  # Total number of k/q points in global matrix.
+    glob_nq: int  # Note that k-points/q-points can be filtered.
+    # Use kzone, qzone and kfilter to interpret these dimensions.
 
     gstore: GstoreFile
 
@@ -156,7 +167,7 @@ class Gqk:
         Build an istance from a GstoreFile and the spin index.
         """
         ncr = gstore.r
-        path = f"gqk_spin{spin+1}"
+        path = f"gqk_spin{spin + 1}"
         cplex = ncr.read_dimvalue("gstore_cplex")
         nb = ncr.read_dimvalue("nb", path=path)
         glob_nk = ncr.read_dimvalue("glob_nk", path=path)
@@ -171,7 +182,7 @@ class Gqk:
 
         elif cplex == 2:
             gvals = ncr.read_value("gvals", path=path).transpose(0, 1, 2, 4, 3, 5).copy()
-            gvals = gvals[...,0] + 1j*gvals[...,1]
+            gvals = gvals[..., 0] + 1j * gvals[..., 1]
 
         vk_cart_ibz, vkmat_cart_ibz = None, None
         if ncr.with_vk == 1:
@@ -183,11 +194,11 @@ class Gqk:
             # Have to transpose (nb_kq, nb_k) submatrix written by Fortran.
             # nctk_def_arrays(spin_ncid, nctkarr_t("vkmat_cart_ibz", "dp", "two, three, nb, nb, gstore_nkibz"))
             vkmat_cart_ibz = ncr.read_value("vkmat_cart_ibz", path=path).transpose(0, 1, 3, 2, 4).copy()
-            vkmat_cart_ibz = vkmat_cart_ibz[...,0] + 1j*vkmat_cart_ibz[...,1]
+            vkmat_cart_ibz = vkmat_cart_ibz[..., 0] + 1j * vkmat_cart_ibz[..., 1]
 
         # Note conversion between Fortran and python indexing.
         bstart = ncr.read_value("bstart", path=path) - 1
-        #bstop = ncr.read_value("stop", path=path)
+        # bstop = ncr.read_value("stop", path=path)
 
         data = locals()
         return cls(**{k: data[k] for k in [field.name for field in dataclasses.fields(Gqk)]})
@@ -197,7 +208,8 @@ class Gqk:
 
     def to_string(self, verbose=0) -> str:
         """String representation with verbosiy level ``verbose``."""
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
 
         app(marquee(f"Gqk for spin: {self.spin}", mark="="))
         app(f"cplex: {self.cplex}")
@@ -210,6 +222,7 @@ class Gqk:
 
     @property
     def structure(self):
+        """|Structure| object."""
         return self.gstore.structure
 
     def get_dataframe(self, what: str = "g2") -> pd.DataFrame:
@@ -225,20 +238,19 @@ class Gqk:
             if self.vk_cart_ibz is None:
                 raise ValueError("vk_cart_ibz is not available in GSTORE!")
             # Compute the squared norm of each vector
-            v2 = np.sum(self.vk_cart_ibz ** 2, axis=2)
+            v2 = np.sum(self.vk_cart_ibz**2, axis=2)
             df = nparr_to_df("v2", v2, ["ik", "n_k"])
 
         else:
             raise ValueError(f"Invalid {what=}")
 
-        #df["m_kq"] += bstart_mkq
-        #df["n_k"] += bstart_nk
+        # df["m_kq"] += bstart_mkq
+        # df["n_k"] += bstart_nk
 
         return df
 
     def get_g2q_interpolator_kpoint(self, kpoint, method="linear", check_mesh=1):
-        """
-        """
+        """ """
         r = self.gstore.r
 
         # Find the index of the kpoint.
@@ -254,12 +266,12 @@ class Gqk:
 
         # (glob_nq, glob_nk, natom3, m_kq, n_k)
         g2 = self.g2 if self.g2 is not None else np.abs(self.gvals) ** 2
-        g2_qph_mn = g2[:,ik_g]
+        g2_qph_mn = g2[:, ik_g]
 
         # Insert g2 in g2_grid
         g2_grid = np.empty((nb, nb, natom3, nx, ny, nz))
         for nu in range(natom3):
-            for g2_mn, q_inds in zip(g2_qph_mn[:,nu], q_indices):
+            for g2_mn, q_inds in zip(g2_qph_mn[:, nu], q_indices, strict=False):
                 ix, iy, iz = q_inds
                 g2_grid[:, :, nu, ix, iy, iz] = g2_mn
 
@@ -294,8 +306,8 @@ class Gqk:
         """
         g2_slice = self.get_g_qpt_kpt(qpoint, kpoint, what)
         df = nparr_to_df(what, g2_slice, ["imode", "m_kq", "n_k"])
-        #df["m_kq"] += bstart_mkq
-        #df["n_k"] += bstart_nk
+        # df["m_kq"] += bstart_mkq
+        # df["n_k"] += bstart_nk
 
         return df
 
@@ -321,21 +333,25 @@ class Gqk:
                 raise RuntimeError(f"Different values of {aname=}, {val1=}, {val2=}")
 
         ierr = 0
-        kws = dict(verbose=verbose) # , atol= rtol)
+        kws = dict(verbose=verbose)  # , atol= rtol)
 
         # Compare v_nk or v_mn_k.
         if self.vk_cart_ibz is not None:
-            if not _allclose("vk_cart_ibz", self.vk_cart_ibz, other.vk_cart_ibz, **kws): ierr += 1
+            if not _allclose("vk_cart_ibz", self.vk_cart_ibz, other.vk_cart_ibz, **kws):
+                ierr += 1
 
         if self.vkmat_cart_ibz is not None:
-            if not _allclose("vkmat_cart_ibz", self.vkmat_cart_ibz, other.vkmat_cart_ibz, **kws): ierr += 1
+            if not _allclose("vkmat_cart_ibz", self.vkmat_cart_ibz, other.vkmat_cart_ibz, **kws):
+                ierr += 1
 
         # Compare g or g^2.
         if self.g2 is not None:
-            if not _allclose("g2", self.g2, other.g2, **kws): ierr += 1
+            if not _allclose("g2", self.g2, other.g2, **kws):
+                ierr += 1
 
         if self.gvals is not None:
-            if not _allclose("gvals", self.gvals, other.gvals, **kws): ierr += 1
+            if not _allclose("gvals", self.gvals, other.gvals, **kws):
+                ierr += 1
 
         return ierr
 
@@ -347,7 +363,12 @@ class GwanReader(BaseEphReader):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GwanReader
     """
+
     def __init__(self, filepath: PathLike):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
 
         # Read important dimensions.
@@ -371,7 +392,7 @@ class GwanReader(BaseEphReader):
 
         # Note conversion Fortran --> C for the isym index.
         self.brange_spin = self.read_value("gstore_brange_spin")
-        self.brange_spin[:,0] -= 1
+        self.brange_spin[:, 0] -= 1
         self.erange_spin = self.read_value("gstore_erange_spin")
         # Total number of k/q points for each spin after filtering (if any)
         self.glob_spin_nq = self.read_value("gstore_glob_nq_spin")
@@ -390,10 +411,10 @@ class GwanReader(BaseEphReader):
         # nctkarr_t("gstore_kbz2ibz", "i", "six, gstore_nkbz"), &
         # nctkarr_t("gstore_qbz2ibz", "i", "six, gstore_nqbz"), &
         self.kbz2ibz = self.read_value("gstore_kbz2ibz")
-        self.kbz2ibz[:,0] -= 1
+        self.kbz2ibz[:, 0] -= 1
 
         self.qbz2ibz = self.read_value("gstore_qbz2ibz")
-        self.qbz2ibz[:,0] -= 1
+        self.qbz2ibz[:, 0] -= 1
 
         # Mapping q/k points in gqk --> BZ. Note conversion Fortran --> C for indexing.
         # nctkarr_t("gstore_qglob2bz", "i", "gstore_max_nq, number_of_spins"), &
@@ -410,7 +431,7 @@ class GwanReader(BaseEphReader):
         qpoint = np.asarray(qpoint)
         for iq_g, iq_bz in enumerate(self.qglob2bz[spin]):
             if np.allclose(qpoint, self.qbz[iq_bz]):
-                #print(f"Found {qpoint = } with index {iq_g = }")
+                # print(f"Found {qpoint = } with index {iq_g = }")
                 return iq_g, qpoint
 
         raise ValueError(f"Cannot find {qpoint=} in GSTORE.nc")
@@ -420,7 +441,7 @@ class GwanReader(BaseEphReader):
         kpoint = np.asarray(kpoint)
         for ik_g, ik_bz in enumerate(self.kglob2bz[spin]):
             if np.allclose(kpoint, self.kbz[ik_bz]):
-                #print(f"Found {kpoint = } with index {ik_g = }")
+                # print(f"Found {kpoint = } with index {ik_g = }")
                 return ik_g, kpoint
 
         raise ValueError(f"Cannot find {kpoint=} in GSTORE.nc")
@@ -428,6 +449,7 @@ class GwanReader(BaseEphReader):
     # TODO: This fix to read groups should be imported in pymatgen.
     @cached_property
     def path2group(self) -> dict:
+        """Dictionary mapping path to group."""
         return self.rootgrp.groups
 
 
@@ -449,6 +471,7 @@ class GstoreRobot(Robot, RobotWithEbands):
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: GstoreRobot
     """
+
     EXT = "GSTORE"
 
     def neq(self, ref_basename: str | None = None, verbose: int = 0) -> int:
@@ -481,10 +504,24 @@ class GstoreRobot(Robot, RobotWithEbands):
         Helper function to compare two GSTORE files.
         """
         # These quantities must be the same to have a meaningfull comparison.
-        aname_list = ["structure", "nsppol", "cplex", "nkbz", "nkibz",
-                      "nqbz", "nqibz", "completed", "kzone", "qzone", "kfilter", "gmode",
-                      "brange_spin", "erange_spin", "glob_spin_nq", "glob_nk_spin",
-                     ]
+        aname_list = [
+            "structure",
+            "nsppol",
+            "cplex",
+            "nkbz",
+            "nkibz",
+            "nqbz",
+            "nqibz",
+            "completed",
+            "kzone",
+            "qzone",
+            "kfilter",
+            "gmode",
+            "brange_spin",
+            "erange_spin",
+            "glob_spin_nq",
+            "glob_nk_spin",
+        ]
 
         for aname in aname_list:
             self._compare_attr_name(aname, gstore1, gstore2)
@@ -502,7 +539,7 @@ class GstoreRobot(Robot, RobotWithEbands):
         This function *generates* a predefined list of matplotlib figures with minimal input from the user.
         Used in abiview.py to get a quick look at the results.
         """
-        #for fig in self.get_ebands_plotter().yield_figs(): yield fig
+        # for fig in self.get_ebands_plotter().yield_figs(): yield fig
 
     def write_notebook(self, nbpath=None) -> str:
         """
@@ -512,14 +549,16 @@ class GstoreRobot(Robot, RobotWithEbands):
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
         args = [(l, f.filepath) for l, f in self.items()]
-        nb.cells.extend([
-            #nbv.new_markdown_cell("# This is a markdown cell"),
-            nbv.new_code_cell("robot = abilab.GstoreRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-            #nbv.new_code_cell("ebands_plotter = robot.get_ebands_plotter()"),
-        ])
+        nb.cells.extend(
+            [
+                # nbv.new_markdown_cell("# This is a markdown cell"),
+                nbv.new_code_cell("robot = abilab.GstoreRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
+                # nbv.new_code_cell("ebands_plotter = robot.get_ebands_plotter()"),
+            ]
+        )
 
         # Mixins
-        #nb.cells.extend(self.get_baserobot_code_cells())
-        #nb.cells.extend(self.get_ebands_code_cells())
+        # nb.cells.extend(self.get_baserobot_code_cells())
+        # nb.cells.extend(self.get_ebands_code_cells())
 
         return self._write_nb_nbpath(nb, nbpath)

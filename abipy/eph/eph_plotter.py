@@ -1,17 +1,17 @@
-# coding: utf-8
 """
 Objects to plot electronic, vibrational and e-ph properties.
 """
+
 from __future__ import annotations
 
 import numpy as np
 
-from abipy.tools.plotting import (add_fig_kwargs, get_axarray_fig_plt, set_axlims, set_visible, ax_share)
-from abipy.tools import duck
-from abipy.electrons.ebands import ElectronBands
 from abipy.dfpt.ddb import DdbFile
 from abipy.dfpt.phonons import PhbstFile, PhdosFile
+from abipy.electrons.ebands import ElectronBands
 from abipy.eph.sigeph import SigEPhFile
+from abipy.tools import duck
+from abipy.tools.plotting import add_fig_kwargs, ax_share, get_axarray_fig_plt, set_axlims, set_visible
 from abipy.tools.typing import Figure
 
 
@@ -31,6 +31,7 @@ class EphPlotter:
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: EphPlotter
     """
+
     @classmethod
     def from_ddb(cls, ddb, ebands_kpath, ebands_kmesh=None, **kwargs) -> EphPlotter:
         """
@@ -50,6 +51,13 @@ class EphPlotter:
         return cls(ebands_kpath, phbst_file, phdos_file, ebands_kmesh=ebands_kmesh)
 
     def __init__(self, ebands_kpath, phbst_file, phdos_file, ebands_kmesh=None):
+        """
+        Args:
+            ebands_kpath: |ElectronBands| object with energies on a k-path or path to file.
+            phbst_file: |PhbstFile| object or path to file.
+            phdos_file: |PhdosFile| object or path to file.
+            ebands_kmesh: (optional) |ElectronBands| object with energies on a k-mesh or path to file.
+        """
         self.eb_kpath = ElectronBands.as_ebands(ebands_kpath)
         self.eb_kmesh = ElectronBands.as_ebands(ebands_kmesh) if ebands_kmesh is not None else None
 
@@ -76,6 +84,7 @@ class EphPlotter:
         """
         # Build grid. Share y-axis for Phbands and Phdos
         import matplotlib.pyplot as plt
+
         fig = plt.figure()
         ax0 = plt.subplot2grid((3, 3), (0, 0), colspan=3, rowspan=2)
         ax1 = plt.subplot2grid((3, 3), (2, 0), colspan=2, rowspan=1)
@@ -87,8 +96,8 @@ class EphPlotter:
 
         # Plot phonon bands
         self.phb_qpath.plot(ax=ax1, show=False)
-        #ax1.yaxis.set_visible(False)
-        #set_visible(ax1, False, "ylabel")
+        # ax1.yaxis.set_visible(False)
+        # set_visible(ax1, False, "ylabel")
 
         # Plot phonon PJDOS
         self.phdos_file.plot_pjdos_type(ax=ax2, fontsize=8, exchange_xy=True, show=False)
@@ -123,11 +132,10 @@ class EphPlotter:
             ncols = 2
             nrows = (num_plots // ncols) + (num_plots % ncols)
 
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=True, sharey=True, squeeze=False)
+        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols, sharex=True, sharey=True, squeeze=False)
         ax_list = ax_list.ravel()
 
-        for ax, temp in zip(ax_list, temps.ravel()):
+        for ax, temp in zip(ax_list, temps.ravel(), strict=False):
             self.phb_qpath.plot(ax=ax, units="eV", temp=temp, fontsize=8, show=False)
 
         return fig
@@ -149,6 +157,7 @@ class EphPlotter:
 
         # Build grid. share y-axis for Phbands and Phdos
         import matplotlib.pyplot as plt
+
         fig = plt.figure()
 
         # Electrons
@@ -177,17 +186,18 @@ class EphPlotter:
         sigeph.plot_a2fw_skb_sum(ax=ax4, what="gkq2", exchange_xy=True, fontsize=8, show=False)
         # Plot phonon PJDOS
         self.phdos_file.plot_pjdos_type(ax=ax5, fontsize=8, exchange_xy=True, show=False)
-        #set_visible(ax4, False, "ylabel")
-        #ax4.tick_params("y", left=False, labelleft=False)
-        #ax4.tick_params("y", right=True, labelright=True)
+        # set_visible(ax4, False, "ylabel")
+        # ax4.tick_params("y", left=False, labelleft=False)
+        # ax4.tick_params("y", right=True, labelright=True)
 
-        if closeit: sigeph.close()
+        if closeit:
+            sigeph.close()
 
         return fig
 
-    #def close(self):
+    # def close(self):
     #    self.phbst_file.close()
     #    self.phdos_file.close()
 
 
-#class EphMultiPlotter:
+# class EphMultiPlotter:

@@ -10,26 +10,24 @@ k-point samplings and values of the electronic smearing tsmear.
 
 import os
 import sys
-import abipy.data as abidata
-import abipy.abilab as abilab
 
-from abipy import flowtk
+import abipy.data as abidata
+from abipy import abilab, flowtk
 
 
 def make_scf_input(structure, ngkpt, tsmear, pseudos, paral_kgb=0):
     """Build and return Ground-state input for MgB2 given ngkpt and tsmear."""
-
     scf_inp = abilab.AbinitInput(structure, pseudos=pseudos)
 
     # Global variables
     scf_inp.set_vars(
         ecut=10,
         nband=8,
-        occopt=4,    # Marzari smearing
+        occopt=4,  # Marzari smearing
         tsmear=tsmear,
         paral_kgb=paral_kgb,
         iomode=3,
-   )
+    )
 
     # Dataset 1 (GS run)
     scf_inp.set_kmesh(ngkpt=ngkpt, shiftk=structure.calc_shiftk())
@@ -54,8 +52,8 @@ def build_flow(options):
     # Build work of GS task. Each gs_task uses different (ngkpt, tsmear) values
     # and represent the starting point of the phonon works.
     scf_work = flow.new_work()
-    ngkpt_list = [[4, 4, 4], [8, 8, 8]] #, [12, 12, 12]]
-    tsmear_list = [0.01, 0.02] # , 0.04]
+    ngkpt_list = [[4, 4, 4], [8, 8, 8]]  # , [12, 12, 12]]
+    tsmear_list = [0.01, 0.02]  # , 0.04]
     for ngkpt in ngkpt_list:
         for tsmear in tsmear_list:
             scf_input = make_scf_input(structure, ngkpt, tsmear, pseudos)
@@ -76,6 +74,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 
@@ -104,7 +103,7 @@ if __name__ == "__main__":
 #
 # .. code-block:: shell
 #
-#	abicomp.py ddb flow_mgb2_phonons_nkpt_tsmear/w*/outdata/*_DDB -ipy
+# abicomp.py ddb flow_mgb2_phonons_nkpt_tsmear/w*/outdata/*_DDB -ipy
 #
 # to build a robot from the output DDB files and start the ipython shell.
 #

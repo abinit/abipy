@@ -8,11 +8,11 @@ including L-projected (FATBANDS and FATDOS)
 
 See also <~abinit/tutorial/Input/tspin_1.in>
 """
+
 import os
 import sys
-import abipy.data as data
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+
+from abipy import abilab, data, flowtk
 
 
 def make_scf_input(nsppol, paral_kgb=1):
@@ -20,8 +20,7 @@ def make_scf_input(nsppol, paral_kgb=1):
     Generate input file for GS and given `nsppol`.
     """
     # Fe normal bcc structure for test of a ferromagnetic calculation
-    scf_input = abilab.AbinitInput(structure=data.structure_from_ucell("Fe-fm"),
-                                   pseudos=data.pseudos("26fe.pspnc"))
+    scf_input = abilab.AbinitInput(structure=data.structure_from_ucell("Fe-fm"), pseudos=data.pseudos("26fe.pspnc"))
 
     # Global variables
     global_vars = dict(
@@ -67,6 +66,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

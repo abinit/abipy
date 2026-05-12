@@ -1,16 +1,17 @@
-# coding: utf-8
 """
 Flows for electron-phonon calculations (high-level interface).
 """
+
 from __future__ import annotations
 
 import numpy as np
 
-from abipy.core.kpoints import kpath_from_bounds_and_ndivsm
 from abipy.abio.inputs import AbinitInput
-from .nodes import Node
-from .works import Work, PhononWork, PhononWfkqWork
+from abipy.core.kpoints import kpath_from_bounds_and_ndivsm
+
 from .flows import Flow
+from .nodes import Node
+from .works import PhononWfkqWork, PhononWork, Work
 
 
 class EphPotFlow(Flow):
@@ -36,20 +37,23 @@ class EphPotFlow(Flow):
     """
 
     @classmethod
-    def from_scf_input(cls, workdir: str,
-                       scf_input: AbinitInput,
-                       ngqpt,
-                       qbounds,
-                       ndivsm=5,
-                       what_to_compute: str = "v1qavg",
-                       with_becs=True,
-                       with_quad=True,
-                       dvdb_add_lr_list=(0, 1, 2),
-                       ddb_filepath=None,
-                       dvdb_filepath=None,
-                       ddk_tolerance=None,
-                       prepgkk=0,
-                       manager=None) -> EphPotFlow:
+    def from_scf_input(
+        cls,
+        workdir: str,
+        scf_input: AbinitInput,
+        ngqpt,
+        qbounds,
+        ndivsm=5,
+        what_to_compute: str = "v1qavg",
+        with_becs=True,
+        with_quad=True,
+        dvdb_add_lr_list=(0, 1, 2),
+        ddb_filepath=None,
+        dvdb_filepath=None,
+        ddk_tolerance=None,
+        prepgkk=0,
+        manager=None,
+    ) -> EphPotFlow:
         """
         Build the flow from an input file representing a GS calculation.
 
@@ -79,10 +83,12 @@ class EphPotFlow(Flow):
 
         # Build the first work with the GS run.
         # Make sure that WFK and POT files are produced.
-        scf_task = flow.register_scf_task(scf_input.new_with_vars(
-            prtwf=1,
-            prtpot=1,
-        ))[0]
+        scf_task = flow.register_scf_task(
+            scf_input.new_with_vars(
+                prtwf=1,
+                prtpot=1,
+            )
+        )[0]
 
         if dvdb_filepath or ddb_filepath:
             # Use input files to bypass the computation of work_qmesh.
@@ -97,9 +103,14 @@ class EphPotFlow(Flow):
 
         else:
             # Second work to compute phonons on the input nqgpt q-mesh.
-            work_qmesh = PhononWork.from_scf_task(scf_task, qpoints=ngqpt, is_ngqpt=True,
-                                                  with_becs=with_becs, with_quad=with_quad,
-                                                  ddk_tolerance=ddk_tolerance)
+            work_qmesh = PhononWork.from_scf_task(
+                scf_task,
+                qpoints=ngqpt,
+                is_ngqpt=True,
+                with_becs=with_becs,
+                with_quad=with_quad,
+                ddk_tolerance=ddk_tolerance,
+            )
             flow.register_work(work_qmesh)
 
         if ndivsm > 0:
@@ -114,9 +125,19 @@ class EphPotFlow(Flow):
         # The third work computes WFK/WFQ and phonons for each qpt in qpath_list.
         # Don't include BECS because they have been already computed in the previous work.
         work_qpath = PhononWfkqWork.from_scf_task(
-                       scf_task, qpath_list, ph_tolerance=None, tolwfr=1.0e-22, nband=None,
-                       with_becs=False, ddk_tolerance=None, shiftq=(0, 0, 0), is_ngqpt=False,
-                       remove_wfkq=True, prepgkk=prepgkk, manager=manager)
+            scf_task,
+            qpath_list,
+            ph_tolerance=None,
+            tolwfr=1.0e-22,
+            nband=None,
+            with_becs=False,
+            ddk_tolerance=None,
+            shiftq=(0, 0, 0),
+            is_ngqpt=False,
+            remove_wfkq=True,
+            prepgkk=prepgkk,
+            manager=manager,
+        )
 
         flow.register_work(work_qpath)
 
@@ -126,13 +147,12 @@ class EphPotFlow(Flow):
         if what_to_compute == "v1qavg":
             # Compute average of v1.
             for eph_task in (-15, 15):
-
                 eph_inp = scf_input.new_with_vars(
                     optdriver=7,
-                    ddb_ngqpt=ngqpt,    # q-mesh associated to the DDB file.
-                    #dvdb_ngqpt=ngqpt,  # q-mesh associated to the DDVDB file.
+                    ddb_ngqpt=ngqpt,  # q-mesh associated to the DDB file.
+                    # dvdb_ngqpt=ngqpt,  # q-mesh associated to the DDVDB file.
                     prtphdos=0,
-                    eph_task=eph_task
+                    eph_task=eph_task,
                 )
 
                 if eph_task == -15:
@@ -157,16 +177,16 @@ class EphPotFlow(Flow):
             # Compute the e-ph matrix for each q-point.
             for ii in range(2):
                 eph_inp = scf_input.new_with_vars(
-                    optdriver=7,                        # EPH driver
-                    eph_task=18,                        # Activate computation of g(k,q) along high-symmetry path.
-                    ddb_ngqpt=ngqpt,                    # q-mesh associated to the DDB file.
-                    #dvdb_ngqpt=ngqpt,                  # q-mesh associated to the DDVDB file.
-                    eph_fix_korq='"k"',                 # Fix k-point and change q in k+q
-                    eph_fix_wavevec=[0.0, 0.0, 0.0],    # Value of the fixed k-point.
-                    ph_ndivsm=-1,                       # ph_qpath provides full list of q-points.
+                    optdriver=7,  # EPH driver
+                    eph_task=18,  # Activate computation of g(k,q) along high-symmetry path.
+                    ddb_ngqpt=ngqpt,  # q-mesh associated to the DDB file.
+                    # dvdb_ngqpt=ngqpt,                  # q-mesh associated to the DDVDB file.
+                    eph_fix_korq='"k"',  # Fix k-point and change q in k+q
+                    eph_fix_wavevec=[0.0, 0.0, 0.0],  # Value of the fixed k-point.
+                    ph_ndivsm=-1,  # ph_qpath provides full list of q-points.
                     ph_nqpath=len(qpath_list),
                     ph_qpath=qpath_list,
-                    tolwfr=1e-20,                       # Stopping criterion for NSCF computation
+                    tolwfr=1e-20,  # Stopping criterion for NSCF computation
                     nstep=100,
                     prtphdos=0,
                 )
@@ -185,7 +205,7 @@ class EphPotFlow(Flow):
 
                 # Need GS potential to start NSCF.
                 # Also, read the GS WFK file to accelerate the NSCF computation of psi_k and psi_kq
-                deps.update({scf_task : ["POT", "WFK"]})
+                deps.update({scf_task: ["POT", "WFK"]})
                 eph_work.register_eph_task(eph_inp, deps=deps)
 
         else:
@@ -206,21 +226,23 @@ class GkqPathFlow(Flow):
     """
 
     @classmethod
-    def from_scf_input(cls,
-                       workdir: str,
-                       scf_input: AbinitInput,
-                       ngqpt,
-                       qbounds,
-                       ndivsm=5,
-                       with_becs=True,
-                       with_quad=True,
-                       dvdb_add_lr_list=(0, 1, 2),
-                       ddb_filepath=None,
-                       dvdb_filepath=None,
-                       ddk_tolerance=None,
-                       test_ft_interpolation: bool = False,
-                       prepgkk: int = 0,
-                       manager=None) -> GkqPathFlow:
+    def from_scf_input(
+        cls,
+        workdir: str,
+        scf_input: AbinitInput,
+        ngqpt,
+        qbounds,
+        ndivsm=5,
+        with_becs=True,
+        with_quad=True,
+        dvdb_add_lr_list=(0, 1, 2),
+        ddb_filepath=None,
+        dvdb_filepath=None,
+        ddk_tolerance=None,
+        test_ft_interpolation: bool = False,
+        prepgkk: int = 0,
+        manager=None,
+    ) -> GkqPathFlow:
         """
         Build the flow from an input file representing a GS calculation.
 
@@ -264,11 +286,15 @@ class GkqPathFlow(Flow):
             dvdb_node = Node.as_node(dvdb_filepath)
 
         else:
-
             # Second work to compute phonons on the input nqgpt q-mesh.
-            work_qmesh = PhononWork.from_scf_task(scf_task, qpoints=ngqpt, is_ngqpt=True,
-                                                  with_becs=with_becs, with_quad=with_quad,
-                                                  ddk_tolerance=ddk_tolerance)
+            work_qmesh = PhononWork.from_scf_task(
+                scf_task,
+                qpoints=ngqpt,
+                is_ngqpt=True,
+                with_becs=with_becs,
+                with_quad=with_quad,
+                ddk_tolerance=ddk_tolerance,
+            )
             flow.register_work(work_qmesh)
 
         if ndivsm > 0:
@@ -283,9 +309,19 @@ class GkqPathFlow(Flow):
         # The third work computes WFK/WFQ and phonons for qpt in qpath_list.
         # Don't include BECS because they have been already computed in the previous work.
         work_qpath = PhononWfkqWork.from_scf_task(
-                       scf_task, qpath_list, ph_tolerance=None, tolwfr=1.0e-22, nband=None,
-                       with_becs=False, ddk_tolerance=None, shiftq=(0, 0, 0), is_ngqpt=False, remove_wfkq=False,
-                       prepgkk=prepgkk, manager=manager)
+            scf_task,
+            qpath_list,
+            ph_tolerance=None,
+            tolwfr=1.0e-22,
+            nband=None,
+            with_becs=False,
+            ddk_tolerance=None,
+            shiftq=(0, 0, 0),
+            is_ngqpt=False,
+            remove_wfkq=False,
+            prepgkk=prepgkk,
+            manager=manager,
+        )
 
         flow.register_work(work_qpath)
 
@@ -309,7 +345,8 @@ class GkqPathFlow(Flow):
         qseen = set()
         for task in work_qpath.phonon_tasks:
             qpt = tuple(task.input["qpt"])
-            if qpt in qseen: continue
+            if qpt in qseen:
+                continue
             qseen.add(qpt)
             t = eph_work.register_eph_task(make_eph_input(scf_input, ngqpt, qpt), deps=task.deps)
 
@@ -324,13 +361,13 @@ class GkqPathFlow(Flow):
         # with interpolated potentials along the q-path.
         # The potentials are interpolated using the input ngqpt q-mesh.
         if test_ft_interpolation:
-
             for dvdb_add_lr in dvdb_add_lr_list:
                 inteph_work = Work()
                 qseen = set()
                 for task in work_qpath.phonon_tasks:
                     qpt = tuple(task.input["qpt"])
-                    if qpt in qseen: continue
+                    if qpt in qseen:
+                        continue
                     qseen.add(qpt)
                     eph_inp = make_eph_input(scf_input, ngqpt, qpt)
                     # Note eph_use_ftinterp 1 to force the interpolation

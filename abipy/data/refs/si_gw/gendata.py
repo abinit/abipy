@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-from __future__ import print_function, unicode_literals, division, absolute_import
-import sys
 import os
 
 from abipy.data import AbinitFilesGenerator
@@ -8,6 +6,7 @@ from abipy.data import AbinitFilesGenerator
 
 class MyGenerator(AbinitFilesGenerator):
     """This class generates the output files used in the unit tests and in the examples."""
+
     # Subclasses must define the following class attributes:
     # List of pseudos (basenames in abipy/data/pseudos)
     pseudos = ["14si.pspnc"]
@@ -22,21 +21,20 @@ class MyGenerator(AbinitFilesGenerator):
         Args:
             params: Dictionary with the parameters to be used in the abi file.
         """
-
         if params is not None:
-            inputfile = open("tmp.abi", "r")
+            inputfile = open("tmp.abi")
             lines = inputfile.readlines()
             for i in range(len(lines)):
                 for j in params.keys():
                     if lines[i].strip().startswith(j):
-                        lines[i] = lines[i].replace(j, j+"  "+str(params[j]))
+                        lines[i] = lines[i].replace(j, j + "  " + str(params[j]))
                         break
             inputfile.close()
             inputfile = open("run.abi", "w")
             for i in range(len(lines)):
                 inputfile.write(lines[i])
 
-        filename = "si_gw_%s_SIGRES.nc" % ('_'.join([i+"_"+str(params[i]) for i in params.keys()]).replace('.', ''))
+        filename = "si_gw_%s_SIGRES.nc" % ("_".join([i + "_" + str(params[i]) for i in params.keys()]).replace(".", ""))
 
         self.files_to_save["out_DS4_SIGRES.nc"] = filename
 
@@ -49,8 +47,6 @@ class MyGenerator(AbinitFilesGenerator):
 
 if __name__ == "__main__":
     files_to_keep = ["tmp.abi"]
-    for nband in range(10,40,10):
+    for nband in range(10, 40, 10):
         for ecut in range(4, 10, 2):
-            MyGenerator(
-                params={"nband4": nband, "ecuteps3": ecut}
-            ).run()
+            MyGenerator(params={"nband4": nband, "ecuteps3": ecut}).run()

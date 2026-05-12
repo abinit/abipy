@@ -6,14 +6,11 @@ Screening Flow with q-point parallelism
 This example shows how to compute the SCR file by splitting the calculation of the SCR file
 over q-points with the input variables nqptdm and qptdm.
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
 
-import sys
 import os
-import abipy.abilab as abilab
-import abipy.data as data
+import sys
 
-from abipy import flowtk
+from abipy import abilab, data, flowtk
 
 
 def all_inputs(paral_kgb=1):
@@ -28,30 +25,17 @@ def all_inputs(paral_kgb=1):
         paral_kgb=paral_kgb,
     )
 
-    multi = abilab.MultiDataset(structure=data.cif_file("si.cif"),
-                                pseudos=data.pseudos("14si.pspnc"), ndtset=4)
+    multi = abilab.MultiDataset(structure=data.cif_file("si.cif"), pseudos=data.pseudos("14si.pspnc"), ndtset=4)
     multi.set_vars(global_vars)
 
     gs, nscf, scr, sigma = multi.split_datasets()
 
     # This grid is the most economical, but does not contain the Gamma point.
-    gs_kmesh = dict(
-        ngkpt=[2, 2, 2],
-        shiftk=[0.5, 0.5, 0.5,
-                0.5, 0.0, 0.0,
-                0.0, 0.5, 0.0,
-                0.0, 0.0, 0.5]
-    )
+    gs_kmesh = dict(ngkpt=[2, 2, 2], shiftk=[0.5, 0.5, 0.5, 0.5, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0, 0.5])
 
     # This grid contains the Gamma point, which is the point at which
     # we will compute the (direct) band gap.
-    gw_kmesh = dict(
-        ngkpt=[2, 2, 2],
-        shiftk=[0.0, 0.0, 0.0,
-                0.0, 0.5, 0.5,
-                0.5, 0.0, 0.5,
-                0.5, 0.5, 0.0]
-    )
+    gw_kmesh = dict(ngkpt=[2, 2, 2], shiftk=[0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, 0.0, 0.5, 0.5, 0.5, 0.0])
 
     # Dataset 1 (GS run)
     gs.set_kmesh(**gs_kmesh)
@@ -60,10 +44,11 @@ def all_inputs(paral_kgb=1):
     # Dataset 2 (NSCF run)
     # Here we select the second dataset directly with the syntax inp[2]
     nscf.set_kmesh(**gw_kmesh)
-    nscf.set_vars(iscf=-2,
-                  tolwfr=1e-10,
-                  nband=15,
-                  nbdbuf=5,
+    nscf.set_vars(
+        iscf=-2,
+        tolwfr=1e-10,
+        nband=15,
+        nbdbuf=5,
     )
 
     # Dataset3: Calculation of the screening.
@@ -80,21 +65,33 @@ def all_inputs(paral_kgb=1):
     # Dataset4: Calculation of the Self-Energy matrix elements (GW corrections)
     sigma.set_kmesh(**gw_kmesh)
     sigma.set_vars(
-            optdriver=4,
-            nband=8,
-            ecutwfn=ecutwfn,
-            ecuteps=2.0,
-            ecutsigx=2.0,
-            symsigma=1,
+        optdriver=4,
+        nband=8,
+        ecutwfn=ecutwfn,
+        ecuteps=2.0,
+        ecutsigx=2.0,
+        symsigma=1,
     )
 
     kptgw = [
-         -2.50000000E-01, -2.50000000E-01,  0.00000000E+00,
-         -2.50000000E-01,  2.50000000E-01,  0.00000000E+00,
-          5.00000000E-01,  5.00000000E-01,  0.00000000E+00,
-         -2.50000000E-01,  5.00000000E-01,  2.50000000E-01,
-          5.00000000E-01,  0.00000000E+00,  0.00000000E+00,
-          0.00000000E+00,  0.00000000E+00,  0.00000000E+00,
+        -2.50000000e-01,
+        -2.50000000e-01,
+        0.00000000e00,
+        -2.50000000e-01,
+        2.50000000e-01,
+        0.00000000e00,
+        5.00000000e-01,
+        5.00000000e-01,
+        0.00000000e00,
+        -2.50000000e-01,
+        5.00000000e-01,
+        2.50000000e-01,
+        5.00000000e-01,
+        0.00000000e00,
+        0.00000000e00,
+        0.00000000e00,
+        0.00000000e00,
+        0.00000000e00,
     ]
 
     bdgw = [1, 8]
@@ -118,8 +115,7 @@ def build_flow(options):
     gs, nscf, scr_input, sigma_input = all_inputs()
 
     # Construct the flow.
-    return flowtk.G0W0WithQptdmFlow(options.workdir, gs, nscf, scr_input, sigma_input,
-                                    manager=options.manager)
+    return flowtk.G0W0WithQptdmFlow(options.workdir, gs, nscf, scr_input, sigma_input, manager=options.manager)
 
 
 # This block generates the thumbnails in the Abipy gallery.
@@ -127,6 +123,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

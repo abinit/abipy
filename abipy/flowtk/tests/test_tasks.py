@@ -1,11 +1,10 @@
-# coding: utf-8
 import os
 
 from abipy.core.testing import AbipyTest
 from abipy.flowtk.tasks import *
-from abipy.flowtk.tasks import TaskPolicy, ParalHints
+from abipy.flowtk.tasks import ParalHints
 
-test_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", 'test_files', "abinit")
+test_dir = os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "test_files", "abinit")
 
 
 class TaskManagerTest(AbipyTest):
@@ -38,6 +37,7 @@ qadapters:
             LD_LIBRARY_PATH: /home/user/NAPS/intel13/lib:$LD_LIBRARY_PATH
         mpi_runner: mpirun
 """
+
     def test_base(self):
         """
         Simple unit tests for Qadapter subclasses.
@@ -46,7 +46,8 @@ qadapters:
         # Initialize the object from YAML file.
         slurm_manager = TaskManager.from_string(self.MANAGER)
 
-        repr(slurm_manager); str(slurm_manager)
+        repr(slurm_manager)
+        str(slurm_manager)
         assert slurm_manager.num_cores == 4
         assert slurm_manager.mpi_procs == 4
         assert slurm_manager.omp_threads == 1
@@ -78,8 +79,7 @@ qadapters:
 class ParalHintsTest(AbipyTest):
     def test_base(self):
         """Testing ParalHints."""
-        s = \
-"""--- !Autoparal
+        s = """--- !Autoparal
 #Autoparal section for Sigma runs.
 info:
     autoparal: 1
@@ -131,58 +131,58 @@ configurations:
         # MG: Disabled after refactoring.
         # TODO: Write new units tests
         # Optimize speedup with ncpus <= max_ncpus
-        #policy = TaskPolicy(autoparal=1, max_ncpus=3)
-        #optimal = confs.select_optimal_conf(policy)
-        #aequal(optimal.num_cores, 3)
+        # policy = TaskPolicy(autoparal=1, max_ncpus=3)
+        # optimal = confs.select_optimal_conf(policy)
+        # aequal(optimal.num_cores, 3)
 
         # Optimize speedup with ncpus <= max_ncpus and condition on efficiency.
-        #policy = TaskPolicy(autoparal=1, max_ncpus=4, condition={"efficiency": {"$ge": 0.9}})
-        #optimal = confs.select_optimal_conf(policy)
-        #aequal(optimal.num_cores, 2)
+        # policy = TaskPolicy(autoparal=1, max_ncpus=4, condition={"efficiency": {"$ge": 0.9}})
+        # optimal = confs.select_optimal_conf(policy)
+        # aequal(optimal.num_cores, 2)
 
         # Optimize speedup with ncpus <= max_ncpus and conditions on efficiency and mem_per_cpu.
-        #policy = TaskPolicy(autoparal=1, mode="default", max_ncpus=4,
+        # policy = TaskPolicy(autoparal=1, mode="default", max_ncpus=4,
         #                    condition={"$and": [{"efficiency": {"$ge": 0.8}}, {"mem_per_cpu": {"$le": 7.0}}]})
-        #optimal = confs.select_optimal_conf(policy)
-        #aequal(optimal.num_cores, 3)
+        # optimal = confs.select_optimal_conf(policy)
+        # aequal(optimal.num_cores, 3)
 
         # If no configuration satisfies the constraints, we return the conf with the highest speedup.
-        #policy = TaskPolicy(autoparal=1, max_ncpus=4, condition={"efficiency": {"$ge": 100}})
-        #optimal = confs.select_optimal_conf(policy)
-        #aequal(optimal.num_cores, 4)
+        # policy = TaskPolicy(autoparal=1, max_ncpus=4, condition={"efficiency": {"$ge": 100}})
+        # optimal = confs.select_optimal_conf(policy)
+        # aequal(optimal.num_cores, 4)
 
         # Wrong conditions --> dump a warning and return the conf with the highest speedup.
-        #policy = TaskPolicy(autoparal=1, max_ncpus=4, condition={"foobar": {"$ge": 100}})
-        #optimal = confs.select_optimal_conf(policy)
-        #aequal(optimal.num_cores, 4)
+        # policy = TaskPolicy(autoparal=1, max_ncpus=4, condition={"foobar": {"$ge": 100}})
+        # optimal = confs.select_optimal_conf(policy)
+        # aequal(optimal.num_cores, 4)
 
         # Select configuration with npfft == 1
-        #policy = TaskPolicy(autoparal=1, max_ncpus=4, vars_condition={"npfft": {"$eq": 3}})
-        #optimal = confs.select_optimal_conf(policy)
-        #aequal(optimal.num_cores, 3)
-        #aequal(optimal.vars["npfft"],  3)
+        # policy = TaskPolicy(autoparal=1, max_ncpus=4, vars_condition={"npfft": {"$eq": 3}})
+        # optimal = confs.select_optimal_conf(policy)
+        # aequal(optimal.num_cores, 3)
+        # aequal(optimal.vars["npfft"],  3)
 
         # Select configuration with npfft == 2 and npkpt == 1
-        #policy = TaskPolicy(autoparal=1, max_ncpus=4,
+        # policy = TaskPolicy(autoparal=1, max_ncpus=4,
         #                    vars_condition={"$and": [{"npfft": {"$eq": 2}}, {"npkpt": {"$eq": 1}}]})
-        #optimal = confs.select_optimal_conf(policy)
-        #aequal(optimal.num_cores, 2)
-        #aequal(optimal.vars["npfft"],  2)
-        #aequal(optimal.vars["npkpt"],  1)
-        #assert 0
+        # optimal = confs.select_optimal_conf(policy)
+        # aequal(optimal.num_cores, 2)
+        # aequal(optimal.vars["npfft"],  2)
+        # aequal(optimal.vars["npkpt"],  1)
+        # assert 0
 
 
 class AbinitBuildTest(AbipyTest):
-
     def test_abinit_build(self):
         from abipy.flowtk import AbinitBuild
+
         build = AbinitBuild()
         str(build)
         assert build.has_netcdf
-        #assert not build.has_omp
-        #assert build.has_mpi
-        #assert build.has_mpiio
-        #assert build.has_libxc
+        # assert not build.has_omp
+        # assert build.has_mpi
+        # assert build.has_mpiio
+        # assert build.has_libxc
 
         assert build.version_ge("4.0")
         assert build.compare_version(build.version, "==")

@@ -1,28 +1,27 @@
-# coding: utf-8
-"""
-Release data for the AbiPy project.
-"""
+"""Release data for the AbiPy project."""
 
 from collections import OrderedDict
 
 # Name of the package for release purposes. This is the name which labels
 # the tarballs and RPMs made by distutils, so it's best to lowercase it.
-name = 'abipy'
+name = "abipy"
 
 # version information.  An empty _version_extra corresponds to a full
 # release.  'dev' as a _version_extra string means this is a development version
-_version_major = 0
-_version_minor = 9
-_version_micro = 8  # use '' for first of series, number for 1 and above
-#_version_extra = 'dev'
-_version_extra = ''  # Uncomment this for full releases
+_version_major = 1
+_version_minor = 0
+_version_micro = 0  # use '' for first of series, number for 1 and above
+# _version_extra = 'dev'
+_version_extra = ""  # Uncomment this for full releases
 
 # Construct full version string from these.
 _ver = [_version_major, _version_minor]
-if _version_micro: _ver.append(_version_micro)
-if _version_extra: _ver.append(_version_extra)
+if _version_micro is not None and str(_version_micro) != "":
+    _ver.append(_version_micro)
+if _version_extra:
+    _ver.append(_version_extra)
 
-__version__ = '.'.join(map(str, _ver))
+__version__ = ".".join(map(str, _ver))
 
 version = __version__  # backwards compatibility name
 
@@ -32,7 +31,7 @@ min_abinit_version = "9.2.0"
 description = "Python package to automate ABINIT calculations and analyze the results."
 
 # Don't add spaces because pypi complains about RST
-long_description = """\
+long_description = r"""\
 AbiPy is a Python library to analyze the results produced by `ABINIT <https://www.abinit.org>`_,
 an open-source program for the ab-initio calculations of the physical properties of materials
 within Density Functional Theory and Many-Body perturbation theory.
@@ -46,28 +45,31 @@ AbiPy can be used in conjunction with `matplotlib <http://matplotlib.org>`_, `pa
 thus providing a powerful and user-friendly environment for data analysis and visualization.
 Check out our `gallery of plotting scripts <http://abinit.github.io/abipy/gallery/index.html>`_
 and the `gallery of AbiPy workflows <http://abinit.github.io/abipy/flow_gallery/index.html>`_.
-To learn more about the integration between jupyter and AbiPy, visit our collection of `notebooks
-<http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/index.ipynb>`_ and the
+To learn more about the integration between jupyter and AbiPy, visit our collection of
+`notebooks <http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/index.ipynb>`_ and the
 `AbiPy lessons <http://nbviewer.ipython.org/github/abinit/abipy/blob/master/abipy/examples/notebooks/lessons/index.ipynb>`_.
-The latest development version is always available from <https://github.com/abinit/abipy>
+The latest development version is always available from `github <https://github.com/abinit/abipy>`_.
 """
 
-license = 'GPL'
 
-author = 'M. Giantomassi and the AbiPy group'
-author_email = 'matteo.giantomassi@uclouvain.be'
+license = "GPL"
+
+author = "M. Giantomassi and the AbiPy group"
+author_email = "matteo.giantomassi@uclouvain.be"
 maintainer = "Matteo Giantomassi"
 maintainer_email = author_email
-authors = OrderedDict([
-    ('Matteo', ('M. Giantomassi', 'nobody@nowhere')),
-    ('Michiel', ('M. J. van Setten', 'nobody@nowhere')),
-    ('Guido', ('G. Petretto', 'nobody@nowhere')),
-    ('Henrique', ('H. Miranda', 'nobody@nowhere')),
-])
+authors = OrderedDict(
+    [
+        ("Matteo", ("M. Giantomassi", "nobody@nowhere")),
+        ("Michiel", ("M. J. van Setten", "nobody@nowhere")),
+        ("Guido", ("G. Petretto", "nobody@nowhere")),
+        ("Henrique", ("H. Miranda", "nobody@nowhere")),
+    ]
+)
 
 url = "https://github.com/abinit/abipy"
 download_url = "https://github.com/abinit/abipy"
-platforms = ['Linux', 'darwin']
+platforms = ["Linux", "darwin"]
 keywords = ["ABINIT", "ab-initio", "density-function-theory", "first-principles", "electronic-structure", "pymatgen"]
 classifiers = [
     "Programming Language :: Python :: 3.8",

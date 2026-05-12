@@ -1,12 +1,13 @@
-# coding: utf-8
 """Wrappers for ABINIT main executables"""
+
 from __future__ import annotations
 
 import os
-import numpy as np
-
 from io import StringIO
+
+import numpy as np
 from monty.string import list_strings
+
 from abipy.core.globals import get_workdir
 
 __author__ = "Matteo Giantomassi"
@@ -18,13 +19,13 @@ __status__ = "Development"
 __date__ = "$Feb 21, 2013M$"
 
 __all__ = [
-    "Mrgscr",
-    "Mrgddb",
-    "Mrgdvdb",
+    "Abitk",
     "Cut3D",
     "Fold2Bloch",
     "Lruj",
-    "Abitk",
+    "Mrgddb",
+    "Mrgdvdb",
+    "Mrgscr",
 ]
 
 
@@ -36,6 +37,7 @@ class ExecWrapper:
     """
     Base class that runs an executable in a subprocess.
     """
+
     Error = ExecError
 
     def __init__(self, manager=None, executable=None, verbose=0):
@@ -47,6 +49,7 @@ class ExecWrapper:
             verbose: Verbosity level.
         """
         from .tasks import TaskManager
+
         self.manager = manager if manager is not None else TaskManager.from_user_config()
         self.manager = self.manager.to_shell_manager(mpi_procs=1)
 
@@ -76,7 +79,8 @@ class ExecWrapper:
         Use with_mpirun=False to run the binary without it.
         """
         qadapter = self.manager.qadapter
-        if not with_mpirun: qadapter.name = None
+        if not with_mpirun:
+            qadapter.name = None
         if self.verbose:
             print("Working in:", workdir)
 
@@ -89,12 +93,12 @@ class ExecWrapper:
             stdin=self.stdin_fname,
             stdout=self.stdout_fname,
             stderr=self.stderr_fname,
-            exec_args=exec_args
+            exec_args=exec_args,
         )
 
         # Write the script.
         script_file = os.path.join(workdir, "run_" + self.name + ".sh")
-        with open(script_file, "wt") as fh:
+        with open(script_file, "w") as fh:
             fh.write(script)
             os.chmod(script_file, 0o740)
 
@@ -109,6 +113,7 @@ class Mrgscr(ExecWrapper):
     """
     Wraps the mrgddb Fortran executable.
     """
+
     _name = "mrgscr"
 
     def merge_qpoints(self, workdir: str, files_to_merge: list[str], out_prefix: str) -> None:
@@ -122,21 +127,22 @@ class Mrgscr(ExecWrapper):
 
         if self.verbose:
             print("Will merge %d files with output_prefix %s" % (nfiles, out_prefix))
-            for (i, f) in enumerate(files_to_merge):
+            for i, f in enumerate(files_to_merge):
                 print(" [%d] %s" % (i, f))
 
         if nfiles == 1:
             raise self.Error("merge_qpoints does not support nfiles == 1")
 
-        self.stdin_fname, self.stdout_fname, self.stderr_fname = \
-            map(os.path.join, 3 * [workdir], ["mrgscr.stdin", "mrgscr.stdout", "mrgscr.stderr"])
+        self.stdin_fname, self.stdout_fname, self.stderr_fname = map(
+            os.path.join, 3 * [workdir], ["mrgscr.stdin", "mrgscr.stdout", "mrgscr.stderr"]
+        )
 
         inp = StringIO()
-        inp.write(str(nfiles) + "\n")     # Number of partial files to merge.
-        inp.write(out_prefix + "\n")      # Prefix for the final output file (_SCR extension will be added)
+        inp.write(str(nfiles) + "\n")  # Number of partial files to merge.
+        inp.write(out_prefix + "\n")  # Prefix for the final output file (_SCR extension will be added)
         for filename in files_to_merge:
-            inp.write(filename + "\n")   # List with the files to merge.
-        inp.write("1\n")                 # Option for merging q-points.
+            inp.write(filename + "\n")  # List with the files to merge.
+        inp.write("1\n")  # Option for merging q-points.
 
         self.stdin_data = [s for s in inp.getvalue()]
 
@@ -159,22 +165,23 @@ class Mrgscr(ExecWrapper):
 
         if self.verbose:
             print("Will merge %d files with output_prefix %s" % (nfiles, out_prefix))
-            for (i, f) in enumerate(files_to_merge):
+            for i, f in enumerate(files_to_merge):
                 print(" [%d] %s" % (i, f))
 
         if nfiles == 1:
             raise self.Error("merge_omegas does not support nfiles == 1")
 
-        self.stdin_fname, self.stdout_fname, self.stderr_fname = \
-            map(os.path.join, 3 * [workdir], ["mrgscr.stdin", "mrgscr.stdout", "mrgscr.stderr"])
+        self.stdin_fname, self.stdout_fname, self.stderr_fname = map(
+            os.path.join, 3 * [workdir], ["mrgscr.stdin", "mrgscr.stdout", "mrgscr.stderr"]
+        )
 
         inp = StringIO()
-        inp.write(str(nfiles) + "\n")     # Number of partial SCR files to merge.
-        inp.write(out_prefix + "\n")      # Prefix for the final output file (_SCR extension will be added)
+        inp.write(str(nfiles) + "\n")  # Number of partial SCR files to merge.
+        inp.write(out_prefix + "\n")  # Prefix for the final output file (_SCR extension will be added)
         for filename in files_to_merge:
-            inp.write(filename + "\n")   # List with the files to merge.
-        inp.write("2\n")                 # Option for merging frequencies.
-        inp.write("0.0\n")               # To use all freqs found.
+            inp.write(filename + "\n")  # List with the files to merge.
+        inp.write("2\n")  # Option for merging frequencies.
+        inp.write("0.0\n")  # To use all freqs found.
 
         self.stdin_data = [s for s in inp.getvalue()]
 
@@ -191,6 +198,7 @@ class Mrgddb(ExecWrapper):
     """
     Wraps the mrgddb Fortran executable.
     """
+
     _name = "mrgddb"
 
     def merge(self, workdir, ddb_files, out_ddb, description, delete_source_ddbs=True) -> str:
@@ -207,17 +215,17 @@ class Mrgddb(ExecWrapper):
 
         # Handle the case of a single file since mrgddb uses 1 to denote GS files!
         if len(ddb_files) == 1:
-            with open(ddb_files[0], "r") as in_fh, open(out_ddb, "w") as out:
-                for line in in_fh:
-                    out.write(line)
+            with open(ddb_files[0]) as in_fh, open(out_ddb, "w") as out:
+                out.writelines(in_fh)
             return out_ddb
 
-        self.stdin_fname, self.stdout_fname, self.stderr_fname = \
-            map(os.path.join, 3 * [os.path.abspath(workdir)], ["mrgddb.stdin", "mrgddb.stdout", "mrgddb.stderr"])
+        self.stdin_fname, self.stdout_fname, self.stderr_fname = map(
+            os.path.join, 3 * [os.path.abspath(workdir)], ["mrgddb.stdin", "mrgddb.stdout", "mrgddb.stderr"]
+        )
 
         inp = StringIO()
-        inp.write(out_ddb + "\n")              # Name of the output file.
-        inp.write(str(description) + "\n")     # Description.
+        inp.write(out_ddb + "\n")  # Name of the output file.
+        inp.write(str(description) + "\n")  # Description.
         inp.write(str(len(ddb_files)) + "\n")  # Number of input DDBs.
 
         # Names of the DDB files.
@@ -226,19 +234,19 @@ class Mrgddb(ExecWrapper):
 
         self.stdin_data = [s for s in inp.getvalue()]
 
-        with open(self.stdin_fname, "wt") as fh:
+        with open(self.stdin_fname, "w") as fh:
             fh.writelines(self.stdin_data)
             # Force OS to write data to disk.
             fh.flush()
             os.fsync(fh.fileno())
 
-        retcode = self.execute(workdir, exec_args=['--nostrict'])
+        retcode = self.execute(workdir, exec_args=["--nostrict"])
         if retcode == 0 and delete_source_ddbs:
             # Remove ddb files.
             for f in ddb_files:
                 try:
                     os.remove(f)
-                except IOError:
+                except OSError:
                     pass
 
         return out_ddb
@@ -271,16 +279,16 @@ class Mrgdvdb(ExecWrapper):
 
         # Handle the case of a single file since mrgddb uses 1 to denote GS files!
         if len(pot_files) == 1:
-            with open(pot_files[0], "r") as in_fh, open(out_dvdb, "w") as out:
-                for line in in_fh:
-                    out.write(line)
+            with open(pot_files[0]) as in_fh, open(out_dvdb, "w") as out:
+                out.writelines(in_fh)
             return out_dvdb
 
-        self.stdin_fname, self.stdout_fname, self.stderr_fname = \
-            map(os.path.join, 3 * [os.path.abspath(workdir)], ["mrgdvdb.stdin", "mrgdvdb.stdout", "mrgdvdb.stderr"])
+        self.stdin_fname, self.stdout_fname, self.stderr_fname = map(
+            os.path.join, 3 * [os.path.abspath(workdir)], ["mrgdvdb.stdin", "mrgdvdb.stdout", "mrgdvdb.stderr"]
+        )
 
         inp = StringIO()
-        inp.write(out_dvdb + "\n")             # Name of the output file.
+        inp.write(out_dvdb + "\n")  # Name of the output file.
         inp.write(str(len(pot_files)) + "\n")  # Number of input POT files.
 
         # Names of the POT files.
@@ -289,7 +297,7 @@ class Mrgdvdb(ExecWrapper):
 
         self.stdin_data = [s for s in inp.getvalue()]
 
-        with open(self.stdin_fname, "wt") as fh:
+        with open(self.stdin_fname, "w") as fh:
             fh.writelines(self.stdin_data)
             # Force OS to write data to disk.
             fh.flush()
@@ -301,7 +309,7 @@ class Mrgdvdb(ExecWrapper):
             for f in pot_files:
                 try:
                     os.remove(f)
-                except IOError:
+                except OSError:
                     pass
 
         return out_dvdb
@@ -311,6 +319,7 @@ class Cut3D(ExecWrapper):
     """
     Wraps the cut3d Fortran executable.
     """
+
     _name = "cut3d"
 
     def cut3d(self, cut3d_input, workdir) -> tuple[str, str]:
@@ -325,8 +334,9 @@ class Cut3D(ExecWrapper):
             (string) absolute path to the standard output of the cut3d execution.
             (string) absolute path to the output filepath. None if output is required.
         """
-        self.stdin_fname, self.stdout_fname, self.stderr_fname = \
-            map(os.path.join, 3 * [os.path.abspath(workdir)], ["cut3d.stdin", "cut3d.stdout", "cut3d.stderr"])
+        self.stdin_fname, self.stdout_fname, self.stderr_fname = map(
+            os.path.join, 3 * [os.path.abspath(workdir)], ["cut3d.stdin", "cut3d.stdout", "cut3d.stderr"]
+        )
 
         cut3d_input.write(self.stdin_fname)
 
@@ -334,10 +344,10 @@ class Cut3D(ExecWrapper):
             stdout = os.path.join(workdir, "cut3d.stdout")
             stderr = os.path.join(workdir, "cut3d.stderr")
             if os.path.exists(stdout):
-                with open(stdout, "rt") as fh:
+                with open(stdout) as fh:
                     print(fh.read())
             if os.path.exists(stderr):
-                with open(stderr, "rt") as fh:
+                with open(stderr) as fh:
                     print(fh.read())
 
             raise RuntimeError("Error while running cut3d in %s" % workdir)
@@ -358,19 +368,22 @@ class Fold2Bloch(ExecWrapper):
     """
     Wraps the fold2Bloch Fortran executable.
     """
+
     _name = "fold2Bloch"
 
     def unfold(self, wfkpath, folds, workdir=None) -> str:
+        """Unfold the wavefunctions from the supercell to the primitive cell."""
         workdir = get_workdir(workdir)
 
         self.stdin_fname = None
-        self.stdout_fname, self.stderr_fname = \
-            map(os.path.join, 2 * [workdir], ["fold2bloch.stdout", "fold2bloch.stderr"])
+        self.stdout_fname, self.stderr_fname = map(
+            os.path.join, 2 * [workdir], ["fold2bloch.stdout", "fold2bloch.stderr"]
+        )
 
-        folds = np.array(folds, dtype=np.int).flatten()
+        folds = np.array(folds, dtype=int).flatten()
         if len(folds) not in (3, 9):
             raise ValueError("Expecting 3 ints or 3x3 matrix but got %s" % (str(folds)))
-        fold_arg = ":".join((str(f) for f in folds))
+        fold_arg = ":".join(str(f) for f in folds)
         wfkpath = os.path.abspath(wfkpath)
         if not os.path.isfile(wfkpath):
             raise RuntimeError("WFK file `%s` does not exist in %s" % (wfkpath, workdir))
@@ -392,6 +405,7 @@ class Lruj(ExecWrapper):
     """
     Wraps the lruj Fortran executable.
     """
+
     _name = "lruj"
 
     def run(self, nc_paths: list[str], workdir=None) -> int:
@@ -401,8 +415,7 @@ class Lruj(ExecWrapper):
         workdir = get_workdir(workdir)
 
         self.stdin_fname = None
-        self.stdout_fname, self.stderr_fname = \
-            map(os.path.join, 2 * [workdir], ["lruj.stdout", "lruj.stderr"])
+        self.stdout_fname, self.stderr_fname = map(os.path.join, 2 * [workdir], ["lruj.stdout", "lruj.stderr"])
 
         # We work with absolute paths.
         nc_paths = [os.path.abspath(s) for s in list_strings(nc_paths)]
@@ -419,6 +432,7 @@ class Abitk(ExecWrapper):
     """
     Wraps the abitk Fortran executable.
     """
+
     _name = "abitk"
 
     stdin_fname = None

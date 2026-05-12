@@ -4,14 +4,14 @@ Preferred way to import the module is via the import syntax:
 
     import abipy.data as abidata
 """
+
 from __future__ import annotations
 
 import os
 
 from abipy.core.structure import Structure
-from abipy.flowtk import Pseudo, PseudoTable
 from abipy.data.ucells import structure_from_ucell
-
+from abipy.flowtk import Pseudo, PseudoTable
 
 __all__ = [
     "cif_file",
@@ -45,14 +45,18 @@ def pyscript(basename: str) -> str:
     if _SCRIPTS is None:
         # Build mapping basename --> path.
         from monty.os.path import find_exts
+
         pypaths = find_exts(_SCRIPTS_DIRPATH, ".py", exclude_dirs="_*|.*|develop", match_mode="basename")
         _SCRIPTS = {}
         for p in pypaths:
             k = os.path.basename(p)
             # Ignore e.g. __init__.py and private scripts.
-            if k.startswith("_"): continue
+            if k.startswith("_"):
+                continue
             if k in _SCRIPTS:
-                raise ValueError("Fond duplicated basenames with name %s\nActual:%s\nPrevious: %s" % (k, p, _SCRIPTS[k]))
+                raise ValueError(
+                    "Fond duplicated basenames with name %s\nActual:%s\nPrevious: %s" % (k, p, _SCRIPTS[k])
+                )
             _SCRIPTS[k] = p
 
     return _SCRIPTS[basename]
@@ -106,20 +110,20 @@ def find_ncfiles(top: str, verbose=0) -> dict:
     """
     ncfiles = {}
     for dirpath, dirnames, filenames in os.walk(top, topdown=True):
-        #if "tmp_" in dirpath: continue
+        # if "tmp_" in dirpath: continue
         dirnames[:] = [d for d in dirnames if not (d.startswith("tmp_") or d.startswith("_"))]
 
         for basename in filenames:
             apath = os.path.join(dirpath, basename)
             if basename.endswith(".nc"):
-
                 if basename in ncfiles:
                     err_msg = "Found duplicated basename %s\n" % basename
                     err_msg += "Stored: %s, new %s\n" % (ncfiles[basename], apath)
                     if not verbose:
                         import warnings
+
                         warnings.warn(err_msg)
-                        #raise ValueError(err_msg)
+                        # raise ValueError(err_msg)
                 else:
                     ncfiles[basename] = apath
 
@@ -133,11 +137,10 @@ def ref_file(basename: str) -> str:
     """Returns the absolute path of basename in tests/data directory."""
     if basename in _DATA_NCFILES:
         return _DATA_NCFILES[basename]
-    else:
-        path = os.path.join(dirpath, basename)
-        if not os.path.exists(path):
-            raise ValueError("Cannot find reference file `%s`, at abs_path: `%s`" % (basename, path))
-        return path
+    path = os.path.join(dirpath, basename)
+    if not os.path.exists(path):
+        raise ValueError("Cannot find reference file `%s`, at abs_path: `%s`" % (basename, path))
+    return path
 
 
 def ref_files(*basenames) -> list[str]:
@@ -168,9 +171,10 @@ def get_mp_structures_dict() -> dict[str, Structure]:
         return _MP_STRUCT_DICT
 
     import json
+
     from monty.json import MontyDecoder
 
-    with open(os.path.join(_MPDATA_DIRPATH, 'mp_structures.json'), 'rt') as f:
+    with open(os.path.join(_MPDATA_DIRPATH, "mp_structures.json")) as f:
         _MP_STRUCT_DICT = json.load(f, cls=MontyDecoder)
         # Change Structure class
         for k, v in _MP_STRUCT_DICT.items():
@@ -215,8 +219,7 @@ class FilesGenerator:
         self.finalize = kwargs.pop("finalize", True)
         self.verbose = kwargs.pop("verbose", 1)
 
-        self.files_to_keep = set([os.path.basename(__file__), "run.abi", "run.abo"] +
-                list(self.files_to_save.keys()))
+        self.files_to_keep = set([os.path.basename(__file__), "run.abi", "run.abo"] + list(self.files_to_save.keys()))
 
     def __str__(self) -> str:
         lines = []
@@ -228,6 +231,7 @@ class FilesGenerator:
     def run(self) -> int:
         """Run Abinit and rename output files. Return 0 if success"""
         from shutil import which
+
         if which(self.executable) is None:
             raise RuntimeError("Cannot find %s in $PATH" % self.executable)
 
@@ -246,8 +250,9 @@ class FilesGenerator:
         return 0
 
     def _run(self):
-        from subprocess import Popen, PIPE
-        with open(os.path.join(self.workdir, "run.files"), "wt") as fh:
+        from subprocess import PIPE, Popen
+
+        with open(os.path.join(self.workdir, "run.files"), "w") as fh:
             fh.write(self.make_filesfile_str())
 
         cmd = self.executable + " < run.files > run.log"
@@ -261,33 +266,36 @@ class FilesGenerator:
         # Remove files
         garbage = [f for f in all_files if f not in self.files_to_keep]
         for f in garbage:
-            if f.endswith(".py"): continue
-            if self.verbose: print("Will remove file %s" % f)
+            if f.endswith(".py"):
+                continue
+            if self.verbose:
+                print("Will remove file %s" % f)
             os.remove(f)
 
         # Rename files.
         for old, new in self.files_to_save.items():
-            if self.verbose: print("Will rename %s --> %s" % (old, new))
+            if self.verbose:
+                print("Will rename %s --> %s" % (old, new))
             os.rename(old, new)
 
 
 class AbinitFilesGenerator(FilesGenerator):
     # Subclasses must define the following class attributes:
     # List of pseudos in (basenames in abipy/data/pseudos
-    #pseudos = ["14si.pspnc"]
+    # pseudos = ["14si.pspnc"]
 
     # Mapping old_name --> new_name for the output files that must be preserved.
-    #files_to_save = {
+    # files_to_save = {
     #    "out_DS1_DEN-etsf.nc": "si_DEN-etsf.nc",
     #    "out_DS2_GSR.nc": "si_nscf_GSR.nc",
-    #}
+    # }
     executable = "abinit"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         # Add Absolute paths for the pseudopotentials.
-        #self.pseudos = [p.filepath for p in pseudos(*self.pseudos)]
+        # self.pseudos = [p.filepath for p in pseudos(*self.pseudos)]
         self.pseudos = [os.path.join(_PSEUDOS_DIRPATH, pname) for pname in self.pseudos]
 
     def make_filesfile_str(self) -> str:
@@ -298,10 +306,10 @@ class AnaddbFilesGenerator(FilesGenerator):
     # Subclasses must define the following class attributes:
 
     # 1) Mapping old_name --> new_name for the output files that must be preserved.
-    #files_to_save = {
+    # files_to_save = {
     #    "trf2_5.out_PHBST.nc": "trf2_5.out_PHBST.nc",
     #    "trf2_5.out_PHDOS.nc": "trf2_5.out_PHDOS.nc",
-    #}
+    # }
 
     # 2) Input DDB (mandatory)
     in_ddb = None
@@ -326,13 +334,15 @@ class AnaddbFilesGenerator(FilesGenerator):
         if self.in_ddb is None:
             raise ValueError("in_ddb must be specified")
 
-        self.files_to_keep.update([
-            self.in_ddb,
-            self.out_ddb,
-            self.in_gkk,
-            self.elph_basename,
-            self.in_ddk,
-        ])
+        self.files_to_keep.update(
+            [
+                self.in_ddb,
+                self.out_ddb,
+                self.in_gkk,
+                self.elph_basename,
+                self.in_ddk,
+            ]
+        )
 
     def make_filesfile_str(self):
         # 1) formatted input file
@@ -342,12 +352,14 @@ class AnaddbFilesGenerator(FilesGenerator):
         # 5) input elphon matrix elements  (GKK file) :
         # 6) base name for elphon output files e.g. t13
         # 7) file containing ddk filenames for elphon/transport
-        return "\n".join([
-            "run.abi",
-            "out",
-            self.in_ddb,
-            self.out_ddb,
-            self.in_gkk,
-            self.elph_basename,
-            self.in_ddk,
-        ])
+        return "\n".join(
+            [
+                "run.abi",
+                "out",
+                self.in_ddb,
+                self.out_ddb,
+                self.in_gkk,
+                self.elph_basename,
+                self.in_ddk,
+            ]
+        )

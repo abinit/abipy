@@ -1,15 +1,14 @@
-# coding: utf-8
-"""
-This module contains the class defining the G-sphere for wavefunctions, densities and potentials
-"""
+"""This module contains the class defining the G-sphere for wavefunctions, densities and potentials."""
+
 from __future__ import annotations
 
 import collections
+
 import numpy as np
 
-from .kpoints import Kpoint
 from abipy.tools import duck
 
+from .kpoints import Kpoint
 
 __all__ = [
     "GSphere",
@@ -44,8 +43,8 @@ class GSphere(collections.abc.Sequence):
         """|numpy-array| with the G-vectors in reduced coordinates."""
         return self._gvecs
 
-    #@property
-    #def get_kpg2(self):
+    # @property
+    # def get_kpg2(self):
     #    """ndarray with |k+G|**2. in atomic unit"""
     #    # note that now we use pymatgen lattice hence we have to convert to a.u.
     #    self.kpg2 =
@@ -66,15 +65,14 @@ class GSphere(collections.abc.Sequence):
 
     def index(self, gvec) -> int:
         """
-        return the index of the G-vector ``gvec`` in self.
+        Return the index of the G-vector ``gvec`` in self.
         Raises: `ValueError` if the value is not present.
         """
         gvec = np.asarray(gvec)
         for i, g in enumerate(self):
             if np.all(g == gvec):
                 return i
-        else:
-            raise ValueError("Cannot find %s in Gsphere" % str(gvec))
+        raise ValueError("Cannot find %s in Gsphere" % str(gvec))
 
     def count(self, gvec) -> int:
         """Return number of occurrences of gvec."""
@@ -84,18 +82,21 @@ class GSphere(collections.abc.Sequence):
         return self.to_string()
 
     def __eq__(self, other):
-        if other is None: return False
-        return (self.ecut == other.ecut and
-                np.all(self.lattice == other.lattice) and
-                self.kpoint == other.kpoint and
-                np.all(self.gvecs == other.gvecs) and
-                self.istwfk == other.istwfk)
+        if other is None:
+            return False
+        return (
+            self.ecut == other.ecut
+            and np.all(self.lattice == other.lattice)
+            and self.kpoint == other.kpoint
+            and np.all(self.gvecs == other.gvecs)
+            and self.istwfk == other.istwfk
+        )
 
     def __ne__(self, other):
         return not (self == other)
 
     def copy(self) -> GSphere:
-        """shallow copy."""
+        """Shallow copy."""
         return self.__class__(self.ecut, self.lattice.copy(), self.kpoint.copy(), self.gvecs.copy(), istwfk=self.istwfk)
 
     def to_string(self, verbose=0) -> str:
@@ -115,8 +116,7 @@ class GSphere(collections.abc.Sequence):
 
         if zero:
             return np.zeros(shape, dtype)
-        else:
-            return np.empty(shape, dtype)
+        return np.empty(shape, dtype)
 
     def zeros(self, dtype=float, extra_dims=()) -> np.ndarray:
         """
@@ -144,7 +144,7 @@ class GSphere(collections.abc.Sequence):
         """Returns new uninitialized 1D complex |numpy-array|."""
         return self._new_array(dtype=complex, zero=False, extra_dims=extra_dims)
 
-    #def build_fftbox(self, boxsph_ratio=1.05):
+    # def build_fftbox(self, boxsph_ratio=1.05):
     #  """Returns the number of divisions of the FFT box enclosing the sphere."""
     #  #return ndivs
 
@@ -164,20 +164,23 @@ class GSphere(collections.abc.Sequence):
         arr_on_mesh = np.zeros((s0,) + mesh.shape, dtype=arr_on_sphere.dtype)
 
         if self.istwfk == 1:
-            #do ipw=1,npw
+            # do ipw=1,npw
             #  i1=kg_k(1,ipw); if(i1<0)i1=i1+n1; i1=i1+1
             #  i2=kg_k(2,ipw); if(i2<0)i2=i2+n2; i2=i2+1
             #  i3=kg_k(3,ipw); if(i3<0)i3=i3+n3; i3=i3+1
-            #end do
+            # end do
 
             n1, n2, n3 = mesh.shape
             for sph_idx, gvec in enumerate(self.gvecs):
                 i1 = gvec[0]
-                if i1 < 0: i1 = i1 + n1
+                if i1 < 0:
+                    i1 = i1 + n1
                 i2 = gvec[1]
-                if i2 < 0: i2 = i2 + n2
+                if i2 < 0:
+                    i2 = i2 + n2
                 i3 = gvec[2]
-                if i3 < 0: i3 = i3 + n3
+                if i3 < 0:
+                    i3 = i3 + n3
                 arr_on_mesh[..., i1, i2, i3] = arr_on_sphere[..., sph_idx]
 
         else:
@@ -190,9 +193,7 @@ class GSphere(collections.abc.Sequence):
         return arr_on_mesh
 
     def fromfftmesh(self, mesh, arr_on_mesh) -> np.ndarray:
-        """
-        Transfer ``arr_on_mesh`` given on the FFT mesh to the G-sphere.
-        """
+        """Transfer ``arr_on_mesh`` given on the FFT mesh to the G-sphere."""
         indim = arr_on_mesh.ndim
         arr_on_mesh = mesh.reshape(arr_on_mesh)
         ishape = arr_on_mesh.shape
@@ -201,20 +202,23 @@ class GSphere(collections.abc.Sequence):
         arr_on_sphere = np.empty((s0,) + (self.npw,), dtype=arr_on_mesh.dtype)
 
         if self.istwfk == 1:
-            #do ig=1,npwout
+            # do ig=1,npwout
             #  i1=kg_kout(1,ig); if (i1<0) i1=i1+n1; i1=i1+1
             #  i2=kg_kout(2,ig); if (i2<0) i2=i2+n2; i2=i2+1
             #  i3=kg_kout(3,ig); if (i3<0) i3=i3+n3; i3=i3+1
-            #end do
+            # end do
             n1, n2, n3 = mesh.shape
 
             for sph_idx, gvec in enumerate(self.gvecs):
                 i1 = gvec[0]
-                if i1 < 0: i1 = i1 + n1
+                if i1 < 0:
+                    i1 = i1 + n1
                 i2 = gvec[1]
-                if i2 < 0: i2 = i2 + n2
+                if i2 < 0:
+                    i2 = i2 + n2
                 i3 = gvec[2]
-                if i3 < 0: i3 = i3 + n3
+                if i3 < 0:
+                    i3 = i3 + n3
                 arr_on_sphere[..., sph_idx] = arr_on_mesh[..., i1, i2, i3]
 
         else:
@@ -226,7 +230,7 @@ class GSphere(collections.abc.Sequence):
 
         return arr_on_sphere
 
-    #def rotate(self, symmop):
+    # def rotate(self, symmop):
     #    """
     #    Returns a new `GSphere` centered on Sk.
 
@@ -254,7 +258,7 @@ class GSphere(collections.abc.Sequence):
     #    return new
 
 
-#def kpg_sphere(lattice, kcoords, ecut):
+# def kpg_sphere(lattice, kcoords, ecut):
 #    """
 #    Set up the list of G vectors inside a sphere out to $ (1/2)*(2*\pi*(k+G))^2=ecut $
 #    """

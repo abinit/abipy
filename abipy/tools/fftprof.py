@@ -2,18 +2,19 @@
 Python interface to fftprof. Provides objects to benchmark
 the FFT libraries used by ABINIT and plot the results with matplotlib.
 """
+
 from __future__ import annotations
 
 import os
 import tempfile
-import numpy as np
-
-from subprocess import Popen, PIPE
 from shutil import which
+from subprocess import PIPE, Popen
+
+import numpy as np
 from monty.fnmatch import WildCard
+
 from abipy.tools.plotting import add_fig_kwargs
 from abipy.tools.typing import Figure
-
 
 __all__ = [
     "FFTBenchmark",
@@ -21,11 +22,11 @@ __all__ = [
 
 _color_fftalg = {
     112: "r",
-    #311: "y",
+    # 311: "y",
     312: "b",
     412: "y",
     401: "c",
-    #511: "c",
+    # 511: "c",
     512: "g",
 }
 
@@ -57,6 +58,7 @@ class FFT_Test:
     This object stores the wall-time of the FFT
     as a function of the size of the problem.
     """
+
     def __init__(self, ecut, ngfft, wall_time, info):
         """
         Args:
@@ -88,9 +90,7 @@ class FFT_Test:
         return FFT_Test(self.ecut, self.ngfft, self.wall_time, info)
 
     def plot_ax(self, ax, ydata=None, fact=1.0):
-        """
-        Plot ydata on the axis ax. If data is None, the wall_time is plotted.
-        """
+        """Plot ydata on the axis ax. If data is None, the wall_time is plotted."""
         color = _color_fftalg[self.fftalg]
         linestyle = _linestyle_nt[self.nthreads]
         marker = _markers_nt[self.nthreads]
@@ -104,9 +104,9 @@ class FFT_Test:
 
         yy = yy * fact
 
-        line, = ax.plot(xx, yy,
-                        color=color, linestyle=linestyle, label=str(self), linewidth=3.0,
-                        marker=marker, markersize=10)
+        (line,) = ax.plot(
+            xx, yy, color=color, linestyle=linestyle, label=str(self), linewidth=3.0, marker=marker, markersize=10
+        )
         return line
 
 
@@ -116,11 +116,18 @@ class FFTBenchmark:
 
     Use the class method ``from_file`` to generate a new instance.
     """
+
     @classmethod
     def from_file(cls, fileobj):
+        """Create an instance from a PROF file."""
         return parse_prof_file(fileobj)
 
     def __init__(self, title, FFT_tests):
+        """
+        Args:
+            title: Title of the benchmark.
+            FFT_tests: List of |FFT_Test| objects.
+        """
         self.title = title
 
         self._fftalgs = []
@@ -140,15 +147,15 @@ class FFTBenchmark:
         """Return the list of FFT_tests with a given fftalg."""
         lst = []
         for t in self.tests:
-            if t.fftalg == fftalg: lst.append(t)
+            if t.fftalg == fftalg:
+                lst.append(t)
         return lst
 
     @add_fig_kwargs
     def plot(self, exclude_algs=None, exclude_threads=None, **kwargs) -> Figure:
-        """
-        Plot the wall-time and the speed-up.
-        """
+        """Plot the wall-time and the speed-up."""
         import matplotlib.pyplot as plt
+
         fig = plt.figure()
         ax1 = fig.add_subplot(2, 1, 1)
 
@@ -161,39 +168,41 @@ class FFTBenchmark:
             exc_nths = [int(nth) for nth in exclude_threads]
 
         for test in self.tests:
-            if test.fftalg in exc_algs: continue
+            if test.fftalg in exc_algs:
+                continue
             if test.available and test.nthreads not in exc_nths:
-                #print("test", test.nthreads)
+                # print("test", test.nthreads)
                 test.plot_ax(ax1)
 
         ax1.legend(loc="upper left")
         ax1.grid(True)
         ax1.set_title(self.title)
-        ax1.set_xlabel('Ecut [Hartree]')
-        ax1.set_ylabel('WALL time (s)')
+        ax1.set_xlabel("Ecut [Hartree]")
+        ax1.set_ylabel("WALL time (s)")
 
         ax2 = fig.add_subplot(2, 1, 2)
         ax2.grid(True)
 
-        ax2.set_xlabel('FFT divisions')
-        ax2.set_ylabel('Efficiency')
+        ax2.set_xlabel("FFT divisions")
+        ax2.set_ylabel("Efficiency")
 
         # Use FFT divs as labels.
         xticks = ax1.get_xticks()
-        #print(xticks)
+        # print(xticks)
 
         t0 = self.tests[0]
         labels = [str(ndiv) for ndiv in t0.ngfft]
-        #labels = []
-        #for t ndiv in zip(t0.ecut, t0.ngfft):
-        #for #labels = [ str(ndiv) for ndiv in t0.ngfft ]
-        #print labels
+        # labels = []
+        # for t ndiv in zip(t0.ecut, t0.ngfft):
+        # for #labels = [ str(ndiv) for ndiv in t0.ngfft ]
+        # print labels
 
         # Rotate labels.
         ax2.set_xticklabels(labels, fontdict=None, minor=False, rotation=35)
 
         for fftalg in self.iter_fftalgs():
-            if fftalg in exc_algs: continue
+            if fftalg in exc_algs:
+                continue
             tests = self.tests_with_fftalg(fftalg)
             for t in tests:
                 if t.nthreads == 1:
@@ -210,22 +219,22 @@ class FFTBenchmark:
 
         # Use FFT divs as labels.
         xticks = ax1.get_xticks()
-        #print(xticks)
+        # print(xticks)
 
         t0 = self.tests[0]
         labels = []
         for xtick in xticks:
             xecut = float(xtick)
-            for ecut, ndiv in zip(t0.ecut, t0.ngfft):
+            for ecut, ndiv in zip(t0.ecut, t0.ngfft, strict=False):
                 if abs(ecut - xecut) < 0.1:
-                    #print(ecut, xecut, ndiv)
+                    # print(ecut, xecut, ndiv)
                     labels.append(str(ndiv))
                     break
             else:
                 msg = "xecut" + str(xecut) + " not found"
                 labels.append("")
-                #raise RuntimeError(msg)
-                #print("labels:", labels)
+                # raise RuntimeError(msg)
+                # print("labels:", labels)
 
         # Set and rotate labels.
         ax2.set_xticklabels(labels, fontdict=None, minor=False, rotation=35)
@@ -261,7 +270,7 @@ def parse_prof_file(fileobj):
     #   30.0 101 101 100 0.0395 0.0494 0.0404 0.0333
 
     if not hasattr(fileobj, "readlines"):
-        with open(fileobj, "r") as fh:
+        with open(fileobj) as fh:
             lines = fh.readlines()
     else:
         lines = fileobj.readlines()
@@ -314,9 +323,15 @@ class FFTProfError(Exception):
 
 class FFTProf:
     """Wrapper around fftprof Fortran executable."""
+
     Error = FFTProfError
 
     def __init__(self, fft_input, executable="fftprof"):
+        """
+        Args:
+            fft_input: Input string for fftprof.
+            executable: Name or path to the fftprof executable.
+        """
         self.verbose = 1
         self.fft_input = fft_input
 
@@ -326,7 +341,7 @@ class FFTProf:
 
     @classmethod
     def from_file(cls, filename, executable="fftprof") -> FFTProf:
-        with open(filename, "r") as fh:
+        with open(filename) as fh:
             fft_input = fh.read()
 
         return cls(fft_input, executable=executable)
@@ -334,7 +349,7 @@ class FFTProf:
     def run(self) -> int:
         """Execute fftprof in a subprocess."""
         self.workdir = tempfile.mkdtemp()
-        #print(self.workdir)
+        # print(self.workdir)
 
         self.stdin_fname = os.path.join(self.workdir, "fftprof.in")
         self.stdout_fname = os.path.join(self.workdir, "fftprof.out")
@@ -352,7 +367,7 @@ class FFTProf:
         self.returncode = p.returncode
 
         if self.returncode != 0:
-            with open(self.stdout_fname, "r") as out, open(self.stderr_fname, "r") as err:
+            with open(self.stdout_fname) as out, open(self.stderr_fname) as err:
                 self.stdout_data = out.read()
                 self.stderr_data = err.read()
 

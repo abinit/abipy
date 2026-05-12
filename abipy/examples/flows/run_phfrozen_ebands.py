@@ -6,12 +6,12 @@ e-Bands with frozen phonon
 Electronic band structure of silicon in a distorted geometry (frozen phonon at q=0)
 """
 
-import sys
 import os
+import sys
+
 import numpy as np
-import abipy.data as data
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+
+from abipy import abilab, data, flowtk
 
 
 def make_scf_nscf_inputs(structure, paral_kgb=1):
@@ -23,7 +23,7 @@ def make_scf_nscf_inputs(structure, paral_kgb=1):
         nband=8,
         timopt=-1,
         paral_kgb=0,
-        #nstep=4, # This is not enough to converge. Used to test the automatic restart.
+        # nstep=4, # This is not enough to converge. Used to test the automatic restart.
         nstep=10,
         iomode=3,
     )
@@ -31,14 +31,14 @@ def make_scf_nscf_inputs(structure, paral_kgb=1):
     multi.set_vars(global_vars)
 
     # Dataset 1 (GS run)
-    multi[0].set_kmesh(ngkpt=[8,8,8], shiftk=[0,0,0])
+    multi[0].set_kmesh(ngkpt=[8, 8, 8], shiftk=[0, 0, 0])
     multi[0].set_vars(tolvrs=1e-6)
 
     # Dataset 2 (NSCF run)
     kptbounds = [
-        [0.5, 0.0, 0.0], # L point
-        [0.0, 0.0, 0.0], # Gamma point
-        [0.0, 0.5, 0.5], # X point
+        [0.5, 0.0, 0.0],  # L point
+        [0.0, 0.0, 0.0],  # Gamma point
+        [0.0, 0.5, 0.5],  # X point
     ]
 
     multi[1].set_kpath(ndivsm=6, kptbounds=kptbounds)
@@ -60,9 +60,9 @@ def build_flow(options):
     modifier = abilab.StructureModifier(base_structure)
 
     etas = [-0.1, 0, +0.1]
-    ph_displ = np.reshape(np.zeros(3*len(base_structure)), (-1,3))
-    ph_displ[0,:] = [+1, 0, 0]
-    ph_displ[1,:] = [-1, 0, 0]
+    ph_displ = np.reshape(np.zeros(3 * len(base_structure)), (-1, 3))
+    ph_displ[0, :] = [+1, 0, 0]
+    ph_displ[1, :] = [-1, 0, 0]
 
     displaced_structures = modifier.displace(ph_displ, etas, frac_coords=False)
 
@@ -83,6 +83,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

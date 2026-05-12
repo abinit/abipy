@@ -1,13 +1,14 @@
-# coding: utf-8
 """Tests for derivatives module."""
+
 import os
+
 import numpy as np
 
-from abipy import abilab
 import abipy.data as abidata
+from abipy import abilab
+from abipy.core.testing import AbipyTest
 from abipy.tools.plotting import *
 from abipy.tools.plotting import is_mpl_figure, is_plotly_figure, latex_greek_2unicode
-from abipy.core.testing import AbipyTest
 
 
 class TestPlotting(AbipyTest):
@@ -55,9 +56,9 @@ class TestPlotting(AbipyTest):
         x2 = list(range(1, 100, 10))
         x = x1 + x2
 
-        #The y-values I generate here mimic the general shape of my actual data
+        # The y-values I generate here mimic the general shape of my actual data
         y1 = x1[::-1]
-        y2 = [i+25 for i in x1[::-1]]
+        y2 = [i + 25 for i in x1[::-1]]
         y = y1 + y2
 
         # Two levels of labels that will be applied to the data
@@ -67,23 +68,28 @@ class TestPlotting(AbipyTest):
 
         # A pandas data frame from the above data
         import pandas as pd
-        df = pd.DataFrame({'x': x, 'y': y, 'z': z})
+
+        df = pd.DataFrame({"x": x, "y": y, "z": z})
 
         from abipy.tools.plotting import plot_xy_with_hue
+
         if self.has_matplotlib():
             assert plot_xy_with_hue(data=df, x="x", y="y", hue=None, abs_conv=None, show=False)
             assert plot_xy_with_hue(data=df, x="x", y="y", hue=None, abs_conv=0.1, show=False)
             assert plot_xy_with_hue(data=df, x="x", y="y", hue=None, abs_conv=-0.02, show=False)
             assert plot_xy_with_hue(data=df, x="x", y="y", hue="z", abs_conv=0.1, ax=None, show=False)
-            assert plot_xy_with_hue(data=df, x="x", y="y", hue="z", abs_conv=-0.02, ax=None, show=False,
-                                    color="red", marker="v")
-            assert plot_xy_with_hue(data=df, x="x", y="y", hue="z", decimals=0, ax=None, show=False,
-                                    color="red", marker="v")
+            assert plot_xy_with_hue(
+                data=df, x="x", y="y", hue="z", abs_conv=-0.02, ax=None, show=False, color="red", marker="v"
+            )
+            assert plot_xy_with_hue(
+                data=df, x="x", y="y", hue="z", decimals=0, ax=None, show=False, color="red", marker="v"
+            )
             with self.assertRaises(ValueError):
                 plot_xy_with_hue(data=df, x="foo", y="y", hue="bar", ax=None, show=False)
 
-            assert plot_xy_with_hue(data=df, x="x", y=["y", "y"], hue="z", decimals=0, ax=None, show=False,
-                                    color="red", marker="v")
+            assert plot_xy_with_hue(
+                data=df, x="x", y=["y", "y"], hue="z", decimals=0, ax=None, show=False, color="red", marker="v"
+            )
 
     def test_array_plotter(self):
         """Testing array plotter."""
@@ -105,7 +111,6 @@ class TestPlotting(AbipyTest):
 
     def test_marker(self):
         """Testing Marker."""
-
         x, y, s = [1, 2, 3], [4, 5, 6], [0.1, 0.2, -0.3]
         marker = Marker(x, y, s)
 
@@ -145,8 +150,8 @@ class TestPlotting(AbipyTest):
     def test_generic_data_files_plotter(self):
         """Testing GenericDataFilesPlotter object."""
         filepaths = [
-                os.path.join(abidata.dirpath, "refs", "sio2_screening", "sio2_EM1_NLF"),
-                os.path.join(abidata.dirpath, "refs", "sio2_screening", "sio2_EM1_NLF"),
+            os.path.join(abidata.dirpath, "refs", "sio2_screening", "sio2_EM1_NLF"),
+            os.path.join(abidata.dirpath, "refs", "sio2_screening", "sio2_EM1_NLF"),
         ]
 
         plotter = GenericDataFilesPlotter.from_files(filepaths)

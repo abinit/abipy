@@ -1,10 +1,11 @@
-# coding: utf-8
 """
 mayavi_ toolkit.
 
 WARNING: This code is still under development.
 """
+
 import itertools
+
 import numpy as np
 
 DEFAULT_FIGURE_KWARGS = dict(size=(1024, 768), bgcolor=(1, 1, 1), fgcolor=(0, 0, 0))
@@ -18,14 +19,15 @@ def get_fig_mlab(figure=None, **kwargs):  # pragma: no cover
         raise exc
 
     # To use the full envisage application
-    #mlab.options.backend = "envisage"
-    #mlab.options.backend = "test"
-    #mlab.options.offscreen = True
+    # mlab.options.backend = "envisage"
+    # mlab.options.backend = "test"
+    # mlab.options.offscreen = True
 
     if figure is None:
         # Add defaults
         for k, v in DEFAULT_FIGURE_KWARGS.items():
-            if k not in kwargs: kwargs[k] = v
+            if k not in kwargs:
+                kwargs[k] = v
         figure = mlab.figure(**kwargs)
 
     return figure, mlab
@@ -56,17 +58,20 @@ def plot_wigner_seitz(lattice, figure=None, **kwargs):  # pragma: no cover
     for iface in range(len(bz)):
         for line in itertools.combinations(bz[iface], 2):
             for jface in range(len(bz)):
-                if iface < jface and any(np.all(line[0] == x) for x in bz[jface])\
-                        and any(np.all(line[1] == x) for x in bz[jface]):
-                    #do_plot = True
-                    #if in_unit_cell:
+                if (
+                    iface < jface
+                    and any(np.all(line[0] == x) for x in bz[jface])
+                    and any(np.all(line[1] == x) for x in bz[jface])
+                ):
+                    # do_plot = True
+                    # if in_unit_cell:
                     #    kred0 = lattice.get_fractional_coords(line[0])
                     #    kred1 = lattice.get_fractional_coords(line[1])
                     #    do_plot = np.alltrue((kred0 >= 0) & (kred0 <= 0.5) &
                     #                         (kred1 >= 0) & (kred1 <= 0.5))
                     #    print(kred0, kred1, do_plot)
-                    #if not do_plot: continue
-                    mlab.plot3d(*zip(line[0], line[1]), figure=figure, **kwargs)
+                    # if not do_plot: continue
+                    mlab.plot3d(*zip(line[0], line[1], strict=False), figure=figure, **kwargs)
 
     return figure
 
@@ -102,18 +107,31 @@ def plot_unit_cell(lattice, figure=None, **kwargs):  # pragma: no cover
     v[6] = lattice.get_cartesian_coords([1.0, 0.0, 1.0])
     v[7] = lattice.get_cartesian_coords([0.0, 0.0, 1.0])
 
-    for i, j in ((0, 1), (1, 2), (2, 3), (0, 3), (3, 4), (4, 5), (5, 6),
-                 (6, 7), (7, 4), (0, 7), (1, 6), (2, 5), (3, 4)):
-        mlab.plot3d(*zip(v[i], v[j]), figure=figure, **kwargs)
+    for i, j in (
+        (0, 1),
+        (1, 2),
+        (2, 3),
+        (0, 3),
+        (3, 4),
+        (4, 5),
+        (5, 6),
+        (6, 7),
+        (7, 4),
+        (0, 7),
+        (1, 6),
+        (2, 5),
+        (3, 4),
+    ):
+        mlab.plot3d(*zip(v[i], v[j], strict=False), figure=figure, **kwargs)
 
-    #mlab.xlabel("x-axis")
-    #mlab.ylabel("y-axis")
-    #mlab.zlabel("z-axis")
+    # mlab.xlabel("x-axis")
+    # mlab.ylabel("y-axis")
+    # mlab.zlabel("z-axis")
 
     return figure
 
 
-def plot_lattice_vectors(lattice, figure=None, **kwargs): # pragma: no cover
+def plot_lattice_vectors(lattice, figure=None, **kwargs):  # pragma: no cover
     """
     Adds the basis vectors of the lattice provided to a mayavi_ figure.
 
@@ -136,17 +154,26 @@ def plot_lattice_vectors(lattice, figure=None, **kwargs): # pragma: no cover
 
     vertex1 = lattice.get_cartesian_coords([0.0, 0.0, 0.0])
     vertex2 = lattice.get_cartesian_coords([1.0, 0.0, 0.0])
-    mlab.plot3d(*zip(vertex1, vertex2), figure=figure, **kwargs)
+    mlab.plot3d(*zip(vertex1, vertex2, strict=False), figure=figure, **kwargs)
     vertex2 = lattice.get_cartesian_coords([0.0, 1.0, 0.0])
-    mlab.plot3d(*zip(vertex1, vertex2), figure=figure, **kwargs)
+    mlab.plot3d(*zip(vertex1, vertex2, strict=False), figure=figure, **kwargs)
     vertex2 = lattice.get_cartesian_coords([0.0, 0.0, 1.0])
-    mlab.plot3d(*zip(vertex1, vertex2), figure=figure, **kwargs)
+    mlab.plot3d(*zip(vertex1, vertex2, strict=False), figure=figure, **kwargs)
 
     return figure
 
 
-def plot_structure(structure, frac_coords=False, to_unit_cell=False, style="points+labels",
-                   unit_cell_color=(0, 0, 0), color_scheme="VESTA", figure=None, show=False, **kwargs):  # pragma: no cover
+def plot_structure(
+    structure,
+    frac_coords=False,
+    to_unit_cell=False,
+    style="points+labels",
+    unit_cell_color=(0, 0, 0),
+    color_scheme="VESTA",
+    figure=None,
+    show=False,
+    **kwargs,
+):  # pragma: no cover
     """
     Plot structure with mayavi.
 
@@ -164,7 +191,7 @@ def plot_structure(structure, frac_coords=False, to_unit_cell=False, style="poin
     """
     figure, mlab = get_fig_mlab(figure=figure)
 
-    #if not frac_coords:
+    # if not frac_coords:
     plot_unit_cell(structure.lattice, color=unit_cell_color, figure=figure)
     from pymatgen.analysis.molecule_structure_comparator import CovalentRadius
     from pymatgen.vis.structure_vtk import EL_COLORS
@@ -173,16 +200,19 @@ def plot_structure(structure, frac_coords=False, to_unit_cell=False, style="poin
         symbol = site.specie.symbol
         color = tuple(i / 255 for i in EL_COLORS[color_scheme][symbol])
         radius = CovalentRadius.radius[symbol]
-        if to_unit_cell and hasattr(site, "to_unit_cell"): site = site.to_unit_cell
+        if to_unit_cell and hasattr(site, "to_unit_cell"):
+            site = site.to_unit_cell
         x, y, z = site.frac_coords if frac_coords else site.coords
 
         if "points" in style:
-            mlab.points3d(x, y, z, figure=figure, scale_factor=radius,
-                          resolution=20, color=color, scale_mode='none', **kwargs)
+            mlab.points3d(
+                x, y, z, figure=figure, scale_factor=radius, resolution=20, color=color, scale_mode="none", **kwargs
+            )
         if "labels" in style:
             mlab.text3d(x, y, z, symbol, figure=figure, color=(0, 0, 0), scale=0.2)
 
-    if show: mlab.show()
+    if show:
+        mlab.show()
     return figure
 
 
@@ -203,11 +233,11 @@ def plot_labels(labels, lattice=None, coords_are_cartesian=False, figure=None, *
     """
     figure, mlab = get_fig_mlab(figure=figure)
 
-    #if "color" not in kwargs:
+    # if "color" not in kwargs:
     #    kwargs["color"] = "b"
-    #if "size" not in kwargs:
+    # if "size" not in kwargs:
     #    kwargs["size"] = 25
-    #if "width" not in kwargs:
+    # if "width" not in kwargs:
     #    kwargs["width"] = 0.8
     if "scale" not in kwargs:
         kwargs["scale"] = 0.1
@@ -229,14 +259,24 @@ def plot_labels(labels, lattice=None, coords_are_cartesian=False, figure=None, *
     return figure
 
 
-class MayaviFieldAnimator(object): # pragma: no cover
-
+class MayaviFieldAnimator:  # pragma: no cover
+    """
+    Animator for Mayavi fields.
+    """
     def __init__(self, filepaths):
+        """
+        Args:
+            filepaths: List of file paths to animate.
+        """
         self.filepaths = filepaths
         self.num_files = len(filepaths)
 
     def volume_animate(self):
+        """
+        Animate the volume.
+        """
         from abipy import abilab
+
         with abilab.abiopen(self.filepaths[0]) as nc:
             nsppol, nspden, nspinor = nc.nsppol, nc.nspden, nc.nspinor
             structure = nc.structure
@@ -246,40 +286,40 @@ class MayaviFieldAnimator(object): # pragma: no cover
             s = datar[0]
             print(s.dtype, s.shape)
 
-        #cart_coords = np.empty((nx*ny*nz, 3))
-        #cnt = 0
-        #for i in range(nx):
+        # cart_coords = np.empty((nx*ny*nz, 3))
+        # cnt = 0
+        # for i in range(nx):
         #    for j in range(ny):
         #        for k in range(nz):
         #            cart_coords[ctn, :] = (i/nx, j/ny, k/nz)
         #            cnt += 1
-        #cart_coords = structure.lattice.get_cartesian_coords(cart_coords)
+        # cart_coords = structure.lattice.get_cartesian_coords(cart_coords)
         # We reorder the points, scalars and vectors so this is as per VTK's
         # requirement of x first, y next and z last.
-        #pts = pts.transpose(2, 1, 0, 3).copy()
-        #pts.shape = pts.size / 3, 3
-        #scalars = scalars.T.copy()
-        #vectors = vectors.transpose(2, 1, 0, 3).copy()
-        #vectors.shape = vectors.size / 3, 3
+        # pts = pts.transpose(2, 1, 0, 3).copy()
+        # pts.shape = pts.size / 3, 3
+        # scalars = scalars.T.copy()
+        # vectors = vectors.transpose(2, 1, 0, 3).copy()
+        # vectors.shape = vectors.size / 3, 3
 
-        #from tvtk.api import tvtk
-        #sgrid = tvtk.StructuredGrid(dimensions=(dims[1], dims[0], dims[2]))
-        #sgrid.points = pts
-        #s = random.random((dims[0]*dims[1]*dims[2]))
-        #sgrid.point_data.scalars = ravel(s.copy())
-        #sgrid.point_data.scalars.name = 'scalars'
+        # from tvtk.api import tvtk
+        # sgrid = tvtk.StructuredGrid(dimensions=(dims[1], dims[0], dims[2]))
+        # sgrid.points = pts
+        # s = random.random((dims[0]*dims[1]*dims[2]))
+        # sgrid.point_data.scalars = ravel(s.copy())
+        # sgrid.point_data.scalars.name = 'scalars'
 
         figure, mlab = get_fig_mlab(figure=None)
         source = mlab.pipeline.scalar_field(s)
         data_min, data_max = s.min(), s.max()
         print(data_min, data_max)
-        #mlab.pipeline.volume(source)
+        # mlab.pipeline.volume(source)
         #                     #vmin=data_min + 0.65 * (data_max - data_min),
         #                     #vmax=data_min + 0.9 * (data_max - data_min))
-        #mlab.pipeline.iso_surface(source)
-        mlab.pipeline.image_plane_widget(source, plane_orientation='x_axes', slice_index=0)
-        mlab.pipeline.image_plane_widget(source, plane_orientation='y_axes', slice_index=0)
-        mlab.pipeline.image_plane_widget(source, plane_orientation='z_axes', slice_index=0)
+        # mlab.pipeline.iso_surface(source)
+        mlab.pipeline.image_plane_widget(source, plane_orientation="x_axes", slice_index=0)
+        mlab.pipeline.image_plane_widget(source, plane_orientation="y_axes", slice_index=0)
+        mlab.pipeline.image_plane_widget(source, plane_orientation="z_axes", slice_index=0)
 
         @mlab.show
         @mlab.animate(delay=1000, ui=True)
@@ -287,18 +327,18 @@ class MayaviFieldAnimator(object): # pragma: no cover
             """Animate."""
             t = 1
             while True:
-                #vmin, vmax = .1 * np.max(data[t]), .2 * np.max(data[t])
-                #print 'animation t = ',tax[t],', max = ',np.max(data[t])
+                # vmin, vmax = .1 * np.max(data[t]), .2 * np.max(data[t])
+                # print 'animation t = ',tax[t],', max = ',np.max(data[t])
                 with abilab.abiopen(self.filepaths[t]) as nc:
                     print("Animation step", t, "from file:", self.filepaths[t])
-                    #nsppol, nspden, nspinor = nc.nsppol, nc.nspden, nc.nspinor
+                    # nsppol, nspden, nspinor = nc.nsppol, nc.nspden, nc.nspinor
                     datar = nc.field.datar
                     # [nspden, nx, ny, nz] array
-                    #nx, ny, nz = datar.shape[1:]
+                    # nx, ny, nz = datar.shape[1:]
                     scalars = datar[0]
 
-                #data_min, data_max = scalars.min(), scalars.max(),
-                #mlab.pipeline.volume(source, vmin=data_min + 0.65 * (data_max - data_min),
+                # data_min, data_max = scalars.min(), scalars.max(),
+                # mlab.pipeline.volume(source, vmin=data_min + 0.65 * (data_max - data_min),
                 #                     vmax=data_min + 0.9 * (data_max - data_min))
                 source.mlab_source.scalars = scalars
 

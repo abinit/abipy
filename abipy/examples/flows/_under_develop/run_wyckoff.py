@@ -6,24 +6,23 @@ Wyckoff Flow
 This example shows how to compute the band structure of a set of
 crystalline structures obtained by changing the set of internal parameters (wyckoff positions).
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
 
 import os
 import sys
-import abipy.data as abidata
 
-from abipy import abilab
-from abipy import flowtk
+import abipy.data as abidata
+from abipy import abilab, flowtk
+
 
 def special_positions(lattice, u):
     """Construct the crystalline `Structure` for given value of the internal parameter u."""
     frac_coords = {}
 
     frac_coords["Si"] = [
-            [1/2 + u, 1/2 - u, 0],
-            [u,       -u,      u],
-   ]
-    frac_coords["O"] = [ [0, 0, u] ]
+        [1 / 2 + u, 1 / 2 - u, 0],
+        [u, -u, u],
+    ]
+    frac_coords["O"] = [[0, 0, u]]
 
     species, coords = [], []
     for symbol, positions in frac_coords.items():
@@ -49,7 +48,7 @@ def build_flow(options):
     flow = flowtk.Flow(options.workdir, manager=options.manager)
 
     # Create the list of workflows. Each workflow defines a band structure calculation.
-    for new_structure, u in zip(news, uparams):
+    for new_structure, u in zip(news, uparams, strict=False):
         # Generate the workflow and register it.
         flow.register_work(make_workflow(new_structure, pseudos))
 
@@ -61,7 +60,6 @@ def make_workflow(structure, pseudos, paral_kgb=1):
     Return a `Workflow` object defining a band structure calculation
     for given `Structure`.
     """
-
     # GS + NSCF run
     multi = abilab.MultiDataset(structure, pseudos=pseudos, ndtset=2)
     nval = structure.num_valence_electrons(pseudos)
@@ -70,7 +68,7 @@ def make_workflow(structure, pseudos, paral_kgb=1):
     multi.set_vars(
         ecut=15,
         paral_kgb=paral_kgb,
-        nband=nval//2 + 4,      # occupied + 4 empty
+        nband=nval // 2 + 4,  # occupied + 4 empty
     )
 
     # (GS run)
@@ -93,6 +91,7 @@ def make_workflow(structure, pseudos, paral_kgb=1):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).plot_networkx(tight_layout=True)
 

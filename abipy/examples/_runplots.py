@@ -6,14 +6,14 @@ the user to change the matplotlib backend.
 Usage:
     _runplots.py [backend]
 """
+
 from __future__ import annotations
 
-import sys
-import os
-import time
 import argparse
-
-from subprocess import call, Popen
+import os
+import sys
+import time
+from subprocess import Popen, call
 
 
 def str_examples():
@@ -34,28 +34,30 @@ def show_examples_and_exit(err_msg=None, error_code=1):
 
 
 def main():
-    parser = argparse.ArgumentParser(epilog=str_examples(),formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_argument('-b', '--backend', type=str, default="Agg",
-                        help="matplotlib backend e.g. Agg for non-graphical display.")
-    parser.add_argument('-m', '--mode', type=str, default="automatic",
-                        help="execution mode. Either s (sequential) or a (automatic)")
-    parser.add_argument('-t', '--time', type=float, default=8,
-                        help="wait time seconds before running next demo.")
-    #parser.add_argument('-p', '--ply-show', type=bool, default=False,
+    parser.add_argument(
+        "-b", "--backend", type=str, default="Agg", help="matplotlib backend e.g. Agg for non-graphical display."
+    )
+    parser.add_argument(
+        "-m", "--mode", type=str, default="automatic", help="execution mode. Either s (sequential) or a (automatic)"
+    )
+    parser.add_argument("-t", "--time", type=float, default=8, help="wait time seconds before running next demo.")
+    # parser.add_argument('-p', '--ply-show', type=bool, default=False,
     #                     help="Show plotly figures in browser.")
 
     options = parser.parse_args()
 
     import matplotlib
+
     if options.backend:
         print("Using matplotlib backend: ", options.backend)
         matplotlib.use(options.backend)
-    #change_matplotlib_backend(new_backend=options.backend)
+    # change_matplotlib_backend(new_backend=options.backend)
 
-    #from abipy.tools.plotting import set_plotly_default_show
-    #print("Setting plotly_default_show to: ", options.ply_show)
-    #set_plotly_default_show(options.ply_show)
+    # from abipy.tools.plotting import set_plotly_default_show
+    # print("Setting plotly_default_show to: ", options.ply_show)
+    # set_plotly_default_show(options.ply_show)
 
     # Find scripts.
     root = os.path.join(os.path.dirname(__file__), "plot")
@@ -64,9 +66,9 @@ def main():
         if fname.endswith(".py") and fname.startswith("plot"):
             scripts.append(os.path.join(root, fname))
 
-    #env = {
+    # env = {
     #    "MPLBACKEND":  options.backend,
-    #}
+    # }
     env = None
     print(f"{env=}")
 

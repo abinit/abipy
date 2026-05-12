@@ -7,14 +7,15 @@ This examples shows how to plot the matrix elements of the
 inverse dielectric function stored in the SCR file (optdriver 3)
 See also `plot_scr.py` for the optical spectrum.
 """
+
 import abipy.data as abidata
 from abipy.abilab import abiopen
 
 with abiopen(abidata.ref_file("sio2_SCR.nc")) as ncfile:
-    #print(ncfile)
+    # print(ncfile)
     # The SCR file contains a structure and electron bands in the IBZ.
     # We can thus use the ebands object to plot bands + DOS.
-    #ncfile.ebands.plot()
+    # ncfile.ebands.plot()
 
     # Read e^{-1}_{G1, G2}(k, omega)
 

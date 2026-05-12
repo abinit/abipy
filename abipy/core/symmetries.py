@@ -1,35 +1,33 @@
-# coding: utf-8
 """Objects used to deal with symmetry operations in crystals."""
+
 from __future__ import annotations
 
-import sys
 import abc
-import warnings
 import collections
+import sys
+import warnings
+from functools import cached_property
+
 import numpy as np
 import pandas as pd
 import spglib
-
-from functools import cached_property
-from monty.string import is_string
-from monty.itertools import iuptri
-from monty.termcolor import cprint
 from monty.collections import dict2namedtuple
+from monty.itertools import iuptri
+from monty.string import is_string
+from monty.termcolor import cprint
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
-from abipy.core.kpoints import wrap_to_ws, issamek, has_timrev_from_kptopt
+
+from abipy.core.kpoints import has_timrev_from_kptopt, issamek, wrap_to_ws
 from abipy.core.mixins import SlotPickleMixin
 
-
 __all__ = [
-    "LatticeRotation",
     "AbinitSpaceGroup",
+    "LatticeRotation",
 ]
 
 
 def wrap_in_ucell(x):
-    """
-    Transforms x in its corresponding reduced number in the interval [0,1[."
-    """
+    """Transforms x in its corresponding reduced number in the interval [0,1[."""
     return x % 1
 
 
@@ -67,17 +65,17 @@ def mati3inv(mat3, trans=True):
     mat3 = np.reshape(np.array(mat3, dtype=int), (3, 3))
 
     mit = np.empty((3, 3), dtype=int)
-    mit[0,0] = mat3[1,1] * mat3[2,2] - mat3[2,1] * mat3[1,2]
-    mit[1,0] = mat3[2,1] * mat3[0,2] - mat3[0,1] * mat3[2,2]
-    mit[2,0] = mat3[0,1] * mat3[1,2] - mat3[1,1] * mat3[0,2]
-    mit[0,1] = mat3[2,0] * mat3[1,2] - mat3[1,0] * mat3[2,2]
-    mit[1,1] = mat3[0,0] * mat3[2,2] - mat3[2,0] * mat3[0,2]
-    mit[2,1] = mat3[1,0] * mat3[0,2] - mat3[0,0] * mat3[1,2]
-    mit[0,2] = mat3[1,0] * mat3[2,1] - mat3[2,0] * mat3[1,1]
-    mit[1,2] = mat3[2,0] * mat3[0,1] - mat3[0,0] * mat3[2,1]
-    mit[2,2] = mat3[0,0] * mat3[1,1] - mat3[1,0] * mat3[0,1]
+    mit[0, 0] = mat3[1, 1] * mat3[2, 2] - mat3[2, 1] * mat3[1, 2]
+    mit[1, 0] = mat3[2, 1] * mat3[0, 2] - mat3[0, 1] * mat3[2, 2]
+    mit[2, 0] = mat3[0, 1] * mat3[1, 2] - mat3[1, 1] * mat3[0, 2]
+    mit[0, 1] = mat3[2, 0] * mat3[1, 2] - mat3[1, 0] * mat3[2, 2]
+    mit[1, 1] = mat3[0, 0] * mat3[2, 2] - mat3[2, 0] * mat3[0, 2]
+    mit[2, 1] = mat3[1, 0] * mat3[0, 2] - mat3[0, 0] * mat3[1, 2]
+    mit[0, 2] = mat3[1, 0] * mat3[2, 1] - mat3[2, 0] * mat3[1, 1]
+    mit[1, 2] = mat3[2, 0] * mat3[0, 1] - mat3[0, 0] * mat3[2, 1]
+    mit[2, 2] = mat3[0, 0] * mat3[1, 1] - mat3[1, 0] * mat3[0, 1]
 
-    dd = mat3[0,0] * mit[0,0] + mat3[1,0] * mit[1,0] + mat3[2,0] * mit[2,0]
+    dd = mat3[0, 0] * mit[0, 0] + mat3[1, 0] * mit[1, 0] + mat3[2, 0] * mit[2, 0]
 
     # Make sure matrix is not singular
     if dd == 0:
@@ -86,20 +84,16 @@ def mati3inv(mat3, trans=True):
     mit = mit // dd
     if trans:
         return mit
-    else:
-        return mit.T.copy()
+    return mit.T.copy()
 
 
 def _get_det(mat) -> float:
-    """
-    Return the determinant of a 3x3 rotation matrix mat.
-
-    raises:
-        ValueError if abs(det) != 1.
-    """
-    det = mat[0,0] * (mat[1,1] * mat[2,2] - mat[1,2] * mat[2,1])\
-        - mat[0,1] * (mat[1,0] * mat[2,2] - mat[1,2] * mat[2,0])\
-        + mat[0,2] * (mat[1,0] * mat[2,1] - mat[1,1] * mat[2,0])
+    """Return the determinant of a 3x3 rotation matrix mat. Raises ValueError if abs(det) != 1."""
+    det = (
+        mat[0, 0] * (mat[1, 1] * mat[2, 2] - mat[1, 2] * mat[2, 1])
+        - mat[0, 1] * (mat[1, 0] * mat[2, 2] - mat[1, 2] * mat[2, 0])
+        + mat[0, 2] * (mat[1, 0] * mat[2, 1] - mat[1, 1] * mat[2, 0])
+    )
 
     if abs(det) != 1:
         raise ValueError("Determinant must be +-1 while it is %s" % det)
@@ -145,7 +139,8 @@ def indsym_from_symrel(symrel, tnons, structure, tolsym=1e-8):
             tratm = np.matmul(rm1_list[isym], xred[iatom] - tnons[isym])
             # Loop through atoms, when types agree, check for agreement after primitive translation
             for jatm in range(natom):
-                if typat[jatm] != typat[iatom]: continue
+                if typat[jatm] != typat[iatom]:
+                    continue
                 test_vec = tratm - xred[jatm]
                 # Find nearest integer part of difference
                 trans = np.rint(test_vec)
@@ -153,27 +148,27 @@ def indsym_from_symrel(symrel, tnons, structure, tolsym=1e-8):
                 test_vec = test_vec - trans
                 diff = np.abs(test_vec).sum()
                 # Abinit uses 1e-10 but python seems to require a slightly larger value.
-                #if diff < 1e-10:
+                # if diff < 1e-10:
                 if diff < 1e-9:
                     difmin = test_vec
                     indsym[iatom, isym, :3] = trans
                     indsym[iatom, isym, 3] = jatm
                     # Break out of loop when agreement is within tolerance
                     break
-                else:
-                    # Keep track of smallest difference if greater than tol10
-                    if diff < testmn:
-                        testmn = diff
-                        # Note that abs() is not taken here
-                        difmin = test_vec
-                        indsym[iatom, isym, :3] = trans
-                        indsym[iatom, isym, 3] = jatm
+                # Keep track of smallest difference if greater than tol10
+                if diff < testmn:
+                    testmn = diff
+                    # Note that abs() is not taken here
+                    difmin = test_vec
+                    indsym[iatom, isym, :3] = trans
+                    indsym[iatom, isym, 3] = jatm
 
         # Keep track of maximum difference between transformed coordinates and nearest "target" coordinate
         difmax = np.abs(difmin).max()
         err = max(err, difmax)
         if difmax > tolsym:
-            cprint(f"""
+            cprint(
+                f"""
 Trouble finding symmetrically equivalent atoms.
 Applying inverse of symm number {isym} to atom number {iatom} of typat',typat(iatom) gives tratom=',tratom(1:3)
 This is further away from every atom in crystal than the allowed tolerance.
@@ -186,7 +181,9 @@ The nearest coordinate differs by',difmin(1:3) for indsym(nearest atom)=',indsym
 This indicates that when symatm attempts to find atoms symmetrically
 related to a given atom, the nearest candidate is further away than some tolerance.
 Should check atomic coordinates and symmetry group input data.
-""", color="red")
+""",
+                color="red",
+            )
 
     if err > tolsym:
         raise ValueError("maximum err %s is larger than tolsym: %s" % (err, tolsym))
@@ -195,10 +192,8 @@ Should check atomic coordinates and symmetry group input data.
 
 
 class Operation(metaclass=abc.ABCMeta):
-    """
-    Abstract base class that defines the methods that must be
-    implemented by the concrete class representing some sort of operation
-    """
+    """Abstract base class that defines the methods that must be implemented by the concrete class representing some sort of operation."""
+
     @abc.abstractmethod
     def __eq__(self, other):
         """O1 == O2"""
@@ -226,33 +221,32 @@ class Operation(metaclass=abc.ABCMeta):
     def isE(self):
         """True if self is the identity operator"""
 
-    #def commute(self, other)
+    # def commute(self, other)
     #    return self * other == other * self
 
-    #def commutator(self, other)
+    # def commutator(self, other)
     #    return self * other - other * self
 
-    #def anticommute(self, other)
+    # def anticommute(self, other)
     #    return self * other == - other * self
 
-    #def direct_product(self, other)
+    # def direct_product(self, other)
 
 
 class SymmOp(Operation, SlotPickleMixin):
-    """
-    Crystalline symmetry.
-    """
+    """Crystalline symmetry."""
+
     _ATOL_TAU = 1e-8
 
     __slots__ = [
+        "_det",
+        "_trace",
+        "afm_sign",
+        "rot_g",
         "rot_r",
         "rotm1_r",
         "tau",
         "time_sign",
-        "afm_sign",
-        "rot_g",
-        "_det",
-        "_trace",
     ]
 
     # TODO: Add lattice?
@@ -285,10 +279,12 @@ class SymmOp(Operation, SlotPickleMixin):
     # operator protocol.
     def __eq__(self, other):
         # Note the two fractional translations are equivalent if they differ by a lattice vector.
-        return (np.all(self.rot_r == other.rot_r) and
-                is_integer(self.tau - other.tau, atol=self._ATOL_TAU) and
-                self.afm_sign == other.afm_sign and
-                self.time_sign == other.time_sign)
+        return (
+            np.all(self.rot_r == other.rot_r)
+            and is_integer(self.tau - other.tau, atol=self._ATOL_TAU)
+            and self.afm_sign == other.afm_sign
+            and self.time_sign == other.time_sign
+        )
 
     def __mul__(self, other):
         """
@@ -297,10 +293,12 @@ class SymmOp(Operation, SlotPickleMixin):
 
         {R,t} {S,u} = {RS, Ru + t}
         """
-        return self.__class__(rot_r=np.dot(self.rot_r, other.rot_r),
-                              tau=self.tau + np.dot(self.rot_r, other.tau),
-                              time_sign=self.time_sign * other.time_sign,
-                              afm_sign=self.afm_sign * other.afm_sign)
+        return self.__class__(
+            rot_r=np.dot(self.rot_r, other.rot_r),
+            tau=self.tau + np.dot(self.rot_r, other.tau),
+            time_sign=self.time_sign * other.time_sign,
+            afm_sign=self.afm_sign * other.afm_sign,
+        )
 
     def __hash__(self):
         """
@@ -311,22 +309,24 @@ class SymmOp(Operation, SlotPickleMixin):
 
     def inverse(self):
         """Returns inverse of transformation i.e. {R^{-1}, -R^{-1} tau}."""
-        return self.__class__(rot_r=self.rotm1_r,
-                              tau=-np.dot(self.rotm1_r, self.tau),
-                              time_sign=self.time_sign,
-                              afm_sign=self.afm_sign)
+        return self.__class__(
+            rot_r=self.rotm1_r, tau=-np.dot(self.rotm1_r, self.tau), time_sign=self.time_sign, afm_sign=self.afm_sign
+        )
 
     @cached_property
     def isE(self) -> bool:
         """True if identity operator."""
-        return (np.all(self.rot_r == np.eye(3, dtype=int)) and
-                is_integer(self.tau, atol=self._ATOL_TAU) and
-                self.time_sign == 1 and
-                self.afm_sign == 1)
+        return (
+            np.all(self.rot_r == np.eye(3, dtype=int))
+            and is_integer(self.tau, atol=self._ATOL_TAU)
+            and self.time_sign == 1
+            and self.afm_sign == 1
+        )
+
     # end operator protocol.
 
-    #@cached_property
-    #def order(self):
+    # @cached_property
+    # def order(self):
     #    """Order of the operation."""
     #    n = 0
     #    o = self
@@ -418,26 +418,18 @@ class SymmOp(Operation, SlotPickleMixin):
 
         if ret_g0:
             return issamek(sk, frac_coords), np.array(np.round(sk - frac_coords), dtype=int)
-        else:
-            return issamek(sk, frac_coords)
+        return issamek(sk, frac_coords)
 
     def rotate_r(self, frac_coords, in_ucell=False):
-        """
-        Apply the symmetry operation to a point in real space given in reduced coordinates.
-
-        .. NOTE::
-
-            We use the convention: symmop(r) = R^{-1] (r - tau)
-        """
+        """Apply the symmetry operation to a point in real space given in reduced coordinates."""
         rotm1_rmt = np.dot(self.rotm1_r, frac_coords - self.tau)
 
         return wrap_in_ucell(rotm1_rmt) if in_ucell else rotm1_rmt
 
 
 class OpSequence(collections.abc.Sequence):
-    """
-    Mixin class providing the basic method that are common to containers of operations.
-    """
+    """Mixin class providing the basic method that are common to containers of operations."""
+
     def __len__(self):
         return len(self._ops)
 
@@ -458,7 +450,8 @@ class OpSequence(collections.abc.Sequence):
 
             The order of the operations in self and  in other is not relevant.
         """
-        if other is None: return False
+        if other is None:
+            return False
         if len(self) != len(other):
             return False
 
@@ -466,7 +459,8 @@ class OpSequence(collections.abc.Sequence):
         # The order is irrelevant.
         founds = []
         for i, op in enumerate(self):
-            if op not in other: return False
+            if op not in other:
+                return False
             founds.append(i)
 
         if len(set(founds)) == len(founds):
@@ -532,7 +526,8 @@ class OpSequence(collections.abc.Sequence):
     def is_commutative(self) -> bool:
         """True if all operations commute with each other."""
         for op1, op2 in iuptri(self, diago=False):
-            if op1 * op2 != op2 * op1: return False
+            if op1 * op2 != op2 * op1:
+                return False
         return True
 
     def is_abelian_group(self) -> bool:
@@ -546,14 +541,14 @@ class OpSequence(collections.abc.Sequence):
         """
         return {op: idx for idx, op in enumerate(self)}
 
-    #def is_subset(self, other)
+    # def is_subset(self, other)
     #    indmap = {}
     #    for i, op in self:
     #        j = other.find(op)
     #        if j != -1: indmap[i] = j
     #    return indmap
 
-    #def is_superset(self, other)
+    # def is_superset(self, other)
 
     @cached_property
     def mult_table(self) -> np.ndarray:
@@ -597,7 +592,8 @@ class OpSequence(collections.abc.Sequence):
 
         num_classes = -1
         for ii, op1 in enumerate(self):
-            if found[ii]: continue
+            if found[ii]:
+                continue
             num_classes += 1
 
             for jj, op2 in enumerate(self):
@@ -610,7 +606,7 @@ class OpSequence(collections.abc.Sequence):
                         found[kk] = True
                         class_indices[num_classes].append(kk)
 
-        class_indices = class_indices[:num_classes + 1]
+        class_indices = class_indices[: num_classes + 1]
         assert sum(len(c) for c in class_indices) == len(self)
         return class_indices
 
@@ -630,24 +626,22 @@ class OpSequence(collections.abc.Sequence):
 
 
 class AbinitSpaceGroup(OpSequence):
-    """
-    Container storing the space group symmetries.
-    """
+    """Container storing the space group symmetries."""
 
     @classmethod
     def from_ncreader(cls, r, inord="F") -> AbinitSpaceGroup:
-        """
-        Builds the object from a netcdf reader
-        """
+        """Builds the object from a netcdf reader."""
         kptopt = int(r.read_value("kptopt", default=1))
         symrel = r.read_value("reduced_symmetry_matrices")
 
-        return cls(spgid=r.read_value("space_group"),
-                   symrel=symrel,
-                   tnons=r.read_value("reduced_symmetry_translations"),
-                   symafm=r.read_value("symafm"),
-                   has_timerev=has_timrev_from_kptopt(kptopt),
-                   inord=inord)
+        return cls(
+            spgid=r.read_value("space_group"),
+            symrel=symrel,
+            tnons=r.read_value("reduced_symmetry_translations"),
+            symafm=r.read_value("symafm"),
+            has_timerev=has_timrev_from_kptopt(kptopt),
+            inord=inord,
+        )
 
     @classmethod
     def from_structure(cls, structure, has_timerev=True, symprec=1e-5, angle_tolerance=5):
@@ -668,15 +662,17 @@ class AbinitSpaceGroup(OpSequence):
         spga = SpacegroupAnalyzer(structure, symprec=symprec, angle_tolerance=angle_tolerance)
         data = spga.get_symmetry_dataset()
 
-        return cls(spgid=data.number,
-                   symrel=data.rotations,
-                   tnons=data.translations,
-                   symafm=len(data.rotations) * [1],
-                   has_timerev=has_timerev,
-                   inord="C")
+        return cls(
+            spgid=data.number,
+            symrel=data.rotations,
+            tnons=data.translations,
+            symafm=len(data.rotations) * [1],
+            has_timerev=has_timerev,
+            inord="C",
+        )
 
-    #@classmethod
-    #def from_file(cls, ncfile, inord="F"):
+    # @classmethod
+    # def from_file(cls, ncfile, inord="F"):
     #    """
     #    Initialize the object from a Netcdf file.
     #    """
@@ -687,7 +683,6 @@ class AbinitSpaceGroup(OpSequence):
     #        file.close()
 
     #    return new
-
 
     def __init__(self, spgid, symrel, tnons, symafm, has_timerev, inord="C"):
         """
@@ -733,24 +728,34 @@ class AbinitSpaceGroup(OpSequence):
         all_syms = []
         for time_sign in self._time_signs:
             for isym in range(len(self.symrel)):
-                all_syms.append(SymmOp(rot_r=self.symrel[isym],
-                                       tau=self.tnons[isym],
-                                       time_sign=time_sign,
-                                       afm_sign=self.symafm[isym],
-                                       rot_g=self.symrec[isym]))
+                all_syms.append(
+                    SymmOp(
+                        rot_r=self.symrel[isym],
+                        tau=self.tnons[isym],
+                        time_sign=time_sign,
+                        afm_sign=self.symafm[isym],
+                        rot_g=self.symrec[isym],
+                    )
+                )
         self._ops = tuple(all_syms)
 
     def __repr__(self) -> str:
         return "spgid: %d, num_spatial_symmetries: %d, has_timerev: %s, symmorphic: %s" % (
-            self.spgid, self.num_spatial_symmetries, self.has_timerev, self.is_symmorphic)
+            self.spgid,
+            self.num_spatial_symmetries,
+            self.has_timerev,
+            self.is_symmorphic,
+        )
 
     def __str__(self) -> str:
         return self.to_string()
 
     def to_string(self, verbose=0) -> str:
         """String representation."""
-        lines = ["spgid: %d, num_spatial_symmetries: %d, has_timerev: %s, symmorphic: %s" % (
-            self.spgid, self.num_spatial_symmetries, self.has_timerev, self.is_symmorphic)]
+        lines = [
+            "spgid: %d, num_spatial_symmetries: %d, has_timerev: %s, symmorphic: %s"
+            % (self.spgid, self.num_spatial_symmetries, self.has_timerev, self.is_symmorphic)
+        ]
         app = lines.append
 
         if verbose > 1:
@@ -771,23 +776,17 @@ class AbinitSpaceGroup(OpSequence):
 
     @property
     def symrel(self):
-        """
-        [nsym, 3, 3] int array with symmetries in reduced coordinates of the direct lattice.
-        """
+        """[nsym, 3, 3] int array with symmetries in reduced coordinates of the direct lattice."""
         return self._symrel
 
     @property
     def tnons(self):
-        """
-        [nsym, 3] float array with fractional translations in reduced coordinates of the direct lattice.
-        """
+        """[nsym, 3] float array with fractional translations in reduced coordinates of the direct lattice."""
         return self._tnons
 
     @property
     def symrec(self):
-        """
-        [nsym, 3, 3] int array with symmetries in reduced coordinates of the reciprocal lattice.
-        """
+        """[nsym, 3, 3] int array with symmetries in reduced coordinates of the reciprocal lattice."""
         return self._symrec
 
     @property
@@ -797,6 +796,7 @@ class AbinitSpaceGroup(OpSequence):
 
     @property
     def num_spatial_symmetries(self) -> int:
+        """Number of spatial symmetry operations."""
         fact = 2 if self.has_timerev else 1
         return int(len(self) / fact)
 
@@ -816,7 +816,7 @@ class AbinitSpaceGroup(OpSequence):
             time_sign: If specified, only symmetries with time-reversal sign time_sign are returned.
             afm_sign: If specified, only symmetries with anti-ferromagnetic part afm_sign are returned.
 
-        returns:
+        Returns:
             tuple of :class:`SymmOp` instances.
         """
         symmops = []
@@ -828,7 +828,7 @@ class AbinitSpaceGroup(OpSequence):
                 gotit = gotit and sym.time_sign == time_sign
 
             if afm_sign:
-                assert afm_sign in [-1,+1]
+                assert afm_sign in [-1, +1]
                 gotit = gotit and sym.afm_sign == afm_sign
 
             if gotit:
@@ -855,7 +855,7 @@ class AbinitSpaceGroup(OpSequence):
             sk_coords = sym.rotate_k(k1_frac_coords, wrap_tows=False)
             if issamek(sk_coords, k2_frac_coords, atol=atol):
                 g0 = sym.rotate_k(k1_frac_coords) - k2_frac_coords
-                return dict2namedtuple(isym=isym, op=self[isym], g0=g0)
+                return dict2namedtuple(isym=isym, op=sym, g0=g0)
 
         return dict2namedtuple(isym=-1, op=None, g0=None)
 
@@ -908,7 +908,6 @@ SpaceGroup = AbinitSpaceGroup
 
 
 class LittleGroup(OpSequence):
-
     def __init__(self, kpoint, symmops, g0vecs):
         """
         k_symmops, g0vecs, indices
@@ -937,16 +936,14 @@ class LittleGroup(OpSequence):
 
     @cached_property
     def on_bz_border(self) -> bool:
-        """
-        True if the k-point is on the border of the BZ.
-        """
+        """True if the k-point is on the border of the BZ."""
         frac_coords = np.array(self.kpoint)
         kreds = wrap_to_ws(frac_coords)
         diff = np.abs(np.abs(kreds) - 0.5)
         return np.any(diff < 1e-8)
 
     def iter_symmop_g0(self):
-        for symmop, g0 in zip(self.symmops, self.g0vecs):
+        for symmop, g0 in zip(self.symmops, self.g0vecs, strict=False):
             yield symmop, g0
 
     def __repr__(self):
@@ -973,11 +970,10 @@ class LittleGroup(OpSequence):
 
         return "\n".join(lines)
 
-    #def iter_symmop_g0_byclass(self):
+    # def iter_symmop_g0_byclass(self):
 
 
 class LatticePointGroup(OpSequence):
-
     def __init__(self, rotations):
         rotations = np.reshape(rotations, (-1, 3, 3))
         self._ops = [LatticeRotation(rot) for rot in rotations]
@@ -987,13 +983,13 @@ class LatticePointGroup(OpSequence):
         herm_symbol, ptg_num, trans_mat = spglib.get_pointgroup(rotations)
         # Remove blanks from C string.
         self.herm_symbol = herm_symbol.strip()
-        #print(self.herm_symbol, ptg_num, trans_mat)
+        # print(self.herm_symbol, ptg_num, trans_mat)
 
         if self.sch_symbol is None:
             raise ValueError("Cannot detect point group symbol! Got sch_symbol = %s" % self.sch_symbol)
 
-    #@classmethod
-    #def from_vectors(cls, vectors)
+    # @classmethod
+    # def from_vectors(cls, vectors)
 
     def __repr__(self):
         return "%s: %s, %s (%d)" % (self.__class__.__name__, self.herm_symbol, self.sch_symbol, self.spgid)
@@ -1003,7 +999,7 @@ class LatticePointGroup(OpSequence):
 
     @property
     def sch_symbol(self) -> str:
-        """Schoenflies symbol"""
+        """Schoenflies symbol."""
         return herm2sch(self.herm_symbol)
 
     @property
@@ -1025,19 +1021,19 @@ class LatticeRotation(Operation):
 
         This object is immutable and therefore we do not inherit from |numpy-array|.
     """
-    _E3D = np.identity(3,  int)
+
+    _E3D = np.identity(3, int)
 
     def __init__(self, mat):
+        """Initialize the object from a 3x3 matrix."""
         self.mat = np.asarray(mat, dtype=int)
         self.mat.shape = (3, 3)
 
     def _find_order_and_rootinv(self):
-        """
-        Returns the order of the rotation and if self is a root of the inverse.
-        """
+        """Returns the order of the rotation and if self is a root of the inverse."""
         order, root_inv = None, 0
         for ior in range(1, 7):
-            rn = self ** ior
+            rn = self**ior
 
             if rn.isE:
                 order = ior
@@ -1054,7 +1050,7 @@ class LatticeRotation(Operation):
     def __repr__(self):
         return self.name
 
-    #def __str__(self):
+    # def __str__(self):
     #    lines = "Rotation: " + str(self.order) + ", versor: " + str(self.versor) + ",
     #    lines.append(str(self.mat))
     #    return "\n".join(lines)
@@ -1070,16 +1066,14 @@ class LatticeRotation(Operation):
         return int(8 * self.trace + 4 * self.det)
 
     def inverse(self):
-        """
-        Invert an orthogonal 3x3 matrix of INTEGER elements.
-        Note use of integer arithmetic. Raise ValueError if not invertible.
-        """
+        """Invert an orthogonal 3x3 matrix of INTEGER elements. Raise ValueError if not invertible."""
         return self.__class__(mati3inv(self.mat, trans=False))
 
     @cached_property
     def isE(self):
         """True if it is the identity"""
         return np.allclose(self.mat, self._E3D)
+
     # end operator protocol.
 
     # Implement the unary arithmetic operations (+, -)
@@ -1090,10 +1084,14 @@ class LatticeRotation(Operation):
         return self.__class__(-self.mat)
 
     def __pow__(self, intexp, modulo=1):
-        if intexp == 0: return self.__class__(self._E3D)
-        if intexp > 0: return self.__class__(np.linalg.matrix_power(self.mat, intexp))
-        if intexp == -1: return self.inverse()
-        if intexp < 0: return self.__pow__(-intexp).inverse()
+        if intexp == 0:
+            return self.__class__(self._E3D)
+        if intexp > 0:
+            return self.__class__(np.linalg.matrix_power(self.mat, intexp))
+        if intexp == -1:
+            return self.inverse()
+        if intexp < 0:
+            return self.__pow__(-intexp).inverse()
         raise TypeError("type %s is not supported in __pow__" % type(intexp))
 
     @property
@@ -1107,6 +1105,7 @@ class LatticeRotation(Operation):
 
     @property
     def root_inv(self):
+        """Index of the root of the inverse."""
         try:
             return self._root_inv
         except AttributeError:
@@ -1115,12 +1114,12 @@ class LatticeRotation(Operation):
 
     @cached_property
     def det(self):
-        """Return the determinant of a symmetry matrix mat[3,3]. It must be +-1"""
+        """Return the determinant of a symmetry matrix mat[3,3]. It must be +-1."""
         return _get_det(self.mat)
 
     @cached_property
     def trace(self):
-        """The trace of the rotation matrix"""
+        """The trace of the rotation matrix."""
         return self.mat.trace()
 
     @cached_property
@@ -1135,6 +1134,7 @@ class LatticeRotation(Operation):
 
     @cached_property
     def name(self):
+        """String representation of the rotation."""
         # Sign of the determinant (only if improper)
         name = "-" if self.det == -1 else ""
         name += str(self.order)
@@ -1143,8 +1143,8 @@ class LatticeRotation(Operation):
 
         return name
 
-    #@property
-    #def rottype(self):
+    # @property
+    # def rottype(self):
     #    """
     #    Receive a 3x3 orthogonal matrix and reports its type:
     #        1 Identity
@@ -1184,6 +1184,7 @@ class Irrep:
         traces: all_traces[nsym]. The trace of each irrep.
         character: character[num_classes]
     """
+
     def __init__(self, name, dim, mats, class_range):
         """
         Args:
@@ -1219,8 +1220,8 @@ class Irrep:
     def character(self):
         return self._character
 
-    #@cached_property
-    #def dataframe(self):
+    # @cached_property
+    # def dataframe(self):
 
 
 def bilbao_ptgroup(sch_symbol: str):
@@ -1231,6 +1232,7 @@ def bilbao_ptgroup(sch_symbol: str):
     sch_symbol = any2sch(sch_symbol)
 
     from abipy.core.irrepsdb import _PTG_IRREPS_DB
+
     entry = _PTG_IRREPS_DB[sch_symbol].copy()
     entry.pop("nclass")
     entry["sch_symbol"] = sch_symbol
@@ -1239,9 +1241,8 @@ def bilbao_ptgroup(sch_symbol: str):
 
 
 class BilbaoPointGroup:
-    """
-    A :class:`BilbaoPointGroup` is a :class:`Pointgroup` with irreducible representations
-    """
+    """A :class:`BilbaoPointGroup` is a :class:`Pointgroup` with irreducible representations."""
+
     def __init__(self, sch_symbol, rotations, class_names, class_range, irreps):
         # Rotations are grouped in classes.
         self.sch_symbol = sch_symbol
@@ -1291,12 +1292,13 @@ class BilbaoPointGroup:
 
     @cached_property
     def character_table(self) -> pd.DataFrame:
-        """
-        Dataframe with irreps.
-        """
+        """Dataframe with irreps."""
         # Caveat: class names are not necessarily unique --> use np.stack
         import pandas as pd
-        name_mult = [name + " [" + str(mult) + "]" for (name, mult) in zip(self.class_names, self.class_len)]
+
+        name_mult = [
+            name + " [" + str(mult) + "]" for (name, mult) in zip(self.class_names, self.class_len, strict=False)
+        ]
         columns = ["name"] + name_mult
 
         stack = np.stack([irrep.character for irrep in self.irreps])
@@ -1306,9 +1308,9 @@ class BilbaoPointGroup:
         df.columns.name = self.sch_symbol
 
         # TODO
-        #print(df)
+        # print(df)
         # Convert complex --> real if all entries in a colums are real.
-        #for k in name_mult:
+        # for k in name_mult:
         #    if np.all(np.isreal(df[k].values)):
         #        #df[k] = df[k].values.real
         #        df[k] = df[k].astype(float)
@@ -1316,37 +1318,33 @@ class BilbaoPointGroup:
         return df
 
     def to_string(self, verbose=0) -> str:
-        """
-        Return string with the character_table
-        """
+        """Return string with the character_table."""
         return self.character_table.to_string()
 
-    #def decompose(self, character):
+    # def decompose(self, character):
     #   od = collections.OrderedDict()
     #   for irrep in self.irreps:
     #       irrep.name
     #       irrep.character
     #   return od
 
-    #def show_irrep(self, irrep_name):
+    # def show_irrep(self, irrep_name):
     #    """Show the mapping rotation --> irrep mat."""
     #    irrep = self.irreps_by_name[irrep_name]
 
-    #def irrep_from_character(self, character, rotations, tol=None):
+    # def irrep_from_character(self, character, rotations, tol=None):
     #    """
     #    Main entry point for client code.
     #    This routine receives a character computed from the user and finds the
     #    irreducible representation.
     #    """
 
-    #def map_rotclasses(self, rotations_in_classes)
-    #def map_rotation(self, rotations_in_classes)
+    # def map_rotclasses(self, rotations_in_classes)
+    # def map_rotation(self, rotations_in_classes)
 
     def auto_test(self):
-        """
-        Perform internal consistency check. Return 0 if success
-        """
-        #print("rotations\n", self.rotations)
+        """Perform internal consistency check. Return 0 if success."""
+        # print("rotations\n", self.rotations)
         rot_group = LatticePointGroup(self.rotations)
         if not rot_group.is_group():
             print("rotations do not form a group!")
@@ -1356,10 +1354,10 @@ class BilbaoPointGroup:
         # Here we recompute the classes by calling rot_group.class_indices.
         # We then sort the indices and we compare the results with the ref data stored in the Bilbao database.
         calc_class_inds = [sorted(l) for l in rot_group.class_indices]
-        #print(calc_class_inds)
+        # print(calc_class_inds)
         assert len(calc_class_inds) == len(self.class_range)
 
-        for calc_inds, ref_range in zip(calc_class_inds, self.class_range):
+        for calc_inds, ref_range in zip(calc_class_inds, self.class_range, strict=False):
             ref_inds = list(range(ref_range[0], ref_range[1]))
             if calc_inds != ref_inds:
                 print("Rotations are not ordered in classes.", calc_inds, ref_inds)
@@ -1389,7 +1387,8 @@ class BilbaoPointGroup:
         for (ii, jj), (irp1, irp2) in iuptri(self.irreps, with_inds=True):
             trac1, trac2 = irp1.traces, irp2.traces
             err = np.vdot(trac1, trac2) / self.num_rots
-            if ii == jj: err -= 1.0
+            if ii == jj:
+                err -= 1.0
             max_err = max(max_err, abs(err))
 
         if max_err > 1e-5:
@@ -1402,38 +1401,38 @@ class BilbaoPointGroup:
 
 # Schoenflies, Hermann-Mauguin, spgid
 _PTG_IDS = [
-    ("C1" , "1",     1),
-    ("Ci" , "-1",    2),
-    ("C2" , "2",     3),
-    ("Cs" , "m",     6),
-    ("C2h", "2/m",   10),
-    ("D2" , "222",   16),
-    ("C2v", "mm2",   25),
-    ("D2h", "mmm",   47),
-    ("C4" , "4",     75),
-    ("S4" , "-4",    81),
-    ("C4h", "4/m",   83),
-    ("D4" , "422",   89),
-    ("C4v", "4mm",   99),
-    ("D2d", "-42m",  111),
+    ("C1", "1", 1),
+    ("Ci", "-1", 2),
+    ("C2", "2", 3),
+    ("Cs", "m", 6),
+    ("C2h", "2/m", 10),
+    ("D2", "222", 16),
+    ("C2v", "mm2", 25),
+    ("D2h", "mmm", 47),
+    ("C4", "4", 75),
+    ("S4", "-4", 81),
+    ("C4h", "4/m", 83),
+    ("D4", "422", 89),
+    ("C4v", "4mm", 99),
+    ("D2d", "-42m", 111),
     ("D4h", "4/mmm", 123),
-    ("C3" , "3",     143),
-    ("C3i", "-3",    147),
-    ("D3" , "32",    149),
-    ("C3v", "3m",    156),
-    ("D3d", "-3m",   162),
-    ("C6" , "6",     168),
-    ("C3h", "-6",    174),
-    ("C6h", "6/m",   175),
-    ("D6" , "622",   177),
-    ("C6v", "6mm",   183),
-    ("D3h", "-6m2",  189),
+    ("C3", "3", 143),
+    ("C3i", "-3", 147),
+    ("D3", "32", 149),
+    ("C3v", "3m", 156),
+    ("D3d", "-3m", 162),
+    ("C6", "6", 168),
+    ("C3h", "-6", 174),
+    ("C6h", "6/m", 175),
+    ("D6", "622", 177),
+    ("C6v", "6mm", 183),
+    ("D3h", "-6m2", 189),
     ("D6h", "6/mmm", 191),
-    ("T"  , "23",    195),
-    ("Th" , "m-3",   200),
-    ("O"  , "432",   207),
-    ("Td" , "-43m",  215),
-    ("Oh" , "m-3m",  221),
+    ("T", "23", 195),
+    ("Th", "m-3", 200),
+    ("O", "432", 207),
+    ("Td", "-43m", 215),
+    ("Oh", "m-3m", 221),
 ]
 
 _SCH2HERM = {t[0]: t[1] for t in _PTG_IDS}
@@ -1446,22 +1445,22 @@ sch_symbols = list(_SCH2HERM.keys())
 
 def sch2herm(sch_symbol):
     """Convert from Schoenflies to Hermann-Mauguin."""
-    return _SCH2HERM.get(sch_symbol, None)
+    return _SCH2HERM.get(sch_symbol)
 
 
 def sch2spgid(sch_symbol):
     """Convert from Schoenflies to the space group id."""
-    return _SCH2SPGID.get(sch_symbol, None)
+    return _SCH2SPGID.get(sch_symbol)
 
 
 def herm2sch(herm_symbol):
     """Convert from Hermann-Mauguin to Schoenflies."""
-    return _HERM2SCH.get(herm_symbol, None)
+    return _HERM2SCH.get(herm_symbol)
 
 
 def spgid2sch(spgid):
     """Return the Schoenflies symbol from the space group identifier."""
-    return _SPGID2SCH.get(spgid, None)
+    return _SPGID2SCH.get(spgid)
 
 
 def any2sch(obj):
@@ -1469,9 +1468,7 @@ def any2sch(obj):
     if is_string(obj):
         if obj in sch_symbols:
             return obj
-        else:
-            # Try Hermann-Mauguin
-            return herm2sch(obj)
-    else:
-        # Spacegroup ID?
-        return spgid2sch(obj)
+        # Try Hermann-Mauguin
+        return herm2sch(obj)
+    # Spacegroup ID?
+    return spgid2sch(obj)

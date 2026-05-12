@@ -1,12 +1,11 @@
 """Tests for varpeq module."""
-import abipy.data as abidata
 
+import abipy.data as abidata
 from abipy.core.testing import AbipyTest
 from abipy.eph.gpath import GpathFile, GpathRobot
 
 
 class GpathTest(AbipyTest):
-
     def test_gpath_file_fixed_k(self):
         """Testing GPATH.nc file with fixed k."""
         with GpathFile(abidata.ref_file("teph4zpr_9o_DS1_GPATH.nc")) as gpath:
@@ -48,7 +47,7 @@ class GpathTest(AbipyTest):
             assert gpath.r.nk_path == 42
             assert gpath.r.nq_path == 1
             assert len(gpath.ebands_k.kpoints) == 42
-            #assert len(gpath.ebands_kq.kpoints) == 1
+            # assert len(gpath.ebands_kq.kpoints) == 1
             assert len(gpath.phbands.qpoints) == 1
             self.assert_equal(gpath.r.eph_fix_wavec, (0.11, 0, 0))
 
@@ -72,7 +71,8 @@ class GpathTest(AbipyTest):
             robot.add_file("one", abidata.ref_file("teph4zpr_9o_DS1_GPATH.nc"))
             robot.add_file("two", abidata.ref_file("teph4zpr_9o_DS1_GPATH.nc"))
             assert len(robot) == 2
-            repr(robot); str(robot)
+            repr(robot)
+            str(robot)
             robot.to_string(verbose=2)
 
             # Test matplotlib methods

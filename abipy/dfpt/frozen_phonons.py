@@ -1,13 +1,14 @@
-# coding: utf-8
 """Objects to run and analyze the frozen phonons generated from displacements of atoms"""
+
 from __future__ import annotations
 
-import numpy as np
-import scipy.optimize as optimize
-
 from functools import cached_property
+
+import numpy as np
 from monty.collections import dict2namedtuple
-from abipy.core.abinit_units import phfactor_ev2units, amu_emass, Bohr_Ang, eV_Ha
+from scipy import optimize
+
+from abipy.core.abinit_units import Bohr_Ang, amu_emass, eV_Ha, phfactor_ev2units
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.tools.typing import Figure
 
@@ -21,7 +22,7 @@ def quadratic_fit_function(xx, aa, bb):
         aa: the coefficient of the quadratic term
         bb: the constant term
     """
-    return aa * xx ** 2 + bb
+    return aa * xx**2 + bb
 
 
 class FrozenPhonon:
@@ -30,8 +31,17 @@ class FrozenPhonon:
     Provides methods to generate, interpolate and plot the data.
     """
 
-    def __init__(self, original_structure, original_displ_cart, structures, normalized_displ_cart, etas,
-                 qpt_frac_coords, scale_matrix, energies=None):
+    def __init__(
+        self,
+        original_structure,
+        original_displ_cart,
+        structures,
+        normalized_displ_cart,
+        etas,
+        qpt_frac_coords,
+        scale_matrix,
+        energies=None,
+    ):
         """
 
         Args:
@@ -48,7 +58,6 @@ class FrozenPhonon:
             scale_matrix: the scaling matrix between the original cell and the supercell.
             energies: energies in eV corresponding to the structures.
         """
-
         self.original_structure = original_structure
         self.original_displ_cart = original_displ_cart
         self.structures = structures
@@ -99,8 +108,7 @@ class FrozenPhonon:
             raise ValueError("The structure with no displacement is not present in the list.")
 
     @classmethod
-    def from_phbands(cls, phbands, qpt_frac_coords, imode, etas,
-                     scale_matrix=None, max_supercell=None) -> FrozenPhonon:
+    def from_phbands(cls, phbands, qpt_frac_coords, imode, etas, scale_matrix=None, max_supercell=None) -> FrozenPhonon:
         """
         Create an instance of FrozenPhonon using the eigendisplacements from a |PhononBands|
 
@@ -125,8 +133,15 @@ class FrozenPhonon:
         for n in etas:
             structures.append(phbands.get_frozen_phonons(qind, imode, n, normalized_fp.scale_matrix).structure)
 
-        return cls(phbands.structure, original_displ_cart, structures, normalized_fp.displ, etas,
-                   phbands.qpoints[qind].frac_coords, normalized_fp.scale_matrix)
+        return cls(
+            phbands.structure,
+            original_displ_cart,
+            structures,
+            normalized_fp.displ,
+            etas,
+            phbands.qpoints[qind].frac_coords,
+            normalized_fp.scale_matrix,
+        )
 
     @cached_property
     def mass_factor(self) -> float:
@@ -136,8 +151,13 @@ class FrozenPhonon:
         # the norms of each atomic displacement of the normalized displacement
         displ_norms = np.linalg.norm(self.normalized_displ_cart, axis=1)
 
-        mass_factor = sum(site.specie.atomic_mass * (df**2)
-                          for site, df in zip(self.structures[0], displ_norms / displ_norms.max())) / 2.
+        mass_factor = (
+            sum(
+                site.specie.atomic_mass * (df**2)
+                for site, df in zip(self.structures[0], displ_norms / displ_norms.max(), strict=False)
+            )
+            / 2.0
+        )
         mass_factor *= amu_emass
         return mass_factor
 
@@ -146,15 +166,13 @@ class FrozenPhonon:
         Helper function to convert from a frequency in eV to the quadratic coefficient corresponding to the
         energies in eV and the etas in Angstrom. Uses the conversions to a.u. to get the correct value.
         """
-
-        return freq ** 2 * self.mass_factor * eV_Ha / Bohr_Ang ** 2
+        return freq**2 * self.mass_factor * eV_Ha / Bohr_Ang**2
 
     def _quad_coeff_to_freq(self, coeff):
         """
         Helper function to convert from the quadratic coefficient corresponding to the fit of energies in eV and
         the etas in Angstrom to a frequency in eV. Uses the conversions to a.u. to get the correct value.
         """
-
         return np.sqrt(coeff / self.mass_factor / eV_Ha) * Bohr_Ang
 
     def fit_to_frequency(self, fit_function=None, units="eV", min_fit_eta=None, max_fit_eta=None):
@@ -177,7 +195,6 @@ class FrozenPhonon:
             'fit_params': the parameters obtained from the fit, 'cov': the estimated covariance of fit_params
             (see scipy.optimize.curve_fit documentation for more details).
         """
-
         if self.energies is None:
             raise ValueError("The energies are required to calculate the fit")
 
@@ -199,11 +216,12 @@ class FrozenPhonon:
         # frequency in eV.
         freq = self._quad_coeff_to_freq(params[0])
 
-        return dict2namedtuple(freq=freq*phfactor_ev2units(units), fit_params=params, cov=cov)
+        return dict2namedtuple(freq=freq * phfactor_ev2units(units), fit_params=params, cov=cov)
 
     @add_fig_kwargs
-    def plot_fit_energies(self, fit_function=None, min_fit_eta=None, max_fit_eta=None, freq=None,
-                          ax=None, **kwargs) -> Figure:
+    def plot_fit_energies(
+        self, fit_function=None, min_fit_eta=None, max_fit_eta=None, freq=None, ax=None, **kwargs
+    ) -> Figure:
         """
         Fits the displacements etas to the energies. See fit_to_frequency() for more details.
 
@@ -219,7 +237,6 @@ class FrozenPhonon:
         Returns:
             |matplotlib-Figure|
         """
-
         if fit_function is None:
             fit_function = quadratic_fit_function
 
@@ -273,7 +290,6 @@ class FrozenPhonon:
         Returns:
             |matplotlib-Figure|
         """
-
         if self.energies is None:
             raise ValueError("The energies are required to calculate the fit")
 
@@ -285,12 +301,12 @@ class FrozenPhonon:
             kwargs["linewidth"] = 2
 
         e0 = self.energies[self.ieta0]
-        en_freq = quadratic_fit_function(self.etas,self._freq_to_quad_coeff(freq), e0)
+        en_freq = quadratic_fit_function(self.etas, self._freq_to_quad_coeff(freq), e0)
 
         diff = np.abs(en_freq - np.array(self.energies))
 
         if relative:
-            diff = [d/(e-e0) * 100 if e != 0 else 0 for d, e in zip(diff, en_freq)]
+            diff = [d / (e - e0) * 100 if e != 0 else 0 for d, e in zip(diff, en_freq, strict=False)]
 
         ax, fig, plt = get_ax_fig_plt(ax=ax)
 

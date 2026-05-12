@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 """Electron-phonon calculations."""
-from __future__ import print_function, division, unicode_literals, absolute_import
 
 import os
 import sys
-import numpy as np
+
 import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def build_flow(options):
@@ -26,10 +24,8 @@ def build_flow(options):
 
     # Define structure explicitly.
     structure = abilab.Structure.from_abivars(
-        acell=3*[6.70346805],
-        rprim=[0.0, 0.5, 0.5,
-               0.5, 0.0, 0.5,
-               0.5, 0.5, 0.0],
+        acell=3 * [6.70346805],
+        rprim=[0.0, 0.5, 0.5, 0.5, 0.0, 0.5, 0.5, 0.5, 0.0],
         typat=[1, 1],
         xred=[0.0, 0.0, 0.0, 0.25, 0.25, 0.25],
         ntypat=1,
@@ -49,7 +45,7 @@ def build_flow(options):
     gs_inp.set_kmesh(
         ngkpt=[4, 4, 4],
         shiftk=[0.0, 0.0, 0.0],
-        #kptopt=3,
+        # kptopt=3,
     )
 
     # NSCF run with k-path (just for plotting purpose)
@@ -57,7 +53,7 @@ def build_flow(options):
         nband=8,
         tolwfr=1e-16,
     )
-    #nscf_kpath_inp.pop_vars(["tolvrs"])
+    # nscf_kpath_inp.pop_vars(["tolvrs"])
     nscf_kpath_inp.set_kpath(ndivsm=10)
 
     # NSCF run with k-mesh to get WFK with empty states.
@@ -81,14 +77,14 @@ def build_flow(options):
 
     # Build input file for E-PH run. See v8/Input/t44.in
     eph_inp = gs_inp.new_with_vars(
-        optdriver=7,               # EPH driver.
-        eph_task=4,                # For electronic self-energy due to phonon
+        optdriver=7,  # EPH driver.
+        eph_task=4,  # For electronic self-energy due to phonon
         nband=54,
-        ddb_ngqpt=ddb_ngqpt,       # q-mesh used to produce the DDB file (must be consistent with DDB data)
+        ddb_ngqpt=ddb_ngqpt,  # q-mesh used to produce the DDB file (must be consistent with DDB data)
         symsigma=0,
         gw_qprange=2,
-        #eph_intmeth=2,            # Tetra method
-        #gw_qprange -2
+        # eph_intmeth=2,            # Tetra method
+        # gw_qprange -2
     )
 
     # Set q-path for phonons and phonon linewidths.
@@ -106,7 +102,7 @@ def build_flow(options):
 
     # Activate Fourier interpolation of DFPT potentials.
     eph_work.register_eph_task(eph_inp.new_with_vars(eph_ngqpt_fine=[4, 4, 4]), deps=deps)
-    #eph_work.register_eph_task(eph_inp.new_with_vars(eph_ngqpt_fine=[12, 12, 12]), deps=deps)
+    # eph_work.register_eph_task(eph_inp.new_with_vars(eph_ngqpt_fine=[12, 12, 12]), deps=deps)
 
     flow.allocate()
 
@@ -120,17 +116,19 @@ def main(options):
 
 if __name__ == "__main__":
     retcode = main()
-    if retcode != 0: sys.exit(retcode)
+    if retcode != 0:
+        sys.exit(retcode)
 
     rename_table = [
         # src, dest
-        #("_runflow/w0/t1/outdata/out_GSR.nc", "diamond_kpath_GSR.nc"),
-        #("_runflow/w1/outdata/out_DDB", "diamond_444q_DDB"),
+        # ("_runflow/w0/t1/outdata/out_GSR.nc", "diamond_kpath_GSR.nc"),
+        # ("_runflow/w1/outdata/out_DDB", "diamond_444q_DDB"),
         ("_runflow/w2/t1/outdata/out_SIGEPH.nc", "diamond_444q_full_SIGEPH.nc"),
     ]
 
     import shutil
+
     for old, new in rename_table:
         shutil.copyfile(old, new)
-    #shutil.rmtree("_runflow")
+    # shutil.rmtree("_runflow")
     sys.exit(0)

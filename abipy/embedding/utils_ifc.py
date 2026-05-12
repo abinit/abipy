@@ -1,9 +1,12 @@
 """
 Useful functions used in embedding_ifc
 """
+
 from __future__ import annotations
 
-import os, shutil
+import os
+import shutil
+
 import numpy as np
 
 from abipy.core.structure import Structure
@@ -11,7 +14,7 @@ from abipy.core.structure import Structure
 
 def stru_0_1_to_minus_05_05(structure: Structure):
     """
-    translate the structure so that the frac_coords go from [0,1] to [-0.5,0,5]
+    Translate the structure so that the frac_coords go from [0,1] to [-0.5,0,5]
     """
     new_stru = structure.copy()
     for site in new_stru:
@@ -47,13 +50,11 @@ def center_wrt_defect(structure: Structure, defect_coord) -> Structure:
     """
     Center the structure around defect_coord. Defect is now at [0,0,0]
     """
-
     new_stru = structure.copy()
     # site = structure[index_in_structure]
-    new_stru.translate_sites(indices=np.arange(0, len(structure)),
-                             vector=-defect_coord,
-                             frac_coords=False,
-                             to_unit_cell=False)
+    new_stru.translate_sites(
+        indices=np.arange(0, len(structure)), vector=-defect_coord, frac_coords=False, to_unit_cell=False
+    )
     return new_stru
 
 
@@ -64,7 +65,7 @@ def clean_structure(structure: Structure, defect_coord) -> Structure:
     Useful to match structures after clean_structure()
     """
     stru = structure.copy()
-    stru = center_wrt_defect(stru,defect_coord)
+    stru = center_wrt_defect(stru, defect_coord)
     stru = stru_0_1_to_minus_05_05(stru)
     stru = frac_coords_05_to_minus05(stru)
     return stru
@@ -76,7 +77,6 @@ def map_two_structures_coords(stru_1: Structure, stru_2: Structure, tol: float =
     the coordinates, within a given tolerance in Angstrom.
     stru_1 should be a subset of the superset structure stru_2
     """
-
     cart_1 = stru_1.cart_coords
     cart_2 = stru_2.cart_coords
     mapping = []
@@ -109,7 +109,7 @@ def inverse_participation_ratio(eigenvectors):
     for iband in range(len(eigenvectors)):
         sum_atoms = 0
         for iatom in range(len(eigenvectors[iband])):
-            sum_atoms += np.dot(eigenvectors[iband,iatom],eigenvectors[iband,iatom])**2
+            sum_atoms += np.dot(eigenvectors[iband, iatom], eigenvectors[iband, iatom]) ** 2
         ipr.append(1 / sum_atoms)
     return np.array(ipr).real
 
@@ -123,15 +123,17 @@ def localization_ratio(eigenvectors):
     return len(eigenvectors[0]) / ipr
 
 
-def vesta_phonon(eigenvectors,
-                in_path,
-                ibands=None,
-                scale_vector=20,
-                width_vector=0.3,
-                color_vector=[255,0,0],
-                centered=True,
-                factor_keep_vectors=0.1,
-                out_path="VESTA_FILES") -> None:
+def vesta_phonon(
+    eigenvectors,
+    in_path,
+    ibands=None,
+    scale_vector=20,
+    width_vector=0.3,
+    color_vector=[255, 0, 0],
+    centered=True,
+    factor_keep_vectors=0.1,
+    out_path="VESTA_FILES",
+) -> None:
     """
     Draw the phonons eigenvectors on a vesta file.
     Inspired from https://github.com/AdityaRoy-1996/Phonopy_VESTA/tree/master
@@ -148,7 +150,7 @@ def vesta_phonon(eigenvectors,
         factor_keep_vectors: draw only the eigenvectors with magnitude > factor_keep_vectors * max(magnitude)
         out_path: path where .vesta files with vector are stored
     """
-    vesta = open(in_path, 'r').read()
+    vesta = open(in_path).read()
     nbands = len(eigenvectors)
     natoms = len(eigenvectors[0])
 
@@ -164,47 +166,55 @@ def vesta_phonon(eigenvectors,
     path = out_path
 
     for iband in ibands:
-        towrite = vesta.split('VECTR')[0]
-        towrite += 'VECTR\n'
+        towrite = vesta.split("VECTR")[0]
+        towrite += "VECTR\n"
 
         magnitudes = []
         for iatom in range(natoms):
-            magnitudes.append(np.sqrt(eigenvectors[iband][iatom][0]**2+eigenvectors[iband][iatom][1]**2+eigenvectors[iband][iatom][2]**2))
+            magnitudes.append(
+                np.sqrt(
+                    eigenvectors[iband][iatom][0] ** 2
+                    + eigenvectors[iband][iatom][1] ** 2
+                    + eigenvectors[iband][iatom][2] ** 2
+                )
+            )
         for iatom in range(natoms):
             if magnitudes[iatom] > factor_keep_vectors * max(np.real(magnitudes)):
-                towrite += '%5d' % (iatom + 1)
-                towrite += '%10.5f' % (eigenvectors[iband][iatom][0] * int(scale_vector))
-                towrite += '%10.5f' % (eigenvectors[iband][iatom][1] * int(scale_vector))
-                towrite += '%10.5f' % (eigenvectors[iband][iatom][2] * int(scale_vector))
-                towrite += '\n'
-                towrite += '%5d' % (iatom + 1) + ' 0 0 0 0\n  0 0 0 0 0\n'
+                towrite += "%5d" % (iatom + 1)
+                towrite += "%10.5f" % (eigenvectors[iband][iatom][0] * int(scale_vector))
+                towrite += "%10.5f" % (eigenvectors[iband][iatom][1] * int(scale_vector))
+                towrite += "%10.5f" % (eigenvectors[iband][iatom][2] * int(scale_vector))
+                towrite += "\n"
+                towrite += "%5d" % (iatom + 1) + " 0 0 0 0\n  0 0 0 0 0\n"
 
-        towrite += '0 0 0 0 0\n'
-        towrite += 'VECTT\n'
+        towrite += "0 0 0 0 0\n"
+        towrite += "VECTT\n"
 
         for atom in range(natoms):
-            towrite += '%5d' % (atom + 1)
-            towrite += f'  {width_vector} {color_vector[0]}   {color_vector[1]}   {color_vector[2]} 0\n'
+            towrite += "%5d" % (atom + 1)
+            towrite += f"  {width_vector} {color_vector[0]}   {color_vector[1]}   {color_vector[2]} 0\n"
 
-        towrite += '0 0 0 0 0\n'
-        towrite += 'SPLAN'
-        towrite += vesta.split('SPLAN')[1]
-        towrite += 'VECTS 1.00000'
+        towrite += "0 0 0 0 0\n"
+        towrite += "SPLAN"
+        towrite += vesta.split("SPLAN")[1]
+        towrite += "VECTS 1.00000"
 
-        filename = path + f'/{iband:05}_'
-        filename += '.vesta'
+        filename = path + f"/{iband:05}_"
+        filename += ".vesta"
 
-        open(filename, 'w').write(towrite)
+        open(filename, "w").write(towrite)
 
         if centered:
-            with open(filename, 'r') as file:
+            with open(filename) as file:
                 file_contents = file.read()
                 search_word = "BOUND\n       0        1         0        1         0        1\n  0   0   0   0  0"
-                replace_word = "BOUND\n       -0.5        0.5         -0.5        0.5         -0.5        0.5\n  0   0   0   0  0"
+                replace_word = (
+                    "BOUND\n       -0.5        0.5         -0.5        0.5         -0.5        0.5\n  0   0   0   0  0"
+                )
 
                 updated_contents = file_contents.replace(search_word, replace_word)
 
-            with open(filename, 'w') as file:
+            with open(filename, "w") as file:
                 file.write(updated_contents)
 
     print(f"Vesta files created and stored in: \n {os.getcwd()}/{out_path}")

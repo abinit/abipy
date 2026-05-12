@@ -9,13 +9,14 @@ using the DDB/DVDB/POT files produced by a previous flow.
 More specifically, we perform NSCF calculations with different dense k-meshes and empty states.
 Then we use these dense WFK files to compute the e-ph self-energy by varying the value of zcut and nband.
 """
-import sys
-import os
-import itertools
-import numpy as np
-import abipy.abilab as abilab
 
-from abipy import flowtk
+import itertools
+import os
+import sys
+
+import numpy as np
+
+from abipy import abilab, flowtk
 
 
 def build_flow(options):
@@ -67,14 +68,14 @@ Creating ZPR flow from the following files:
     # Get ab-initio coarse q-mesh from the DDB file.
     with abilab.abiopen(ddb_filepath) as ddb:
         ddb_ngqpt = ddb.guessed_ngqpt
-        #print(ddb)
+        # print(ddb)
 
     # Now we build NSCF tasks with different k-meshes and "enough" empty states.
     # CHANGE this list according to your needs
     ngkpt_fine_list = [
         [8, 8, 8],
-        #[12, 12, 12],
-        #[32, 32, 32],
+        # [12, 12, 12],
+        # [32, 32, 32],
     ]
 
     # By default, all dense k-meshes are Gamma-centered.
@@ -95,12 +96,11 @@ Creating ZPR flow from the following files:
     # Pack all NSCF calculations in nscf_work.
     nscf_work = flow.new_work()
     for i, ngkpt_fine in enumerate(ngkpt_fine_list):
-
         nscf_inp = gs_input.new_with_vars(
             ngkpt=ngkpt_fine,
             shiftk=shiftk_fine_list[i],
             nband=nscf_nband,
-            nbdbuf=nbdbuf,      # Reduces considerably the time needed to converge empty states!
+            nbdbuf=nbdbuf,  # Reduces considerably the time needed to converge empty states!
             tolwfr=1e-20,
             iscf=-2,
         )
@@ -109,35 +109,30 @@ Creating ZPR flow from the following files:
     # Build template for e-ph self-energy calculations (real + imag part).
 
     eph_template = gs_input.new_with_vars(
-        optdriver=7,             # EPH driver.
-        eph_task=4,              # EPH self-energy (Re + Im)
-        ddb_ngqpt=ddb_ngqpt,     # Ab-initio q-mesh used for the DDB file.
-        tmesh=[0, 100, 4],       # T-mesh in Kelvin (start, step, num)
-        eph_stern=1,             # Use Sternheimer equation
-
+        optdriver=7,  # EPH driver.
+        eph_task=4,  # EPH self-energy (Re + Im)
+        ddb_ngqpt=ddb_ngqpt,  # Ab-initio q-mesh used for the DDB file.
+        tmesh=[0, 100, 4],  # T-mesh in Kelvin (start, step, num)
+        eph_stern=1,  # Use Sternheimer equation
         ######################
         # k-points in Sigma_nk
-
-        gw_qprange=0,           # Compute the QP corrections only for the fundamental and the direct gap
-                                # gw_qprange is handy as we don't need to specify kptgw and bdgw
-                                # but keep in mind that the band edges are computed from the input WFK k-mesh
-                                # so their position in the BZ MIGHT CHANGE
-
-        #nkptgw=2,
-        #kptgw=[0, 0, 0,        # NB: The k-points must be in the WFK file.
+        gw_qprange=0,  # Compute the QP corrections only for the fundamental and the direct gap
+        # gw_qprange is handy as we don't need to specify kptgw and bdgw
+        # but keep in mind that the band edges are computed from the input WFK k-mesh
+        # so their position in the BZ MIGHT CHANGE
+        # nkptgw=2,
+        # kptgw=[0, 0, 0,        # NB: The k-points must be in the WFK file.
         #       0.5, 0.5, 0],
-        #bdgw=[1, 8, 1, 8],
-
+        # bdgw=[1, 8, 1, 8],
         #####################
         # Spectral function
-        #nfreqsp=8000,
-        #freqspmax="8.0 eV",
-
+        # nfreqsp=8000,
+        # freqspmax="8.0 eV",
         #####################
         # Advanced options.
-        mixprec=1,               # These two varables accelerats the FFT.
+        mixprec=1,  # These two varables accelerats the FFT.
         boxcutmin=1.1,
-        #symsigma=0,             # Deactivate symmetries in self-energy integration (BZ instead of IBZ_k)
+        # symsigma=0,             # Deactivate symmetries in self-energy integration (BZ instead of IBZ_k)
     )
 
     # Set q-path for Fourier interpolation of phonons.
@@ -166,7 +161,6 @@ Creating ZPR flow from the following files:
         kfine_dict = {k: nscf_task.input[k] for k in ("ngkpt", "nshiftk", "shiftk")}
 
         for nband_sum, zcut in itertools.product(nbsum_list, zcut_list):
-
             new_inp = eph_template.new_with_vars(
                 nband=nband_sum,
                 zcut=zcut,

@@ -6,11 +6,11 @@ G0W0 flow with factory functions
 G0W0 corrections with the HT interface.
 """
 
-import sys
 import os
+import sys
+
 import abipy.data as abidata
-import abipy.flowtk as flowtk
-from abipy import abilab
+from abipy import abilab, flowtk
 
 
 def build_flow(options):
@@ -28,17 +28,25 @@ def build_flow(options):
     scf_kppa = 120
     nscf_nband = 40
     ecut, ecuteps, ecutsigx = 6, 2, 4
-    #scr_nband = 50
-    #sigma_nband = 50
+    # scr_nband = 50
+    # sigma_nband = 50
 
     multi = abilab.g0w0_with_ppmodel_inputs(
-        structure, pseudos, scf_kppa, nscf_nband, ecuteps, ecutsigx,
-        ecut=ecut, shifts=(0, 0, 0), # By default the k-mesh is shifted! TODO: Change default?
-        accuracy="normal", spin_mode="unpolarized", smearing=None,
-        #ppmodel="godby", charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
-        #sigma_nband=None, gw_qprange=1):
+        structure,
+        pseudos,
+        scf_kppa,
+        nscf_nband,
+        ecuteps,
+        ecutsigx,
+        ecut=ecut,
+        shifts=(0, 0, 0),  # By default the k-mesh is shifted! TODO: Change default?
+        accuracy="normal",
+        spin_mode="unpolarized",
+        smearing=None,
+        # ppmodel="godby", charge=0.0, scf_algorithm=None, inclvkb=2, scr_nband=None,
+        # sigma_nband=None, gw_qprange=1):
     )
-    #multi.set_vars(paral_kgb=1)
+    # multi.set_vars(paral_kgb=1)
 
     scf_input, nscf_input, scr_input, sigma_input = multi.split_datasets()
     work = flowtk.G0W0Work(scf_input, nscf_input, scr_input, sigma_input)
@@ -52,6 +60,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

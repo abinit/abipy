@@ -2,19 +2,18 @@
 """
 This script runs all the python scripts located in this directory
 """
+
 from __future__ import annotations
 
-import sys
-import os
 import argparse
+import os
 import shutil
+import sys
 import tempfile
-import abipy.tools.cli_parsers as cli
-
 from subprocess import call
-from abipy import __version__
-from abipy import flowtk
 
+import abipy.tools.cli_parsers as cli
+from abipy import __version__, flowtk
 
 
 def main():
@@ -32,17 +31,21 @@ def main():
             sys.stderr.write("Fatal Error\n" + err_msg + "\n")
         sys.exit(error_code)
 
-    parser = argparse.ArgumentParser(epilog=str_examples(),formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(epilog=str_examples(), formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_argument('-V', '--version', action='version', version="%(prog)s version " + __version__)
-    parser.add_argument('--loglevel', default="ERROR", type=str,
-                        help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG")
+    parser.add_argument("-V", "--version", action="version", version="%(prog)s version " + __version__)
+    parser.add_argument(
+        "--loglevel",
+        default="ERROR",
+        type=str,
+        help="set the loglevel. Possible values: CRITICAL, ERROR (default), WARNING, INFO, DEBUG",
+    )
 
-    parser.add_argument('-m', '--mode', type=str, default="sequential", help="execution mode. Default is sequential.")
-    parser.add_argument('-e', '--exclude', type=str, default="", help="Exclude scripts. Comma-separated names")
-    parser.add_argument('-x', '--execute', default=False, action="store_true", help="Execute flows.")
-    parser.add_argument('--keep-dirs', action="store_true", default=False, help="Do not remove flow directories.")
-    parser.add_argument('-b', '--bail-on-failure', default=False, help="Exit at the first error.")
+    parser.add_argument("-m", "--mode", type=str, default="sequential", help="execution mode. Default is sequential.")
+    parser.add_argument("-e", "--exclude", type=str, default="", help="Exclude scripts. Comma-separated names")
+    parser.add_argument("-x", "--execute", default=False, action="store_true", help="Execute flows.")
+    parser.add_argument("--keep-dirs", action="store_true", default=False, help="Do not remove flow directories.")
+    parser.add_argument("-b", "--bail-on-failure", default=False, help="Exit at the first error.")
 
     options = parser.parse_args()
 
@@ -56,20 +59,20 @@ def main():
     root = os.path.abspath(os.path.join(os.path.dirname(__file__), "flows"))
     scripts = []
     for fname in os.listdir(root):
-        if fname in options.exclude: continue
+        if fname in options.exclude:
+            continue
         if fname.endswith(".py") and fname.startswith("run_"):
             path = os.path.join(root, fname)
             if path != __file__:
                 scripts.append(path)
-    print("Executing: %d scripts with mode: `%s` and execute: `%s`" % (
-          len(scripts), options.mode, options.execute))
+    print("Executing: %d scripts with mode: `%s` and execute: `%s`" % (len(scripts), options.mode, options.execute))
 
     # Run scripts according to mode.
     dirpaths, errors, retcode, cnt = [], [], 0, 0
     if options.mode in ["s", "sequential"]:
         for script in scripts:
             # flow will be produced in a temporary workdir.
-            workdir = tempfile.mkdtemp(prefix='flow_' + os.path.basename(script))
+            workdir = tempfile.mkdtemp(prefix="flow_" + os.path.basename(script))
             ret = call(["python", script, "--workdir", workdir])
             retcode += ret
 
@@ -90,7 +93,8 @@ def main():
                 try:
                     flow = flowtk.Flow.pickle_load(workdir)
                     flow.make_scheduler().start()
-                    if not flow.all_ok: retcode += 1
+                    if not flow.all_ok:
+                        retcode += 1
 
                 except Exception as exc:
                     ret += 1

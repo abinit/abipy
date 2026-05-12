@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 """Benchmark for DDK calculations."""
-import sys
-import abipy.abilab as abilab
-import abipy.data as abidata
-import abipy.flowtk as flowtk
 
+import sys
 from itertools import product
-from abipy.benchmarks import bench_main, BenchmarkFlow
+
+import abipy.data as abidata
+from abipy import abilab, flowtk
+from abipy.benchmarks import BenchmarkFlow, bench_main
 
 
 def make_inputs(paw=False):
@@ -14,8 +14,11 @@ def make_inputs(paw=False):
     This function constructs the input files for the DDK in SiC.
     Return: GS input, NSCF input, DDK input.
     """
-    pseudos = abidata.pseudos("14si.pspnc", "6c.pspnc") if not paw else \
-              abidata.pseudos("Si.GGA_PBE-JTH-paw.xml", "6c.lda.atompaw")
+    pseudos = (
+        abidata.pseudos("14si.pspnc", "6c.pspnc")
+        if not paw
+        else abidata.pseudos("Si.GGA_PBE-JTH-paw.xml", "6c.lda.atompaw")
+    )
 
     structure = abidata.structure_from_ucell("SiC")
 
@@ -37,38 +40,35 @@ def make_inputs(paw=False):
     # Definition of the k-point grid
     multi.set_kmesh(
         ngkpt=[16, 16, 16],
-        #ngkpt=[2, 2, 2],
-        shiftk=[0.0, 0.0, 0.5,
-                0.0, 0.5, 0.0,
-                0.5, 0.0, 0.0,
-                0.5, 0.5, 0.5]
+        # ngkpt=[2, 2, 2],
+        shiftk=[0.0, 0.0, 0.5, 0.0, 0.5, 0.0, 0.5, 0.0, 0.0, 0.5, 0.5, 0.5],
     )
 
     multi[0].set_vars(
-      kptopt=1,          # Automatic generation of k points with symmetries.
-      tolvrs=1.0e-6,
-      nband=12,
-      nbdbuf=2,
+        kptopt=1,  # Automatic generation of k points with symmetries.
+        tolvrs=1.0e-6,
+        nband=12,
+        nbdbuf=2,
     )
 
     multi[1].set_vars(
-      iscf=-2,
-      #getwfk=1,
-      #getden=1,
-      kptopt=3,
-      tolwfr=1.0e-6,
+        iscf=-2,
+        # getwfk=1,
+        # getden=1,
+        kptopt=3,
+        tolwfr=1.0e-6,
     )
 
     multi[2].set_vars(
-      #getwfk=2,
-      #getden=1,
-      iscf=-3,        # Need this non-self-consistent option for d/dk
-      rfelfd=2,       # Calculate d/dk wave function only
-      tolwfr=1.0e-18, # Use wave function residual criterion instead
-      kptopt=3,
-      rfdir=[1, 0, 0],
-      nstep=1,
-      nline=0,
+        # getwfk=2,
+        # getden=1,
+        iscf=-3,  # Need this non-self-consistent option for d/dk
+        rfelfd=2,  # Calculate d/dk wave function only
+        tolwfr=1.0e-18,  # Use wave function residual criterion instead
+        kptopt=3,
+        rfdir=[1, 0, 0],
+        nstep=1,
+        nline=0,
     )
 
     gs_inp, nscf_inp, ddk_inp = multi.split_datasets()
@@ -87,15 +87,17 @@ def build_flow(options):
 
     # Get the list of possible parallel configurations from abinit autoparal.
     max_ncpus, min_eff = options.max_ncpus, options.min_eff
-    print("Getting all autoparal confs up to max_ncpus: ",max_ncpus," with efficiency >= ",min_eff)
+    print("Getting all autoparal confs up to max_ncpus: ", max_ncpus, " with efficiency >= ", min_eff)
 
     pconfs = ddk_inp.abiget_autoparal_pconfs(max_ncpus, autoparal=1)
-    if options.verbose: print(pconfs)
+    if options.verbose:
+        print(pconfs)
 
     work = flowtk.Work()
     for conf, omp_threads in product(pconfs, options.omp_list):
         mpi_procs = conf.mpi_ncpus
-        if not options.accept_conf(conf, omp_threads): continue
+        if not options.accept_conf(conf, omp_threads):
+            continue
 
         manager = options.manager.new_with_fixed_mpi_omp(mpi_procs, omp_threads)
         inp = ddk_inp.new_with_vars(conf.vars)
@@ -112,7 +114,7 @@ def main(options):
     if options.info:
         # print doc string and exit.
         print(__doc__)
-        return
+        return None
 
     return build_flow(options)
 

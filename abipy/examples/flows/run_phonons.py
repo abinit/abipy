@@ -11,12 +11,11 @@ The final results (out_DDB, out_DVDB) are produced automatically at the end of t
 and saved in ``flow_phonons/w1/outdata/``.
 """
 
-import sys
 import os
-import abipy.abilab as abilab
-import abipy.data as abidata
+import sys
 
-from abipy import flowtk
+import abipy.data as abidata
+from abipy import abilab, flowtk
 
 
 def make_scf_input(paral_kgb=0):
@@ -33,16 +32,26 @@ def make_scf_input(paral_kgb=0):
         ecut=2.0,
         ngkpt=[4, 4, 4],
         nshiftk=4,
-        shiftk=[0.0, 0.0, 0.5,   # This gives the usual fcc Monkhorst-Pack grid
-                0.0, 0.5, 0.0,
-                0.5, 0.0, 0.0,
-                0.5, 0.5, 0.5],
-        #shiftk=[0, 0, 0],
+        shiftk=[
+            0.0,
+            0.0,
+            0.5,  # This gives the usual fcc Monkhorst-Pack grid
+            0.0,
+            0.5,
+            0.0,
+            0.5,
+            0.0,
+            0.0,
+            0.5,
+            0.5,
+            0.5,
+        ],
+        # shiftk=[0, 0, 0],
         paral_kgb=paral_kgb,
         tolvrs=1.0e-10,
         ixc=1,
         diemac=9.0,
-        #iomode=3,
+        # iomode=3,
     )
 
     return gs_inp
@@ -68,8 +77,7 @@ def build_flow(options):
     # Create flow to compute all the independent atomic perturbations
     # corresponding to a [4, 4, 4] q-mesh.
     # Electric field and Born effective charges are also computed.
-    flow = flowtk.PhononFlow.from_scf_input(options.workdir, scf_input,
-                                            ph_ngqpt=(4, 4, 4), with_becs=True)
+    flow = flowtk.PhononFlow.from_scf_input(options.workdir, scf_input, ph_ngqpt=(4, 4, 4), with_becs=True)
 
     return flow
 
@@ -79,6 +87,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

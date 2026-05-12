@@ -1,18 +1,16 @@
 #!/usr/bin/env python
 """Integration tests for the scheduler."""
+
 from __future__ import annotations
 
 import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
-
+from abipy import abilab, flowtk
 from abipy.flowtk import mocks
 
 
 def make_scf_nscf_inputs(paral_kgb=1):
     """Returns two input files: GS run and NSCF on a high symmetry k-mesh."""
-    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"),
-                              pseudos=abidata.pseudos("14si.pspnc"), ndtset=2)
+    multi = abilab.MultiDataset(structure=abidata.cif_file("si.cif"), pseudos=abidata.pseudos("14si.pspnc"), ndtset=2)
 
     # Global variables
     ecut = 4
@@ -29,9 +27,9 @@ def make_scf_nscf_inputs(paral_kgb=1):
 
     # Dataset 2 (NSCF run)
     kptbounds = [
-        [0.5, 0.0, 0.0], # L point
-        [0.0, 0.0, 0.0], # Gamma point
-        [0.0, 0.5, 0.5], # X point
+        [0.5, 0.0, 0.0],  # L point
+        [0.0, 0.0, 0.0],  # Gamma point
+        [0.0, 0.5, 0.5],  # X point
     ]
 
     multi[1].set_kpath(ndivsm=2, kptbounds=kptbounds)

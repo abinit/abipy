@@ -10,11 +10,11 @@ the effective masses at the band edges (automatically detected by performing a N
 and uses an external DDB file providing BECS, eps_inf and phonon frequencies at Gamma.
 """
 
-import sys
 import os
+import sys
+
 import abipy.data as abidata
-import abipy.abilab as abilab
-import abipy.flowtk as flowtk
+from abipy import abilab, flowtk
 
 
 def build_flow(options):
@@ -38,20 +38,30 @@ def build_flow(options):
         nband=12,
         nbdbuf=2,
         diemac=6,
-        ecut=30,                # Underconverged ecut.
-        #ecut=15,
+        ecut=30,  # Underconverged ecut.
+        # ecut=15,
         nstep=100,
         tolvrs=1e-16,
-        kptrlatt=[-2,  2,  2,   # In cartesian coordinates, this grid is simple cubic
-                   2, -2,  2,
-                   2,  2, -2],
+        kptrlatt=[
+            -2,
+            2,
+            2,  # In cartesian coordinates, this grid is simple cubic
+            2,
+            -2,
+            2,
+            2,
+            2,
+            -2,
+        ],
     )
 
     # Build the flow to detect band edges, compute effective masses and finally obtain an estimate for the ZPR
     # BECS/phonons/eps_inf are taken from ddb_node.
     from abipy.flowtk.effmass_works import FrohlichZPRFlow
-    flow = FrohlichZPRFlow.from_scf_input(options.workdir, scf_input, ddb_node=ddb_path, ndivsm=2, tolwfr=1e-14,
-                                          manager=options.manager)
+
+    flow = FrohlichZPRFlow.from_scf_input(
+        options.workdir, scf_input, ddb_node=ddb_path, ndivsm=2, tolwfr=1e-14, manager=options.manager
+    )
     return flow
 
 
@@ -60,6 +70,7 @@ def build_flow(options):
 if os.getenv("READTHEDOCS", False):
     __name__ = None
     import tempfile
+
     options = flowtk.build_flow_main_parser().parse_args(["-w", tempfile.mkdtemp()])
     build_flow(options).graphviz_imshow()
 

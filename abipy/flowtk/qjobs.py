@@ -1,4 +1,3 @@
-# coding: utf-8
 """
 Objects and methods to contact the resource manager to get info on the status of the job and useful statistics.
 Note that this is not a wrapper for the C API but a collection of simple wrappers around the shell commands
@@ -6,16 +5,17 @@ provided by the resource manager  (qsub, qdel and qstat for PBS, sinfo, squeue..
 The main goal indeed is providing a simplified common interface for different resource managers without
 having to rely on external libraries.
 """
+
 from __future__ import annotations
 
+import logging
 import shlex
-
 from collections import OrderedDict, defaultdict
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
+
 from monty.collections import AttrDict
 from monty.inspect import all_subclasses
 
-import logging
 logger = logging.getLogger(__name__)
 
 
@@ -48,19 +48,21 @@ class JobStatus(int):
 
     """
 
-    _STATUS_TABLE = OrderedDict([
-        (-1, "UNKNOWN"),
-        (0, "PENDING"),
-        (1, "RUNNING"),
-        (2, "RESIZING"),
-        (3, "SUSPENDED"),
-        (4, "COMPLETED"),
-        (5, "CANCELLED"),
-        (6, "FAILED"),
-        (7, "TIMEOUT"),
-        (8, "PREEMPTED"),
-        (9, "NODEFAIL"),
-    ])
+    _STATUS_TABLE = OrderedDict(
+        [
+            (-1, "UNKNOWN"),
+            (0, "PENDING"),
+            (1, "RUNNING"),
+            (2, "RESIZING"),
+            (3, "SUSPENDED"),
+            (4, "COMPLETED"),
+            (5, "CANCELLED"),
+            (6, "FAILED"),
+            (7, "TIMEOUT"),
+            (8, "PREEMPTED"),
+            (9, "NODEFAIL"),
+        ]
+    )
 
     def __repr__(self):
         return "<%s: %s, at %s>" % (self.__class__.__name__, str(self), id(self))
@@ -73,18 +75,19 @@ class JobStatus(int):
     def from_string(cls, s: str) -> JobStatus:
         """Return an instance from its string representation."""
         for num, text in cls._STATUS_TABLE.items():
-            if text == s: return cls(num)
-        else:
-            #raise ValueError("Wrong string %s" % s)
-            logger.warning("Got unknown status: %s" % s)
-            return cls.from_string("UNKNOWN")
+            if text == s:
+                return cls(num)
+        # raise ValueError("Wrong string %s" % s)
+        logger.warning("Got unknown status: %s" % s)
+        return cls.from_string("UNKNOWN")
 
 
 class QueueJob:
     """
-    This object provides methods to contact the resource manager to get info 
+    This object provides methods to contact the resource manager to get info
     on the status of the job and useful statistics. This is an abstract class.
     """
+
     QTYPE = None
 
     # Used to handle other resource managers.
@@ -112,7 +115,8 @@ class QueueJob:
             qname: Name of the queue (optional).
         """
         for cls in all_subclasses(QueueJob):
-            if cls.QTYPE == qtype: break
+            if qtype == cls.QTYPE:
+                break
         else:
             logger.critical("Cannot find QueueJob subclass registered for qtype %s" % qtype)
             cls = QueueJob
@@ -131,42 +135,48 @@ class QueueJob:
         self.status, self.exitcode, self.signal = None, None, None
 
     def __repr__(self):
-        return "<%s, qid=%s, status=%s, exit_code=%s>" % (
-            self.__class__.__name__, self.qid, self.status, self.exitcode)
+        return "<%s, qid=%s, status=%s, exit_code=%s>" % (self.__class__.__name__, self.qid, self.status, self.exitcode)
 
     def __bool__(self):
         return self.qid is not None
 
     __nonzero__ = __bool__
 
-    #In many cases, we only need to know if job is terminated or not
-    #def is_terminated()
+    # In many cases, we only need to know if job is terminated or not
+    # def is_terminated()
 
     @property
     def is_completed(self) -> bool:
+        """True if the job is completed."""
         return self.status == self.S_COMPLETED
 
     @property
     def is_running(self) -> bool:
+        """True if the job is running."""
         return self.status == self.S_RUNNING
 
     @property
     def is_failed(self) -> bool:
+        """True if the job failed."""
         return self.status == self.S_FAILED
 
     @property
     def timeout(self) -> bool:
+        """True if the job timed out."""
         return self.status == self.S_TIMEOUT
 
     @property
     def has_node_failures(self) -> bool:
+        """True if the job failed due to node failures."""
         return self.status == self.S_NODEFAIL
 
     @property
     def unknown_status(self) -> bool:
+        """True if the status of the job is unknown."""
         return self.status == self.S_UNKNOWN
 
     def set_status_exitcode_signal(self, status, exitcode, signal):
+        """Set the status, exitcode and signal of the job."""
         self.status, self.exitcode, self.signal = status, exitcode, signal
 
     def likely_code_error(self):
@@ -213,14 +223,18 @@ class QueueJob:
         ==========  ========= ========  ========================================
         """
         for sig_name in ("SIGFPE",):
-            if self.received_signal(sig_name): return sig_name
+            if self.received_signal(sig_name):
+                return sig_name
 
         return False
 
     def received_signal(self, sig_name: str) -> bool:
-        if self.signal is None: return False
+        """True if the job received the signal with name `sig_name`."""
+        if self.signal is None:
+            return False
         # Get the numeric value from signal and compare it with self.signal
         import signal
+
         try:
             return self.signal == getattr(signal, sig_name)
         except AttributeError:
@@ -229,32 +243,38 @@ class QueueJob:
 
     def estimated_start_time(self):
         """Return date with estimated start time. None if it cannot be detected"""
-        return None
+        return
 
     def get_info(self, **kwargs):
-        return None
+        """Return information about the job."""
+        return
 
     def get_nodes(self, **kwargs):
-        return None
+        """Return the list of nodes used by the job."""
+        return
 
     def get_stats(self, **kwargs):
-        return None
+        """Return statistics about the job."""
+        return
 
 
 class ShellJob(QueueJob):
     """Handler for Shell jobs."""
+
     QTYPE = "shell"
 
 
 class SlurmJob(QueueJob):
     """Handler for Slurm jobs."""
+
     QTYPE = "slurm"
 
     def estimated_start_time(self):
-        #squeue  --start -j  116791
+        """Return the estimated start time of the job."""
+        # squeue  --start -j  116791
         #  JOBID PARTITION     NAME     USER  ST           START_TIME  NODES NODELIST(REASON)
         # 116791      defq gs6q2wop username  PD  2014-11-04T09:27:15     16 (QOSResourceLimit)
-        cmd = "squeue" "--start", "--job %d" % self.qid
+        cmd = "squeue--start", "--job %d" % self.qid
         process = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE)
         out, err = process.communicate()
 
@@ -263,39 +283,43 @@ class SlurmJob(QueueJob):
             return None
 
         lines = out.splitlines()
-        if len(lines) <= 2: return None
+        if len(lines) <= 2:
+            return None
 
         from datetime import datetime
+
         for line in lines:
             tokens = line.split()
             if int(tokens[0]) == self.qid:
                 date_string = tokens[5]
-                if date_string == "N/A": return None
+                if date_string == "N/A":
+                    return None
                 return datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%S")
 
         return None
 
     def get_info(self, **kwargs):
+        """Returns a dictionary with information about the job."""
         # See https://computing.llnl.gov/linux/slurm/sacct.html
-        #If SLURM job ids are reset, some job numbers will
-        #probably appear more than once refering to different jobs.
-        #Without this option only the most recent jobs will be displayed.
+        # If SLURM job ids are reset, some job numbers will
+        # probably appear more than once refering to different jobs.
+        # Without this option only the most recent jobs will be displayed.
 
-        #state Displays the job status, or state.
-        #Output can be RUNNING, RESIZING, SUSPENDED, COMPLETED, CANCELLED, FAILED, TIMEOUT,
-        #PREEMPTED or NODE_FAIL. If more information is available on the job state than will fit
-        #into the current field width (for example, the uid that CANCELLED a job) the state will be followed by a "+".
+        # state Displays the job status, or state.
+        # Output can be RUNNING, RESIZING, SUSPENDED, COMPLETED, CANCELLED, FAILED, TIMEOUT,
+        # PREEMPTED or NODE_FAIL. If more information is available on the job state than will fit
+        # into the current field width (for example, the uid that CANCELLED a job) the state will be followed by a "+".
 
-        #gmatteo@master2:~
-        #sacct --job 112367 --format=jobid,exitcode,state --allocations --parsable2
-        #JobID|ExitCode|State
-        #112367|0:0|RUNNING
-        #scontrol show job 800197 --oneliner
+        # gmatteo@master2:~
+        # sacct --job 112367 --format=jobid,exitcode,state --allocations --parsable2
+        # JobID|ExitCode|State
+        # 112367|0:0|RUNNING
+        # scontrol show job 800197 --oneliner
 
         # For more info
-        #login1$ scontrol show job 1676354
+        # login1$ scontrol show job 1676354
 
-        #cmd = "sacct --job %i --format=jobid,exitcode,state --allocations --parsable2" % self.qid
+        # cmd = "sacct --job %i --format=jobid,exitcode,state --allocations --parsable2" % self.qid
         cmd = "scontrol show job %i --oneliner" % self.qid
         process = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE)
         out, err = process.communicate()
@@ -307,10 +331,10 @@ class SlurmJob(QueueJob):
         tokens = out.splitlines()
         info = AttrDict()
         for line in tokens:
-            #print(line)
+            # print(line)
             k, v = line.split("=")
             info[k] = v
-            #print(info)
+            # print(info)
 
         qid = int(info.JobId)
         assert qid == self.qid
@@ -323,12 +347,14 @@ class SlurmJob(QueueJob):
             exitcode, signal = int(exitcode), None
 
         i = status.find("+")
-        if i != -1: status = status[:i]
+        if i != -1:
+            status = status[:i]
 
         self.set_status_exitcode_signal(JobStatus.from_string(status), exitcode, signal)
         return AttrDict(exitcode=exitcode, signal=signal, status=status)
 
     def get_stats(self, **kwargs) -> dict:
+        """Returns a dictionary with statistics about the job."""
         cmd = "sacct --long --job %s --parsable2" % self.qid
         process = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE)
         out, err = process.communicate()
@@ -340,8 +366,8 @@ class SlurmJob(QueueJob):
         lines = out.splitlines()
         keys = lines[0].strip().split("|")
         values = lines[1].strip().split("|")
-        #print("lines0", lines[0])
-        return dict(zip(keys, values))
+        # print("lines0", lines[0])
+        return dict(zip(keys, values, strict=False))
 
 
 class PbsProJob(QueueJob):
@@ -350,6 +376,7 @@ class PbsProJob(QueueJob):
 
     See also https://github.com/plediii/pbs_util for a similar project.
     """
+
     QTYPE = "pbspro"
     # Mapping PrbPro --> Slurm. From `man qstat`
     #
@@ -367,21 +394,25 @@ class PbsProJob(QueueJob):
     #      W  Job is waiting for its submitter-assigned start time to be reached.
     #      X  Subjob has completed execution or has been deleted.
 
-    PBSSTAT_TO_SLURM = defaultdict(lambda x: QueueJob.S_UNKNOWN, [
-        ("E", QueueJob.S_FAILED),
-        ("F", QueueJob.S_COMPLETED),
-        ("Q", QueueJob.S_PENDING),
-        ("R", QueueJob.S_RUNNING),
-        ("S", QueueJob.S_SUSPENDED),
-    ])
+    PBSSTAT_TO_SLURM = defaultdict(
+        lambda x: QueueJob.S_UNKNOWN,
+        [
+            ("E", QueueJob.S_FAILED),
+            ("F", QueueJob.S_COMPLETED),
+            ("Q", QueueJob.S_PENDING),
+            ("R", QueueJob.S_RUNNING),
+            ("S", QueueJob.S_SUSPENDED),
+        ],
+    )
 
     def estimated_start_time(self):
+        """Returns the estimated start time of the job."""
         # qstat -T - Shows the estimated start time for all jobs in the queue.
         #                                                                           Est
         #                                                            Req'd  Req'd   Start
-        #Job ID          Username Queue    Jobname    SessID NDS TSK Memory Time  S Time
-        #--------------- -------- -------- ---------- ------ --- --- ------ ----- - -----
-        #5669001.frontal username large    gs.Pt         --   96  96    --  03:00 Q    --
+        # Job ID          Username Queue    Jobname    SessID NDS TSK Memory Time  S Time
+        # --------------- -------- -------- ---------- ------ --- --- ------ ----- - -----
+        # 5669001.frontal username large    gs.Pt         --   96  96    --  03:00 Q    --
         cmd = "qstat %s -T" % self.qid
         process = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE)
         out, err = process.communicate()
@@ -399,16 +430,16 @@ class PbsProJob(QueueJob):
         return sdate
 
     def get_info(self, **kwargs):
-
+        """Returns a dictionary with information about the job."""
         # See also qstat -f
-        #http://sc.tamu.edu/help/origins/batch.shtml#qstat
+        # http://sc.tamu.edu/help/origins/batch.shtml#qstat
 
-        #$> qstat 5666289
-        #frontal1:
+        # $> qstat 5666289
+        # frontal1:
         #                                                            Req'd  Req'd   Elap
-        #Job ID          Username Queue    Jobname    SessID NDS TSK Memory Time  S Time
-        #--------------- -------- -------- ---------- ------ --- --- ------ ----- - -----
-        #5666289.frontal username main_ivy MorfeoTChk  57546   1   4    --  08:00 R 00:17
+        # Job ID          Username Queue    Jobname    SessID NDS TSK Memory Time  S Time
+        # --------------- -------- -------- ---------- ------ --- --- ------ ----- - -----
+        # 5666289.frontal username main_ivy MorfeoTChk  57546   1   4    --  08:00 R 00:17
 
         cmd = "qstat %d" % self.qid
         process = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE)
@@ -423,16 +454,16 @@ class PbsProJob(QueueJob):
             if process.returncode != 0:
                 logger.critical(out)
                 logger.critical(err)
-                return None
+                return
 
         # Here I don't know what's happeing but I get an output that differs from the one obtained in the terminal.
         # Job id            Name             User              Time Use S Queue
         # ----------------  ---------------- ----------------  -------- - -----
         # 5905011.frontal1  t0               gmatteo           01:37:08 F main_wes
-        #print(out)
+        # print(out)
 
         line = out.splitlines()[-1]
-        #print(line.split())
+        # print(line.split())
         status = self.PBSSTAT_TO_SLURM[line.split()[4]]
 
         # Exit code and signal are not available.
@@ -445,21 +476,26 @@ class PbsProJob(QueueJob):
 # Unsupported resource managers #
 #################################
 
+
 class TorqueJob(QueueJob):
     """Not supported"""
+
     QTYPE = "torque"
 
 
 class SgeJob(QueueJob):
     """Not supported"""
+
     QTYPE = "sge"
 
 
 class MoabJob(QueueJob):
     """Not supported"""
+
     QTYPE = "moab"
 
 
 class BlueGeneJob(QueueJob):
     """Not supported"""
+
     QTYPE = "bluegene"

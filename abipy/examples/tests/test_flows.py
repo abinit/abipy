@@ -1,21 +1,20 @@
 """
 This script runs all the flows in the `flow` directory.
 """
-import sys
+
 import os
+import sys
 import tempfile
 import warnings
 
-from subprocess import call
+from abipy import flowtk
 from abipy.core.testing import AbipyTest
-import abipy.flowtk as flowtk
 
 root = os.path.join(os.path.dirname(__file__), "..", "flows")
 
 
 class TestScripts(AbipyTest):
-
-    #def test_all_scripts(self):
+    # def test_all_scripts(self):
     #    """Testing all scripts in abipy/data/runs"""
     #    root = os.path.abspath(os.path.join(os.path.dirname(__file__)))
     #    retcode = call(os.path.join(root, "_runemall.py"))
@@ -27,9 +26,11 @@ class TestScripts(AbipyTest):
         parser = flowtk.build_flow_main_parser()
 
         import importlib
+
         count, errors = 0, []
         for fname in os.listdir(root):
-            if not (fname.endswith(".py") and fname.startswith("run_")): continue
+            if not (fname.endswith(".py") and fname.startswith("run_")):
+                continue
             print("Testing:", fname)
             count += 1
             s = "abipy.examples.flows." + fname.replace(".py", "")
@@ -41,7 +42,7 @@ class TestScripts(AbipyTest):
                     continue
 
             # flow will be produced in a temporary workdir.
-            workdir = tempfile.mkdtemp(prefix='flow_' + os.path.basename(fname))
+            workdir = tempfile.mkdtemp(prefix="flow_" + os.path.basename(fname))
             options = parser.parse_args(["--workdir", workdir])
             # Instantiate the manager.
             options.manager = flowtk.TaskManager.as_manager(options.manager)
@@ -49,8 +50,10 @@ class TestScripts(AbipyTest):
             # Check if flow has requirements on the Abinit version.
             if hasattr(module, "minimum_abinit_version"):
                 if not options.manager.abinit_build.version_ge(module.minimum_abinit_version):
-                    warnings.warn("%s requires %s but Abinit version: %s" %
-                          (s, module.minimum_abinit_version, options.manager.abinit_build.version))
+                    warnings.warn(
+                        "%s requires %s but Abinit version: %s"
+                        % (s, module.minimum_abinit_version, options.manager.abinit_build.version)
+                    )
                     continue
 
             try:
@@ -58,7 +61,7 @@ class TestScripts(AbipyTest):
                 assert flow is not None
                 flow.build_and_pickle_dump()
                 flow.show_status()
-                #flow.make_scheduler().start()
+                # flow.make_scheduler().start()
             except Exception:
                 errors.append("file %s\n %s" % (s, self.straceback()))
 

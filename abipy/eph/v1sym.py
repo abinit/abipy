@@ -1,22 +1,29 @@
-# coding: utf-8
 """
 Object to analyze the results stored in the V1SYM.nc file (mainly for debugging purposes)
 """
-import numpy as np
 
 from collections import OrderedDict
 from functools import cached_property
+
+import numpy as np
 from monty.string import marquee
-from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt
+
+from abipy.core.kpoints import Kpoint, KpointList
 from abipy.core.mixins import AbinitNcFile, Has_Structure, NotebookWriter
-from abipy.core.kpoints import KpointList, Kpoint
 from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
+from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt
 
 
 class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
-
+    """
+    This file stores the results of a V1sym calculation.
+    """
     def __init__(self, filepath):
+        """
+        Args:
+            filepath: Path to the netcdf file.
+        """
         super().__init__(filepath)
         self.reader = r = ETSF_Reader(filepath)
         # Read dimensions.
@@ -25,7 +32,7 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
         self.natom3 = len(self.structure) * 3
         self.symv1scf = r.read_value("symv1scf")
         # Read FFT mesh.
-        #self.ngfft = r.read_value("ngfft")
+        # self.ngfft = r.read_value("ngfft")
 
     @cached_property
     def structure(self):
@@ -45,6 +52,7 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return self.reader.read_value("pertsy_qpt")
 
     def close(self):
+        """Close the file."""
         self.reader.close()
 
     @cached_property
@@ -57,7 +65,8 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     def to_string(self, verbose=0):
         """String representation."""
-        lines = []; app = lines.append
+        lines = []
+        app = lines.append
         app(marquee("File Info", mark="="))
         app(self.filestat(as_string=True))
         app("")
@@ -69,6 +78,7 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
 
     @cached_property
     def qpoints(self):
+        """List of q-points."""
         return KpointList(self.structure.reciprocal_lattice, frac_coords=self.reader.read_value("qpts"))
 
     def _find_iqpt_qpoint(self, qpoint):
@@ -82,11 +92,15 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
         return iq, qpoint
 
     def read_v1_at_iq(self, key, iq, reshape_nfft_nspden=False):
+        """
+        Read the DFPT potential at a given q-point index.
+        """
         # Fortran array ("two, nfft, nspden, natom3, nqpt")
         v1 = self.reader.read_variable(key)[iq]
         v1 = v1[..., 0] + 1j * v1[..., 1]
         # reshape (nspden, nfft) dims because we are not interested in the spin dependence.
-        if reshape_nfft_nspden: v1 = np.reshape(v1, (self.natom3, self.nspden * self.nfft))
+        if reshape_nfft_nspden:
+            v1 = np.reshape(v1, (self.natom3, self.nspden * self.nfft))
         return v1
 
     @add_fig_kwargs
@@ -106,8 +120,9 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
         symm_v1 = self.read_v1_at_iq("recons_v1scf", iq, reshape_nfft_nspden=True)
 
         num_plots, ncols, nrows = self.natom3, 3, self.natom3 // 3
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=False, sharey=False, squeeze=False)
+        ax_list, fig, plt = get_axarray_fig_plt(
+            None, nrows=nrows, ncols=ncols, sharex=False, sharey=False, squeeze=False
+        )
 
         for nu, ax in enumerate(ax_list.ravel()):
             idir = nu % 3
@@ -117,25 +132,34 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
             abs_diff = np.abs(origin_v1[nu] - symm_v1[nu])
             l1_rerr = np.sum(abs_diff) / np.sum(np.abs(origin_v1[nu]))
 
-            stats = OrderedDict([
-                ("max", abs_diff.max()),
-                ("min", abs_diff.min()),
-                ("mean", abs_diff.mean()),
-                ("std", abs_diff.std()),
-                ("L1_rerr", l1_rerr),
-            ])
+            stats = OrderedDict(
+                [
+                    ("max", abs_diff.max()),
+                    ("min", abs_diff.min()),
+                    ("mean", abs_diff.mean()),
+                    ("std", abs_diff.std()),
+                    ("L1_rerr", l1_rerr),
+                ]
+            )
 
             xs = np.arange(len(abs_diff))
-            ax.hist(abs_diff, facecolor='g', alpha=0.75)
+            ax.hist(abs_diff, facecolor="g", alpha=0.75)
             ax.grid(True)
-            ax.set_title("idir: %d, iat: %d, pertsy: %d" % (idir, ipert, self.pertsy_qpt[iq, ipert, idir]),
-                         fontsize=fontsize)
+            ax.set_title(
+                "idir: %d, iat: %d, pertsy: %d" % (idir, ipert, self.pertsy_qpt[iq, ipert, idir]), fontsize=fontsize
+            )
 
-            ax.axvline(stats["mean"], color='k', linestyle='dashed', linewidth=1)
+            ax.axvline(stats["mean"], color="k", linestyle="dashed", linewidth=1)
             _, max_ = ax.get_ylim()
-            ax.text(0.7, 0.7, "\n".join("%s = %.1E" % item for item in stats.items()),
-                    fontsize=fontsize, horizontalalignment='center', verticalalignment='center',
-                    transform=ax.transAxes)
+            ax.text(
+                0.7,
+                0.7,
+                "\n".join("%s = %.1E" % item for item in stats.items()),
+                fontsize=fontsize,
+                horizontalalignment="center",
+                verticalalignment="center",
+                transform=ax.transAxes,
+            )
 
         fig.suptitle("qpoint: %s" % repr(qpoint))
         return fig
@@ -157,8 +181,9 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
         symm_v1 = self.read_v1_at_iq("recons_v1scf", iq, reshape_nfft_nspden=True)
 
         num_plots, ncols, nrows = self.natom3, 3, self.natom3 // 3
-        ax_list, fig, plt = get_axarray_fig_plt(None, nrows=nrows, ncols=ncols,
-                                                sharex=False, sharey=False, squeeze=False)
+        ax_list, fig, plt = get_axarray_fig_plt(
+            None, nrows=nrows, ncols=ncols, sharex=False, sharey=False, squeeze=False
+        )
 
         natom = len(self.structure)
         xs = np.arange(self.nspden * self.nfft)
@@ -170,44 +195,53 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
             abs_diff = np.abs(origin_v1[nu] - symm_v1[nu])
             l1_rerr = np.sum(abs_diff) / np.sum(np.abs(origin_v1[nu]))
 
-            stats = OrderedDict([
-                ("max", abs_diff.max()),
-                ("min", abs_diff.min()),
-                ("mean", abs_diff.mean()),
-                ("std", abs_diff.std()),
-                ("L1_rerr", l1_rerr),
-            ])
+            stats = OrderedDict(
+                [
+                    ("max", abs_diff.max()),
+                    ("min", abs_diff.min()),
+                    ("mean", abs_diff.mean()),
+                    ("std", abs_diff.std()),
+                    ("L1_rerr", l1_rerr),
+                ]
+            )
 
             ax.grid(True)
-            ax.set_title("idir: %d, iat: %d, pertsy: %d" % (idir, ipert, self.pertsy_qpt[iq, ipert, idir]),
-                         fontsize=fontsize)
+            ax.set_title(
+                "idir: %d, iat: %d, pertsy: %d" % (idir, ipert, self.pertsy_qpt[iq, ipert, idir]), fontsize=fontsize
+            )
             # Plot absolute error
-            #ax.plot(xs, abs_diff, linestyle="-", color="red", alpha=1.0, label="Abs diff" if nu == 0 else None)
+            # ax.plot(xs, abs_diff, linestyle="-", color="red", alpha=1.0, label="Abs diff" if nu == 0 else None)
 
             # Plot absolute values
-            #ax.plot(xs, np.abs(origin_v1[nu]), linestyle="--", color="red", alpha=0.4, label="Origin" if nu == 0 else None)
-            #ax.plot(xs, -np.abs(symm_v1[nu]), linestyle="--", color="blue", alpha=0.4, label="-Symm" if nu == 0 else None)
+            # ax.plot(xs, np.abs(origin_v1[nu]), linestyle="--", color="red", alpha=0.4, label="Origin" if nu == 0 else None)
+            # ax.plot(xs, -np.abs(symm_v1[nu]), linestyle="--", color="blue", alpha=0.4, label="-Symm" if nu == 0 else None)
 
             # Plot real and imag
-            #ax.plot(xs, origin_v1[nu].real, linestyle="--", color="red", alpha=0.4, label="Re Origin" if nu == 0 else None)
-            #ax.plot(xs, -symm_v1[nu].real, linestyle="--", color="blue", alpha=0.4, label="Re Symm" if nu == 0 else None)
+            # ax.plot(xs, origin_v1[nu].real, linestyle="--", color="red", alpha=0.4, label="Re Origin" if nu == 0 else None)
+            # ax.plot(xs, -symm_v1[nu].real, linestyle="--", color="blue", alpha=0.4, label="Re Symm" if nu == 0 else None)
 
             data = np.angle(origin_v1[nu], deg=True) - np.angle(symm_v1[nu], deg=True)
-            #data = data[abs_diff > stats["mean"]]
+            # data = data[abs_diff > stats["mean"]]
             data = data[np.abs(origin_v1[nu]) > 1e-5]
-            ax.plot(np.arange(len(data)), data,
-                    linestyle="--", color="red", alpha=0.4, label="diff angle degrees" if nu == 0 else None)
+            ax.plot(
+                np.arange(len(data)),
+                data,
+                linestyle="--",
+                color="red",
+                alpha=0.4,
+                label="diff angle degrees" if nu == 0 else None,
+            )
 
-            #ax.plot(xs, origin_v1[nu].real, linestyle="--", color="red", alpha=0.4, label="Re Origin" if nu == 0 else None)
-            #ax.plot(xs, -symm_v1[nu].real, linestyle="--", color="blue", alpha=0.4, label="Re Symm" if nu == 0 else None)
+            # ax.plot(xs, origin_v1[nu].real, linestyle="--", color="red", alpha=0.4, label="Re Origin" if nu == 0 else None)
+            # ax.plot(xs, -symm_v1[nu].real, linestyle="--", color="blue", alpha=0.4, label="Re Symm" if nu == 0 else None)
 
-            #ax.plot(xs, origin_v1[nu].real - symm_v1[nu].real, linestyle="--", color="red", alpha=0.4,
+            # ax.plot(xs, origin_v1[nu].real - symm_v1[nu].real, linestyle="--", color="red", alpha=0.4,
             #        label="Re Origin" if nu == 0 else None)
 
-            #ax.plot(xs, origin_v1[nu].imag, linestyle=":", color="red", alpha=0.4, label="Imag Origin" if nu == 0 else None)
-            #ax.plot(xs, -symm_v1[nu].imag, linestyle=":", color="blue", alpha=0.4, label="Imag Symm" if nu == 0 else None)
+            # ax.plot(xs, origin_v1[nu].imag, linestyle=":", color="red", alpha=0.4, label="Imag Origin" if nu == 0 else None)
+            # ax.plot(xs, -symm_v1[nu].imag, linestyle=":", color="blue", alpha=0.4, label="Imag Symm" if nu == 0 else None)
 
-            #ax.plot(xs, origin_v1[nu].imag - symm_v1[nu].imag, linestyle="--", color="blue", alpha=0.4,
+            # ax.plot(xs, origin_v1[nu].imag - symm_v1[nu].imag, linestyle="--", color="blue", alpha=0.4,
             #        label="Re Origin" if nu == 0 else None)
 
             if nu == 0:
@@ -216,15 +250,21 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
             if ipert == natom - 1:
                 ax.set_xlabel(r"FFT index")
 
-            #ax.axvline(stats["mean"], color='k', linestyle='dashed', linewidth=1)
+            # ax.axvline(stats["mean"], color='k', linestyle='dashed', linewidth=1)
             _, max_ = ax.get_ylim()
-            ax.text(0.7, 0.7, "\n".join("%s = %.1E" % item for item in stats.items()),
-                    fontsize=fontsize, horizontalalignment='center', verticalalignment='center',
-                    transform=ax.transAxes)
+            ax.text(
+                0.7,
+                0.7,
+                "\n".join("%s = %.1E" % item for item in stats.items()),
+                fontsize=fontsize,
+                horizontalalignment="center",
+                verticalalignment="center",
+                transform=ax.transAxes,
+            )
 
-            #ax2 = ax.twinx()
-            #rerr = 100 * abs_diff / np.abs(origin_v1[nu])
-            #ax2.plot(xs, rerr, linestyle="--", color="blue", alpha=0.4,
+            # ax2 = ax.twinx()
+            # rerr = 100 * abs_diff / np.abs(origin_v1[nu])
+            # ax2.plot(xs, rerr, linestyle="--", color="blue", alpha=0.4,
             #          label=r"|V_{\mathrm{origin}}|" if nu == 0 else None)
 
         fig.suptitle("qpoint: %s" % repr(qpoint))
@@ -239,7 +279,7 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
             if iq > maxnq:
                 print("Only the first %d q-points are show..." % maxnq)
                 break
-            #yield self.plot_diff_at_qpoint(qpoint=iq, **kwargs, show=False)
+            # yield self.plot_diff_at_qpoint(qpoint=iq, **kwargs, show=False)
             yield self.plot_pots_at_qpoint(qpoint=iq, **kwargs, show=False)
 
     def write_notebook(self, nbpath=None):
@@ -249,13 +289,15 @@ class V1symFile(AbinitNcFile, Has_Structure, NotebookWriter):
         """
         nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
 
-        nb.cells.extend([
-            nbv.new_code_cell("ncfile = abilab.abiopen('%s')" % self.filepath),
-            nbv.new_code_cell("print(ncfile)"),
-        ])
+        nb.cells.extend(
+            [
+                nbv.new_code_cell("ncfile = abilab.abiopen('%s')" % self.filepath),
+                nbv.new_code_cell("print(ncfile)"),
+            ]
+        )
 
         for iq, qpoint in enumerate(self.qpoints):
             nb.cells.append(nbv.new_code_cell("ncfile.plot_diff_at_qpoint(qpoint=%d);" % iq))
-            #nb.cells.append(nbv.new_code_cell("ncfile.plot_diff_at_qpoint(qpoint=%d);" % iq))
+            # nb.cells.append(nbv.new_code_cell("ncfile.plot_diff_at_qpoint(qpoint=%d);" % iq))
 
         return self._write_nb_nbpath(nb, nbpath)
