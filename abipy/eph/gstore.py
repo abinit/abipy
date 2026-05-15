@@ -455,9 +455,9 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
     def plot_gwpt_vs_ks_scatter(
         self,
         spin: int = 0,
-        ratio_min: float = 0.0,
-        ratio_max: float = 3.0,
-        ks_eps: float = 1e-12,
+        ratio_min: float | None = None,
+        ratio_max: float | None = None,
+        ks_eps: float = 1e-7,
         fit_intercept: bool = False,
         colormap: str = "viridis",
         zoom_factor: float = 2.0,
@@ -478,15 +478,20 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
 
         Args:
             spin: spin index.
-            ratio_min: lower bound of the ratio window. Points with ratio
-                outside [ratio_min, ratio_max] are dropped, and the colormap
-                is clipped to the same range. Default 0.0.
-            ratio_max: upper bound of the ratio window. Default 3.0.
+            ratio_min: optional lower bound of the ratio window. Points with
+                ratio < ratio_min are dropped. If None (default), no lower
+                bound is applied.
+            ratio_max: optional upper bound of the ratio window. Points with
+                ratio > ratio_max are dropped. If None (default), no upper
+                bound is applied.
             ks_eps: |g^KS| values <= ks_eps are discarded to avoid huge
-                ratios from a near-zero denominator. Default 1e-12.
+                ratios from a near-zero denominator. Default 1e-5.
             fit_intercept: if True, fit y = a*x + b; otherwise fit y = a*x
                 (forced through the origin).
             colormap: matplotlib colormap used to color points by ratio.
+                When ratio_min/ratio_max are None the colormap is clipped to
+                the 1st/99th percentile of the ratio distribution so a few
+                outliers don't wash out the rest of the colors.
             zoom_factor: the main axes go from 0 to
                 zoom_factor * max(median(|g^KS|), median(|g^GW|)) on both axes.
             with_inset: if True, add an inset showing the full data range
@@ -499,23 +504,29 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         """
         if not self.has_gwpt:
             raise ValueError("GSTORE does not contain GWPT matrix elements.")
-        if ratio_min >= ratio_max:
+        if (ratio_min is not None and ratio_max is not None
+                and ratio_min >= ratio_max):
             raise ValueError(f"ratio_min ({ratio_min}) must be < ratio_max ({ratio_max}).")
 
         gqk = self.gqk_spin[spin]
         g_gw = np.abs(np.asarray(gqk.gvals)).ravel()
         g_ks = np.abs(np.asarray(gqk.gvals_ks)).ravel()
 
-        # Keep finite values with |g^KS| above the safety threshold, then
-        # restrict to the ratio window so outliers don't dominate the fit
-        # or the colormap.
+        # Keep finite values with |g^KS| above the safety threshold.
+        # ks_eps protects against numerically pathological ratios where the
+        # denominator is essentially zero; it is *not* a user-facing
+        # visualization filter (use ratio_min/ratio_max for that).
         valid = np.isfinite(g_gw) & np.isfinite(g_ks) & (g_ks > ks_eps)
         x = g_ks[valid]
         y = g_gw[valid]
         ratio = y / x
 
-        window = (ratio >= ratio_min) & (ratio <= ratio_max)
-        x, y, ratio = x[window], y[window], ratio[window]
+        # Optional ratio window. Sides default to ±inf (no filtering).
+        lo = -np.inf if ratio_min is None else ratio_min
+        hi = +np.inf if ratio_max is None else ratio_max
+        if not (np.isneginf(lo) and np.isposinf(hi)):
+            window = (ratio >= lo) & (ratio <= hi)
+            x, y, ratio = x[window], y[window], ratio[window]
 
         if x.size < 2:
             raise RuntimeError(
@@ -538,8 +549,20 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         if scatter_kwargs:
             scatter_kwargs_.update(scatter_kwargs)
 
+        # Colormap range: user-supplied bounds win; otherwise clip to the
+        # 1st/99th percentile so a handful of outliers don't wash out the
+        # rest of the color resolution.
+        if ratio_min is not None:
+            cmap_vmin = ratio_min
+        else:
+            cmap_vmin = float(np.percentile(ratio, 1))
+        if ratio_max is not None:
+            cmap_vmax = ratio_max
+        else:
+            cmap_vmax = float(np.percentile(ratio, 99))
+
         sc = ax.scatter(
-            x, y, c=ratio, cmap=colormap, vmin=ratio_min, vmax=ratio_max,
+            x, y, c=ratio, cmap=colormap, vmin=cmap_vmin, vmax=cmap_vmax,
             **scatter_kwargs_,
         )
         cbar = fig.colorbar(sc, ax=ax)
@@ -573,7 +596,7 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
             )
             axins.scatter(
                 x, y, c=ratio, cmap=colormap,
-                vmin=ratio_min, vmax=ratio_max, **scatter_kwargs_,
+                vmin=cmap_vmin, vmax=cmap_vmax, **scatter_kwargs_,
             )
             x_line_f = np.linspace(0.0, full_max, 200)
             axins.plot(x_line_f, slope * x_line_f + intercept,
