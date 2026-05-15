@@ -221,22 +221,43 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
 
     @add_fig_kwargs
     def plot_gwpt_hist(
-        self, what: str = "ratio", spin: int = 0, ax=None, hist_kwargs: dict | None = None, **kwargs
+        self,
+        what: str = "ratio",
+        spin: int = 0,
+        ax=None,
+        hist_kwargs: dict | None = None,
+        ratio_min: float = 0.0,
+        ratio_max: float = 3.0,
+        **kwargs,
     ) -> Figure:
         """
-        Plot histogram with the ratio between the GWPT and the KS e-ph matrix elements.
+        Plot histograms of the GWPT and KS e-ph matrix elements and of their ratio.
 
         Args:
             what:
             spin: spin index
             ax: |matplotlib-Axes| or None if a new figure should be created.
             hist_kwargs:
+            ratio_min: lower bound used to clip the ratio |g^GWPT|/|g^KS|
+                before histogramming. Defaults to 0.0.
+            ratio_max: upper bound used to clip the ratio |g^GWPT|/|g^KS|
+                before histogramming. Defaults to 3.0. Values outside
+                [ratio_min, ratio_max] are dropped (they are usually numerical
+                artifacts from |g^KS| being close to zero).
             fontsize: legend and label fontsize.
         """
         if not self.has_gwpt:
             raise ValueError("GSTORE does not contain GWPT matrix elements.")
 
+        if ratio_min >= ratio_max:
+            raise ValueError(f"ratio_min ({ratio_min}) must be < ratio_max ({ratio_max}).")
+
         what_list = ("gwpt", "gks", "ratio")
+        xlabels = {
+            "gwpt": r"$|g^{GW}|$",
+            "gks": r"$|g^{KS}|$",
+            "ratio": r"Ratio $|g^{GW}|/|g^{KS}|$",
+        }
 
         ax_list = None
         ax_list, fig, plt = get_axarray_fig_plt(
@@ -244,13 +265,34 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         )
 
         for what, ax in zip(what_list, ax_list, strict=False):
-            xlabel, data = self.get_gwpt_label_data(what, spin)
+            _, data = self.get_gwpt_label_data(what, spin)
             data_flat = data.flatten()
-            # print(data_flat)
+
+            if what == "ratio":
+                # Drop non-finite values and values outside [ratio_min, ratio_max].
+                # The ratio can blow up when |g^KS| is close to zero, which would
+                # otherwise stretch the histogram x-axis and hide the bulk of the
+                # distribution (typically centered near 1).
+                finite = np.isfinite(data_flat)
+                in_range = (data_flat >= ratio_min) & (data_flat <= ratio_max)
+                data_flat = data_flat[finite & in_range]
+
             hist_kwargs_ = hist_kwargs or {}
             ax.hist(data_flat, **hist_kwargs_)
-            ax.set_xlabel(xlabel)
+            ax.set_xlabel(xlabels[what])
             ax.set_ylabel("Count")
+
+            if what == "ratio":
+                ax.set_xlim(ratio_min, ratio_max)
+            else:
+                # |g| is non-negative; anchor the left edge at 0 so the three
+                # subplots align visually at x=0 (matplotlib's auto-scale
+                # otherwise pads the left side with a small negative margin).
+                ax.set_xlim(left=0)
+
+        # Add vertical spacing so the xlabel of each subplot is not hidden
+        # behind the next subplot's frame.
+        fig.subplots_adjust(hspace=0.45)
 
         return fig
 
