@@ -27,6 +27,7 @@ from abipy.eph.common import BaseEphReader
 from abipy.tools.numtools import BzRegularGridInterpolator, nparr_to_df
 from abipy.tools.plotting import (
     add_fig_kwargs,
+    get_ax_fig_plt,
     get_axarray_fig_plt,
     set_grid_legend,
 )
@@ -221,22 +222,43 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
 
     @add_fig_kwargs
     def plot_gwpt_hist(
-        self, what: str = "ratio", spin: int = 0, ax=None, hist_kwargs: dict | None = None, **kwargs
+        self,
+        what: str = "ratio",
+        spin: int = 0,
+        ax=None,
+        hist_kwargs: dict | None = None,
+        ratio_min: float = 0.0,
+        ratio_max: float = 3.0,
+        **kwargs,
     ) -> Figure:
         """
-        Plot histogram with the ratio between the GWPT and the KS e-ph matrix elements.
+        Plot histograms of the GWPT and KS e-ph matrix elements and of their ratio.
 
         Args:
             what:
             spin: spin index
             ax: |matplotlib-Axes| or None if a new figure should be created.
             hist_kwargs:
+            ratio_min: lower bound used to clip the ratio |g^GWPT|/|g^KS|
+                before histogramming. Defaults to 0.0.
+            ratio_max: upper bound used to clip the ratio |g^GWPT|/|g^KS|
+                before histogramming. Defaults to 3.0. Values outside
+                [ratio_min, ratio_max] are dropped (they are usually numerical
+                artifacts from |g^KS| being close to zero).
             fontsize: legend and label fontsize.
         """
         if not self.has_gwpt:
             raise ValueError("GSTORE does not contain GWPT matrix elements.")
 
+        if ratio_min >= ratio_max:
+            raise ValueError(f"ratio_min ({ratio_min}) must be < ratio_max ({ratio_max}).")
+
         what_list = ("gwpt", "gks", "ratio")
+        xlabels = {
+            "gwpt": r"$|g^{GW}|$",
+            "gks": r"$|g^{KS}|$",
+            "ratio": r"Ratio $|g^{GW}|/|g^{KS}|$",
+        }
 
         ax_list = None
         ax_list, fig, plt = get_axarray_fig_plt(
@@ -244,13 +266,34 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         )
 
         for what, ax in zip(what_list, ax_list, strict=False):
-            xlabel, data = self.get_gwpt_label_data(what, spin)
+            _, data = self.get_gwpt_label_data(what, spin)
             data_flat = data.flatten()
-            # print(data_flat)
+
+            if what == "ratio":
+                # Drop non-finite values and values outside [ratio_min, ratio_max].
+                # The ratio can blow up when |g^KS| is close to zero, which would
+                # otherwise stretch the histogram x-axis and hide the bulk of the
+                # distribution (typically centered near 1).
+                finite = np.isfinite(data_flat)
+                in_range = (data_flat >= ratio_min) & (data_flat <= ratio_max)
+                data_flat = data_flat[finite & in_range]
+
             hist_kwargs_ = hist_kwargs or {}
             ax.hist(data_flat, **hist_kwargs_)
-            ax.set_xlabel(xlabel)
+            ax.set_xlabel(xlabels[what])
             ax.set_ylabel("Count")
+
+            if what == "ratio":
+                ax.set_xlim(ratio_min, ratio_max)
+            else:
+                # |g| is non-negative; anchor the left edge at 0 so the three
+                # subplots align visually at x=0 (matplotlib's auto-scale
+                # otherwise pads the left side with a small negative margin).
+                ax.set_xlim(left=0)
+
+        # Add vertical spacing so the xlabel of each subplot is not hidden
+        # behind the next subplot's frame.
+        fig.subplots_adjust(hspace=0.45)
 
         return fig
 
@@ -405,6 +448,170 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
                 ax.plot(xs, np.abs(ks_ys[iq]), color=colors[iq], ls="--")
 
             set_grid_legend(ax, fontsize, xlabel=r"band index (kq)")
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_gwpt_vs_ks_scatter(
+        self,
+        spin: int = 0,
+        ratio_min: float | None = None,
+        ratio_max: float | None = None,
+        ks_tol: float = 1e-7,
+        fit_intercept: bool = False,
+        colormap: str = "viridis",
+        zoom_factor: float = 2.0,
+        with_inset: bool = True,
+        inset_loc: str = "lower right",
+        scatter_kwargs: dict | None = None,
+        ax=None,
+        fontsize: int = 8,
+        **kwargs,
+    ) -> Figure:
+        """
+        Scatter plot of |g^GW| vs |g^KS| over all matrix elements for a given spin.
+
+        Each point is one (q, k, band_kq, perturbation, band_k) tuple. Points are
+        colored by the ratio |g^GW|/|g^KS|, and a linear least-squares fit is
+        overlaid. An optional inset shows the full data range so outliers are
+        visible without disturbing the zoomed main axes.
+
+        Args:
+            spin: spin index.
+            ratio_min: optional lower bound of the ratio window. Points with
+                ratio < ratio_min are dropped. If None (default), no lower
+                bound is applied.
+            ratio_max: optional upper bound of the ratio window. Points with
+                ratio > ratio_max are dropped. If None (default), no upper
+                bound is applied.
+            ks_tol: |g^KS| values <= ks_tol are discarded to avoid huge
+                ratios from a near-zero denominator. Default 1e-7.
+            fit_intercept: if True, fit y = a*x + b; otherwise fit y = a*x
+                (forced through the origin).
+            colormap: matplotlib colormap used to color points by ratio.
+                When ratio_min/ratio_max are None the colormap is clipped to
+                the 1st/99th percentile of the ratio distribution so a few
+                outliers don't wash out the rest of the colors.
+            zoom_factor: the main axes go from 0 to
+                zoom_factor * max(median(|g^KS|), median(|g^GW|)) on both axes.
+            with_inset: if True, add an inset showing the full data range
+                with a rectangle indicating the zoom window.
+            inset_loc: matplotlib location string for the inset.
+            scatter_kwargs: extra kwargs forwarded to ``ax.scatter``
+                (e.g. ``{"s": 6, "alpha": 0.6}``).
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: legend fontsize.
+        """
+        if not self.has_gwpt:
+            raise ValueError("GSTORE does not contain GWPT matrix elements.")
+        if (ratio_min is not None and ratio_max is not None
+                and ratio_min >= ratio_max):
+            raise ValueError(f"ratio_min ({ratio_min}) must be < ratio_max ({ratio_max}).")
+
+        gqk = self.gqk_spin[spin]
+        g_gw = np.abs(np.asarray(gqk.gvals)).ravel()
+        g_ks = np.abs(np.asarray(gqk.gvals_ks)).ravel()
+
+        # Keep finite values with |g^KS| above the safety threshold.
+        # ks_tol protects against numerically pathological ratios where the
+        # denominator is essentially zero; it is *not* a user-facing
+        # visualization filter (use ratio_min/ratio_max for that).
+        valid = np.isfinite(g_gw) & np.isfinite(g_ks) & (g_ks > ks_tol)
+        x = g_ks[valid]
+        y = g_gw[valid]
+        ratio = y / x
+
+        # Optional ratio window. Sides default to ±inf (no filtering).
+        lo = -np.inf if ratio_min is None else ratio_min
+        hi = +np.inf if ratio_max is None else ratio_max
+        if not (np.isneginf(lo) and np.isposinf(hi)):
+            window = (ratio >= lo) & (ratio <= hi)
+            x, y, ratio = x[window], y[window], ratio[window]
+
+        if x.size < 2:
+            raise RuntimeError(
+                f"Only {x.size} point(s) remain after filtering; cannot fit."
+            )
+
+        # Linear fit.
+        if fit_intercept:
+            slope, intercept = np.polyfit(x, y, 1)
+            fit_label = f"fit: y = {slope:.4g} x + {intercept:.4g}"
+        else:
+            # Closed-form least squares for y = a*x: a = (x.y) / (x.x).
+            slope = float(np.dot(x, y) / np.dot(x, x))
+            intercept = 0.0
+            fit_label = f"fit: y = {slope:.4g} x"
+
+        ax, fig, _ = get_ax_fig_plt(ax=ax)
+
+        scatter_kwargs_ = {"s": 6, "alpha": 0.6, "edgecolors": "none"}
+        if scatter_kwargs:
+            scatter_kwargs_.update(scatter_kwargs)
+
+        # Colormap range: user-supplied bounds win; otherwise clip to the
+        # 1st/99th percentile so a handful of outliers don't wash out the
+        # rest of the color resolution.
+        if ratio_min is not None:
+            cmap_vmin = ratio_min
+        else:
+            cmap_vmin = float(np.percentile(ratio, 1))
+        if ratio_max is not None:
+            cmap_vmax = ratio_max
+        else:
+            cmap_vmax = float(np.percentile(ratio, 99))
+
+        sc = ax.scatter(
+            x, y, c=ratio, cmap=colormap, vmin=cmap_vmin, vmax=cmap_vmax,
+            **scatter_kwargs_,
+        )
+        cbar = fig.colorbar(sc, ax=ax)
+        cbar.set_label(r"$|g^{GW}|/|g^{KS}|$")
+
+        # Zoomed main axes derived from medians (robust to outliers).
+        med_x = float(np.median(x))
+        med_y = float(np.median(y))
+        main_max = zoom_factor * max(med_x, med_y)
+
+        x_line = np.linspace(0.0, main_max, 200)
+        ax.plot(x_line, slope * x_line + intercept,
+                color="red", linewidth=2.0, label=fit_label)
+
+        ax.set_xlabel(r"$|g^{KS}|$")
+        ax.set_ylabel(r"$|g^{GW}|$")
+        ax.set_xlim(0.0, main_max)
+        ax.set_ylim(0.0, main_max)
+        ax.set_aspect("equal", adjustable="box")
+        ax.legend(loc="upper left", fontsize=fontsize)
+
+        if with_inset:
+            from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+            from matplotlib.patches import Rectangle
+
+            full_max = max(float(x.max()), float(y.max())) * 1.02
+
+            axins = inset_axes(
+                ax, width="40%", height="40%", loc=inset_loc, borderpad=1.5,
+            )
+            axins.scatter(
+                x, y, c=ratio, cmap=colormap,
+                vmin=cmap_vmin, vmax=cmap_vmax, **scatter_kwargs_,
+            )
+            x_line_f = np.linspace(0.0, full_max, 200)
+            axins.plot(x_line_f, slope * x_line_f + intercept,
+                       color="red", linewidth=1.5)
+            axins.set_xlim(0.0, full_max)
+            axins.set_ylim(0.0, full_max)
+            axins.set_aspect("equal", adjustable="box")
+            axins.set_title("full range", fontsize=fontsize + 1)
+            axins.tick_params(axis="both", labelsize=fontsize)
+
+            # Rectangle on the inset outlining the zoom window of the main axes.
+            if full_max > main_max:
+                axins.add_patch(Rectangle(
+                    (0.0, 0.0), main_max, main_max,
+                    fill=False, edgecolor="gray", linewidth=0.8,
+                ))
 
         return fig
 
