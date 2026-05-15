@@ -27,6 +27,7 @@ from abipy.eph.common import BaseEphReader
 from abipy.tools.numtools import BzRegularGridInterpolator, nparr_to_df
 from abipy.tools.plotting import (
     add_fig_kwargs,
+    get_ax_fig_plt,
     get_axarray_fig_plt,
     set_grid_legend,
 )
@@ -447,6 +448,148 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
                 ax.plot(xs, np.abs(ks_ys[iq]), color=colors[iq], ls="--")
 
             set_grid_legend(ax, fontsize, xlabel=r"band index (kq)")
+
+        return fig
+
+    @add_fig_kwargs
+    def plot_gwpt_vs_ks_scatter(
+        self,
+        spin: int = 0,
+        ratio_min: float = 0.0,
+        ratio_max: float = 3.0,
+        ks_eps: float = 1e-12,
+        fit_intercept: bool = False,
+        colormap: str = "viridis",
+        zoom_factor: float = 2.0,
+        with_inset: bool = True,
+        inset_loc: str = "lower right",
+        scatter_kwargs: dict | None = None,
+        ax=None,
+        fontsize: int = 8,
+        **kwargs,
+    ) -> Figure:
+        """
+        Scatter plot of |g^GW| vs |g^KS| over all matrix elements for a given spin.
+
+        Each point is one (q, k, band_kq, perturbation, band_k) tuple. Points are
+        colored by the ratio |g^GW|/|g^KS|, and a linear least-squares fit is
+        overlaid. An optional inset shows the full data range so outliers are
+        visible without disturbing the zoomed main axes.
+
+        Args:
+            spin: spin index.
+            ratio_min: lower bound of the ratio window. Points with ratio
+                outside [ratio_min, ratio_max] are dropped, and the colormap
+                is clipped to the same range. Default 0.0.
+            ratio_max: upper bound of the ratio window. Default 3.0.
+            ks_eps: |g^KS| values <= ks_eps are discarded to avoid huge
+                ratios from a near-zero denominator. Default 1e-12.
+            fit_intercept: if True, fit y = a*x + b; otherwise fit y = a*x
+                (forced through the origin).
+            colormap: matplotlib colormap used to color points by ratio.
+            zoom_factor: the main axes go from 0 to
+                zoom_factor * max(median(|g^KS|), median(|g^GW|)) on both axes.
+            with_inset: if True, add an inset showing the full data range
+                with a rectangle indicating the zoom window.
+            inset_loc: matplotlib location string for the inset.
+            scatter_kwargs: extra kwargs forwarded to ``ax.scatter``
+                (e.g. ``{"s": 6, "alpha": 0.6}``).
+            ax: |matplotlib-Axes| or None if a new figure should be created.
+            fontsize: legend fontsize.
+        """
+        if not self.has_gwpt:
+            raise ValueError("GSTORE does not contain GWPT matrix elements.")
+        if ratio_min >= ratio_max:
+            raise ValueError(f"ratio_min ({ratio_min}) must be < ratio_max ({ratio_max}).")
+
+        gqk = self.gqk_spin[spin]
+        g_gw = np.abs(np.asarray(gqk.gvals)).ravel()
+        g_ks = np.abs(np.asarray(gqk.gvals_ks)).ravel()
+
+        # Keep finite values with |g^KS| above the safety threshold, then
+        # restrict to the ratio window so outliers don't dominate the fit
+        # or the colormap.
+        valid = np.isfinite(g_gw) & np.isfinite(g_ks) & (g_ks > ks_eps)
+        x = g_ks[valid]
+        y = g_gw[valid]
+        ratio = y / x
+
+        window = (ratio >= ratio_min) & (ratio <= ratio_max)
+        x, y, ratio = x[window], y[window], ratio[window]
+
+        if x.size < 2:
+            raise RuntimeError(
+                f"Only {x.size} point(s) remain after filtering; cannot fit."
+            )
+
+        # Linear fit.
+        if fit_intercept:
+            slope, intercept = np.polyfit(x, y, 1)
+            fit_label = f"fit: y = {slope:.4g} x + {intercept:.4g}"
+        else:
+            # Closed-form least squares for y = a*x: a = (x.y) / (x.x).
+            slope = float(np.dot(x, y) / np.dot(x, x))
+            intercept = 0.0
+            fit_label = f"fit: y = {slope:.4g} x"
+
+        ax, fig, _ = get_ax_fig_plt(ax=ax)
+
+        scatter_kwargs_ = {"s": 6, "alpha": 0.6, "edgecolors": "none"}
+        if scatter_kwargs:
+            scatter_kwargs_.update(scatter_kwargs)
+
+        sc = ax.scatter(
+            x, y, c=ratio, cmap=colormap, vmin=ratio_min, vmax=ratio_max,
+            **scatter_kwargs_,
+        )
+        cbar = fig.colorbar(sc, ax=ax)
+        cbar.set_label(r"$|g^{GW}|/|g^{KS}|$")
+
+        # Zoomed main axes derived from medians (robust to outliers).
+        med_x = float(np.median(x))
+        med_y = float(np.median(y))
+        main_max = zoom_factor * max(med_x, med_y)
+
+        x_line = np.linspace(0.0, main_max, 200)
+        ax.plot(x_line, slope * x_line + intercept,
+                color="red", linewidth=2.0, label=fit_label)
+
+        ax.set_xlabel(r"$|g^{KS}|$")
+        ax.set_ylabel(r"$|g^{GW}|$")
+        ax.set_title(f"spin={spin}, {fit_label}")
+        ax.set_xlim(0.0, main_max)
+        ax.set_ylim(0.0, main_max)
+        ax.set_aspect("equal", adjustable="box")
+        ax.legend(loc="upper left", fontsize=fontsize)
+
+        if with_inset:
+            from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+            from matplotlib.patches import Rectangle
+
+            full_max = max(float(x.max()), float(y.max())) * 1.02
+
+            axins = inset_axes(
+                ax, width="40%", height="40%", loc=inset_loc, borderpad=1.5,
+            )
+            axins.scatter(
+                x, y, c=ratio, cmap=colormap,
+                vmin=ratio_min, vmax=ratio_max, **scatter_kwargs_,
+            )
+            x_line_f = np.linspace(0.0, full_max, 200)
+            axins.plot(x_line_f, slope * x_line_f + intercept,
+                       color="red", linewidth=1.5)
+            axins.set_xlim(0.0, full_max)
+            axins.set_ylim(0.0, full_max)
+            axins.set_aspect("equal", adjustable="box")
+            axins.set_title("full range", fontsize=fontsize + 1)
+            axins.tick_params(axis="both", labelsize=fontsize)
+
+            # Rectangle on the inset outlining the zoom window of the main axes.
+            if full_max > main_max:
+                axins.add_patch(Rectangle(
+                    (0.0, 0.0), main_max, main_max,
+                    fill=False, edgecolor="gray", linewidth=0.8,
+                ))
 
         return fig
 
