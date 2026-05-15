@@ -457,7 +457,7 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         spin: int = 0,
         ratio_min: float | None = None,
         ratio_max: float | None = None,
-        ks_eps: float = 1e-7,
+        ks_tol: float = 1e-7,
         fit_intercept: bool = False,
         colormap: str = "viridis",
         zoom_factor: float = 2.0,
@@ -484,8 +484,8 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
             ratio_max: optional upper bound of the ratio window. Points with
                 ratio > ratio_max are dropped. If None (default), no upper
                 bound is applied.
-            ks_eps: |g^KS| values <= ks_eps are discarded to avoid huge
-                ratios from a near-zero denominator. Default 1e-5.
+            ks_tol: |g^KS| values <= ks_tol are discarded to avoid huge
+                ratios from a near-zero denominator. Default 1e-7.
             fit_intercept: if True, fit y = a*x + b; otherwise fit y = a*x
                 (forced through the origin).
             colormap: matplotlib colormap used to color points by ratio.
@@ -513,10 +513,10 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         g_ks = np.abs(np.asarray(gqk.gvals_ks)).ravel()
 
         # Keep finite values with |g^KS| above the safety threshold.
-        # ks_eps protects against numerically pathological ratios where the
+        # ks_tol protects against numerically pathological ratios where the
         # denominator is essentially zero; it is *not* a user-facing
         # visualization filter (use ratio_min/ratio_max for that).
-        valid = np.isfinite(g_gw) & np.isfinite(g_ks) & (g_ks > ks_eps)
+        valid = np.isfinite(g_gw) & np.isfinite(g_ks) & (g_ks > ks_tol)
         x = g_ks[valid]
         y = g_gw[valid]
         ratio = y / x
