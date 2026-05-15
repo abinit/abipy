@@ -579,7 +579,6 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
 
         ax.set_xlabel(r"$|g^{KS}|$")
         ax.set_ylabel(r"$|g^{GW}|$")
-        ax.set_title(f"spin={spin}, {fit_label}")
         ax.set_xlim(0.0, main_max)
         ax.set_ylim(0.0, main_max)
         ax.set_aspect("equal", adjustable="box")
