@@ -533,7 +533,10 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         QP direct gaps in eV computed with the quasi-particle equation
         Shape: [nsppol, nkcalc]
         """
-        return self.r.read_value("qp_pade_gaps") * abu.Ha_eV
+        try:
+            return self.r.read_value("qp_pade_gaps") * abu.Ha_eV
+        except:
+            return np.full_like(self.qpz0_dirgaps, np.nan)
 
     @cached_property
     def minimax_mesh(self) -> MinimaxMesh:
@@ -707,9 +710,12 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                 d["qpz0_dirgaps"] = np.concatenate(
                     (d["qpz0_dirgaps"], (self.r.read_value("qpz_gaps", path=f"iter{iter + 1}") * abu.Ha_eV).ravel())
                 )
-                d["qp_pade_dirgaps"] = np.concatenate(
-                    (d["qp_pade_dirgaps"], (self.r.read_value("qp_pade_gaps", path=f"iter{iter+1}") * abu.Ha_eV).ravel())
-                )
+                try:
+                    d["qp_pade_dirgaps"] = np.concatenate(
+                        (d["qp_pade_dirgaps"], (self.r.read_value("qp_pade_gaps", path=f"iter{iter+1}") * abu.Ha_eV).ravel())
+                    )
+                except:
+                    d["qp_pade_dirgaps"] = np.full_like(d["qpz0_dirgaps"], np.nan)
         else:
             d["ks_dirgaps"] = self.ks_dirgaps.ravel()
             d["qpz0_dirgaps"] = self.qpz0_dirgaps.ravel()
