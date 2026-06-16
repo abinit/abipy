@@ -60,6 +60,12 @@ class GwrFileTest(AbipyTest):
 
             gas_df = gwr.get_dirgaps_dataframe(with_params=True, with_geo=True)
             df = gwr.get_dataframe_sk(spin=0, kpoint=0, with_params=True, with_geo=True)
+            qp_band4 = df.loc[4]
+            self.assert_almost_equal(qp_band4["e0"], 2.0029493070548754)
+            self.assert_almost_equal(qp_band4["qpe"].real, 2.8977755013563673)
+            self.assert_almost_equal(qp_band4["qpe"].imag, -0.04846334314567554)
+            self.assert_almost_equal(qp_band4["sigxme"], -4.986994486723799)
+            self.assert_almost_equal(qp_band4["sigcmee0"], -3.8861004365062053 - 0.051235234159516106j)
 
             if self.has_matplotlib():
                 assert mesh.plot_ft_weights(mesh, show=False)

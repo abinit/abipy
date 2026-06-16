@@ -954,6 +954,8 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                 First item gives rcut, second item sigma. Ignored if None.
             only_corrections: If True, the output contains the interpolated QP corrections instead of the QP energies.
                 Available only if ks_ebands_kpath and/or ks_ebands_kmesh are used.
+            iter: Iteration index (e.g. for self-consistent calculations).
+                If None, variables are read from the root level.
             varname: Name of the variable in the netcdf file to be interpolated.
                      Default is "qpz_ene" but "qp_pade" is also available if it's recorded in the file.
             verbose: Verbosity level.
@@ -1655,29 +1657,62 @@ class GwrReader(ETSF_Reader):
             kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
             band: band index. If None all bands are considered.
             ignore_imag: Only real part is returned if ``ignore_imag``.
+            iter: Iteration index (e.g. for self-consistent GW calculations).
+                If None, variables are read from the root level.
         """
         ikcalc, kpoint = self.get_ikcalc_kpoint(kpoint)
+        path = f"iter{iter}" if iter else "/"
 
         def ri(a):
             return np.real(a) if ignore_imag else a
 
-        # TODO: Finalize the implementation.
-        # sigxme = sigx_mat
-        sigxme = 0.0
-        # self._sigxme[spin, ikcalc, ib],
         qp_list = QPList()
         for sigma_band in range(self.bstart_sk[spin, ikcalc], self.bstop_sk[spin, ikcalc]):
             if band is not None and sigma_band != band:
                 continue
             ib = sigma_band - self.min_bstart
+            ib2 = 0 if self.sig_diago else ib
 
-            qpe = self.read_variable("qpz_ene", path=f"iter{iter}" if iter else "/")[spin, ikcalc, ib] * abu.Ha_meV
+            # Read qpe (in eV)
+            qpe = self.read_variable("qpz_ene", path=path)[spin, ikcalc, ib] * abu.Ha_eV
             qpe = qpe[0] + 1j * qpe[1]
 
-            ze0 = self.read_variable("ze0_kcalc", path=f"iter{iter}" if iter else "/")[spin, ikcalc, ib]
+            # Read ze0
+            ze0 = self.read_variable("ze0_kcalc", path=path)[spin, ikcalc, ib]
             ze0 = ze0[0] + 1j * ze0[1]
 
-            # TODO Finalize the implementation
+            # Read sigxme
+            if "sigx_mat" in self.read_varnames(path=path):
+                sigxme = self.read_variable("sigx_mat", path=path)[spin, ikcalc, ib2, ib, 0] * abu.Ha_eV
+            elif "sigx_mat" in self.read_varnames(path="/"):
+                sigxme = self.read_variable("sigx_mat", path="/")[spin, ikcalc, ib2, ib, 0] * abu.Ha_eV
+            else:
+                sigxme = 0.0
+
+            # Compute sigcmee0
+            if "sigxc_rw_diag" in self.read_varnames(path=path):
+                xc_var = self.read_variable("sigxc_rw_diag", path=path)
+            elif "sigxc_rw_diag" in self.read_varnames(path="/"):
+                xc_var = self.read_variable("sigxc_rw_diag", path="/")
+            else:
+                xc_var = None
+
+            if xc_var is not None:
+                nwr = xc_var.shape[3]
+                xc_e0 = xc_var[spin, ikcalc, ib, nwr // 2, :]
+                xc_e0 = (xc_e0[0] + 1j * xc_e0[1]) * abu.Ha_eV
+                sigcmee0 = xc_e0 - sigxme
+            else:
+                sigcmee0 = 0.0
+
+            # Read vxcme
+            if "vxc_kcalc" in self.read_varnames(path=path):
+                vxcme = self.read_variable("vxc_kcalc", path=path)[spin, ikcalc, ib] * abu.Ha_eV
+            elif "vxc_kcalc" in self.read_varnames(path="/"):
+                vxcme = self.read_variable("vxc_kcalc", path="/")[spin, ikcalc, ib] * abu.Ha_eV
+            else:
+                vxcme = 0.0
+
             qp_list.append(
                 QPState(
                     spin=spin,
@@ -1686,11 +1721,9 @@ class GwrReader(ETSF_Reader):
                     e0=self.e0_kcalc[spin, ikcalc, ib],
                     qpe=ri(qpe),
                     qpe_diago=0.0,
-                    # vxcme=self._vxcme[spin, ikcalc, ib],
-                    vxcme=0.0,
+                    vxcme=vxcme,
                     sigxme=sigxme,
-                    # sigcmee0=ri(self._sigcmee0[spin, ikcalc, ib]),
-                    sigcmee0=0.0,
+                    sigcmee0=ri(sigcmee0),
                     vUme=0.0,
                     ze0=ri(ze0),
                 )
