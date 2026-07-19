@@ -15,7 +15,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 from monty.collections import dict2namedtuple
-from monty.string import is_string, list_strings, marquee
+from monty.string import list_strings, marquee
 from monty.termcolor import cprint
 from pymatgen.core.units import Energy, eV_to_Ha
 from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
@@ -30,7 +30,7 @@ from abipy.core.mixins import AbinitNcFile, Has_PhononBands, Has_Structure, Note
 from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
-from abipy.tools.numtools import gaussian, sort_and_groupby
+from abipy.tools.numtools import gaussian, is_string, sort_and_groupby
 from abipy.tools.plotting import (
     PlotlyRowColDesc,
     add_fig_kwargs,

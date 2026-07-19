@@ -8,7 +8,7 @@ from functools import cached_property
 
 import numpy as np
 import pandas as pd
-from monty.string import is_string, marquee
+from monty.string import marquee
 
 from abipy.abio.robots import Robot
 from abipy.core.func1d import Function1D
@@ -18,6 +18,7 @@ from abipy.core.structure import Structure
 from abipy.electrons.ebands import RobotWithEbands
 from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
+from abipy.tools.numtools import is_string
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims
 from abipy.tools.typing import Figure
 

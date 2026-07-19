@@ -8,13 +8,14 @@ from functools import cached_property
 from pprint import pformat  # , pprint
 
 import numpy as np
-from monty.string import boxed, is_string
+from monty.string import boxed
 from monty.termcolor import cprint
 from pymatgen.core.units import bohr_to_ang
 
 from abipy.abio.abivar_database.variables import get_codevars
 from abipy.core.mixins import Has_Structure, NotebookWriter, TextFile
 from abipy.core.structure import Structure, dataframes_from_structures
+from abipy.tools.numtools import is_string
 
 __all__ = [
     "AbinitInputFile",

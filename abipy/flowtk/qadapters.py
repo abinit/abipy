@@ -31,10 +31,11 @@ from monty.collections import AttrDict
 from monty.inspect import all_subclasses
 from monty.io import FileLock
 from monty.json import MSONable
-from monty.string import is_string, list_strings
+from monty.string import list_strings
 from pymatgen.core.units import Memory, UnitError
 
 from abipy.tools.iotools import AtomicFile
+from abipy.tools.numtools import is_string
 
 from . import qutils as qu
 from .launcher import ScriptEditor

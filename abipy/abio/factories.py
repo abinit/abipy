@@ -10,7 +10,6 @@ import numpy as np
 import pymatgen.io.abinit.abiobjects as aobj
 from monty.collections import AttrDict
 from monty.json import MontyDecoder, MSONable, jsanitize
-from monty.string import is_string
 
 import abipy.abio.input_tags as atags
 import abipy.core.abinit_units as abu
@@ -18,6 +17,7 @@ from abipy.abio.inputs import AbinitInput, MultiDataset
 
 # from pymatgen.io.abinit.pseudos import PseudoTable
 from abipy.core.structure import Structure
+from abipy.tools.numtools import is_string
 from abipy.tools.serialization import pmg_serialize
 
 __all__ = [

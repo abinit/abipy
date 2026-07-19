@@ -12,10 +12,10 @@ import os
 from subprocess import PIPE, Popen, run
 
 from monty.os import cd
-from monty.string import is_string
 from pymatgen.core.units import Memory, Time, UnitError
 
 from abipy.tools import duck
+from abipy.tools.numtools import is_string
 from abipy.tools.text import rm_multiple_spaces
 from abipy.tools.typing import PathLike
 

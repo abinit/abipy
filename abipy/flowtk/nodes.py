@@ -20,11 +20,11 @@ from monty.collections import AttrDict, Namespace
 from monty.io import FileLock
 from monty.json import MSONable, jsanitize
 from monty.serialization import loadfn
-from monty.string import is_string
 from monty.termcolor import colored
 from pydispatch import dispatcher
 
 from abipy.tools.iotools import AtomicFile
+from abipy.tools.numtools import is_string
 from abipy.tools.serialization import json_pretty_dump, pmg_serialize
 
 # from abipy.tools.typing import TYPE_CHECKING

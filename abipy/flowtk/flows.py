@@ -27,7 +27,7 @@ from monty.io import FileLock
 from monty.json import MSONable
 from monty.operator import operator_from_str
 from monty.pprint import draw_tree
-from monty.string import is_string, list_strings, make_banner
+from monty.string import list_strings, make_banner
 from monty.termcolor import colored, cprint, cprint_map, get_terminal_size
 from pydispatch import dispatcher
 from pymatgen.core.units import Memory, UnitError
@@ -36,6 +36,7 @@ from tabulate import tabulate
 from abipy.core.globals import get_workdir
 from abipy.flowtk import wrappers
 from abipy.tools.iotools import AtomicFile
+from abipy.tools.numtools import is_string
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.tools.printing import print_dataframe
 from abipy.tools.serialization import mjson_loads, pmg_pickle_dump, pmg_pickle_load, pmg_serialize

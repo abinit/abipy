@@ -22,13 +22,14 @@ from monty.collections import AttrDict
 from monty.fnmatch import WildCard
 from monty.functools import return_none_if_raise
 from monty.json import MSONable
-from monty.string import is_string, list_strings
+from monty.string import list_strings
 from monty.termcolor import colored, cprint
 from pymatgen.core.units import Memory, UnitError
 
 from abipy.core.globals import get_workdir
 from abipy.core.structure import Structure
 from abipy.tools.iotools import yaml_safe_load
+from abipy.tools.numtools import is_string
 from abipy.tools.serialization import json_pretty_dump, pmg_serialize
 from abipy.tools.typing import TYPE_CHECKING
 

@@ -22,7 +22,7 @@ import numpy as np
 import pandas as pd
 from monty.collections import dict2namedtuple
 from monty.json import MontyDecoder, MSONable
-from monty.string import is_string, list_strings
+from monty.string import list_strings
 from monty.termcolor import cprint
 from pymatgen.core.units import Energy
 from pymatgen.symmetry.bandstructure import HighSymmKpath
@@ -38,7 +38,7 @@ from abipy.flowtk import AbinitTask, AnaddbTask, NetcdfReader, ParalHintsParser,
 from abipy.flowtk import abiobjects as aobj
 from abipy.flowtk.abiinspect import yaml_read_irred_perts
 from abipy.tools import duck
-from abipy.tools.numtools import is_diagonal
+from abipy.tools.numtools import is_diagonal, is_string
 from abipy.tools.serialization import pmg_serialize
 
 from .enums import GWR_TASK, RUNL  # WFK_TASK,

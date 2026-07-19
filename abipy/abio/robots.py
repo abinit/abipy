@@ -19,14 +19,14 @@ from typing import Any
 import numpy as np
 import pandas as pd
 from monty.json import MontyEncoder
-from monty.string import is_string, list_strings
+from monty.string import list_strings
 from monty.termcolor import cprint
 
 from abipy.core.mixins import NotebookWriter
 from abipy.core.structure import Structure
 from abipy.tools import duck
 from abipy.tools.iotools import make_executable
-from abipy.tools.numtools import sort_and_groupby
+from abipy.tools.numtools import is_string, sort_and_groupby
 from abipy.tools.plotting import (
     ConvergenceAnalyzer,
     add_fig_kwargs,

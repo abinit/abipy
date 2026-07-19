@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 from monty.collections import AttrDict
 from monty.inspect import all_subclasses
-from monty.string import is_string, marquee
+from monty.string import marquee
 from monty.termcolor import cprint
 from pymatgen.core.units import Ha_to_eV, bohr_to_angstrom
 
@@ -22,7 +22,7 @@ from abipy.core.mixins import Has_Structure
 from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader, Visualizer, cube, xsf
 from abipy.tools import duck
-from abipy.tools.numtools import transpose_last3dims
+from abipy.tools.numtools import is_string, transpose_last3dims
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend
 from abipy.tools.typing import Figure
 

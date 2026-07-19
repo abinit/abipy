@@ -20,13 +20,13 @@ import abipy.data as abidata
 from typing import Optional
 from functools import wraps
 from shutil import which
-from monty.string import is_string
 from pymatgen.util.testing import PymatgenTest
 
 # TODO
 # from pymatgen.util.testing import MatSciTest
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput, MultiDataset
+from abipy.tools.numtools import is_string
 
 root = os.path.dirname(__file__)
 

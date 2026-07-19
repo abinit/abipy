@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 from monty.bisect import find_ge, find_le
 from monty.collections import dict2namedtuple
-from monty.string import is_string, list_strings, marquee
+from monty.string import list_strings, marquee
 from monty.termcolor import cprint
 from tabulate import tabulate
 
@@ -28,6 +28,7 @@ from abipy.electrons.scissors import Scissors
 from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
 from abipy.tools.iotools import filepath_extract_differences
+from abipy.tools.numtools import is_string
 from abipy.tools.plotting import (
     ArrayPlotter,
     Marker,

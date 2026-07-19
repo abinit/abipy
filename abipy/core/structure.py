@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 import pymatgen.core.units as pmg_units
 from monty.collections import AttrDict, dict2namedtuple
-from monty.string import is_string, list_strings, marquee
+from monty.string import list_strings, marquee
 from monty.termcolor import cprint
 from pymatgen.core.lattice import Lattice
 from pymatgen.core.sites import PeriodicSite
@@ -27,6 +27,7 @@ from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from abipy.core.mixins import NotebookWriter
 from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.iotools import Visualizer, as_etsfreader
+from abipy.tools.numtools import is_string
 from abipy.tools.plotting import add_fig_kwargs, add_plotly_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt
 from abipy.tools.typing import Figure, PathLike
 

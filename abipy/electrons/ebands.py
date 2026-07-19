@@ -19,7 +19,7 @@ import pandas as pd
 from monty.bisect import find_gt, find_le
 from monty.collections import AttrDict, dict2namedtuple
 from monty.json import MontyEncoder
-from monty.string import is_string, list_strings, marquee
+from monty.string import list_strings, marquee
 from monty.termcolor import cprint
 from pymatgen.core import units
 from pymatgen.electronic_structure.core import Spin as PmgSpin
@@ -44,7 +44,7 @@ from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
 from abipy.tools.context_managers import Timer
 from abipy.tools.decorators import memoized_method
-from abipy.tools.numtools import gaussian
+from abipy.tools.numtools import gaussian, is_string
 from abipy.tools.plotting import (
     PlotlyRowColDesc,
     add_fig_kwargs,
