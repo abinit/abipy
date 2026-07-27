@@ -308,19 +308,19 @@ class Polaron:
         List of dataframes with the SCF iterations. One dataframe for each polaron.
         NB: Energies are converted from Ha to eV.
         """
-        # int nstep2cv_spin(nsppol, nstates) ;
-        #   Number of steps to convergence at each state for each spin
-        # double scf_hist_spin(nsppol, nstates, nstep, six) ;
-        #   SCF optimization history at each state for each spin
-        # int cvflag_spin(nsppol, nstates) ;
-        #   0 --> calculation is not converged
-        #   1 --> calculation is converged
+        # Legacy files:
+        #   int nstep2cv_spin(nsppol, nstates) ;
+        #   double scf_hist_spin(nsppol, nstates, nstep, six) ;
+        #   int cvflag_spin(nsppol, nstates) ;
+        # New files add hop_nstep as the second NetCDF dimension. The reader
+        # selects the last hopping step so that the arrays below keep their
+        # legacy shapes.
 
         spin = self.spin
         r = self.varpeq.r
-        nstep2cv = r.read_variable("nstep2cv_spin")[spin]
-        scf_hist = r.read_variable("scf_hist_spin")[spin]
-        cvflag = r.read_variable("cvflag_spin")[spin]
+        nstep2cv = r.read_spin_scf_variable("nstep2cv_spin", spin)
+        scf_hist = r.read_spin_scf_variable("scf_hist_spin", spin)
+        cvflag = r.read_spin_scf_variable("cvflag_spin", spin)
 
         def ufact_k(k):
             """Convert energies to eV"""
@@ -1215,9 +1215,12 @@ class VpqReader(BaseEphReader):
         # int nq_spin(nsppol) ;
         # int nb_spin(nsppol) ;
         # int brange_spin(nsppol, two) ;
-        # int cvflag_spin(nsppol, nstates) ;
-        # int nstep2cv_spin(nsppol, nstates) ;
-        # double scf_hist_spin(nsppol, nstates, nstep, six) ;
+        # Legacy: int cvflag_spin(nsppol, nstates) ;
+        # Current: int cvflag_spin(nsppol, hop_nstep, nstates) ;
+        # Legacy: int nstep2cv_spin(nsppol, nstates) ;
+        # Current: int nstep2cv_spin(nsppol, hop_nstep, nstates) ;
+        # Legacy: double scf_hist_spin(nsppol, nstates, nstep, six) ;
+        # Current: double scf_hist_spin(nsppol, hop_nstep, nstates, nstep, six) ;
         # double kpts_spin(nsppol, max_nk, three) ;
         # double qpts_spin(nsppol, max_nq, three) ;
         # double cb_min_spin(nsppol) ;
@@ -1255,6 +1258,22 @@ class VpqReader(BaseEphReader):
         # Total number of k/q points for each spin after filtering (if any)
         # self.glob_spin_nq = self.read_value("gstore_glob_nq_spin")
         # self.glob_nk_spin = self.read_value("gstore_glob_nk_spin")
+
+    def read_spin_scf_variable(self, varname: str, spin: int) -> np.ndarray:
+        """
+        Read a spin-dependent SCF variable, selecting the last hopping step when present.
+
+        Older VPQ files do not have the ``hop_nstep`` dimension, so their
+        variables are returned with exactly the same shapes as before.
+        """
+        variable = self.read_variable(varname)
+        dimensions = variable.dimensions
+        index = [slice(None)] * len(dimensions)
+        index[dimensions.index("nsppol")] = spin
+        if "hop_nstep" in dimensions:
+            index[dimensions.index("hop_nstep")] = -1
+
+        return variable[tuple(index)]
 
 
 class VpqRobot(Robot, RobotWithEbands):
