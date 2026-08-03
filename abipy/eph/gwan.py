@@ -1,564 +1,275 @@
-"""
-This module contains objects for analyzing
-the GWAN.nc file with the e-ph vertex in the Wannier representation.
-
-For a theoretical introduction see :cite:`Giustino2017`
-"""
+"""Post-processing tools for GWAN.nc files containing the e-ph vertex in real space."""
 
 from __future__ import annotations
 
-import dataclasses
-
-# import abipy.core.abinit_units as abu
+from dataclasses import dataclass
 from functools import cached_property
+from typing import TYPE_CHECKING
 
 import numpy as np
-import pandas as pd
-from monty.string import marquee  # , list_strings
-from monty.termcolor import cprint
+from monty.string import marquee
 
-# from abipy.tools.typing import Figure
-from abipy.abio.robots import Robot
-from abipy.core.kpoints import kpoints_indices
-from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Header, Has_Structure  # , NotebookWriter
-from abipy.core.structure import Structure
-
-# from abipy.tools.plotting import (add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_axlims, set_visible,
-#    rotate_ticklabels, ax_append_title, set_ax_xylabels, linestyles)
-# from abipy.tools import duck
-from abipy.electrons.ebands import ElectronBands, RobotWithEbands
+import abipy.core.abinit_units as abu
+from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Header, Has_Structure
 from abipy.eph.common import BaseEphReader
-from abipy.eph.gstore import GstoreFile  # , GstoreReader, Gqk
-from abipy.tools.numtools import BzRegularGridInterpolator, nparr_to_df
-from abipy.tools.typing import PathLike
+from abipy.tools.plotting import add_fig_kwargs, get_axarray_fig_plt, set_grid_legend
+
+if TYPE_CHECKING:
+    from abipy.core.structure import Structure
+    from abipy.electrons.ebands import ElectronBands
+    from abipy.tools.typing import Figure, PathLike
 
 
-class GwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):  # , NotebookWriter):
-    """
-    This file stores the e-ph matrix elements in the wannier representation
-    and provides methods to analyze and plot results.
+@dataclass(frozen=True)
+class GwanSpin:
+    """Real-space Hamiltonian and e-ph vertex for one spin channel."""
 
-    Usage example:
+    spin: int
+    r_h: np.ndarray
+    r_e: np.ndarray
+    r_p: np.ndarray
+    ndegen_h: np.ndarray
+    ndegen_e: np.ndarray
+    ndegen_p: np.ndarray
+    hwan_r: np.ndarray
+    grpe_wwp: np.ndarray
 
-    .. code-block:: python
+    @property
+    def nwan(self) -> int:
+        """Number of Wannier functions."""
+        return self.grpe_wwp.shape[1]
 
-        with GwanFile("out_GWAN.nc") as gwan:
-            print(gwan)
+    @property
+    def nr_e(self) -> int:
+        """Number of electronic lattice vectors."""
+        return len(self.r_e)
 
-            for spin in range(gwan.nsppol):
-                # Extract the object storing the g for this spin.
-                #gqk = gstore.gqk_spin[spin]
-                #print(gqk)
+    @property
+    def nr_p(self) -> int:
+        """Number of phonon lattice vectors."""
+        return len(self.r_p)
 
-                # Get a Dataframe with g(k, q) for all modes and bands.
-                #df = gqk.get_gdf_at_qpt_kpt([1/2, 0, 0], [0, 0, 0])
-                #print(df)
+    def get_decay(self) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Return the maximum vertex magnitude associated with each real-space vector.
 
-    .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: GwanFile
-    """
+        ``decay_e[ire]`` is ``max_{Rp,m,n,nu} |g(m,n,nu; Re,Rp)|`` and
+        ``decay_p[irp]`` is ``max_{Re,m,n,nu} |g(m,n,nu; Re,Rp)|``.
+        The values have the same units as ``grpe_wwp`` (Ha/Bohr in ABINIT).
+        """
+        # In Python: grpe_wwp(natom3, nwan, nwan, nr_e, nr_p).
+        abs_g = np.abs(self.grpe_wwp)
+        decay_e = np.max(abs_g, axis=(0, 1, 2, 4))
+        decay_p = np.max(abs_g, axis=(0, 1, 2, 3))
+        return decay_e, decay_p
+
+    def get_hwan_decay(self) -> np.ndarray:
+        """Return ``max_{m,n}|H_mn(Rh)|`` in Hartree for each Hamiltonian lattice vector."""
+        # In Python: hwan_r(nwan, nwan, nr_h).
+        return np.max(np.abs(self.hwan_r), axis=(0, 1))
+
+
+class GwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
+    """File containing the e-ph vertex in the real-space Wannier representation."""
 
     @classmethod
     def from_file(cls, filepath: PathLike) -> GwanFile:
-        """Initialize the object from a netcdf file."""
+        """Initialize the object from a NetCDF file."""
         return cls(filepath)
 
     def __init__(self, filepath: PathLike):
-        """
-        Args:
-            filepath: Path to the netcdf file.
-        """
+        """Open ``filepath`` and initialize the GWAN reader."""
         super().__init__(filepath)
         self.r = GwanReader(filepath)
 
     @cached_property
     def ebands(self) -> ElectronBands:
-        """|ElectronBands| object."""
+        """Electronic bands stored in the root group."""
         return self.r.read_ebands()
 
     @property
     def structure(self) -> Structure:
-        """|Structure| object."""
+        """Crystalline structure."""
         return self.ebands.structure
-
-    def close(self) -> None:
-        """Close the file."""
-        self.r.close()
-
-    # @cached_property
-    # def gqk_spin(self) -> list:
-    #    return [Gqk.from_gstore(self, spin) for spin in range(self.nsppol)]
 
     @cached_property
     def params(self) -> dict:
-        """Dict with the convergence parameters, e.g. ``nbsum``."""
-        # od = OrderedDict([
-        #    ("nbsum", self.nbsum),
-        #    ("nqibz", self.r.nqibz),
-        # ])
-        ## Add EPH parameters.
-        # od.update(self.r.common_eph_params)
+        """Parameters used by generic convergence-analysis interfaces."""
+        return {}
 
-        od = {}
-        return od
+    @cached_property
+    def gwan_spin(self) -> tuple[GwanSpin, ...]:
+        """Real-space Wannier data for each spin channel."""
+        return tuple(self.r.read_gwan_spin(spin) for spin in range(self.r.nsppol))
+
+    def close(self) -> None:
+        """Close the NetCDF reader."""
+        self.r.close()
 
     def __str__(self) -> str:
         return self.to_string()
 
-    def to_string(self, verbose=0) -> str:
-        """String representation with verbosiy level ``verbose``."""
-        lines = []
-        app = lines.append
-
-        app(marquee("File Info", mark="="))
-        app(self.filestat(as_string=True))
-        app("")
-        app(self.structure.to_string(verbose=verbose, title="Structure"))
-
-        app("")
-        app(self.ebands.to_string(with_structure=False, verbose=verbose, title="Electronic Bands"))
+    def to_string(self, verbose: int = 0) -> str:
+        """Return a string summary with verbosity level ``verbose``."""
+        lines = [
+            marquee("File Info", mark="="),
+            self.filestat(as_string=True),
+            "",
+            self.structure.to_string(verbose=verbose, title="Structure"),
+            "",
+            self.ebands.to_string(with_structure=False, verbose=verbose, title="Electronic Bands"),
+            "",
+            f"Number of spin channels: {self.r.nsppol}",
+        ]
+        for data in self.gwan_spin:
+            lines.append(
+                f"Spin {data.spin}: nwan={data.nwan}, nr_h={len(data.r_h)}, "
+                f"nr_e={data.nr_e}, nr_p={data.nr_p}"
+            )
         if verbose > 1:
-            app("")
-            app(self.hdr.to_string(verbose=verbose, title="Abinit Header"))
-
-        app(f"nsppol: {self.r.nsppol}")
-        app(f"gstore_completed: {bool(self.r.completed)}")
-        app(f"gstore_cplex: {self.r.cplex}")
-        app(f"gstore_kptopt: {self.r.kptopt}")
-        app(f"gstore_qptopt: {self.r.qptopt}")
-        # for spin in range(self.r.nsppol):
-        #    app(f"gstore_brange_spin[{spin}]: {self.r.brange_spin[spin]}")
-        #    app(f"gstore_erange_spin[{spin}]: {self.r.erange_spin[spin]}")
-        #    app(f"gstore_glob_spin_nq[{spin}]: {self.r.glob_spin_nq[spin]}")
-
+            lines.extend(["", self.hdr.to_string(verbose=verbose, title="Abinit Header")])
         return "\n".join(lines)
 
-    # def write_epw_hdf5(self, filepath: PathLike) -> None:
-
-
-@dataclasses.dataclass(kw_only=True)
-class Gqk:
-    """
-    This object stores the e-ph matrix elements (g or g^2) and the matrix elements
-    of the velocity operator for a given spin.
-    """
-
-    cplex: int  # 1 if |g|^2 is stored
-    # 2 if complex valued g (mind the gauge)
-    spin: int  # Spin index.
-    nb: int  # Number of bands
-    bstart: int
-    # bstop: int
-
-    glob_nk: int  # Total number of k/q points in global matrix.
-    glob_nq: int  # Note that k-points/q-points can be filtered.
-    # Use kzone, qzone and kfilter to interpret these dimensions.
-
-    gstore: GstoreFile
-
-    gvals: np.ndarray | None
-    g2: np.ndarray | None
-    vk_cart_ibz: np.ndarray | None
-    vkmat_cart_ibz: np.ndarray | None
-
-    @classmethod
-    def from_gstore(cls, gstore: GstoreFile, spin: int):
+    @add_fig_kwargs
+    def plot_decay(
+        self,
+        spin: int = 0,
+        ax_mat=None,
+        yscale: str = "log",
+        marker: str = "o",
+        markersize: float = 3,
+        fontsize: int = 8,
+        **kwargs,
+    ) -> Figure:
         """
-        Build an istance from a GstoreFile and the spin index.
-        """
-        ncr = gstore.r
-        path = f"gqk_spin{spin + 1}"
-        cplex = ncr.read_dimvalue("gstore_cplex")
-        nb = ncr.read_dimvalue("nb", path=path)
-        glob_nk = ncr.read_dimvalue("glob_nk", path=path)
-        glob_nq = ncr.read_dimvalue("glob_nq", path=path)
+        Plot the real-space decay of the e-ph vertex for one spin channel.
 
-        # Read e-ph matrix elements
-        # nctkarr_t("gvals", "dp", "gstore_cplex, nb_kq, nb_k, natom3, glob_nk, glob_nq)
-        # Have to transpose the (nb_kq, nb_k) submatrix written by Fortran.
-        g2, gvals = None, None
-        if cplex == 1:
-            g2 = ncr.read_value("gvals", path=path).transpose(0, 1, 2, 4, 3, 5).copy()
-
-        elif cplex == 2:
-            gvals = ncr.read_value("gvals", path=path).transpose(0, 1, 2, 4, 3, 5).copy()
-            gvals = gvals[..., 0] + 1j * gvals[..., 1]
-
-        vk_cart_ibz, vkmat_cart_ibz = None, None
-        if ncr.with_vk == 1:
-            # nctk_def_arrays(spin_ncid, nctkarr_t("vk_cart_ibz", "dp", "three, nb, gstore_nkibz"))
-            vk_cart_ibz = ncr.read_value("vk_cart_ibz", path=path)
-
-        if ncr.with_vk == 2:
-            # Full (nb x nb) matrix.
-            # Have to transpose (nb_kq, nb_k) submatrix written by Fortran.
-            # nctk_def_arrays(spin_ncid, nctkarr_t("vkmat_cart_ibz", "dp", "two, three, nb, nb, gstore_nkibz"))
-            vkmat_cart_ibz = ncr.read_value("vkmat_cart_ibz", path=path).transpose(0, 1, 3, 2, 4).copy()
-            vkmat_cart_ibz = vkmat_cart_ibz[..., 0] + 1j * vkmat_cart_ibz[..., 1]
-
-        # Note conversion between Fortran and python indexing.
-        bstart = ncr.read_value("bstart", path=path) - 1
-        # bstop = ncr.read_value("stop", path=path)
-
-        data = locals()
-        return cls(**{k: data[k] for k in [field.name for field in dataclasses.fields(Gqk)]})
-
-    def __str__(self) -> str:
-        return self.to_string()
-
-    def to_string(self, verbose=0) -> str:
-        """String representation with verbosiy level ``verbose``."""
-        lines = []
-        app = lines.append
-
-        app(marquee(f"Gqk for spin: {self.spin}", mark="="))
-        app(f"cplex: {self.cplex}")
-        app(f"nb: {self.nb}")
-        app(f"bstart: {self.bstart}")
-        app(f"glob_nk: {self.glob_nk}")
-        app(f"glob_nq: {self.glob_nq}")
-
-        return "\n".join(lines)
-
-    @property
-    def structure(self):
-        """|Structure| object."""
-        return self.gstore.structure
-
-    def get_dataframe(self, what: str = "g2") -> pd.DataFrame:
-        """
-        Build and return a dataframe with all the |g(k,q)|^2 if what == "g2" or
-        all |v_nk|^2 if what == "v2".
-        """
-        if what == "g2":
-            g2 = self.g2 if self.g2 is not None else np.abs(self.gvals) ** 2
-            df = nparr_to_df("g2", g2, ["iq", "ik", "imode", "m_kq", "n_k"])
-
-        elif what == "v2":
-            if self.vk_cart_ibz is None:
-                raise ValueError("vk_cart_ibz is not available in GSTORE!")
-            # Compute the squared norm of each vector
-            v2 = np.sum(self.vk_cart_ibz**2, axis=2)
-            df = nparr_to_df("v2", v2, ["ik", "n_k"])
-
-        else:
-            raise ValueError(f"Invalid {what=}")
-
-        # df["m_kq"] += bstart_mkq
-        # df["n_k"] += bstart_nk
-
-        return df
-
-    def get_g2q_interpolator_kpoint(self, kpoint, method="linear", check_mesh=1):
-        """ """
-        r = self.gstore.r
-
-        # Find the index of the kpoint.
-        ik_g, kpoint = r.find_ik_glob_kpoint(kpoint, self.spin)
-
-        # Compute indices of qpoints in the ngqpt mesh.
-        ngqpt, shifts = r.ngqpt, [0, 0, 0]
-        q_indices = kpoints_indices(r.qbz, ngqpt, shifts, check_mesh=check_mesh)
-
-        natom3 = 3 * len(self.structure)
-        nb = self.nb
-        nx, ny, nz = ngqpt
-
-        # (glob_nq, glob_nk, natom3, m_kq, n_k)
-        g2 = self.g2 if self.g2 is not None else np.abs(self.gvals) ** 2
-        g2_qph_mn = g2[:, ik_g]
-
-        # Insert g2 in g2_grid
-        g2_grid = np.empty((nb, nb, natom3, nx, ny, nz))
-        for nu in range(natom3):
-            for g2_mn, q_inds in zip(g2_qph_mn[:, nu], q_indices, strict=False):
-                ix, iy, iz = q_inds
-                g2_grid[:, :, nu, ix, iy, iz] = g2_mn
-
-        return BzRegularGridInterpolator(self.structure, shifts, g2_grid, method=method)
-
-    def get_g_qpt_kpt(self, qpoint, kpoint, what) -> np.ndarray:
-        """
-        Return numpy array with e-ph matrix elements the for the given (qpoint, kpoint) pair.
+        The left panel shows ``max_{Rp,m,n,nu}|g(Re,Rp)|`` versus ``|Re|``;
+        the right panel shows ``max_{Re,m,n,nu}|g(Re,Rp)|`` versus ``|Rp|``.
+        This is the same electronic decay measure written by ABINIT to
+        ``*_spinN_GWAN.txt``, complemented by the phonon-lattice decay.
 
         Args:
-            what="g2" for |g(k,q)|^2, "g" for g(k,q)
+            spin: Zero-based spin index.
+            ax_mat: Two matplotlib axes or None to create them.
+            yscale: Scale for the vertical axes, typically ``"log"`` or ``"linear"``.
+            marker: Matplotlib marker for individual real-space vectors.
+            markersize: Marker size.
+            fontsize: Font size used for labels and legends.
+            **kwargs: Additional options accepted by the plotting decorator.
         """
-        # Find the internal indices of (qpoint, kpoint)
-        iq_g, qpoint = self.gstore.r.find_iq_glob_qpoint(qpoint, self.spin)
-        ik_g, kpoint = self.gstore.r.find_ik_glob_kpoint(kpoint, self.spin)
-        if what == "g2":
-            g2 = self.g2 if self.g2 is not None else np.abs(self.gvals) ** 2
-            return g2[iq_g, ik_g]
-        if what == "g":
-            if self.cplex != 2:
-                raise ValueError("Gstore file stores g2 instead of complex g")
-            return self.gvals[iq_g, ik_g]
+        if not 0 <= spin < self.r.nsppol:
+            raise ValueError(f"Invalid {spin=}; expected 0 <= spin < {self.r.nsppol}")
 
-        raise ValueError(f"Invalid {what=}")
+        data = self.gwan_spin[spin]
+        decay_e, decay_p = data.get_decay()
+        lattice = self.structure.lattice.matrix
+        rmod_e = np.linalg.norm(np.matmul(data.r_e, lattice), axis=1)
+        rmod_p = np.linalg.norm(np.matmul(data.r_p, lattice), axis=1)
 
-    def get_gdf_at_qpt_kpt(self, qpoint, kpoint, what="g2") -> pd.DataFrame:
+        ax_mat, fig, _plt = get_axarray_fig_plt(
+            ax_mat, nrows=1, ncols=2, sharey=True, squeeze=False, rescale_fig=True
+        )
+        axes = ax_mat.ravel()
+        for ax, radii, values, symbol, title in zip(
+            axes,
+            (rmod_e, rmod_p),
+            (decay_e, decay_p),
+            (r"R_e", r"R_p"),
+            ("Electronic lattice vectors", "Phonon lattice vectors"),
+            strict=True,
+        ):
+            order = np.argsort(radii)
+            ax.plot(radii[order], values[order], linestyle="none", marker=marker, markersize=markersize)
+            ax.set_yscale(yscale)
+            ax.set_title(title)
+            set_grid_legend(ax, fontsize, xlabel=rf"$|{symbol}|$ (Å)", ylabel=r"max $|g|$ (Ha/Bohr)")
+
+        fig.suptitle(f"Real-space decay of the e-ph vertex, spin {spin}")
+        return fig
+
+    @add_fig_kwargs
+    def plot_hwan_decay(
+        self,
+        spin: int = 0,
+        ax=None,
+        units: str = "eV",
+        yscale: str = "log",
+        marker: str = "o",
+        markersize: float = 3,
+        fontsize: int = 8,
+        **kwargs,
+    ) -> Figure:
         """
-        Build and return a dataframe with the |g(k,q)|^2 for the given (qpoint, kpoint) pair.
+        Plot the real-space decay of the Hamiltonian in the Wannier representation.
+
+        The plotted quantity is ``max_{m,n}|H_mn(Rh)|`` for each Hamiltonian
+        lattice vector. Distances are reported in Å.
 
         Args:
-            what="g2" for |g(k,q)|^2, "g" for g(k,q)
+            spin: Zero-based spin index.
+            ax: Matplotlib axis or None to create one.
+            units: Energy units, either ``"eV"`` or ``"Ha"``.
+            yscale: Scale for the vertical axis, typically ``"log"`` or ``"linear"``.
+            marker: Matplotlib marker for individual real-space vectors.
+            markersize: Marker size.
+            fontsize: Font size used for labels and legends.
+            **kwargs: Additional options accepted by the plotting decorator.
         """
-        g2_slice = self.get_g_qpt_kpt(qpoint, kpoint, what)
-        df = nparr_to_df(what, g2_slice, ["imode", "m_kq", "n_k"])
-        # df["m_kq"] += bstart_mkq
-        # df["n_k"] += bstart_nk
+        if not 0 <= spin < self.r.nsppol:
+            raise ValueError(f"Invalid {spin=}; expected 0 <= spin < {self.r.nsppol}")
 
-        return df
+        data = self.gwan_spin[spin]
+        values = data.get_hwan_decay()
+        if units == "eV":
+            values = values * abu.Ha_eV
+        elif units != "Ha":
+            raise ValueError(f"Invalid {units=}; expected 'eV' or 'Ha'")
 
-    def neq(self, other: Gqk, verbose: int) -> int:
-        """
-        Helper function to compare two GQK objects.
-        """
-        # This dimensions must agree in order to have a meaningfull comparison.
-        # so raise immediately if not equal.
-        aname_list = ["cplex", "spin", "nb", "glob_nk", "glob_nq"]
+        rmod_h = np.linalg.norm(np.matmul(data.r_h, self.structure.lattice.matrix), axis=1)
+        ax_mat, fig, _plt = get_axarray_fig_plt(ax, nrows=1, ncols=1)
+        ax = np.asarray(ax_mat).ravel()[0]
+        order = np.argsort(rmod_h)
+        ax.plot(rmod_h[order], values[order], linestyle="none", marker=marker, markersize=markersize)
+        ax.set_yscale(yscale)
+        ax.set_title(f"Wannier Hamiltonian decay, spin {spin}")
+        set_grid_legend(ax, fontsize, xlabel=r"$|R_h|$ (Å)", ylabel=rf"max $|H_{{mn}}|$ ({units})")
+        return fig
 
-        for aname in aname_list:
-            val1, val2 = getattr(self, aname), getattr(other, aname)
-
-            if isinstance(val1, (str, int, float)):
-                eq = val1 == val2
-            elif isinstance(val1, np.ndarray):
-                eq = np.allclose(val1, val2)
-            else:
-                raise TypeError(f"Don't know how to handle comparison for type: {type(val1)}")
-
-            if not eq:
-                raise RuntimeError(f"Different values of {aname=}, {val1=}, {val2=}")
-
-        ierr = 0
-        kws = dict(verbose=verbose)  # , atol= rtol)
-
-        # Compare v_nk or v_mn_k.
-        if self.vk_cart_ibz is not None:
-            if not _allclose("vk_cart_ibz", self.vk_cart_ibz, other.vk_cart_ibz, **kws):
-                ierr += 1
-
-        if self.vkmat_cart_ibz is not None:
-            if not _allclose("vkmat_cart_ibz", self.vkmat_cart_ibz, other.vkmat_cart_ibz, **kws):
-                ierr += 1
-
-        # Compare g or g^2.
-        if self.g2 is not None:
-            if not _allclose("g2", self.g2, other.g2, **kws):
-                ierr += 1
-
-        if self.gvals is not None:
-            if not _allclose("gvals", self.gvals, other.gvals, **kws):
-                ierr += 1
-
-        return ierr
+    def yield_figs(self, **kwargs):  # pragma: no cover
+        """Generate the standard GWAN figures."""
+        for spin in range(self.r.nsppol):
+            yield self.plot_decay(spin=spin, show=False)
+            yield self.plot_hwan_decay(spin=spin, show=False)
 
 
 class GwanReader(BaseEphReader):
-    """
-    Reads data from file and constructs objects.
-
-    .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: GwanReader
-    """
+    """NetCDF reader for the root group and per-spin GWAN groups."""
 
     def __init__(self, filepath: PathLike):
-        """
-        Args:
-            filepath: Path to the netcdf file.
-        """
+        """Open ``filepath`` and read the root-level dimensions."""
         super().__init__(filepath)
-
-        # Read important dimensions.
         self.nsppol = self.read_dimvalue("number_of_spins")
-        self.cplex = self.read_dimvalue("gstore_cplex")
-        self.nkbz = self.read_dimvalue("gstore_nkbz")
-        self.nkibz = self.read_dimvalue("gstore_nkibz")
-        self.nqbz = self.read_dimvalue("gstore_nqbz")
-        self.nqibz = self.read_dimvalue("gstore_nqibz")
 
-        # Read important variables.
-        self.completed = self.read_value("gstore_completed")
-        self.done_spin_qbz = self.read_value("gstore_done_qbz_spin")
-        self.with_vk = self.read_value("gstore_with_vk")
-        self.qptopt = self.read_value("gstore_qptopt")
-        self.kptopt = self.read_value("kptopt")
-        self.kzone = self.read_string("gstore_kzone")
-        self.qzone = self.read_string("gstore_qzone")
-        self.kfilter = self.read_string("gstore_kfilter")
-        self.gmode = self.read_string("gstore_gmode")
-
-        # Note conversion Fortran --> C for the isym index.
-        self.brange_spin = self.read_value("gstore_brange_spin")
-        self.brange_spin[:, 0] -= 1
-        self.erange_spin = self.read_value("gstore_erange_spin")
-        # Total number of k/q points for each spin after filtering (if any)
-        self.glob_spin_nq = self.read_value("gstore_glob_nq_spin")
-        self.glob_nk_spin = self.read_value("gstore_glob_nk_spin")
-
-        # K-points and q-points in the IBZ
-        self.kibz = self.read_value("reduced_coordinates_of_kpoints")
-        self.qibz = self.read_value("gstore_qibz")
-
-        # K-points and q-points in the BZ
-        self.kbz = self.read_value("gstore_kbz")
-        self.qbz = self.read_value("gstore_qbz")
-        self.ngqpt = self.read_value("gstore_ngqpt")
-
-        # Mapping BZ --> IBZ. Note conversion Fortran --> C for the isym index.
-        # nctkarr_t("gstore_kbz2ibz", "i", "six, gstore_nkbz"), &
-        # nctkarr_t("gstore_qbz2ibz", "i", "six, gstore_nqbz"), &
-        self.kbz2ibz = self.read_value("gstore_kbz2ibz")
-        self.kbz2ibz[:, 0] -= 1
-
-        self.qbz2ibz = self.read_value("gstore_qbz2ibz")
-        self.qbz2ibz[:, 0] -= 1
-
-        # Mapping q/k points in gqk --> BZ. Note conversion Fortran --> C for indexing.
-        # nctkarr_t("gstore_qglob2bz", "i", "gstore_max_nq, number_of_spins"), &
-        # nctkarr_t("gstore_kglob2bz", "i", "gstore_max_nk, number_of_spins") &
-        self.qglob2bz = self.read_value("gstore_qglob2bz")
-        self.qglob2bz -= 1
-        self.kglob2bz = self.read_value("gstore_kglob2bz")
-        self.kglob2bz -= 1
-
-    def find_iq_glob_qpoint(self, qpoint, spin: int):
-        """
-        Find the internal index of the qpoint needed to access the gvals array.
-        """
-        qpoint = np.asarray(qpoint)
-        for iq_g, iq_bz in enumerate(self.qglob2bz[spin]):
-            if np.allclose(qpoint, self.qbz[iq_bz]):
-                # print(f"Found {qpoint = } with index {iq_g = }")
-                return iq_g, qpoint
-
-        raise ValueError(f"Cannot find {qpoint=} in GSTORE.nc")
-
-    def find_ik_glob_kpoint(self, kpoint, spin: int):
-        """Find the internal indices of the kpoint needed to access the gvals array."""
-        kpoint = np.asarray(kpoint)
-        for ik_g, ik_bz in enumerate(self.kglob2bz[spin]):
-            if np.allclose(kpoint, self.kbz[ik_bz]):
-                # print(f"Found {kpoint = } with index {ik_g = }")
-                return ik_g, kpoint
-
-        raise ValueError(f"Cannot find {kpoint=} in GSTORE.nc")
-
-    # TODO: This fix to read groups should be imported in pymatgen.
     @cached_property
     def path2group(self) -> dict:
-        """Dictionary mapping path to group."""
+        """Map NetCDF group names to group objects."""
         return self.rootgrp.groups
 
+    def read_gwan_spin(self, spin: int) -> GwanSpin:
+        """Read the real-space arrays for zero-based spin index ``spin``."""
+        if not 0 <= spin < self.nsppol:
+            raise ValueError(f"Invalid {spin=}; expected 0 <= spin < {self.nsppol}")
 
-class GstoreRobot(Robot, RobotWithEbands):
-    """
-    This robot analyzes the results contained in multiple GSTORE.nc files.
-
-    Usage example:
-
-    .. code-block:: python
-
-        robot = GstoreRobot.from_files([
-            "t04o_GSTORE.nc",
-            "t05o_GSTORE.nc",
-            ])
-
-        robot.neq(verbose=1)
-
-    .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: GstoreRobot
-    """
-
-    EXT = "GSTORE"
-
-    def neq(self, ref_basename: str | None = None, verbose: int = 0) -> int:
-        """
-        Compare all GSTORE.nc files stored in the GstoreRobot
-        """
-        # Find reference gstore. By default the first file in the robot is used.
-        ref_gstore = self._get_ref_abifile_from_basename(ref_basename)
-
-        exc_list = []
-        ierr = 0
-        for other_gstore in self.abifiles:
-            if ref_gstore.filepath == other_gstore.filepath:
-                continue
-            print("Comparing: ", ref_gstore.basename, " with: ", other_gstore.basename)
-            try:
-                ierr += self._neq_two_gstores(ref_gstore, other_gstore, verbose)
-                cprint("EQUAL", color="green")
-            except Exception as exc:
-                exc_list.append(str(exc))
-
-        for exc in exc_list:
-            cprint(exc, color="red")
-
-        return ierr
-
-    @staticmethod
-    def _neq_two_gstores(gstore1: GstoreFile, gstore2: GstoreFile, verbose: int) -> int:
-        """
-        Helper function to compare two GSTORE files.
-        """
-        # These quantities must be the same to have a meaningfull comparison.
-        aname_list = [
-            "structure",
-            "nsppol",
-            "cplex",
-            "nkbz",
-            "nkibz",
-            "nqbz",
-            "nqibz",
-            "completed",
-            "kzone",
-            "qzone",
-            "kfilter",
-            "gmode",
-            "brange_spin",
-            "erange_spin",
-            "glob_spin_nq",
-            "glob_nk_spin",
-        ]
-
-        for aname in aname_list:
-            self._compare_attr_name(aname, gstore1, gstore2)
-
-        # Now compare the gkq objects for each spin.
-        ierr = 0
-        for spin in range(gstore1.nsppol):
-            gqk1, gqk2 = gstore1.gqk_spin[spin], gstore2.gqk_spin[spin]
-            ierr += gqk1.neq(gqk2, verbose)
-
-        return ierr
-
-    def yield_figs(self, **kwargs):  # pragma: no cover
-        """
-        This function *generates* a predefined list of matplotlib figures with minimal input from the user.
-        Used in abiview.py to get a quick look at the results.
-        """
-        # for fig in self.get_ebands_plotter().yield_figs(): yield fig
-
-    def write_notebook(self, nbpath=None) -> str:
-        """
-        Write a jupyter_ notebook to ``nbpath``. If nbpath is None, a temporary file in the current
-        working directory is created. Return path to the notebook.
-        """
-        nbformat, nbv, nb = self.get_nbformat_nbv_nb(title=None)
-
-        args = [(l, f.filepath) for l, f in self.items()]
-        nb.cells.extend(
-            [
-                # nbv.new_markdown_cell("# This is a markdown cell"),
-                nbv.new_code_cell("robot = abilab.GstoreRobot(*%s)\nrobot.trim_paths()\nrobot" % str(args)),
-                # nbv.new_code_cell("ebands_plotter = robot.get_ebands_plotter()"),
-            ]
+        path = f"gwan_spin{spin + 1}"
+        return GwanSpin(
+            spin=spin,
+            r_h=self.read_value("r_h", path=path),
+            r_e=self.read_value("r_e", path=path),
+            r_p=self.read_value("r_p", path=path),
+            ndegen_h=self.read_value("ndegen_h", path=path),
+            ndegen_e=self.read_value("ndegen_e", path=path),
+            ndegen_p=self.read_value("ndegen_p", path=path),
+            hwan_r=self.read_value("hwan_r", path=path, cmode="c"),
+            grpe_wwp=self.read_value("grpe_wwp", path=path, cmode="c"),
         )
-
-        # Mixins
-        # nb.cells.extend(self.get_baserobot_code_cells())
-        # nb.cells.extend(self.get_ebands_code_cells())
-
-        return self._write_nb_nbpath(nb, nbpath)

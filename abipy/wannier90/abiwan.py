@@ -387,6 +387,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         """
         ebands_kpath = ElectronBands.as_ebands(ebands_kpath)
         wan_ebands_kpath = self.interpolate_ebands(kpoints=ebands_kpath.kpoints)
+        #wan_ebands_kpath.set_fermie(ebands_kpath.fermie)
 
         key_edos = None
         if ebands_kmesh is not None:
