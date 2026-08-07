@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 from monty.bisect import find_ge, find_le
 from monty.collections import dict2namedtuple
-from monty.string import is_string, list_strings, marquee
+from monty.string import list_strings, marquee
 from monty.termcolor import cprint
 from tabulate import tabulate
 
@@ -199,7 +199,7 @@ class QPState(namedtuple("QPState", "spin kpoint band e0 qpe qpe_diago vxcme sig
         all_fields = list(cls.get_fields(exclude=["spin", "kpoint"]))[:]
 
         # Initialize fields.
-        if is_string(with_fields) and with_fields == "all":
+        if isinstance(with_fields, str) and with_fields == "all":
             fields = all_fields
         else:
             fields = list_strings(with_fields)
@@ -209,7 +209,7 @@ class QPState(namedtuple("QPState", "spin kpoint band e0 qpe qpe_diago vxcme sig
 
         # Remove entries
         if exclude_fields:
-            if is_string(exclude_fields):
+            if isinstance(exclude_fields, str):
                 exclude_fields = exclude_fields.split()
             for e in exclude_fields:
                 try:
@@ -2686,7 +2686,7 @@ class SigresRobot(Robot, RobotWithEbands):
             if hue is None:
                 # Extract QP data.
                 yvals = [getattr(qp, what) for qp in qplist]
-                if not is_string(params[0]):
+                if not isinstance(params[0], str):
                     ax.plot(params, yvals, marker=nc0.marker_spin[spin])
                 else:
                     # Must handle list of strings in a different way.

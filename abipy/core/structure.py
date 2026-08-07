@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 import pymatgen.core.units as pmg_units
 from monty.collections import AttrDict, dict2namedtuple
-from monty.string import is_string, list_strings, marquee
+from monty.string import list_strings, marquee
 from monty.termcolor import cprint
 from pymatgen.core.lattice import Lattice
 from pymatgen.core.sites import PeriodicSite
@@ -247,7 +247,7 @@ class Structure(pmg_Structure, NotebookWriter):
             # Handle ASE constraints e.g. ExpCellFilter. Note recursive call
             return Structure.as_structure(obj.atoms)
 
-        if is_string(obj):
+        if isinstance(obj, str):
             return cls.from_file(obj)
 
         if isinstance(obj, collections.abc.Mapping):

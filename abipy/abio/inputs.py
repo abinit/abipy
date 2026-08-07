@@ -22,7 +22,7 @@ import numpy as np
 import pandas as pd
 from monty.collections import dict2namedtuple
 from monty.json import MontyDecoder, MSONable
-from monty.string import is_string, list_strings
+from monty.string import list_strings
 from monty.termcolor import cprint
 from pymatgen.core.units import Energy
 from pymatgen.symmetry.bandstructure import HighSymmKpath
@@ -1579,7 +1579,7 @@ with the Abinit version you are using? Please contact the AbiPy developers."""
         """
         # Split items into varnames and values
         for i, item in enumerate(items):
-            if not is_string(item):
+            if not isinstance(item, str):
                 break
 
         varnames, values = items[:i], items[i:]
@@ -1789,7 +1789,7 @@ with the Abinit version you are using? Please contact the AbiPy developers."""
                 print(new_inp)
 
         """
-        if duck.is_string(varname_values[0]):
+        if isinstance(varname_values[0], str):
             # varname_values = ("nband", [8, 12, 14])
             varname, values = varname_values
             if len(values) == 1:
@@ -1879,7 +1879,7 @@ with the Abinit version you are using? Please contact the AbiPy developers."""
             # Get number of bands from input file taking into account *5 syntax
             nb = self["nband"]
             has_star = False
-            if duck.is_string(nb):
+            if isinstance(nb, str):
                 # Handle the case in which nband is specified with the `*91` syntax (occopt 2)
                 if nb.startswith("*"):
                     has_star = True

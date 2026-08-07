@@ -22,7 +22,7 @@ from monty.collections import AttrDict
 from monty.fnmatch import WildCard
 from monty.functools import return_none_if_raise
 from monty.json import MSONable
-from monty.string import is_string, list_strings
+from monty.string import list_strings
 from monty.termcolor import colored, cprint
 from pymatgen.core.units import Memory, UnitError
 
@@ -101,7 +101,7 @@ def nmltostring(nml: dict) -> str:
         for k, v in group.items():
             if isinstance(v, list) or isinstance(v, tuple):
                 namelist.append(k + " = " + ",".join(map(str, v)) + ",")
-            elif is_string(v):
+            elif isinstance(v, str):
                 namelist.append(k + " = '" + str(v) + "',")
             else:
                 namelist.append(k + " = " + str(v) + ",")
@@ -742,7 +742,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         if obj is None:
             return cls.from_user_config()
 
-        if is_string(obj):
+        if isinstance(obj, str):
             if os.path.exists(obj):
                 return cls.from_file(obj)
             return cls.from_string(obj)
@@ -2113,6 +2113,19 @@ class Task(Node, metaclass=abc.ABCMeta):
             return self.set_status(
                 self.S_ABICRITICAL, msg="Found ABINIT MPI abort file. This means Abinit run aborted!"
             )
+
+        # Check if the log file contains "BAD TERMINATION" or "KILLED BY SIGNAL"
+        if self.log_file.exists:
+            log_content = self.log_file.read()
+            if "BAD TERMINATION" in log_content or "KILLED BY SIGNAL" in log_content:
+                msg = "Task terminated abnormally. Found 'BAD TERMINATION' or 'KILLED BY SIGNAL' in log file."
+                details = []
+                for line in log_content.splitlines():
+                    if "BAD TERMINATION" in line or "KILLED BY SIGNAL" in line:
+                        details.append(line.strip())
+                if details:
+                    msg += " Details: " + " | ".join(details)
+                return self.set_status(self.S_ERROR, msg=msg)
 
         # Analyze the stderr file for Fortran runtime errors.
         # getsize is 0 if the file is empty or it does not exist.

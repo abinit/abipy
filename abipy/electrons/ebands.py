@@ -19,7 +19,7 @@ import pandas as pd
 from monty.bisect import find_gt, find_le
 from monty.collections import AttrDict, dict2namedtuple
 from monty.json import MontyEncoder
-from monty.string import is_string, list_strings, marquee
+from monty.string import list_strings, marquee
 from monty.termcolor import cprint
 from pymatgen.core import units
 from pymatgen.electronic_structure.core import Spin as PmgSpin
@@ -494,7 +494,7 @@ class ElectronBands(Has_Structure):
         if isinstance(obj, cls):
             return obj
 
-        if is_string(obj):
+        if isinstance(obj, str):
             # path?
             if obj.endswith(".pickle"):
                 with open(obj, "rb") as fh:
@@ -3038,7 +3038,7 @@ class ElectronBands(Has_Structure):
         """
         if e0 is None:
             return 0.0
-        if is_string(e0):
+        if isinstance(e0, str):
             if e0 == "fermie":
                 return self.fermie
             if e0 == "None":
@@ -5061,7 +5061,7 @@ class ElectronDos:
             edos_kwargs = {}
         if isinstance(obj, cls):
             return obj
-        if is_string(obj):
+        if isinstance(obj, str):
             # path?
             if obj.endswith(".pickle"):
                 with open(obj, "rb") as fh:
@@ -5156,7 +5156,7 @@ class ElectronDos:
         if e0 is None:
             return 0.0
 
-        if is_string(e0):
+        if isinstance(e0, str):
             if e0 == "fermie":
                 return self.fermie
             if e0 == "None":
@@ -6246,7 +6246,7 @@ class Bands3D(Has_Structure):
         """
         if e0 is None:
             return 0.0
-        if is_string(e0):
+        if isinstance(e0, str):
             if e0 == "fermie":
                 return self.fermie
             if e0 == "None":
@@ -6654,7 +6654,7 @@ class RobotWithEbands:
                 if hue is None:
                     # Extract data.
                     xvals, yvals = get_xy(item, spin, params, self.abifiles)
-                    if not is_string(xvals[0]):
+                    if not isinstance(xvals[0], str):
                         ax.plot(xvals, yvals, marker=marker_spin[spin], **kwargs)
                     else:
                         # Must handle list of strings in a different way.

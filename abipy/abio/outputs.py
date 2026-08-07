@@ -12,7 +12,7 @@ from io import StringIO
 
 import numpy as np
 import pandas as pd
-from monty.string import is_string, marquee
+from monty.string import marquee
 from monty.termcolor import cprint
 from pymatgen.core.units import bohr_to_ang
 
@@ -860,7 +860,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         # Open file here if we receive a string. Files will be closed before returning
         close_files = []
         for i, other in enumerate(others):
-            if is_string(other):
+            if isinstance(other, str):
                 others[i] = self.__class__.from_file(other)
                 close_files.append(i)
 
@@ -903,7 +903,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
         # Open file here if we receive a string. Files will be closed before returning
         close_files = []
         for i, other in enumerate(others):
-            if is_string(other):
+            if isinstance(other, str):
                 others[i] = self.__class__.from_file(other)
                 close_files.append(i)
 

@@ -15,7 +15,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 from monty.collections import dict2namedtuple
-from monty.string import is_string, list_strings, marquee
+from monty.string import list_strings, marquee
 from monty.termcolor import cprint
 from pymatgen.core.units import Energy, eV_to_Ha
 from pymatgen.phonon.bandstructure import PhononBandStructureSymmLine
@@ -233,7 +233,7 @@ class PhononBands:
         if isinstance(obj, cls):
             return obj
 
-        if is_string(obj):
+        if isinstance(obj, str):
             # path?
             if obj.endswith(".pickle"):
                 with open(obj, "rb") as fh:
@@ -1949,7 +1949,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         # Prepare PJDOS.
         close_phdos_file = False
         if phdos_file is not None:
-            if is_string(phdos_file):
+            if isinstance(phdos_file, str):
                 phdos_file = PhdosFile(phdos_file)
                 close_phdos_file = True
             elif not isinstance(phdos_file, PhdosFile):
@@ -2103,7 +2103,7 @@ See also <https://forum.abinit.org/viewtopic.php?f=10&t=545>
         # Prepare PJDOS.
         close_phdos_file = False
         if phdos_file is not None:
-            if is_string(phdos_file):
+            if isinstance(phdos_file, str):
                 phdos_file = PhdosFile(phdos_file)
                 close_phdos_file = True
             elif not isinstance(phdos_file, PhdosFile):
@@ -3651,7 +3651,7 @@ class PhononDos(Function1D):
         if isinstance(obj, cls):
             return obj
 
-        if is_string(obj):
+        if isinstance(obj, str):
             # path? (pickle or file supported by abiopen)
             if obj.endswith(".pickle"):
                 with open(obj, "rb") as fh:

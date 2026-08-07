@@ -10,7 +10,6 @@ import numpy as np
 import pymatgen.io.abinit.abiobjects as aobj
 from monty.collections import AttrDict
 from monty.json import MontyDecoder, MSONable, jsanitize
-from monty.string import is_string
 
 import abipy.abio.input_tags as atags
 import abipy.core.abinit_units as abu
@@ -94,7 +93,7 @@ class ShiftMode(Enum):
         """
         if isinstance(obj, cls):
             return obj
-        if is_string(obj):
+        if isinstance(obj, str):
             return cls(obj[0].upper())
         raise TypeError("The object provided is not handled: type %s" % type(obj))
 

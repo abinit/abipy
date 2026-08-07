@@ -10,7 +10,7 @@ from io import StringIO
 from typing import Any
 
 import numpy as np
-from monty.string import marquee  # is_string, list_strings,
+from monty.string import marquee
 from scipy.interpolate import UnivariateSpline
 
 try:

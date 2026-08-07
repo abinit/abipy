@@ -19,7 +19,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 from monty.json import MontyEncoder
-from monty.string import is_string, list_strings
+from monty.string import list_strings
 from monty.termcolor import cprint
 
 from abipy.core.mixins import NotebookWriter
@@ -471,7 +471,7 @@ class Robot(NotebookWriter):
             filter_abifile: Function that receives an ``abifile`` object and returns
                 True if the file should be added to the plotter.
         """
-        if is_string(abifile):
+        if isinstance(abifile, str):
             from abipy.abilab import abiopen
 
             print(f"{abifile=}")
@@ -1364,7 +1364,7 @@ Expecting callable or attribute name or key in abifile.params"""
     @staticmethod
     def plot_xvals_or_xstr_ax(ax, xs, yvals, fontsize, **kwargs) -> list:
         """Plot xs where xs can contain either numbers or strings."""
-        if not is_string(xs[0]):
+        if not isinstance(xs[0], str):
             lines = ax.plot(xs, yvals, **kwargs)
         else:
             # Must handle list of strings in a different way.

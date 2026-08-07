@@ -12,7 +12,6 @@ import os
 from subprocess import PIPE, Popen, run
 
 from monty.os import cd
-from monty.string import is_string
 from pymatgen.core.units import Memory, Time, UnitError
 
 from abipy.tools import duck
@@ -131,7 +130,7 @@ def timelimit_parser(s):
 
 def any2mb(s):
     """Convert string or number to memory in megabytes."""
-    if is_string(s):
+    if isinstance(s, str):
         try:
             # latest pymatgen version (as of july 2024)
             mem = int(Memory.from_str(s.upper()).to("MB"))

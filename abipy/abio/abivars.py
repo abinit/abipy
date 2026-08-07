@@ -8,7 +8,7 @@ from functools import cached_property
 from pprint import pformat  # , pprint
 
 import numpy as np
-from monty.string import boxed, is_string
+from monty.string import boxed
 from monty.termcolor import cprint
 from pymatgen.core.units import bohr_to_ang
 
@@ -81,7 +81,7 @@ def is_abiunit(s: str) -> bool:
     """
     True if string is one of the units supported by the ABINIT parser
     """
-    if not is_string(s):
+    if not isinstance(s, str):
         return False
     return s.lower() in ABI_UNIT_NAMES
 
@@ -128,7 +128,7 @@ def expand_star_syntax(s: str) -> str:
 
 
 def str2array_bohr(obj):
-    if not is_string(obj):
+    if not isinstance(obj, str):
         return np.asarray(obj)
 
     # Treat e.g. acell 3 * 1.0
@@ -150,7 +150,7 @@ def str2array_bohr(obj):
 
 
 def str2array(obj, dtype=float) -> np.ndarray:
-    if not is_string(obj):
+    if not isinstance(obj, str):
         return np.asarray(obj)
     if obj.startswith("*"):
         raise ValueError("This case should be treated by the caller: %s" % str(obj))

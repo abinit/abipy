@@ -20,7 +20,7 @@ import pandas as pd
 from monty.fnmatch import WildCard
 from monty.inspect import all_subclasses
 from monty.json import MontyDecoder, MSONable
-from monty.string import indent, is_string, list_strings
+from monty.string import indent, list_strings
 from monty.termcolor import colored
 from pymatgen.core.structure import Structure
 from ruamel import yaml
@@ -771,7 +771,7 @@ def as_event_class(obj):
     Convert obj into a subclass of AbinitEvent.
     obj can be either a class or a string with the class name or the YAML tag
     """
-    if is_string(obj):
+    if isinstance(obj, str):
         for c in all_subclasses(AbinitEvent):
             if c.__name__ == obj or c.yaml_tag == obj:
                 return c

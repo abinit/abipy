@@ -31,7 +31,7 @@ from monty.collections import AttrDict
 from monty.inspect import all_subclasses
 from monty.io import FileLock
 from monty.json import MSONable
-from monty.string import is_string, list_strings
+from monty.string import list_strings
 from pymatgen.core.units import Memory, UnitError
 
 from abipy.tools.iotools import AtomicFile
@@ -691,7 +691,7 @@ limits:
 
     def _parse_job(self, d: dict) -> None:
         setup = d.pop("setup", None)
-        if is_string(setup):
+        if isinstance(setup, str):
             setup = [setup]
         self.setup = setup[:] if setup is not None else []
 
@@ -699,7 +699,7 @@ limits:
         self.omp_env = omp_env.copy() if omp_env is not None else {}
 
         modules = d.pop("modules", None)
-        if is_string(modules):
+        if isinstance(modules, str):
             modules = [modules]
         self.modules = modules[:] if modules is not None else []
 
@@ -717,12 +717,12 @@ limits:
             self.shell_runner = MpiRunner(self.shell_runner, options=shell_runner_options)
 
         pre_run = d.pop("pre_run", None)
-        if is_string(pre_run):
+        if isinstance(pre_run, str):
             pre_run = [pre_run]
         self.pre_run = pre_run[:] if pre_run is not None else []
 
         post_run = d.pop("post_run", None)
-        if is_string(post_run):
+        if isinstance(post_run, str):
             post_run = [post_run]
         self.post_run = post_run[:] if post_run is not None else []
 
@@ -1164,7 +1164,7 @@ limits:
             se.add_emptyline()
 
         # Construct the string to run the executable with MPI and mpi_procs.
-        if is_string(executable):
+        if isinstance(executable, str):
             line = self.mpi_runner.string_to_run(
                 self, executable, in_file=in_file, stdin=stdin, stdout=stdout, stderr=stderr, exec_args=exec_args
             )
