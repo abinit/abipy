@@ -35,6 +35,7 @@ from monty.string import list_strings
 from pymatgen.core.units import Memory, UnitError
 
 from abipy.tools.iotools import AtomicFile
+from abipy.tools.numtools import is_string
 
 from . import qutils as qu
 from .launcher import ScriptEditor

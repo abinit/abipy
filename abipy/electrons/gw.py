@@ -28,6 +28,7 @@ from abipy.electrons.scissors import Scissors
 from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
 from abipy.tools.iotools import filepath_extract_differences
+from abipy.tools.numtools import is_string
 from abipy.tools.plotting import (
     ArrayPlotter,
     Marker,

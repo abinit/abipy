@@ -26,7 +26,7 @@ from abipy.core.mixins import NotebookWriter
 from abipy.core.structure import Structure
 from abipy.tools import duck
 from abipy.tools.iotools import make_executable
-from abipy.tools.numtools import sort_and_groupby
+from abipy.tools.numtools import is_string, sort_and_groupby
 from abipy.tools.plotting import (
     ConvergenceAnalyzer,
     add_fig_kwargs,

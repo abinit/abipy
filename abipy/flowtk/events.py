@@ -27,6 +27,7 @@ from ruamel import yaml
 from ruamel.yaml import YAML, yaml_object
 
 from abipy.tools.iotools import yaml_unsafe_load
+from abipy.tools.numtools import is_string
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, rotate_ticklabels, set_grid_legend
 from abipy.tools.serialization import pmg_serialize
 from abipy.tools.typing import Figure

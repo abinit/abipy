@@ -22,7 +22,7 @@ from abipy.core.mixins import Has_Structure
 from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader, Visualizer, cube, xsf
 from abipy.tools import duck
-from abipy.tools.numtools import transpose_last3dims
+from abipy.tools.numtools import is_string, transpose_last3dims
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend
 from abipy.tools.typing import Figure
 

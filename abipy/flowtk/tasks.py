@@ -29,6 +29,7 @@ from pymatgen.core.units import Memory, UnitError
 from abipy.core.globals import get_workdir
 from abipy.core.structure import Structure
 from abipy.tools.iotools import yaml_safe_load
+from abipy.tools.numtools import is_string
 from abipy.tools.serialization import json_pretty_dump, pmg_serialize
 from abipy.tools.typing import TYPE_CHECKING
 

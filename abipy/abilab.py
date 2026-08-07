@@ -497,6 +497,14 @@ def abicheck(verbose: int = 0) -> str:
 
     if manager is not None:
         cprint("AbiPy Manager:\n%s\n" % str(manager), color="green")
+
+        # Check that we use serial netcdf implementation
+        is_safe, msg = check_netcdf4_for_shell_submission(manager)
+        cprint(msg, "green" if is_safe else "red")
+        if not is_safe:
+            app(msg)
+
+        # Info on the Abinit build
         build = AbinitBuild(manager=manager)
         if not build.has_netcdf:
             app("Abinit executable does not support netcdf")
@@ -530,6 +538,111 @@ def abicheck(verbose: int = 0) -> str:
 
     return "\n".join(err_lines)
 
+# =========================================================================== #
+
+def check_netcdf4_for_shell_submission(manager=None) -> tuple[bool, str]:
+    """
+    Check whether the netCDF4/h5py packages importable in this Python
+    process are safe to use together with a "shell" TaskManager qadapter.
+
+    Background
+    -----------
+    AbiPy's :class:`~abipy.flowtk.qadapters.ShellAdapter` (used when
+    manager.yml declares ``qtype: shell``) launches the Abinit job as a
+    *direct* child process of the running Python interpreter, via
+    ``Popen(("/bin/bash", script_file), ...)``. Other adapters (slurm, pbs,
+    sge, ...) instead submit through a small helper command (sbatch, qsub,
+    ...) whose process tree is unrelated to the compute job, so they are
+    not affected by this issue.
+
+    If netCDF4 (or h5py) was built against a parallel (MPI-enabled)
+    HDF5/NetCDF stack, merely ``import netCDF4`` loads the MPI runtime
+    (libmpi/libopen-rte/...) into *this* process -- even if the calling
+    script never uses MPI directly (this happens transitively:
+    abipy.iotools eagerly imports pymatgen's netcdf reader, which eagerly
+    imports netCDF4, so it is triggered by plain ``import abipy.flowtk``).
+    When AbiPy later forks ``mpirun`` out of this same process via
+    ShellAdapter, the freshly-launched ``mpirun`` can fail immediately and
+    *silently*: zero-byte log/err files, task status QCritical, no
+    diagnostic anywhere, because it inherits/detects stale MPI runtime
+    state from its live ancestor.
+
+    Args:
+        manager: Optional TaskManager (or object exposing ``.qadapter.QTYPE``).
+            When given, the returned message is tailored to whether the
+            active qadapter is actually "shell" (the only one at risk).
+
+    Returns:
+        (is_safe, message):
+            is_safe is False only if netCDF4 and/or h5py report they were
+            built with MPI (parallel I/O) support. message explains the
+            finding and, if unsafe, how to fix it.
+    """
+    try:
+        import netCDF4
+    except ImportError:
+        return True, "netCDF4 is not installed/importable: nothing to check."
+
+    # netCDF4-python's own documented capability flags: report whether the
+    # compiled netCDF4/HDF5 C libraries were built with parallel (MPI)
+    # support. Portable (no /proc, no platform restriction) and more
+    # precise than inferring MPI linkage from loaded shared libraries.
+    has_parallel4 = bool(getattr(netCDF4, "__has_parallel4_support__", False))
+    has_pnetcdf = bool(getattr(netCDF4, "__has_pnetcdf_support__", False))
+
+    # h5py has the analogous, independently-set flag; check it too since
+    # an MPI-enabled h5py could cause the same issue via a different
+    # import path even if netCDF4 itself is serial.
+    h5py_mpi = False
+    try:
+        import h5py
+
+        h5py_mpi = bool(h5py.get_config().mpi)
+    except ImportError:
+        pass
+
+    if not (has_parallel4 or has_pnetcdf or h5py_mpi):
+        return True, "netCDF4/h5py report no MPI support: safe to use with shell-based job submission.\n"
+
+    qtype = None
+    if manager is not None:
+        try:
+            qtype = manager.qadapter.QTYPE
+        except AttributeError:
+            pass
+
+    if qtype == "shell":
+        risk_line = "Your TaskManager uses `qtype: shell`, so this WILL likely break job submission."
+    elif qtype is not None:
+        risk_line = f"Your TaskManager uses `qtype: {qtype}`, which is not affected by this issue."
+    else:
+        risk_line = "This will break job submission if your TaskManager uses `qtype: shell`."
+
+    offenders = []
+    if has_parallel4:
+        offenders.append("netCDF4.__has_parallel4_support__")
+    if has_pnetcdf:
+        offenders.append("netCDF4.__has_pnetcdf_support__")
+    if h5py_mpi:
+        offenders.append("h5py.get_config().mpi")
+
+    msg = (
+        "This Python environment's netCDF4/h5py were built with MPI (parallel I/O) support: "
+        + ", ".join(offenders) + " is True.\n"
+        "Merely importing these packages loads the MPI runtime (libmpi/libopen-rte/...) into "
+        "this process -- even if this script never uses MPI directly.\n"
+        + risk_line + "\n"
+        "AbiPy's ShellAdapter (qtype: shell) launches `mpirun` as a *direct child* of this "
+        "Python process; the freshly-launched `mpirun` can then fail immediately and silently: "
+        "task status QCritical, empty run.log/run.err, no other diagnostic.\n"
+        "Adapters that submit through a real queue (slurm, pbs, sge, ...) are not affected, "
+        "since the compute job runs under the queue daemon, not as a child of this process.\n"
+        "Fix: install/load a netCDF4 (and h5py) build linked against a serial (non-MPI) "
+        "HDF5/NetCDF stack.\n"
+    )
+    return False, msg
+
+# =========================================================================== #
 
 def install_config_files(workdir: str | None = None, force_reinstall: bool | None = False):
     """

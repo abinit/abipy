@@ -17,6 +17,7 @@ from abipy.abio.inputs import AbinitInput, MultiDataset
 
 # from pymatgen.io.abinit.pseudos import PseudoTable
 from abipy.core.structure import Structure
+from abipy.tools.numtools import is_string
 from abipy.tools.serialization import pmg_serialize
 
 __all__ = [
