@@ -3,4 +3,9 @@ param
 panel >= 0.13.0
 bokeh
 XlsxWriter  # For DataFrame.to_excel()
+# pandas.io.formats.style (used by panel's Tabulator, see abipy/panels/core.py::dfc)
+# requires jinja2>=3.1.5 at runtime, but no installed package declares that floor
+# in its own metadata (jupyterlab only needs >=3.0.3, bokeh only >=2.9), so pip
+# never upgrades past whatever satisfies those and 3.1.5+ must be pinned here.
+jinja2>=3.1.5
 #pymdown-extensions
