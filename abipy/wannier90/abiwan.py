@@ -265,8 +265,10 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
                     hks = np.diag(eigs_k[self.bands_in[spin]])
                     v_matrix = uk
                 else:
-                    # Select bands within the outer window
-                    # TODO: Test if bands_in?
+                    # ``lwindow`` is defined over the bands passed to Wannier90,
+                    # whereas ``eigs_k`` contains all the bands stored in ABIWAN.
+                    # Apply exclude_bands first, then select the outer window.
+                    eigs_k = eigs_k[self.bands_in[spin]]
                     mask = self.lwindow[spin, ik]
                     hks = np.diag(eigs_k[mask])
                     # v_matrix = u_matrix_opt[spin, ik][:num_wan, mask].transpose() @ uk
@@ -387,7 +389,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
         """
         ebands_kpath = ElectronBands.as_ebands(ebands_kpath)
         wan_ebands_kpath = self.interpolate_ebands(kpoints=ebands_kpath.kpoints)
-        #wan_ebands_kpath.set_fermie(ebands_kpath.fermie)
+        wan_ebands_kpath.set_fermie(ebands_kpath.fermie)
 
         key_edos = None
         if ebands_kmesh is not None:
@@ -401,6 +403,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
                 raise ValueError("Non diagonal k-meshes are not supported!")
 
             wan_ebands_kmesh = self.interpolate_ebands(ngkpt=ngkpt, shiftk=shifts)
+            wan_ebands_kmesh.set_fermie(ebands_kpath.fermie)
 
             edos_kws = dict(method=method, step=step, width=width)
             edos = ebands_kmesh.get_edos(**edos_kws)
@@ -492,6 +495,24 @@ class HWanR(ElectronInterpolator):
         """
         Interpolate eigenvalues for all bands at a given (spin, k-point).
         Optionally compute gradients and Hessian matrices.
+
+        .. warning::
+
+            This currently reproduces Wannier90 interpolation with
+            ``use_ws_distance = false``. Modern Wannier90 versions enable the
+            WS-distance correction by default and use pair-dependent translated
+            lattice vectors and degeneracies produced by
+            ``w90_ws_distance:ws_translate_dist`` (``irdist_ws`` and
+            ``wdist_ndeg``). A direct comparison for aluminium found differences
+            of about 0.05 eV on average and up to 0.26 eV along a k-path.
+
+            The present ABIWAN format stores only ``irvec`` and one ``ndegen``
+            per lattice vector, so the default Wannier90 result cannot be
+            reconstructed. A future format should also store the real-space
+            Hamiltonian and pair-dependent data from Wannier90's ``*_hr.dat``
+            and ``*_wsvec.dat`` files (which can be generated with
+            ``write_hr = true``). ABINIT's ``wan_interp_ham`` has the same
+            limitation.
 
         Args:
             spin: Spin index.
