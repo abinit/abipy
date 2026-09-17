@@ -1080,6 +1080,26 @@ class GstoreRobot(Robot, RobotWithEbands):
 
     EXT = "GSTORE"
 
+    @staticmethod
+    def _read_first_gstore_state_kqs(gstore):
+        """Read the first-file state table, or return None for legacy GSTORE files."""
+        varname = "gstore_glob_state_kqs"
+        if varname in gstore.r.rootgrp.variables:
+            return gstore.r.read_value(varname)
+
+        print(
+            f"{gstore.basename} does not provide the NetCDF variable {varname}. "
+            "Assuming all its (spin, q, k) entries were computed."
+        )
+        return None
+
+    @staticmethod
+    def _get_first_gstore_comparison_mask(state_kqs, spin: int, gvals: np.ndarray) -> np.ndarray:
+        """Select reconstructed entries, or every entry when the legacy state table is absent."""
+        if state_kqs is None:
+            return np.ones(gvals.shape[:2], dtype=bool)
+        return state_kqs[spin] == GSTORE_KQ_SYMMETRIZED
+
     def neq(self, ref_basename: str | None = None, verbose: int = 0) -> int:
         """
         Compare all GSTORE.nc files stored in the GstoreRobot
@@ -1190,6 +1210,8 @@ class GstoreRobot(Robot, RobotWithEbands):
 
         Only the (k, q) points that were actually reconstructed by symmetry in the first file
         (gstore_glob_state_kqs == GSTORE_KQ_SYMMETRIZED) are used for the statistics and the plots.
+        If the first file predates the ``gstore_glob_state_kqs`` variable, all of its entries are
+        assumed to have been computed and are included in the comparison.
         Including the directly-computed points (trivially expected to agree in both files) and
         flattening the whole (glob_nq, glob_nk, natom3, nb_kq, nb_k) array, as done previously,
         buries the actual test: e.g. (k, q) points that reconstruct exactly (diff ~1e-15) get
@@ -1258,13 +1280,18 @@ class GstoreRobot(Robot, RobotWithEbands):
         )
 
         # Read internal table with the state of (k, q, spin). Shape: (nsppol, glob_nq, glob_nk).
-        state1_kqs = g1.r.read_value("gstore_glob_state_kqs")
+        # Legacy GSTORE files do not have this recently added variable. Such files contain
+        # directly computed entries, so compare all their (q, k) points.
+        state1_kqs = self._read_first_gstore_state_kqs(g1)
         state2_kqs = g2.r.read_value("gstore_glob_state_kqs")
 
         if verbose:
-            print("state1_kqs vs state2_kqs")
-            for idx in np.ndindex(state1_kqs.shape):
-                print(f"{idx}: {state1_kqs[idx]}    {state2_kqs[idx]}")
+            if state1_kqs is None:
+                print("state1_kqs is unavailable; all first-file entries are assumed computed.")
+            else:
+                print("state1_kqs vs state2_kqs")
+                for idx in np.ndindex(state1_kqs.shape):
+                    print(f"{idx}: {state1_kqs[idx]}    {state2_kqs[idx]}")
 
         for spin in range(g1.nsppol):
             gvals1 = g1.gqk_spin[spin].gvals
@@ -1273,7 +1300,7 @@ class GstoreRobot(Robot, RobotWithEbands):
             if gvals1.shape != gvals2.shape:
                 raise ValueError(f"Shape mismatch for spin {spin}: {gvals1.shape} vs {gvals2.shape}")
 
-            sym_mask = state1_kqs[spin] == GSTORE_KQ_SYMMETRIZED  # (glob_nq, glob_nk)
+            sym_mask = self._get_first_gstore_comparison_mask(state1_kqs, spin, gvals1)
             n_sym = int(sym_mask.sum())
             if n_sym == 0:
                 cprint(f"Spin {spin}: no GSTORE_KQ_SYMMETRIZED (k, q) points found, skipping.", "yellow")
@@ -1492,6 +1519,9 @@ class GstoreRobot(Robot, RobotWithEbands):
         while still being fully sensitive to genuine errors (including phase errors for
         non-degenerate, i.e. 1x1, blocks).
 
+        If the first file predates the ``gstore_glob_state_kqs`` variable, all of its entries are
+        assumed to have been computed and are included in the comparison.
+
         Args:
             tol: Tolerance on the per-(k, q) max singular-value difference used to classify
                 a symmetrized point as an exact match.
@@ -1517,6 +1547,8 @@ class GstoreRobot(Robot, RobotWithEbands):
                     groups.append([int(order[i])])
             return groups
 
+        state1_kqs = self._read_first_gstore_state_kqs(g1)
+
         for spin in range(g1.nsppol):
             gqk1, gqk2 = g1.gqk_spin[spin], g2.gqk_spin[spin]
             gvals1, gvals2 = gqk1.gvals, gqk2.gvals
@@ -1524,8 +1556,7 @@ class GstoreRobot(Robot, RobotWithEbands):
             if gvals1.shape != gvals2.shape:
                 raise ValueError(f"Shape mismatch for spin {spin}: {gvals1.shape} vs {gvals2.shape}")
 
-            state1_kqs = g1.r.read_value("gstore_glob_state_kqs")
-            sym_mask = state1_kqs[spin] == GSTORE_KQ_SYMMETRIZED  # (glob_nq, glob_nk)
+            sym_mask = self._get_first_gstore_comparison_mask(state1_kqs, spin, gvals1)
             if not np.any(sym_mask):
                 cprint(f"Spin {spin}: no GSTORE_KQ_SYMMETRIZED (k, q) points found, skipping.", "yellow")
                 continue
