@@ -13,8 +13,7 @@ class TestGSphere(AbipyTest):
     def test_base(self):
         """Basic G-sphere methods"""
         ecut = 2
-        lattice = np.array([1.0, 0, 0, 0, 1, 0, 0, 0, 1])
-        lattice.shape = (3, 3)
+        lattice = np.array([1.0, 0, 0, 0, 1, 0, 0, 0, 1]).reshape((3, 3))
         kpoint = [0, 0, 0]
         gvecs = np.array([[0, 0, 0], [1, 0, 0]])
 
@@ -44,8 +43,7 @@ class TestGSphere(AbipyTest):
 
     def test_fft(self):
         """FFT transforms"""
-        rprimd = np.array([1.0, 0, 0, 0, 1, 0, 0, 0, 1])
-        rprimd.shape = (3, 3)
+        rprimd = np.array([1.0, 0, 0, 0, 1, 0, 0, 0, 1]).reshape((3, 3))
 
         mesh = Mesh3D((12, 3, 5), rprimd)
 

@@ -70,8 +70,8 @@ class GsrRobotPanel(PanelWithEbandsRobot):
         """
         PanelWithEbandsRobot.__init__(self, robot=robot, **params)
 
-        self.gsr_dataframe_btn = pnw.Button(name="Compute", button_type="primary")
-        self.transpose_gsr_dataframe = pnw.Checkbox(name="Transpose GSR dataframe")
+        self.gsr_dataframe_btn = pnw.Button(label="Compute", color="primary")
+        self.transpose_gsr_dataframe = pnw.Checkbox(label="Transpose GSR dataframe")
 
     @depends_on_btn_click("gsr_dataframe_btn")
     def on_gsr_dataframe_btn(self) -> pn.Column:

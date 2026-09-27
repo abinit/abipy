@@ -1119,7 +1119,7 @@ class Density(_DensityField):
         if isinstance(chgcar, str):
             chgcar = Chgcar.from_file(chgcar)
         if isinstance(poscar, str):
-            poscar = Poscar.from_file(poscar, check_for_POTCAR=False, read_velocities=False)
+            poscar = Poscar.from_file(poscar, check_for_potcar=False, read_velocities=False)
 
         nx, ny, nz = chgcar.dim
         nspinor = 1

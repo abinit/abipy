@@ -580,7 +580,7 @@ class OncvGui(AbipyParameterized):
         # self.out_runtests = pn.Column("## Basic tests:", sizing_mode="stretch_width")
 
         # Define buttons
-        self.execute_btn = pnw.Button(name="Execute", button_type="primary")
+        self.execute_btn = pnw.Button(label="Execute", color="primary")
         self.execute_btn.on_click(self.on_execute_btn)
 
         # This is the directory used to run oncvpsp when the user clicks execute_btn
@@ -588,10 +588,10 @@ class OncvGui(AbipyParameterized):
 
         # List storing all the inputs.
         self.input_history = []
-        self.history_btn = pnw.Button(name="Compare", button_type="primary")
+        self.history_btn = pnw.Button(label="Compare", color="primary")
         # self.history_btn.on_click(self.on_history_btn)
 
-        self.rc_qcut_btn = pnw.Button(name="Execute", button_type="primary")
+        self.rc_qcut_btn = pnw.Button(label="Execute", color="primary")
 
         self.plotlyFlag = plotlyFlag
 
@@ -719,7 +719,7 @@ class OncvGui(AbipyParameterized):
     def get_rc_widgets(self, oncv_input: OncvInput) -> pn.WidgetBox:
         """Return widgets to change the value of rc(l)"""
         menu_items = [(f"l = {l}", str(l)) for l in range(oncv_input.lmax + 1)]
-        menu_button = pnw.MenuButton(name="Change rc(l)", items=menu_items, button_type="primary")
+        menu_button = pnw.MenuButton(label="Change rc(l)", items=menu_items, color="primary")
         menu_button.on_click(self.on_change_rc)
         rc_l = {p.l: p.rc for p in oncv_input.lparams}
         help_str = f"""
@@ -732,7 +732,7 @@ The present values of rc_l are: {rc_l}
     def get_qcut_widgets(self, oncv_input: OncvInput) -> pn.WidgetBox:
         """Return widgets to change the value of qc(l)"""
         menu_items = [(f"l = {l}", str(l)) for l in range(oncv_input.lmax + 1)]
-        menu_button = pnw.MenuButton(name="Change qcut(l)", items=menu_items, button_type="primary")
+        menu_button = pnw.MenuButton(label="Change qcut(l)", items=menu_items, color="primary")
         menu_button.on_click(self.on_change_qcut)
         qc_l = {p.l: p.qcut for p in oncv_input.lparams}
         help_str = f"""
@@ -745,7 +745,7 @@ The present values are: {qc_l}
     def get_debl_widgets(self, oncv_input: OncvInput) -> pn.WidgetBox:
         """Return widgets to change the value of debl(l)"""
         menu_items = [(f"l = {l}", str(l)) for l in range(oncv_input.lmax + 1)]
-        menu_button = pnw.MenuButton(name="Change debl(l)", items=menu_items, button_type="primary")
+        menu_button = pnw.MenuButton(label="Change debl(l)", items=menu_items, color="primary")
         menu_button.on_click(self.on_change_debl)
         help_str = """
 Here one can change the value of debl(l) with fixed nproj(l).
@@ -754,7 +754,7 @@ Here one can change the value of debl(l) with fixed nproj(l).
 
     def get_rc5_widgets(self, oncv_input: OncvInput) -> pn.WidgetBox:
         """Return widgets to change the value of rc5"""
-        btn = pnw.Button(name="Run", button_type="primary")
+        btn = pnw.Button(label="Run", color="primary")
         btn.on_click(self.on_change_rc5)
         help_str = f"""
 Here one can change the value of rc5 for vloc.
@@ -765,7 +765,7 @@ The present value of rc5 is {oncv_input.rc5} and min(rc) is: {oncv_input.get_min
 
     def get_dvloc0_widgets(self, oncv_input: OncvInput) -> pn.WidgetBox:
         """Return widgets to change the value of dvloc0"""
-        btn = pnw.Button(name="Run", button_type="primary")
+        btn = pnw.Button(label="Run", color="primary")
         btn.on_click(self.on_change_dvloc0)
         help_str = f"""
 Here one can change the value of dvloc0 for vloc.
@@ -776,7 +776,7 @@ The present value of dvloc0 is {oncv_input.dvloc0} with lpopt: {oncv_input.lpopt
 
     def get_rhomodel_widgets(self, oncv_input: OncvInput) -> pn.WidgetBox:
         """Return widgets to change the parameters for the model core charge"""
-        btn = pnw.Button(name="Run", button_type="primary")
+        btn = pnw.Button(label="Run", color="primary")
         btn.on_click(self.on_change_rhomodel)
         help_str = f"""
 Here one can change the parameters for the model core charge.
@@ -1128,7 +1128,7 @@ The present value of icmod is {oncv_input.icmod} with fcfact: {oncv_input.fcfact
         oncv_input = self.get_oncv_input()
 
         menu_items = [(f"l = {l}", str(l)) for l in range(oncv_input.lmax + 1)]
-        menu_button = pnw.MenuButton(name="Change qcut(l)", items=menu_items, button_type="primary")
+        menu_button = pnw.MenuButton(label="Change qcut(l)", items=menu_items, color="primary")
         menu_button.on_click(self.on_change_rc_qcut)
         qc_l = {p.l: p.qcut for p in oncv_input.lparams}
         rc_l = {p.l: p.rc for p in oncv_input.lparams}
@@ -1246,7 +1246,7 @@ The present values of rc_l are: {rc_l}
             else:
                 _m = functools.partial(mpl, with_divider=False, dpi=self.dpi)
 
-            save_btn = pnw.Button(name="Save output", button_type="primary")
+            save_btn = pnw.Button(label="Save output", color="primary")
             save_btn.on_click(self.on_save_btn)
 
             new_rows = [

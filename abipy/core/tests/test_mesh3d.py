@@ -81,8 +81,7 @@ class TestMesh3D(AbipyTest):
 
     def test_fft(self):
         """Test FFT transforms with mesh3d"""
-        rprimd = np.array([1.0, 0, 0, 0, 1, 0, 0, 0, 1])
-        rprimd.shape = (3, 3)
+        rprimd = np.array([1.0, 0, 0, 0, 1, 0, 0, 0, 1]).reshape((3, 3))
         mesh = Mesh3D((12, 3, 5), rprimd)
 
         extra_dims = [(), 1, (2,), (3, 1)]

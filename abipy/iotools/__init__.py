@@ -57,20 +57,13 @@ class ETSF_Reader(ETSF_Reader):
         Args:
             varname: Name of the variable
         """
-        b = self.rootgrp.variables[varname][:]
-        # print(type(b))
-        import netCDF4
-
-        try:
-            value = netCDF4.chartostring(b)[()].decode("utf-8")
-        except Exception:
-            try:
-                value = netCDF4.chartostring(b)[()]
-            except Exception:
-                try:
-                    value = "".join(c for c in self.read_value(varname))
-                except TypeError as exc:
-                    value = "".join(c.decode("utf-8") for c in self.read_value(varname))
+        chars = np.asarray(self.rootgrp.variables[varname][:]).ravel()
+        if chars.dtype.kind == "S":
+            value = b"".join(chars.tolist()).decode("utf-8")
+        elif chars.dtype.kind == "U":
+            value = "".join(chars.tolist())
+        else:
+            value = "".join(str(c) for c in chars)
 
         return value.strip()
 
