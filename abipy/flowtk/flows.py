@@ -36,6 +36,7 @@ from tabulate import tabulate
 from abipy.core.globals import get_workdir
 from abipy.flowtk import wrappers
 from abipy.tools.iotools import AtomicFile
+from abipy.tools.numtools import is_string
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
 from abipy.tools.printing import print_dataframe
 from abipy.tools.serialization import mjson_loads, pmg_pickle_dump, pmg_pickle_load, pmg_serialize

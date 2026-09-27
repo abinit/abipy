@@ -44,7 +44,7 @@ from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
 from abipy.tools.context_managers import Timer
 from abipy.tools.decorators import memoized_method
-from abipy.tools.numtools import gaussian
+from abipy.tools.numtools import gaussian, is_string
 from abipy.tools.plotting import (
     PlotlyRowColDesc,
     add_fig_kwargs,

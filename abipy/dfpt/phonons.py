@@ -30,7 +30,7 @@ from abipy.core.mixins import AbinitNcFile, Has_PhononBands, Has_Structure, Note
 from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
-from abipy.tools.numtools import gaussian, sort_and_groupby
+from abipy.tools.numtools import gaussian, is_string, sort_and_groupby
 from abipy.tools.plotting import (
     PlotlyRowColDesc,
     add_fig_kwargs,
