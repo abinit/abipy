@@ -750,6 +750,8 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         ignore_imag: bool = False,
         with_params: bool = True,
         with_geo: bool = False,
+        iter: int | None = None,
+        use_pade: bool = False,
     ) -> pd.Dataframe:
         """
         Returns a |pandas-DataFrame| with the QP results for the given (spin, k-point).
@@ -761,13 +763,15 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             ignore_imag: Only real part is returned if ``ignore_imag``.
             with_params: True if GWR parameters should be included.
             with_geo: True if geometry info should be included.
+            iter: Iteration index. If None, variables are read from the root level.
+            use_pade: True if qp_pade should be used.
         """
         rows, bands = [], []
 
         if with_geo:
             geo_dict = self.structure.get_dict4pandas(with_spglib=True)
 
-        qp_list = self.r.read_qplist_sk(spin, kpoint, ignore_imag=ignore_imag)
+        qp_list = self.r.read_qplist_sk(spin, kpoint, ignore_imag=ignore_imag, iter=iter, use_pade=use_pade)
         for qp in qp_list:
             bands.append(qp.band)
             d = qp.as_dict()
@@ -1101,8 +1105,15 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         # at the HOMO of the KS bands.
         homos = ks_ebands_kpath.homos if ks_ebands_kpath is not None else self.ebands.homos
         qp_fermie = self.ebands.fermie
-        if self.r.min_bstart == 0:
-            qp_fermie = max([eigens_kpath[e.spin, e.kidx, e.band] for e in homos])
+
+        if ks_ebands_kpath is not None:
+            qp_fermie = max([np.max(eigens_kpath[e.spin, :, e.band]) for e in homos])
+        elif self.r.min_bstart == 0:
+            qp_fermie = max([np.max(eigens_kpath[e.spin, :, e.band]) for e in homos])
+        else:
+            # Check if all HOMOs are within the GW corrected bands
+            if all(self.r.min_bstart <= e.band < self.r.min_bstop for e in homos):
+                qp_fermie = max([np.max(eigens_kpath[e.spin, :, e.band - self.r.min_bstart]) for e in homos])
 
         qp_ebands_kpath = ElectronBands(
             self.structure,
@@ -1647,7 +1658,7 @@ class GwrReader(ETSF_Reader):
         return tuple(qps_spin)
 
     def read_qplist_sk(
-        self, spin: int, kpoint: KptSelect, band: int = None, ignore_imag: bool = False, iter: int = None
+        self, spin: int, kpoint: KptSelect, band: int = None, ignore_imag: bool = False, iter: int = None, use_pade: bool = False
     ) -> QPList:
         """
         Read and return a QPList object for the given spin, kpoint.
@@ -1659,6 +1670,7 @@ class GwrReader(ETSF_Reader):
             ignore_imag: Only real part is returned if ``ignore_imag``.
             iter: Iteration index (e.g. for self-consistent GW calculations).
                 If None, variables are read from the root level.
+            use_pade: If True, the QP energy is read from the variable qp_pade instead of qpz_ene.
         """
         ikcalc, kpoint = self.get_ikcalc_kpoint(kpoint)
         path = f"iter{iter}" if iter else "/"
@@ -1680,6 +1692,11 @@ class GwrReader(ETSF_Reader):
             # Read ze0
             ze0 = self.read_variable("ze0_kcalc", path=path)[spin, ikcalc, ib]
             ze0 = ze0[0] + 1j * ze0[1]
+
+            if use_pade:
+                # Read qp_pade (in eV)
+                qpe = self.read_variable("qp_pade", path=path)[spin, ikcalc, ib] * abu.Ha_eV
+                qpe = qpe[0] + 1j * qpe[1]
 
             # Read sigxme
             if "sigx_mat" in self.read_varnames(path=path):
@@ -1773,10 +1790,10 @@ class GwrRobot(Robot, RobotWithEbands):
         if len(self.abifiles) in (0, 1):
             return
 
-        for label, gwr_file in self.items():
+        for label, gwr_file in list(self.items()):
             if gwr_file.completed:
                 continue
-            cprint("Ignoring {label} as GWR file is not completed", color="yellow")
+            cprint(f"Ignoring {label} as GWR file is not completed", color="yellow")
             self.pop_label(label)
 
         # Check dimensions and self-energy states and issue warning.

@@ -13,12 +13,12 @@ import pandas as pd
 import spglib
 from monty.collections import dict2namedtuple
 from monty.itertools import iuptri
-from monty.string import is_string
 from monty.termcolor import cprint
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
 from abipy.core.kpoints import has_timrev_from_kptopt, issamek, wrap_to_ws
 from abipy.core.mixins import SlotPickleMixin
+from abipy.tools.numtools import is_string
 
 __all__ = [
     "AbinitSpaceGroup",
@@ -1465,7 +1465,7 @@ def spgid2sch(spgid):
 
 def any2sch(obj):
     """Convert string or int to Schoenflies symbol. Returns None if invalid input"""
-    if is_string(obj):
+    if isinstance(obj, str):
         if obj in sch_symbols:
             return obj
         # Try Hermann-Mauguin

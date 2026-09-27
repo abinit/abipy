@@ -20,13 +20,13 @@ import abipy.data as abidata
 from typing import Optional
 from functools import wraps
 from shutil import which
-from monty.string import is_string
 from pymatgen.util.testing import PymatgenTest
 
 # TODO
 # from pymatgen.util.testing import MatSciTest
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput, MultiDataset
+from abipy.tools.numtools import is_string
 
 root = os.path.dirname(__file__)
 
@@ -201,7 +201,7 @@ def input_equality_check(ref_file, input2, rtol=1e-05, atol=1e-08, equal_nan=Fal
             _error = check_int(v, w)
         elif isinstance(v, float):
             _error = check_float(v, w)
-        elif is_string(v):
+        elif isinstance(v, str):
             _error = check_str(v, w)
         return _error
 
