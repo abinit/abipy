@@ -60,7 +60,7 @@ dependencies = [
     "numpy",
     "packaging",
     "pandas",
-    "phonopy",
+    "phonopy<4.0",
     "seekpath",
     "plotly",
     "pydispatcher>=2.0.5",
