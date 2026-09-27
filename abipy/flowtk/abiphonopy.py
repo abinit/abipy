@@ -90,8 +90,12 @@ class PhonopyWork(Work):
             raise ValueError(f"Expecting 3 int in scdims but got {scdims=}")
 
         supercell_matrix = np.diag(scdims)
-        phonopy_kwargs = phonopy_kwargs if phonopy_kwargs is not None else {}
+        phonopy_kwargs = dict(phonopy_kwargs) if phonopy_kwargs is not None else {}
         nac_params = phonopy_kwargs.pop("nac_params", None)
+        # Phonopy 4 changed the default from the identity matrix to automatic
+        # primitive-cell detection. Keep the established AbiPy behavior while
+        # allowing callers to opt into the new behavior with ``"auto"``.
+        phonopy_kwargs.setdefault("primitive_matrix", "P")
         new.phonon = phonon = Phonopy(unitcell, supercell_matrix, **phonopy_kwargs)
         if nac_params is not None:
             phonon.nac_params = nac_params
