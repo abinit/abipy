@@ -67,13 +67,56 @@ dependencies = [
     "pymatgen",
     "monty",
     "pyyaml>=3.11",
+    "ruamel.yaml>=0.16.12",
     "scipy",
     "seaborn",
     "spglib",
+    "sympy",
     "tabulate",
     "tqdm",
 ]
 version = "1.0.0"
+
+[project.optional-dependencies]
+optional = [
+    "ipywidgets",
+    "jupyter",
+    "nbformat",
+    "networkx",
+    "pygments",
+    "scikit-image",
+]
+panel = [
+    "bokeh",
+    "jinja2>=3.1.5",
+    "panel>=0.13.0",
+    "param",
+    "XlsxWriter",
+]
+tests = [
+    "pytest",
+    "pytest-cov",
+    "pytest-sugar",
+    "pytest-xdist",
+    "python-coveralls",
+    "scripttest",
+]
+docs = [
+    "graphviz",
+    "jupyter-sphinx",
+    "scikit-image",
+    "sphinx",
+    "sphinx-argparse",
+    "sphinx-autodoc-typehints",
+    "sphinx-gallery",
+    "sphinx-rtd-theme",
+    "sphinxcontrib-bibtex",
+    "sphinxcontrib-napoleon",
+    "sphinxcontrib-programoutput",
+]
+dev = [
+    "invoke",
+]
 
 [project.urls]
 Homepage = "https://github.com/abinit/abipy"
@@ -82,9 +125,6 @@ Documentation = "https://abinit.github.io/abipy/"
 Repository = "https://github.com/abinit/abipy"
 Issues = "https://github.com/abinit/abipy/issues"
 Pypi = "https://pypi.org/project/abipy"
-
-#[project.optional-dependencies]
-#abinit = ["netcdf4>=1.7.2"]
 
 #[project.scripts]
 #pmg = "pymatgen.cli.pmg:main"
