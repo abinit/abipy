@@ -420,11 +420,11 @@ class ElectronBands(Has_Structure):
         Build object from a binary string with the netcdf data.
         Useful for implementing GUIs in which widgets returns binary data.
         """
-        workdir = tempfile.mkdtemp()
         fd, tmp_path = tempfile.mkstemp(suffix=".nc")
-        with open(tmp_path, "wb") as fh:
+        with os.fdopen(fd, "wb") as fh:
             fh.write(bstring)
-            return cls.from_file(tmp_path)
+
+        return cls.from_file(tmp_path)
 
     @classmethod
     def from_dict(cls, d: dict) -> ElectronBands:
