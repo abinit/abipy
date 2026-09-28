@@ -646,8 +646,8 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         ax.legend(loc="upper left", fontsize=fontsize)
 
         if with_inset:
-            from mpl_toolkits.axes_grid1.inset_locator import inset_axes
             from matplotlib.patches import Rectangle
+            from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
             full_max = max(float(x.max()), float(y.max())) * 1.02
 
@@ -1377,7 +1377,7 @@ class GstoreRobot(Robot, RobotWithEbands):
                 ax.scatter(x[~matched], y[~matched], s=1, alpha=0.3, rasterized=True, color="C3",
                            label=f"mismatched (k,q): {n_sym - n_ok}/{n_sym}")
 
-            ax.plot([0, max_val], [0, max_val], 'k--', lw=0.5, label="y = x")
+            ax.plot([0, max_val], [0, max_val], "k--", lw=0.5, label="y = x")
             mark_outliers(ax, x, y)
             _add_fit_annotation(ax, x, y, xlim=(0, max_val), fontsize=fontsize)
 
@@ -1422,7 +1422,7 @@ class GstoreRobot(Robot, RobotWithEbands):
             # +-360 deg helper lines so points wrapped across the +-180 deg branch cut still
             # land "on the diagonal" instead of looking like spurious large mismatches.
             for offset, ref_label in ((0, "y = x"), (-360, None), (360, None)):
-                ax.plot([-180, 180], [-180 + offset, 180 + offset], 'k--', lw=0.5, label=ref_label)
+                ax.plot([-180, 180], [-180 + offset, 180 + offset], "k--", lw=0.5, label=ref_label)
             mark_outliers(ax, phase1, phase2)
             _add_fit_annotation(ax, phase1[has_signal], phase2[has_signal], xlim=(-180, 180),
                                  wrap=True, fontsize=fontsize)
@@ -1454,7 +1454,7 @@ class GstoreRobot(Robot, RobotWithEbands):
                 ax.scatter(real1[~matched], real2[~matched], s=1, alpha=0.3, rasterized=True, color="C3",
                            label=f"mismatched (k,q): {n_sym - n_ok}/{n_sym}")
 
-            ax.plot([-lim, lim], [-lim, lim], 'k--', lw=0.5, label="y = x")
+            ax.plot([-lim, lim], [-lim, lim], "k--", lw=0.5, label="y = x")
             mark_outliers(ax, real1, real2)
             _add_fit_annotation(ax, real1, real2, xlim=(-lim, lim), fontsize=fontsize)
 
@@ -1485,7 +1485,7 @@ class GstoreRobot(Robot, RobotWithEbands):
                 ax.scatter(imag1[~matched], imag2[~matched], s=1, alpha=0.3, rasterized=True, color="C3",
                            label=f"mismatched (k,q): {n_sym - n_ok}/{n_sym}")
 
-            ax.plot([-lim, lim], [-lim, lim], 'k--', lw=0.5, label="y = x")
+            ax.plot([-lim, lim], [-lim, lim], "k--", lw=0.5, label="y = x")
             mark_outliers(ax, imag1, imag2)
             _add_fit_annotation(ax, imag1, imag2, xlim=(-lim, lim), fontsize=fontsize)
 

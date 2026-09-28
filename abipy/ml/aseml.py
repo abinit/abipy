@@ -34,6 +34,7 @@ from ase.io.vasp import write_vasp, write_vasp_xdatcar
 from ase.md.npt import NPT
 from ase.md.nptberendsen import Inhomogeneous_NPTBerendsen, NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
+
 try:
     from ase.md.velocitydistribution import thermalize_momenta
 except ImportError:

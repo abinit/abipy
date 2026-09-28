@@ -390,7 +390,7 @@ class GwrSelfEnergy(SelfEnergy):
     def plot_pade(
         self,
         pade_methods: list[str],
-        wmesh: None | np.ndarray = None,
+        wmesh: np.ndarray | None = None,
         ref_data: PadeData | None = None,
         ax_mat=None,
         fontsize: int = 8,
@@ -1033,7 +1033,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
 
         # Read QP energies
         # varname = "qpz_ene"
-        egw_rarr = self.r.read_value(varname, cmode="c", path=f"iter{iter}" if iter else '/').real * abu.Ha_eV
+        egw_rarr = self.r.read_value(varname, cmode="c", path=f"iter{iter}" if iter else "/").real * abu.Ha_eV
 
         if ks_ebands_kpath is not None:
             # Compute QP corrections
@@ -1106,14 +1106,11 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         homos = ks_ebands_kpath.homos if ks_ebands_kpath is not None else self.ebands.homos
         qp_fermie = self.ebands.fermie
 
-        if ks_ebands_kpath is not None:
+        if ks_ebands_kpath is not None or self.r.min_bstart == 0:
             qp_fermie = max([np.max(eigens_kpath[e.spin, :, e.band]) for e in homos])
-        elif self.r.min_bstart == 0:
-            qp_fermie = max([np.max(eigens_kpath[e.spin, :, e.band]) for e in homos])
-        else:
-            # Check if all HOMOs are within the GW corrected bands
-            if all(self.r.min_bstart <= e.band < self.r.min_bstop for e in homos):
-                qp_fermie = max([np.max(eigens_kpath[e.spin, :, e.band - self.r.min_bstart]) for e in homos])
+        # Check if all HOMOs are within the GW corrected bands
+        elif all(self.r.min_bstart <= e.band < self.r.min_bstop for e in homos):
+            qp_fermie = max([np.max(eigens_kpath[e.spin, :, e.band - self.r.min_bstart]) for e in homos])
 
         qp_ebands_kpath = ElectronBands(
             self.structure,

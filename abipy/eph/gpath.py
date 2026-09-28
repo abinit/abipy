@@ -5,8 +5,8 @@ the e-ph matrix elements along a k/q path
 
 from __future__ import annotations
 
-from functools import cached_property
 import warnings
+from functools import cached_property
 
 import numpy as np
 from monty.string import marquee

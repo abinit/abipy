@@ -37,8 +37,7 @@ from abipy.core.structure import Structure
 from abipy.flowtk import AbinitTask, AnaddbTask, NetcdfReader, ParalHintsParser, Pseudo, PseudoTable
 from abipy.flowtk import abiobjects as aobj
 from abipy.flowtk.abiinspect import yaml_read_irred_perts
-from abipy.tools import duck
-from abipy.tools.numtools import is_diagonal, is_string
+from abipy.tools.numtools import is_diagonal
 from abipy.tools.serialization import pmg_serialize
 
 from .enums import GWR_TASK, RUNL  # WFK_TASK,

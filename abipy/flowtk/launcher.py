@@ -19,7 +19,6 @@ from monty.io import get_open_fds
 from monty.string import boxed
 from monty.termcolor import cprint
 
-from abipy.tools.numtools import is_string
 from abipy.tools.iotools import ask_yesno, yaml_safe_load
 from abipy.tools.typing import TYPE_CHECKING
 
