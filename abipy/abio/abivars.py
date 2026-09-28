@@ -267,7 +267,7 @@ class Dataset(dict, Has_Structure):
             if "rprim" in self:
                 raise ValueError("rprim and angdeg cannot be used together!")
             angdeg = str2array(self["angdeg"])
-            angdeg.shape = 3
+            angdeg = angdeg.reshape(3)
             kwargs["angdeg"] = angdeg
         else:
             # Handle structure specified with rprim.

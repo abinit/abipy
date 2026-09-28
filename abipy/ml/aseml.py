@@ -34,7 +34,11 @@ from ase.io.vasp import write_vasp, write_vasp_xdatcar
 from ase.md.npt import NPT
 from ase.md.nptberendsen import Inhomogeneous_NPTBerendsen, NPTBerendsen
 from ase.md.nvtberendsen import NVTBerendsen
-from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
+try:
+    from ase.md.velocitydistribution import thermalize_momenta
+except ImportError:
+    # ase < 3.29
+    from ase.md.velocitydistribution import MaxwellBoltzmannDistribution as thermalize_momenta
 from ase.mep import NEB
 from ase.optimize.optimize import Optimizer
 from ase.stress import full_3x3_to_voigt_6_stress, voigt_6_to_full_3x3_stress
@@ -2511,8 +2515,8 @@ class MlMd(MlBase):
         # forces = self.atoms.get_forces()
 
         if not append_trajectory:
-            print("Setting momenta corresponding to the input temperature using MaxwellBoltzmannDistribution.")
-            MaxwellBoltzmannDistribution(self.atoms, temperature_K=self.temperature)
+            print("Setting momenta corresponding to the input temperature using a Maxwell-Boltzmann distribution.")
+            thermalize_momenta(self.atoms, temperature_K=self.temperature)
         else:
             prev_steps = self.steps
             self.steps = self.steps - (len_traj * self.loginterval)

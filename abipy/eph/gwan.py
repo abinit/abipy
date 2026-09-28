@@ -127,7 +127,7 @@ class GwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
                 f"nr_e={data.nr_e}, nr_p={data.nr_p}"
             )
         if verbose > 1:
-            lines.extend(["", self.hdr.to_string(verbose=verbose, title="Abinit Header")])
+            lines.extend(["", self.hdr.to_str(verbose=verbose, title="Abinit Header")])
         return "\n".join(lines)
 
     @add_fig_kwargs

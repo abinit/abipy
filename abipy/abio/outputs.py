@@ -438,7 +438,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
             if "symafm" in spgd:
                 symafm = np.array([int(n) for n in spgd["symafm"].split()], dtype=int)
-                symafm.shape = (nsym,)
+                symafm = symafm.reshape((nsym,))
             else:
                 symafm = np.ones(nsym, dtype=int)
 

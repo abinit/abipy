@@ -5388,7 +5388,7 @@ class PhononBandsPlotter(NotebookWriter):
 
         sns.boxplot(x="mode", y=yname, data=data, hue="label", ax=ax, **kwargs)
         if swarm:
-            sns.swarmplot(x="mode", y=yname, data=data, hue="label", color=".25", ax=ax)
+            sns.swarmplot(x="mode", y=yname, data=data, hue="label", palette="dark:.25", ax=ax)
 
         return fig
 

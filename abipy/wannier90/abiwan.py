@@ -199,7 +199,7 @@ class AbiwanFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Not
 
         if verbose > 1:
             app("")
-            app(self.hdr.to_string(verbose=verbose, title="Abinit Header"))
+            app(self.hdr.to_str(verbose=verbose, title="Abinit Header"))
             if verbose >= 2:
                 app("irvec and ndegen")
                 for r, n in zip(self.irvec, self.ndegen, strict=False):

@@ -1418,11 +1418,11 @@ class Structure(pmg_Structure, NotebookWriter):
         print("Finding neighbors for each atom in the unit cell, out to a distance %s (Angstrom)" % radius)
         print(" ")
 
-        ns = self.get_all_neighbors_old(radius, include_index=False)
+        ns = self.get_all_neighbors(radius)
         for i, (site, sited_list) in enumerate(zip(self, ns, strict=False)):
             print("[%s] site %s has %s neighbors:" % (i, repr(site), len(sited_list)))
-            for s, dist in sorted(sited_list, key=lambda t: t[1]):
-                print("\t", repr(s), " at distance", dist)
+            for nn in sorted(sited_list, key=lambda t: t.nn_distance):
+                print("\t", repr(nn), " at distance", nn.nn_distance)
             print()
 
     @cached_property

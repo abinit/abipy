@@ -19,6 +19,16 @@ from abipy.dfpt.converters import (
 )
 from abipy.dfpt.ddb import DdbFile
 
+
+def get_phonopy_freqs(phonon, qpoints):
+    """Compute phonopy frequencies at the given qpoints. Works with both the old and new phonopy API."""
+    qpoints_phonon = phonon.run_qpoints([q.frac_coords for q in qpoints])
+    if qpoints_phonon is not None:
+        # phonopy >= 4: run_qpoints returns a QpointsPhonon object.
+        return qpoints_phonon.frequencies
+    return phonon.get_qpoints_dict()["frequencies"]
+
+
 try:
     from phonopy import Phonopy
     from phonopy.file_IO import parse_BORN, parse_FORCE_CONSTANTS
@@ -60,7 +70,7 @@ class ConverterTest(AbipyTest):
         # remove nac_params to be sure that this does not enter into play.
         # There should be no nac_params anyway here.
         phonon.nac_params = None
-        phfreqs_phonopy = np.array([phonon.get_frequencies(q.frac_coords) for q in qpoints])
+        phfreqs_phonopy = get_phonopy_freqs(phonon, qpoints)
 
         out_ddb_path = os.path.join(tmp_dir, "out_DDB")
 
@@ -109,7 +119,7 @@ class ConverterTest(AbipyTest):
         nac = phonon.nac_params
         # remove nac_params to be sure that this does not enter into play.
         phonon.nac_params = None
-        phfreqs_phonopy = np.array([phonon.get_frequencies(q.frac_coords) for q in qpoints])
+        phfreqs_phonopy = get_phonopy_freqs(phonon, qpoints)
 
         out_ddb_path = os.path.join(tmp_dir, "out_DDB")
 
@@ -179,8 +189,8 @@ class ConverterTest(AbipyTest):
         phonon_orig = Phonopy(unitcell=phonon_conv.unitcell, supercell_matrix=scm, primitive_matrix=np.eye(3))
         phonon_orig.force_constants = orig_fc
 
-        phfreqs_phonopy_orig = np.array([phonon_orig.get_frequencies(q.frac_coords) for q in qpoints])
-        phfreqs_phonopy_conv = np.array([phonon_conv.get_frequencies(q.frac_coords) for q in qpoints])
+        phfreqs_phonopy_orig = get_phonopy_freqs(phonon_orig, qpoints)
+        phfreqs_phonopy_conv = get_phonopy_freqs(phonon_conv, qpoints)
 
         run_ana = os.path.join(tmp_dir, "run_anaddb")
         phbands = ddb.anaget_phmodes_at_qpoints(
