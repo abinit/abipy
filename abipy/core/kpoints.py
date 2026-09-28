@@ -1339,8 +1339,7 @@ class Kpath(KpointList):
 
         gmet = structure.lattice.reciprocal_lattice.metric_tensor
         vnames = [str(vn[1]) for vn in vertices_names]
-        vertices = np.array([vn[0] for vn in vertices_names], dtype=float)
-        vertices.shape = (-1, 3)
+        vertices = np.array([vn[0] for vn in vertices_names], dtype=float).reshape((-1, 3))
 
         dl_vals = []
         for ik, k0 in enumerate(vertices[:-1]):

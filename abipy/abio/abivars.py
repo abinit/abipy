@@ -15,7 +15,6 @@ from pymatgen.core.units import bohr_to_ang
 from abipy.abio.abivar_database.variables import get_codevars
 from abipy.core.mixins import Has_Structure, NotebookWriter, TextFile
 from abipy.core.structure import Structure, dataframes_from_structures
-from abipy.tools.numtools import is_string
 
 __all__ = [
     "AbinitInputFile",
@@ -267,7 +266,7 @@ class Dataset(dict, Has_Structure):
             if "rprim" in self:
                 raise ValueError("rprim and angdeg cannot be used together!")
             angdeg = str2array(self["angdeg"])
-            angdeg.shape = 3
+            angdeg = angdeg.reshape(3)
             kwargs["angdeg"] = angdeg
         else:
             # Handle structure specified with rprim.

@@ -438,13 +438,13 @@ class PWWaveFunction(WaveFunction):
         Return: |matplotlib-Figure|
         """
         site = self.structure[site_index]
-        nn_list = self.structure.get_neighbors_old(site, radius, include_index=True)
+        nn_list = self.structure.get_neighbors(site, radius, include_index=True)
         if not nn_list:
             cprint("Zero neighbors found for radius %s Ang. Returning None." % radius, "yellow")
             return None
 
         # Sort sites by distance.
-        nn_list = sorted(nn_list, key=lambda t: t[1])
+        nn_list = sorted(nn_list, key=lambda t: t.nn_distance)
         if max_nn is not None and len(nn_list) > max_nn:
             cprint(
                 "For radius %s, found %s neighbors but only max_nn %s sites are show." % (radius, len(nn_list), max_nn),

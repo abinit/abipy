@@ -1,5 +1,7 @@
 """Tests for abiphonopy module"""
 
+import numpy as np
+
 import abipy.data as abidata
 import abipy.flowtk.abiphonopy as abiph
 from abipy import flowtk
@@ -27,6 +29,7 @@ class TestAbiPhonopy(AbipyTest):
 
         self.assert_equal(scdims, phpy_work.scdims)
         assert hasattr(phpy_work, "phonon")
+        self.assert_equal(phpy_work.phonon.primitive_matrix, np.eye(3))
         assert len(phpy_work.phonopy_tasks) == len(phpy_work)
         assert len(phpy_work.phonopy_tasks) == 1
         assert len(phpy_work.bec_tasks) == 0

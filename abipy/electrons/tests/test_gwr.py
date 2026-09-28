@@ -38,7 +38,7 @@ class GwrFileTest(AbipyTest):
 6.02382E+01   5.21455E+01   1.86465E+00   2.44712E+00""",
                 sep=" ",
             )
-            ref_data.shape = (6, 4)
+            ref_data = ref_data.reshape((6, 4))
 
             mesh = gwr.minimax_mesh
             assert mesh.ntau == 6

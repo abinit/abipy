@@ -24,7 +24,6 @@ from abipy.core.mixins import AbinitNcFile, NotebookWriter, TextFile
 from abipy.core.structure import Structure, dataframes_from_structures
 from abipy.core.symmetries import AbinitSpaceGroup
 from abipy.flowtk import D2DEScfCycle, EventsParser, GroundStateScfCycle, NetcdfReader
-from abipy.tools.numtools import is_string
 from abipy.tools.typing import Figure
 
 
@@ -438,7 +437,7 @@ class AbinitOutputFile(AbinitTextFile, NotebookWriter):
 
             if "symafm" in spgd:
                 symafm = np.array([int(n) for n in spgd["symafm"].split()], dtype=int)
-                symafm.shape = (nsym,)
+                symafm = symafm.reshape((nsym,))
             else:
                 symafm = np.ones(nsym, dtype=int)
 

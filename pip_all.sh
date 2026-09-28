@@ -1,11 +1,8 @@
 #!/bin/bash
 set -ev  # exit on first error, print each command
 
-pip install -r requirements.txt
-pip install -r requirements-optional.txt
-pip install -r requirements-panel.txt
-pip install -r requirements-tests.txt
-python setup.py develop
+# Install AbiPy and all development extras in one resolve. Dependency groups
+# are defined in pyproject.toml, the single source of package metadata.
+python -m pip install --editable ".[optional,panel,tests,dev]"
 
-pip install invoke
 invoke submodules

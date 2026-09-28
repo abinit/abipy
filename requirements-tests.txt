@@ -1,7 +1,0 @@
-# Libraries required for running unit tests.
-pytest
-python-coveralls
-pytest-cov
-pytest-xdist
-pytest-sugar
-scripttest

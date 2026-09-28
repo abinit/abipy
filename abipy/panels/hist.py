@@ -22,12 +22,12 @@ class HistFilePanel(AbipyParameterized):
         self.hist = hist
 
         _what_list = ["abc", "angles", "energy", "volume", "pressure", "forces"]
-        self.what_list = pnw.CheckBoxGroup(name="Select", value=_what_list, options=_what_list, inline=False)
-        self.plot_relax_btn = pnw.Button(name="Plot relaxation", button_type="primary")
+        self.what_list = pnw.CheckBoxGroup(label="Select", value=_what_list, options=_what_list, inline=False)
+        self.plot_relax_btn = pnw.Button(label="Plot relaxation", color="primary")
 
-        self.appname = pnw.Select(name="Viewer", value="ovito", options=["ovito", "mayavi", "vtk"])
-        self.to_unit_cell = pnw.Checkbox(name="To unit cell")
-        self.view_relax_btn = pnw.Button(name="View relaxation", button_type="primary")
+        self.appname = pnw.Select(label="Viewer", value="ovito", options=["ovito", "mayavi", "vtk"])
+        self.to_unit_cell = pnw.Checkbox(label="To unit cell")
+        self.view_relax_btn = pnw.Button(label="View relaxation", color="primary")
 
         super().__init__(**params)
 

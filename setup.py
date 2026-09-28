@@ -142,43 +142,6 @@ def cleanup():
                 pass
 
 
-# List of external packages we rely on.
-# Note setup install will download them from Pypi if they are not available.
-# with open("requirements.txt", "rt") as fh:
-#    install_requires = [s.strip() for s in fh]
-
-install_requires = [
-    "packaging",
-    "tabulate",
-    "apscheduler<=3.10.4",
-    "pydispatcher>=2.0.5",
-    "tqdm",
-    "pyyaml>=3.11",
-    "pandas",
-    "numpy",
-    #"numpy<2.0.0",
-    "scipy",
-    "spglib",
-    # "pymatgen==v2024.10.29",
-    # "monty==v2024.10.21",
-    "pymatgen",
-    "monty",
-    "netCDF4",
-    "matplotlib",
-    "seaborn",
-    "plotly",
-    "ipython",
-    "chart-studio",
-    "click",
-    #"phonopy<=2.31.2",
-    "phonopy",
-    "seekpath",
-    "ase",
-    # "custodian",
-    # "pydantic',
-    # "panel",
-]
-
 # ---------------------------------------------------------------------------
 # Find all the packages, package data, and data_files
 # ---------------------------------------------------------------------------
@@ -200,7 +163,6 @@ setup_args = dict(
     platforms=platforms,
     keywords=keywords,
     classifiers=classifiers,
-    install_requires=install_requires,
     packages=find_packages(exclude=()),
     package_data=find_package_data(),
     exclude_package_data=find_exclude_package_data(),

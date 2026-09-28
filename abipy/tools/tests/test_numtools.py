@@ -30,7 +30,7 @@ class TestNumTools(AbipyTest):
     def test_transpose_last3dims(self):
         """Testing transpose_last3dims"""
         arr = np.arange(120)
-        arr.shape = (2, 2, 10, 3)
+        arr = arr.reshape((2, 2, 10, 3))
 
         same_arr = transpose_last3dims(arr)
         same_arr = transpose_last3dims(same_arr)
@@ -43,14 +43,14 @@ class TestNumTools(AbipyTest):
         new_arr = add_periodic_replicas(arr)
         assert new_arr[-1] == 1
 
-        arr.shape = (2, 3)
+        arr = arr.reshape((2, 3))
         new_arr = add_periodic_replicas(arr)
         assert np.all(new_arr[-1] == [1, 2, 3, 1])
         assert np.all(new_arr[:, -1] == [1, 4, 1])
 
         # 4D case.
         arr = np.arange(120)
-        arr.shape = (2, 2, 10, 3)
+        arr = arr.reshape((2, 2, 10, 3))
 
         new_arr = add_periodic_replicas(arr)
         assert np.all(new_arr[:, :-1, :-1, :-1] == arr)

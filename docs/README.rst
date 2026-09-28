@@ -36,9 +36,10 @@ statement, such as::
 
 The output produced by Sphinx can be configured by editing the :file:`conf.py` file located in the :file:`docs/`.
 Before building the documentation, you need to install the sphinx extensions listed
-in :file:`abipy/docs/requirements.txt` with::
+in the ``docs`` optional-dependency group in :file:`abipy/pyproject.toml` with::
 
-    pip install -r abipy/docs/requirements.txt
+    cd abipy
+    python -m pip install --editable ".[docs]"
 
 To build the HTML documentation, install sphinx then type ``make`` that will execute::
 

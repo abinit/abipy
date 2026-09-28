@@ -13,7 +13,7 @@ class TestPWWave(AbipyTest):
     def test_base(self):
         """Basic tests for PWWave"""
         vectors = np.array([1.0, 0, 0, 0, 1, 0, 0, 0, 1])
-        vectors.shape = (3, 3)
+        vectors = vectors.reshape((3, 3))
 
         mesh_443 = Mesh3D((4, 4, 3), vectors)
         mesh_444 = Mesh3D((4, 4, 4), vectors)
@@ -26,7 +26,7 @@ class TestPWWave(AbipyTest):
     def test_fft(self):
         """FFT transforms"""
         vectors = np.array([1.0, 0, 0, 0, 1, 0, 0, 0, 1])
-        vectors.shape = (3, 3)
+        vectors = vectors.reshape((3, 3))
 
         mesh = Mesh3D((12, 3, 5), vectors)
         extra_dims = [(), 1, (2,), (3, 4)]

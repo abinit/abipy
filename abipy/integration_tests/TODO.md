@@ -75,7 +75,7 @@ TODO list:
   eigvec_qp = self.read_variable("eigvec_qp") scales quite badly with nands
 
 * Migrate to pyproject.toml. Implement script to generate requirements.yml
-  Very likely `conda install --file requirements-optional.txt` is now broken to the introduction of `-r`.
+  Optional dependencies are installed from the extras declared in ``pyproject.toml``.
 
 
 ## Medium priority

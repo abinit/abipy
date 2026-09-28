@@ -10,7 +10,7 @@ import pandas as pd
 
 def print_dataframe(
     df: pd.DataFrame, title=None, precision=6, sortby=None, file=sys.stdout, end=None, display=None
-) -> None | str:
+) -> str | None:
     """
     Print entire pandas DataFrame.
 

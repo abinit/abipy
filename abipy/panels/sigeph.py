@@ -22,13 +22,13 @@ class SigEPhFilePanel(PanelWithElectronBands):
         PanelWithElectronBands.__init__(self, ebands=sigeph.ebands, **params)
         self.sigeph = sigeph
 
-        self.sigma_spin_select = pnw.Select(name="Spin index", options=list(range(sigeph.nsppol)))
+        self.sigma_spin_select = pnw.Select(label="Spin index", options=list(range(sigeph.nsppol)))
         self.sigma_kpoint_select = pnw.Select(
-            name="Kpoint in Sigma_nk",
+            label="Kpoint in Sigma_nk",
             options={"[%d]: %s" % (ik, repr(k)): ik for ik, k in enumerate(sigeph.sigma_kpoints)},
         )
 
-        self.plot_qpsolution_btn = pnw.Button(name="Plot Sigma_nk", button_type="primary")
+        self.plot_qpsolution_btn = pnw.Button(label="Plot Sigma_nk", color="primary")
         # sigma_band_select  = param.ObjectSelector(default=0, objects=[0], doc="Band index in sigma_nk")
 
     def plot_lws(self) -> pn.GridSpec:

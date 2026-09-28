@@ -105,10 +105,9 @@ Clone the `github repository <https://github.com/abinit/abipy>`_ with::
 
     git clone https://github.com/abinit/abipy
 
-For pip, use::
+For pip, install AbiPy in editable mode with its optional dependencies::
 
-    pip install -r requirements.txt
-    pip install -r requirements-optional.txt
+    python -m pip install --editable ".[optional]"
 
 If you are using conda_ (see `Installing conda`_ to install conda itself), create a new environment (``abienv``) with::
 
@@ -120,21 +119,17 @@ Add ``conda-forge``, and ``abinit`` to your channels with::
     conda config --add channels conda-forge
     conda config --add channels abinit
 
-and install the AbiPy dependencies with::
+Install ABINIT with conda and AbiPy with pip so that dependencies are read from
+``pyproject.toml``::
 
-    conda install --file ./requirements.txt
-    conda install --file ./requirements-optional.txt
+    conda install abinit -c conda-forge
+    python -m pip install --editable ".[optional]"
 
-The second command is needed for Jupyter only.
-Once the requirements have been installed (either with pip or conda), execute::
+The ``optional`` extra includes Jupyter and other optional analysis libraries.
+For a complete development installation, including tests and Panel applications, use::
 
-    python setup.py install
+    ./pip_all.sh
 
-or alternately::
-
-    python setup.py develop
-
-to install the package in developmental mode.
 This is the recommended approach, especially if you are planning to implement new features.
 
 Also note that the BLAS/Lapack libraries provided by conda have multithreading support activated by default.

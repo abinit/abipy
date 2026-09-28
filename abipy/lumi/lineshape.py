@@ -77,8 +77,12 @@ class Lineshape:
 
         Returns: A lineshape object
         """
-        ph_modes = phonopy_ph.get_frequencies_with_eigenvectors(q=[0, 0, 0])
-        ph_freq_phonopy, ph_vec_phonopy = ph_modes
+        phonopy_ph.run_qpoints([[0, 0, 0]], with_eigenvectors=True)
+        if phonopy_ph.qpoints is None or phonopy_ph.qpoints.eigenvectors is None:
+            raise RuntimeError("Phonopy did not produce Gamma-point eigenvectors")
+
+        ph_freq_phonopy = phonopy_ph.qpoints.frequencies[0]
+        ph_vec_phonopy = phonopy_ph.qpoints.eigenvectors[0]
 
         freqs = ph_freq_phonopy * (1 / abu.eV_to_THz)  # THz to eV
         vecs = ph_vec_phonopy.transpose()

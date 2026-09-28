@@ -157,7 +157,7 @@ class TestStructure(AbipyTest):
         self.assert_equal(e.eqmap[0], [0, 1])
         for irr_pos in e.irred_pos:
             assert len(e.eqmap[irr_pos]) > 0
-        assert "equivalent_atoms" in e.spgdata
+        assert hasattr(e.spgdata, "equivalent_atoms")
 
         if self.has_matplotlib():
             assert si.plot_bz(show=False)

@@ -30,7 +30,7 @@ from abipy.core.mixins import AbinitNcFile, Has_PhononBands, Has_Structure, Note
 from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
-from abipy.tools.numtools import gaussian, is_string, sort_and_groupby
+from abipy.tools.numtools import gaussian, sort_and_groupby
 from abipy.tools.plotting import (
     PlotlyRowColDesc,
     add_fig_kwargs,
@@ -5388,7 +5388,7 @@ class PhononBandsPlotter(NotebookWriter):
 
         sns.boxplot(x="mode", y=yname, data=data, hue="label", ax=ax, **kwargs)
         if swarm:
-            sns.swarmplot(x="mode", y=yname, data=data, hue="label", color=".25", ax=ax)
+            sns.swarmplot(x="mode", y=yname, data=data, hue="label", palette="dark:.25", ax=ax)
 
         return fig
 

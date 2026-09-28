@@ -1,6 +1,0 @@
-# Libraries required by AbiPy panel applications.
-param
-panel >= 0.13.0
-bokeh
-XlsxWriter  # For DataFrame.to_excel()
-#pymdown-extensions

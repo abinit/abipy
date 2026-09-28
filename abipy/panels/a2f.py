@@ -21,7 +21,7 @@ class A2fFilePanel(PanelWithElectronBands):
         PanelWithElectronBands.__init__(self, ebands=ncfile.ebands, **params)
         self.ncfile = ncfile
 
-        self.a2f_view_btn = pnw.Button(name="Plot a2F", button_type="primary")
+        self.a2f_view_btn = pnw.Button(label="Plot a2F", color="primary")
 
     def get_a2f_view(self) -> pn.Row:
         """Return Row with widgets to visualize the structure."""

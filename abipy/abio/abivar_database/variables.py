@@ -935,11 +935,11 @@ class InputVariables(OrderedDict):
     @classmethod
     def from_pyfile(cls, filepath):
         """Initialize the object from python file."""
-        # import imp
-        # module = imp.load_source(filepath, filepath)
-        from importlib.machinery import SourceFileLoader
+        import importlib.util
 
-        module = SourceFileLoader(filepath, filepath).load_module()
+        spec = importlib.util.spec_from_file_location(filepath, filepath)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
 
         vlist = [Variable(**d) for d in module.variables]
         new = cls()

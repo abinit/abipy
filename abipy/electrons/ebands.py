@@ -44,7 +44,7 @@ from abipy.iotools import ETSF_Reader
 from abipy.tools import duck
 from abipy.tools.context_managers import Timer
 from abipy.tools.decorators import memoized_method
-from abipy.tools.numtools import gaussian, is_string
+from abipy.tools.numtools import gaussian
 from abipy.tools.plotting import (
     PlotlyRowColDesc,
     add_fig_kwargs,
@@ -420,11 +420,11 @@ class ElectronBands(Has_Structure):
         Build object from a binary string with the netcdf data.
         Useful for implementing GUIs in which widgets returns binary data.
         """
-        workdir = tempfile.mkdtemp()
         fd, tmp_path = tempfile.mkstemp(suffix=".nc")
-        with open(tmp_path, "wb") as fh:
+        with os.fdopen(fd, "wb") as fh:
             fh.write(bstring)
-            return cls.from_file(tmp_path)
+
+        return cls.from_file(tmp_path)
 
     @classmethod
     def from_dict(cls, d: dict) -> ElectronBands:
@@ -628,7 +628,7 @@ class ElectronBands(Has_Structure):
             self.nband_sk = np.array(nband_sk)
         else:
             self.nband_sk = np.array(self.nsppol * self.nkpt * [self.mband])
-            self.nband_sk.shape = (self.nsppol, self.nkpt)
+            self.nband_sk = self.nband_sk.reshape((self.nsppol, self.nkpt))
 
         self.kpoints = kpoints
         if self.nkpt != len(self.kpoints):
@@ -1431,7 +1431,8 @@ class ElectronBands(Has_Structure):
         hue = None if self.nsppol == 1 else "spin"
         ax = sns.boxplot(x="band", y="eig", data=df, hue=hue, ax=ax, **kwargs)
         if swarm:
-            sns.swarmplot(x="band", y="eig", data=df, hue=hue, color=".25", ax=ax)
+            color_kws = dict(color=".25") if hue is None else dict(palette="dark:.25")
+            sns.swarmplot(x="band", y="eig", data=df, hue=hue, ax=ax, **color_kws)
 
         return fig
 
@@ -4652,7 +4653,7 @@ class ElectronBandsPlotter(NotebookWriter):
             ax.grid(True)
             sns.boxplot(x="band", y="eig", data=data, hue="label", ax=ax, **kwargs)
             if swarm:
-                sns.swarmplot(x="band", y="eig", data=data, hue="label", color=".25", ax=ax)
+                sns.swarmplot(x="band", y="eig", data=data, hue="label", palette="dark:.25", ax=ax)
         else:
             # Generate two subplots for spin-up / spin-down channels.
             import matplotlib.pyplot as plt
@@ -4665,7 +4666,7 @@ class ElectronBandsPlotter(NotebookWriter):
                 data_spin = data[data["spin"] == spin]
                 sns.boxplot(x="band", y="eig", data=data_spin, hue="label", ax=ax, **kwargs)
                 if swarm:
-                    sns.swarmplot(x="band", y="eig", data=data_spin, hue="label", color=".25", ax=ax)
+                    sns.swarmplot(x="band", y="eig", data=data_spin, hue="label", palette="dark:.25", ax=ax)
 
         return fig
 

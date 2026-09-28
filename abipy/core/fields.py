@@ -22,7 +22,7 @@ from abipy.core.mixins import Has_Structure
 from abipy.core.structure import Structure
 from abipy.iotools import ETSF_Reader, Visualizer, cube, xsf
 from abipy.tools import duck
-from abipy.tools.numtools import is_string, transpose_last3dims
+from abipy.tools.numtools import transpose_last3dims
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, set_grid_legend
 from abipy.tools.typing import Figure
 
@@ -455,7 +455,7 @@ class _Field(Has_Structure):
             fontsize: legend and title fontsize
         """
         site = self.structure[site_index]
-        nn_list = self.structure.get_neighbors_old(site, radius, include_index=True)
+        nn_list = self.structure.get_neighbors(site, radius, include_index=True)
         if not nn_list:
             cprint("Zero neighbors found for radius %s Ang. Returning None." % radius, "yellow")
             return None
@@ -1119,7 +1119,7 @@ class Density(_DensityField):
         if isinstance(chgcar, str):
             chgcar = Chgcar.from_file(chgcar)
         if isinstance(poscar, str):
-            poscar = Poscar.from_file(poscar, check_for_POTCAR=False, read_velocities=False)
+            poscar = Poscar.from_file(poscar, check_for_potcar=False, read_velocities=False)
 
         nx, ny, nz = chgcar.dim
         nspinor = 1

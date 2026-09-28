@@ -92,7 +92,7 @@ class TchimFile(AbinitNcFile, Has_Structure, Has_ElectronBands):
         app(self.ebands.to_string(with_structure=False, verbose=verbose, title="Electronic Bands"))
         if verbose > 1:
             app("")
-            app(self.hdr.to_string(verbose=verbose, title="Abinit Header"))
+            app(self.hdr.to_str(verbose=verbose, title="Abinit Header"))
 
         # app(f"nsppol: {self.r.nsppol}")
         # app(f"nqibz: {self.r.nqibz}")

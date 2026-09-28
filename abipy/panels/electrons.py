@@ -38,12 +38,12 @@ This app alllows users to upload two files with KS energies.
 
         self.main_area = pn.Column(help_md, self.get_alert_data_transfer(), sizing_mode="stretch_width")
 
-        self.replot_btn = pnw.Button(name="Replot", button_type="primary")
+        self.replot_btn = pnw.Button(label="Replot", color="primary")
 
         self.file_input = pnw.FileInput(height=60, css_classes=["pnx-file-upload-area"])
         self.file_input.param.watch(self.on_file_input, "value")
         self.mp_progress = pn.indicators.Progress(
-            name="Fetching data from the MP website",
+            label="Fetching data from the MP website",
             bar_color="warning",
             active=False,
             width=200,
