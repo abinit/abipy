@@ -105,7 +105,8 @@ from abipy.eph.gkq import GkqFile, GkqRobot
 from abipy.eph.gpath import GpathFile
 from abipy.eph.gstore import GstoreFile
 from abipy.eph.gwan import GwanFile
-from abipy.eph.isome import IsomeFile
+# TODO: Under development
+# from abipy.eph.isome import IsomeFile
 from abipy.eph.rta import RtaFile, RtaRobot
 from abipy.eph.sigeph import SigEPhFile, SigEPhRobot
 from abipy.eph.transportfile import TransportFile
@@ -209,7 +210,7 @@ abiext2ncfile = collections.OrderedDict(
         ("SIGEPH.nc", SigEPhFile),
         ("GSTORE.nc", GstoreFile),
         ("GWAN.nc", GwanFile),
-        ("ISOME.nc", IsomeFile),
+        # ("ISOME.nc", IsomeFile),
         ("GPATH.nc", GpathFile),
         ("TRANSPORT.nc", TransportFile),
         ("RTA.nc", RtaFile),
