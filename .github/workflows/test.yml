@@ -31,13 +31,16 @@ jobs:
             python: "3.12"
           - os: ubuntu-latest
             python: "3.13"
-          #- os: ubuntu-latest
-          #  python: "3.14"
+          - os: ubuntu-latest
+            python: "3.14"
 
     runs-on: ${{ matrix.config.os }}
 
     env:
       PMG_MAPI_KEY: ${{ secrets.PMG_MAPI_KEY }}
+      # Restrict UCX (used by the conda-forge MPICH) to shared memory and TCP. Otherwise MPI_Init may fail
+      # on runners with Azure MANA NICs: "UCX ERROR mana_0: failed to create UD QP ... Operation not supported"
+      UCX_TLS: self,sm,tcp
 
     steps:
       - name: Checkout Abipy repo
