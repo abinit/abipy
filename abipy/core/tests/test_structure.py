@@ -234,7 +234,7 @@ xred_symbols
         self.assert_almost_equal(mgb2.lattice.angles, (90.0, 90.0, 120.00000000000001))
         self.assert_almost_equal(mgb2.lattice.volume * abu.Ang_Bohr**3, 196.07928976151663)
 
-        if self.test_mprester():
+        if self.require_mprester():
             si = Structure.from_mpid("mp-149")
             assert si.formula == "Si2"
             with self.assertRaises(ValueError):

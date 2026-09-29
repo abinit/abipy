@@ -20,10 +20,10 @@ class PhononBandsPlotterPanel(AbipyParameterized):
             params: Parameters passed to the parent class.
         """
         self.phbands_plotter_mode = pnw.Select(
-            label="Plot Mode", value="gridplot", options=["gridplot", "combiplot", "boxplot", "combiboxplot"]
+            name="Plot Mode", value="gridplot", options=["gridplot", "combiplot", "boxplot", "combiboxplot"]
         )  # "animate",
-        self.phbands_plotter_units = pnw.Select(label="Units", value="eV", options=["eV", "meV", "Ha", "cm-1", "Thz"])
-        self.phbands_plotter_btn = pnw.Button(label="Plot", color="primary")
+        self.phbands_plotter_units = pnw.Select(name="Units", value="eV", options=["eV", "meV", "Ha", "cm-1", "Thz"])
+        self.phbands_plotter_btn = pnw.Button(name="Plot", button_type="primary")
 
         self.plotter = plotter
         super().__init__(**params)

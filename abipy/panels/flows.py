@@ -31,10 +31,10 @@ class WorkTaskSelector(Viewer):
             f"w{i} ({work.__class__.__name__}, len: {len(work)})": work for (i, work) in enumerate(flow.works)
         }
         options = list(self._wstr2work.keys())
-        self.work_select = pnw.Select(label="Select a Work", value=options[0], options=options)
+        self.work_select = pnw.Select(name="Select a Work", value=options[0], options=options)
 
         options = [f"t{i} ({task.__class__.__name__}, {task.status!s})" for (i, task) in enumerate(flow[0])]
-        self.task_select = pnw.Select(label="Select a Task in the Work", value=options[0], options=options)
+        self.task_select = pnw.Select(name="Select a Task in the Work", value=options[0], options=options)
 
         super().__init__(**params)
 
@@ -72,13 +72,13 @@ class FlowPanel(NodeParameterized):
         """
         NodeParameterized.__init__(self, node=flow, **params)
 
-        self.structures_btn = pnw.Button(label="Show Structures", color="primary")
+        self.structures_btn = pnw.Button(name="Show Structures", button_type="primary")
         self.structures_io_checkbox = pnw.CheckBoxGroup(
-            label="Input/Output Structure", value=["output"], options=["input", "output"], inline=True
+            name="Input/Output Structure", value=["output"], options=["input", "output"], inline=True
         )
 
         self.wt_selector = WorkTaskSelector(flow)
-        self.task_btn = pnw.Button(label="Analyze Task", color="primary")
+        self.task_btn = pnw.Button(name="Analyze Task", button_type="primary")
 
     def get_task_view(self) -> pn.Column:
         """Return the task view panel."""
@@ -176,11 +176,11 @@ class FlowMultiPageApp:
         self.template = template
 
         self.wt_selector = WorkTaskSelector(flow)
-        goto_work_btn = pnw.Button(label="Go to Work", color="primary")
+        goto_work_btn = pnw.Button(name="Go to Work", button_type="primary")
         goto_work_btn.on_click(self.on_goto_work_bnt)
-        goto_task_btn = pnw.Button(label="Go to Task", color="primary")
+        goto_task_btn = pnw.Button(name="Go to Task", button_type="primary")
         goto_task_btn.on_click(self.on_goto_task_bnt)
-        self.new_tab = pnw.Checkbox(value=True, label="Open in new Tab")
+        self.new_tab = pnw.Checkbox(value=True, name="Open in new Tab")
         self.js_panel = JsPane()
 
         self.sidebar = pn.WidgetBox(

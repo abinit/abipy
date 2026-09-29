@@ -25,9 +25,9 @@ class TaskPanel(NodeParameterized):
         NodeParameterized.__init__(self, node=task, **params)
         self.task = task
 
-        # self.structures_btn = pnw.Button(label="Show Structures", color='primary')
+        # self.structures_btn = pnw.Button(name="Show Structures", button_type='primary')
         # self.structures_io_checkbox = pnw.CheckBoxGroup(
-        #    label='Input/Output Structure', value=['output'], options=['input', 'output'], inline=Tru
+        #    name='Input/Output Structure', value=['output'], options=['input', 'output'], inline=Tru
 
     def get_inputs_view(self):
         """Show the input files of the task: input file, submission script and TaskManager."""

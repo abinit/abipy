@@ -4,6 +4,7 @@ import pytest
 
 import abipy.data as abidata
 from abipy import abilab, flowtk
+from abipy.integration_tests.helpers import run_flow
 
 
 def itest_tolsymerror_handler(fwp):
@@ -59,12 +60,7 @@ def itest_tolsymerror_handler(fwp):
     flow.register_task(inp, task_class=flowtk.RelaxTask)
 
     flow.allocate()
-    assert flow.make_scheduler().start() == 0
-
-    flow.show_status()
-    if not flow.all_ok:
-        flow.debug()
-        raise RuntimeError
+    run_flow(flow, check_finalized=False)
 
     task = flow[0][0]
     assert len(task.corrections) == 1
@@ -117,12 +113,7 @@ def itest_dilatmxerror_handler(fwp):
     flow.register_task(inp, task_class=flowtk.RelaxTask)
 
     flow.allocate()
-    assert flow.make_scheduler().start() == 0
-
-    flow.show_status()
-    if not flow.all_ok:
-        flow.debug()
-        raise RuntimeError
+    run_flow(flow, check_finalized=False)
 
     task = flow[0][0]
     # Don't check the number of corrections as it's not portable.

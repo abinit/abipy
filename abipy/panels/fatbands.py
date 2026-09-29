@@ -24,8 +24,8 @@ class FatBandsFilePanel(PanelWithElectronBands):
         self.ncfile = ncfile
 
         # Create buttons
-        self.plot_fatbands_btn = pnw.Button(label="Plot fatbands", color="primary")
-        self.plot_fatdos_btn = pnw.Button(label="Plot fatdos", color="primary")
+        self.plot_fatbands_btn = pnw.Button(name="Plot fatbands", button_type="primary")
+        self.plot_fatdos_btn = pnw.Button(name="Plot fatdos", button_type="primary")
 
     @depends_on_btn_click("plot_fatbands_btn")
     def on_plot_fatbands_btn(self) -> pn.Column:
@@ -113,7 +113,7 @@ class FatBandsFilePanel(PanelWithElectronBands):
 #    A Panel to interoperate with multiple GSR files.
 #    """
 #
-#    gsr_dataframe_btn = pnw.Button(label="Compute", color='primary')
+#    gsr_dataframe_btn = pnw.Button(name="Compute", button_type='primary')
 #
 #    def __init__(self, robot, **params):
 #        super().__init__(**params)

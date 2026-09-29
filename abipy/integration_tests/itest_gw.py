@@ -8,6 +8,7 @@ import pytest
 
 import abipy.data as abidata
 from abipy import abilab, flowtk
+from abipy.integration_tests.helpers import assert_flow_ok
 
 hostname = socket.gethostname()
 
@@ -111,11 +112,7 @@ def itest_g0w0_flow(fwp, tvars):
     for task in flow[0]:
         task.start_and_wait()
 
-    flow.check_status(show=True)
-    assert all(work.finalized for work in flow)
-    if not flow.all_ok:
-        flow.debug()
-        raise RuntimeError
+    assert_flow_ok(flow)
 
     scf_task = flow[0][0]
     nscf_task = flow[0][1]
@@ -208,18 +205,11 @@ def itest_htc_g0w0(fwp, tvars):
     flow.connect_signals()
 
     fwp.scheduler.add_flow(flow)
-    assert fwp.scheduler.start() == 0
-    assert not fwp.scheduler.exceptions
+    fwp.scheduler.start()
+    assert_flow_ok(flow, fwp.scheduler)
     assert fwp.scheduler.nlaunch == 4
 
     # The sigma task should produce a SCR file.
     assert len(work[2].outdir.list_filepaths(wildcard="*SCR")) == 1
-
-    flow.show_status()
-    if not flow.all_ok:
-        flow.debug()
-        raise RuntimeError
-
-    assert all(work.finalized for work in flow)
 
     # assert flow.validate_json_schema()

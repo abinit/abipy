@@ -358,8 +358,14 @@ class AbipyTest(*_AbipyTestBases):
             raise unittest.SkipTest("This test requires Abinit version %s %s" % (op, version))
 
     @staticmethod
-    def test_mprester():
-        """Skip MP rester tests."""
+    def require_mprester() -> bool:
+        """
+        Skip the test that calls this method since the MPRester tests have been disabled.
+        Change the implementation to return True to re-enable them.
+
+        Note that the name must not start with `test_` else pytest collects this method
+        as a test in all the subclasses of AbipyTest.
+        """
         raise unittest.SkipTest("MPRester tests have been disabled")
         # return True
 
