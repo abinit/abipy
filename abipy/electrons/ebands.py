@@ -19,7 +19,7 @@ import pandas as pd
 from monty.bisect import find_gt, find_le
 from monty.collections import AttrDict, dict2namedtuple
 from monty.json import MontyEncoder
-from monty.string import is_string, list_strings, marquee
+from monty.string import list_strings, marquee
 from monty.termcolor import cprint
 from pymatgen.core import units
 from pymatgen.electronic_structure.core import Spin as PmgSpin
@@ -420,11 +420,11 @@ class ElectronBands(Has_Structure):
         Build object from a binary string with the netcdf data.
         Useful for implementing GUIs in which widgets returns binary data.
         """
-        workdir = tempfile.mkdtemp()
         fd, tmp_path = tempfile.mkstemp(suffix=".nc")
-        with open(tmp_path, "wb") as fh:
+        with os.fdopen(fd, "wb") as fh:
             fh.write(bstring)
-            return cls.from_file(tmp_path)
+
+        return cls.from_file(tmp_path)
 
     @classmethod
     def from_dict(cls, d: dict) -> ElectronBands:
@@ -494,7 +494,7 @@ class ElectronBands(Has_Structure):
         if isinstance(obj, cls):
             return obj
 
-        if is_string(obj):
+        if isinstance(obj, str):
             # path?
             if obj.endswith(".pickle"):
                 with open(obj, "rb") as fh:
@@ -628,7 +628,7 @@ class ElectronBands(Has_Structure):
             self.nband_sk = np.array(nband_sk)
         else:
             self.nband_sk = np.array(self.nsppol * self.nkpt * [self.mband])
-            self.nband_sk.shape = (self.nsppol, self.nkpt)
+            self.nband_sk = self.nband_sk.reshape((self.nsppol, self.nkpt))
 
         self.kpoints = kpoints
         if self.nkpt != len(self.kpoints):
@@ -1431,7 +1431,8 @@ class ElectronBands(Has_Structure):
         hue = None if self.nsppol == 1 else "spin"
         ax = sns.boxplot(x="band", y="eig", data=df, hue=hue, ax=ax, **kwargs)
         if swarm:
-            sns.swarmplot(x="band", y="eig", data=df, hue=hue, color=".25", ax=ax)
+            color_kws = dict(color=".25") if hue is None else dict(palette="dark:.25")
+            sns.swarmplot(x="band", y="eig", data=df, hue=hue, ax=ax, **color_kws)
 
         return fig
 
@@ -3038,7 +3039,7 @@ class ElectronBands(Has_Structure):
         """
         if e0 is None:
             return 0.0
-        if is_string(e0):
+        if isinstance(e0, str):
             if e0 == "fermie":
                 return self.fermie
             if e0 == "None":
@@ -4652,7 +4653,7 @@ class ElectronBandsPlotter(NotebookWriter):
             ax.grid(True)
             sns.boxplot(x="band", y="eig", data=data, hue="label", ax=ax, **kwargs)
             if swarm:
-                sns.swarmplot(x="band", y="eig", data=data, hue="label", color=".25", ax=ax)
+                sns.swarmplot(x="band", y="eig", data=data, hue="label", palette="dark:.25", ax=ax)
         else:
             # Generate two subplots for spin-up / spin-down channels.
             import matplotlib.pyplot as plt
@@ -4665,7 +4666,7 @@ class ElectronBandsPlotter(NotebookWriter):
                 data_spin = data[data["spin"] == spin]
                 sns.boxplot(x="band", y="eig", data=data_spin, hue="label", ax=ax, **kwargs)
                 if swarm:
-                    sns.swarmplot(x="band", y="eig", data=data_spin, hue="label", color=".25", ax=ax)
+                    sns.swarmplot(x="band", y="eig", data=data_spin, hue="label", palette="dark:.25", ax=ax)
 
         return fig
 
@@ -5061,7 +5062,7 @@ class ElectronDos:
             edos_kwargs = {}
         if isinstance(obj, cls):
             return obj
-        if is_string(obj):
+        if isinstance(obj, str):
             # path?
             if obj.endswith(".pickle"):
                 with open(obj, "rb") as fh:
@@ -5156,7 +5157,7 @@ class ElectronDos:
         if e0 is None:
             return 0.0
 
-        if is_string(e0):
+        if isinstance(e0, str):
             if e0 == "fermie":
                 return self.fermie
             if e0 == "None":
@@ -6246,7 +6247,7 @@ class Bands3D(Has_Structure):
         """
         if e0 is None:
             return 0.0
-        if is_string(e0):
+        if isinstance(e0, str):
             if e0 == "fermie":
                 return self.fermie
             if e0 == "None":
@@ -6654,7 +6655,7 @@ class RobotWithEbands:
                 if hue is None:
                     # Extract data.
                     xvals, yvals = get_xy(item, spin, params, self.abifiles)
-                    if not is_string(xvals[0]):
+                    if not isinstance(xvals[0], str):
                         ax.plot(xvals, yvals, marker=marker_spin[spin], **kwargs)
                     else:
                         # Must handle list of strings in a different way.

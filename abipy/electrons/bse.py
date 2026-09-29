@@ -8,7 +8,7 @@ from functools import cached_property
 
 import numpy as np
 import pandas as pd
-from monty.string import is_string, marquee
+from monty.string import marquee
 
 from abipy.abio.robots import Robot
 from abipy.core.func1d import Function1D
@@ -709,7 +709,7 @@ class MultipleMdfPlotter:
 
         self._mdfs[label] = {}
 
-        if is_string(obj):
+        if isinstance(obj, str):
             # Open the file.
             with MdfFile(obj) as mdf_file:
                 for mdf_type in self.MDF_TYPES:

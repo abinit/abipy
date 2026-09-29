@@ -285,6 +285,7 @@ class TestAbistruct(ScriptTest):
             expect_stderr=self.expect_stderr,
         )
 
+    @pytest.mark.skip(reason="Interface with COD database is not stable")
     def test_cod_api(self):
         """Testing abistruct COD methods."""
         self.skip_if_not_executable("mysql")

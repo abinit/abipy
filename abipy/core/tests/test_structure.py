@@ -157,7 +157,7 @@ class TestStructure(AbipyTest):
         self.assert_equal(e.eqmap[0], [0, 1])
         for irr_pos in e.irred_pos:
             assert len(e.eqmap[irr_pos]) > 0
-        assert "equivalent_atoms" in e.spgdata
+        assert hasattr(e.spgdata, "equivalent_atoms")
 
         if self.has_matplotlib():
             assert si.plot_bz(show=False)
@@ -234,7 +234,7 @@ xred_symbols
         self.assert_almost_equal(mgb2.lattice.angles, (90.0, 90.0, 120.00000000000001))
         self.assert_almost_equal(mgb2.lattice.volume * abu.Ang_Bohr**3, 196.07928976151663)
 
-        if self.test_mprester():
+        if self.require_mprester():
             si = Structure.from_mpid("mp-149")
             assert si.formula == "Si2"
             with self.assertRaises(ValueError):

@@ -13,7 +13,6 @@ import pandas as pd
 import spglib
 from monty.collections import dict2namedtuple
 from monty.itertools import iuptri
-from monty.string import is_string
 from monty.termcolor import cprint
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 
@@ -889,7 +888,7 @@ class AbinitSpaceGroup(OpSequence):
 
     def get_spglib_hall_number(self, symprec=1e-5):
         """
-        Uses spglib.get_hall_number_from_symmetry to determine the hall number
+        Uses spglib.get_spacegroup_type_from_symmetry to determine the hall number
         based on the symmetry operations. Useful when the space group number
         is not available, but the symmetries are (e.g. the DDB file)
 
@@ -900,7 +899,10 @@ class AbinitSpaceGroup(OpSequence):
         Returns:
             int: the hall number.
         """
-        return spglib.get_hall_number_from_symmetry(self.symrel, self.tnons, symprec=symprec)
+        spg_type = spglib.get_spacegroup_type_from_symmetry(self.symrel, self.tnons, symprec=symprec)
+        if spg_type is None:
+            raise ValueError("Cannot determine the space-group type from the symmetry operations")
+        return spg_type.hall_number
 
 
 # FIXME To maintain backward compatibility.
@@ -1026,8 +1028,7 @@ class LatticeRotation(Operation):
 
     def __init__(self, mat):
         """Initialize the object from a 3x3 matrix."""
-        self.mat = np.asarray(mat, dtype=int)
-        self.mat.shape = (3, 3)
+        self.mat = np.asarray(mat, dtype=int).reshape((3, 3))
 
     def _find_order_and_rootinv(self):
         """Returns the order of the rotation and if self is a root of the inverse."""
@@ -1465,7 +1466,7 @@ def spgid2sch(spgid):
 
 def any2sch(obj):
     """Convert string or int to Schoenflies symbol. Returns None if invalid input"""
-    if is_string(obj):
+    if isinstance(obj, str):
         if obj in sch_symbols:
             return obj
         # Try Hermann-Mauguin

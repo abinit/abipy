@@ -125,11 +125,11 @@ You can clone it from our  `github repository <https://github.com/abinit/abipy>`
 
 After cloning the repository, type::
 
-    python setup.py install
+    python -m pip install .
 
 or alternately::
 
-    python setup.py develop
+    python -m pip install --editable .
 
 to install the package in developmental mode
 (Develop mode is the recommended approach if you are planning to implement new features.

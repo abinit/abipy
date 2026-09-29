@@ -212,7 +212,7 @@ class OpticNcFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, No
 
         if verbose > 1:
             app(marquee("Abinit Header", mark="="))
-            app(self.hdr.to_string(verbose=verbose))
+            app(self.hdr.to_str(verbose=verbose))
 
         return "\n".join(lines)
 

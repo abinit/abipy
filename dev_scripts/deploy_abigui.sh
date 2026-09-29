@@ -13,9 +13,7 @@ conda create -n ${env_name} -y python=3.9
 #source activate ${env_name} 
 conda activate ${env_name} 
 
-pip install -r ./requirements.txt
-pip install -r ./requirements-optional.txt
-python setup.py install
+python -m pip install --editable ".[optional]"
 
 #conda install abinit -c conda-forge
 

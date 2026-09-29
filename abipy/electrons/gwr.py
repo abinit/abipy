@@ -390,7 +390,7 @@ class GwrSelfEnergy(SelfEnergy):
     def plot_pade(
         self,
         pade_methods: list[str],
-        wmesh: None | np.ndarray = None,
+        wmesh: np.ndarray | None = None,
         ref_data: PadeData | None = None,
         ax_mat=None,
         fontsize: int = 8,
@@ -527,13 +527,16 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         """
         return self.r.read_value("qpz_gaps") * abu.Ha_eV
 
-    # @cached_property
-    # def qp_pade_dirgaps(self) -> np.ndarray:
-    #     """
-    #     QP direct gaps in eV computed with the quasi-particle equation
-    #     Shape: [nsppol, nkcalc]
-    #     """
-    #     return self.r.read_value("qp_pade_gaps") * abu.Ha_eV
+    @cached_property
+    def qp_pade_dirgaps(self) -> np.ndarray:
+        """
+        QP direct gaps in eV computed with the quasi-particle equation
+        Shape: [nsppol, nkcalc]
+        """
+        try:
+            return self.r.read_value("qp_pade_gaps") * abu.Ha_eV
+        except:
+            return np.full_like(self.qpz0_dirgaps, np.nan)
 
     @cached_property
     def minimax_mesh(self) -> MinimaxMesh:
@@ -698,7 +701,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             d["iteration"] = []
             d["ks_dirgaps"] = np.zeros(0)
             d["qpz0_dirgaps"] = np.zeros(0)
-            # d["qp_pade_dirgaps"] = np.zeros(0)
+            d["qp_pade_dirgaps"] = np.zeros(0)
             for iter in range(self.scf_iteration):
                 d["iteration"].extend([iter + 1] * len(self.sigma_kpoints) * self.nsppol)
                 d["ks_dirgaps"] = np.concatenate(
@@ -707,11 +710,16 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                 d["qpz0_dirgaps"] = np.concatenate(
                     (d["qpz0_dirgaps"], (self.r.read_value("qpz_gaps", path=f"iter{iter + 1}") * abu.Ha_eV).ravel())
                 )
-                # d["qp_pade_dirgaps"] = np.concatenate((d["qp_pade_dirgaps"], (self.r.read_value("qp_pade_gaps", path=f"iter{iter+1}") * abu.Ha_eV).ravel()))
+                try:
+                    d["qp_pade_dirgaps"] = np.concatenate(
+                        (d["qp_pade_dirgaps"], (self.r.read_value("qp_pade_gaps", path=f"iter{iter+1}") * abu.Ha_eV).ravel())
+                    )
+                except:
+                    d["qp_pade_dirgaps"] = np.full_like(d["qpz0_dirgaps"], np.nan)
         else:
             d["ks_dirgaps"] = self.ks_dirgaps.ravel()
             d["qpz0_dirgaps"] = self.qpz0_dirgaps.ravel()
-            # d["qp_pade_dirgaps"] = self.qp_pade_dirgaps.ravel()
+            d["qp_pade_dirgaps"] = self.qp_pade_dirgaps.ravel()
         d["spin"] = [0] * len(self.sigma_kpoints) * self.scf_iteration
         if self.nsppol == 2:
             d["spin"].extend([1] * len(self.sigma_kpoints) * self.scf_iteration)
@@ -742,6 +750,8 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         ignore_imag: bool = False,
         with_params: bool = True,
         with_geo: bool = False,
+        iter: int | None = None,
+        use_pade: bool = False,
     ) -> pd.Dataframe:
         """
         Returns a |pandas-DataFrame| with the QP results for the given (spin, k-point).
@@ -753,13 +763,15 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
             ignore_imag: Only real part is returned if ``ignore_imag``.
             with_params: True if GWR parameters should be included.
             with_geo: True if geometry info should be included.
+            iter: Iteration index. If None, variables are read from the root level.
+            use_pade: True if qp_pade should be used.
         """
         rows, bands = [], []
 
         if with_geo:
             geo_dict = self.structure.get_dict4pandas(with_spglib=True)
 
-        qp_list = self.r.read_qplist_sk(spin, kpoint, ignore_imag=ignore_imag)
+        qp_list = self.r.read_qplist_sk(spin, kpoint, ignore_imag=ignore_imag, iter=iter, use_pade=use_pade)
         for qp in qp_list:
             bands.append(qp.band)
             d = qp.as_dict()
@@ -911,6 +923,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         filter_params: list | None = None,
         only_corrections: bool = False,
         iter: int = None,
+        varname: str = "qpz_ene",
         verbose: int = 0,
     ):
         """
@@ -945,6 +958,10 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
                 First item gives rcut, second item sigma. Ignored if None.
             only_corrections: If True, the output contains the interpolated QP corrections instead of the QP energies.
                 Available only if ks_ebands_kpath and/or ks_ebands_kmesh are used.
+            iter: Iteration index (e.g. for self-consistent calculations).
+                If None, variables are read from the root level.
+            varname: Name of the variable in the netcdf file to be interpolated.
+                     Default is "qpz_ene" but "qp_pade" is also available if it's recorded in the file.
             verbose: Verbosity level.
 
         Returns:
@@ -1015,7 +1032,7 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         #   smat_bsize2 = merge(1, gwr%b2gw - gwr%b1gw + 1, gwr%sig_diago)
 
         # Read QP energies
-        varname = "qpz_ene"
+        # varname = "qpz_ene"
         egw_rarr = self.r.read_value(varname, cmode="c", path=f"iter{iter}" if iter else "/").real * abu.Ha_eV
 
         if ks_ebands_kpath is not None:
@@ -1088,8 +1105,12 @@ class GwrFile(AbinitNcFile, Has_Structure, Has_ElectronBands, NotebookWriter):
         # at the HOMO of the KS bands.
         homos = ks_ebands_kpath.homos if ks_ebands_kpath is not None else self.ebands.homos
         qp_fermie = self.ebands.fermie
-        if self.r.min_bstart == 0:
-            qp_fermie = max([eigens_kpath[e.spin, e.kidx, e.band] for e in homos])
+
+        if ks_ebands_kpath is not None or self.r.min_bstart == 0:
+            qp_fermie = max([np.max(eigens_kpath[e.spin, :, e.band]) for e in homos])
+        # Check if all HOMOs are within the GW corrected bands
+        elif all(self.r.min_bstart <= e.band < self.r.min_bstop for e in homos):
+            qp_fermie = max([np.max(eigens_kpath[e.spin, :, e.band - self.r.min_bstart]) for e in homos])
 
         qp_ebands_kpath = ElectronBands(
             self.structure,
@@ -1634,7 +1655,7 @@ class GwrReader(ETSF_Reader):
         return tuple(qps_spin)
 
     def read_qplist_sk(
-        self, spin: int, kpoint: KptSelect, band: int = None, ignore_imag: bool = False, iter: int = None
+        self, spin: int, kpoint: KptSelect, band: int = None, ignore_imag: bool = False, iter: int = None, use_pade: bool = False
     ) -> QPList:
         """
         Read and return a QPList object for the given spin, kpoint.
@@ -1644,29 +1665,68 @@ class GwrReader(ETSF_Reader):
             kpoint: K-point in self-energy. Accepts |Kpoint|, vector or index.
             band: band index. If None all bands are considered.
             ignore_imag: Only real part is returned if ``ignore_imag``.
+            iter: Iteration index (e.g. for self-consistent GW calculations).
+                If None, variables are read from the root level.
+            use_pade: If True, the QP energy is read from the variable qp_pade instead of qpz_ene.
         """
         ikcalc, kpoint = self.get_ikcalc_kpoint(kpoint)
+        path = f"iter{iter}" if iter else "/"
 
         def ri(a):
             return np.real(a) if ignore_imag else a
 
-        # TODO: Finalize the implementation.
-        # sigxme = sigx_mat
-        sigxme = 0.0
-        # self._sigxme[spin, ikcalc, ib],
         qp_list = QPList()
         for sigma_band in range(self.bstart_sk[spin, ikcalc], self.bstop_sk[spin, ikcalc]):
             if band is not None and sigma_band != band:
                 continue
             ib = sigma_band - self.min_bstart
+            ib2 = 0 if self.sig_diago else ib
 
-            qpe = self.read_variable("qpz_ene", path=f"iter{iter}" if iter else "/")[spin, ikcalc, ib] * abu.Ha_meV
+            # Read qpe (in eV)
+            qpe = self.read_variable("qpz_ene", path=path)[spin, ikcalc, ib] * abu.Ha_eV
             qpe = qpe[0] + 1j * qpe[1]
 
-            ze0 = self.read_variable("ze0_kcalc", path=f"iter{iter}" if iter else "/")[spin, ikcalc, ib]
+            # Read ze0
+            ze0 = self.read_variable("ze0_kcalc", path=path)[spin, ikcalc, ib]
             ze0 = ze0[0] + 1j * ze0[1]
 
-            # TODO Finalize the implementation
+            if use_pade:
+                # Read qp_pade (in eV)
+                qpe = self.read_variable("qp_pade", path=path)[spin, ikcalc, ib] * abu.Ha_eV
+                qpe = qpe[0] + 1j * qpe[1]
+
+            # Read sigxme
+            if "sigx_mat" in self.read_varnames(path=path):
+                sigxme = self.read_variable("sigx_mat", path=path)[spin, ikcalc, ib2, ib, 0] * abu.Ha_eV
+            elif "sigx_mat" in self.read_varnames(path="/"):
+                sigxme = self.read_variable("sigx_mat", path="/")[spin, ikcalc, ib2, ib, 0] * abu.Ha_eV
+            else:
+                sigxme = 0.0
+
+            # Compute sigcmee0
+            if "sigxc_rw_diag" in self.read_varnames(path=path):
+                xc_var = self.read_variable("sigxc_rw_diag", path=path)
+            elif "sigxc_rw_diag" in self.read_varnames(path="/"):
+                xc_var = self.read_variable("sigxc_rw_diag", path="/")
+            else:
+                xc_var = None
+
+            if xc_var is not None:
+                nwr = xc_var.shape[3]
+                xc_e0 = xc_var[spin, ikcalc, ib, nwr // 2, :]
+                xc_e0 = (xc_e0[0] + 1j * xc_e0[1]) * abu.Ha_eV
+                sigcmee0 = xc_e0 - sigxme
+            else:
+                sigcmee0 = 0.0
+
+            # Read vxcme
+            if "vxc_kcalc" in self.read_varnames(path=path):
+                vxcme = self.read_variable("vxc_kcalc", path=path)[spin, ikcalc, ib] * abu.Ha_eV
+            elif "vxc_kcalc" in self.read_varnames(path="/"):
+                vxcme = self.read_variable("vxc_kcalc", path="/")[spin, ikcalc, ib] * abu.Ha_eV
+            else:
+                vxcme = 0.0
+
             qp_list.append(
                 QPState(
                     spin=spin,
@@ -1675,11 +1735,9 @@ class GwrReader(ETSF_Reader):
                     e0=self.e0_kcalc[spin, ikcalc, ib],
                     qpe=ri(qpe),
                     qpe_diago=0.0,
-                    # vxcme=self._vxcme[spin, ikcalc, ib],
-                    vxcme=0.0,
+                    vxcme=vxcme,
                     sigxme=sigxme,
-                    # sigcmee0=ri(self._sigcmee0[spin, ikcalc, ib]),
-                    sigcmee0=0.0,
+                    sigcmee0=ri(sigcmee0),
                     vUme=0.0,
                     ze0=ri(ze0),
                 )
@@ -1729,10 +1787,10 @@ class GwrRobot(Robot, RobotWithEbands):
         if len(self.abifiles) in (0, 1):
             return
 
-        for label, gwr_file in self.items():
+        for label, gwr_file in list(self.items()):
             if gwr_file.completed:
                 continue
-            cprint("Ignoring {label} as GWR file is not completed", color="yellow")
+            cprint(f"Ignoring {label} as GWR file is not completed", color="yellow")
             self.pop_label(label)
 
         # Check dimensions and self-energy states and issue warning.

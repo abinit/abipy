@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 import pymatgen.core.units as pmg_units
 from monty.collections import AttrDict, dict2namedtuple
-from monty.string import is_string, list_strings, marquee
+from monty.string import list_strings, marquee
 from monty.termcolor import cprint
 from pymatgen.core.lattice import Lattice
 from pymatgen.core.sites import PeriodicSite
@@ -247,7 +247,7 @@ class Structure(pmg_Structure, NotebookWriter):
             # Handle ASE constraints e.g. ExpCellFilter. Note recursive call
             return Structure.as_structure(obj.atoms)
 
-        if is_string(obj):
+        if isinstance(obj, str):
             return cls.from_file(obj)
 
         if isinstance(obj, collections.abc.Mapping):
@@ -1417,11 +1417,11 @@ class Structure(pmg_Structure, NotebookWriter):
         print("Finding neighbors for each atom in the unit cell, out to a distance %s (Angstrom)" % radius)
         print(" ")
 
-        ns = self.get_all_neighbors_old(radius, include_index=False)
+        ns = self.get_all_neighbors(radius)
         for i, (site, sited_list) in enumerate(zip(self, ns, strict=False)):
             print("[%s] site %s has %s neighbors:" % (i, repr(site), len(sited_list)))
-            for s, dist in sorted(sited_list, key=lambda t: t[1]):
-                print("\t", repr(s), " at distance", dist)
+            for nn in sorted(sited_list, key=lambda t: t.nn_distance):
+                print("\t", repr(nn), " at distance", nn.nn_distance)
             print()
 
     @cached_property

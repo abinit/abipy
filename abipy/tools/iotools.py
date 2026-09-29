@@ -59,7 +59,7 @@ def yaml_dump(obj: Any):
     """Dump object in Yaml format"""
     import io
 
-    y = yaml.YAML(typ="unsafe")
+    y = yaml.YAML(typ="full")
     stream = io.StringIO()
     y.dump(obj, stream)
     stream.seek(0)

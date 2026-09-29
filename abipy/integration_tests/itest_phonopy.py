@@ -15,6 +15,7 @@ import abipy.flowtk.abiphonopy as abiph
 from abipy import flowtk
 from abipy.abio.factories import gs_input
 from abipy.core.testing import has_phonopy
+from abipy.integration_tests.helpers import assert_flow_ok
 
 
 def itest_phonopy_flow(fwp, tvars):
@@ -47,14 +48,8 @@ def itest_phonopy_flow(fwp, tvars):
 
     flow.build_and_pickle_dump(abivalidate=True)
     scheduler = flow.make_scheduler()
-    assert scheduler.start() == 0
-
-    assert not scheduler.exceptions
-    flow.show_status()
-    if not flow.all_ok:
-        flow.debug()
-        raise RuntimeError
-    assert all(work.finalized for work in flow)
+    scheduler.start()
+    assert_flow_ok(flow, scheduler)
 
     # The WFK files should have been removed because we called set_garbage_collector
     for task in flow[0]:
@@ -99,13 +94,8 @@ def itest_phonopy_gruneisen_flow(fwp, tvars):
 
     flow.build_and_pickle_dump(abivalidate=True)
     scheduler = flow.make_scheduler()
-    assert scheduler.start() == 0
-
-    assert not scheduler.exceptions
-    flow.show_status()
-    if not flow.all_ok:
-        flow.debug()
-        raise RuntimeError
+    scheduler.start()
+    assert_flow_ok(flow, scheduler, check_finalized=False)
     # Initialial work + 3 phonopy works.
     assert len(flow) == 4
     assert all(work.finalized for work in flow)

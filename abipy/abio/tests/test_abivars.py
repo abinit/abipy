@@ -197,7 +197,7 @@ xred 3*0 3*1/4
         self.assert_equal(inp.structure[1].frac_coords, [1 / 4, 1 / 4, 1 / 4])
         self.assert_equal(inp.structure[1].specie.symbol, "As")
         mat = 5.6533 * np.array([0, 1 / 2, 1 / 2, 1 / 2, 0, 1 / 2, 1 / 2, 1 / 2, 0])
-        mat.shape = (3, 3)
+        mat = mat.reshape((3, 3))
         self.assert_almost_equal(inp.structure[1].lattice.matrix, mat)
 
         # tutorial/input/tbase2_1

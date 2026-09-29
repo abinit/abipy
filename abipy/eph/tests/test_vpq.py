@@ -2,12 +2,58 @@
 
 import os
 
+import numpy as np
 import pytest
 
 from abipy.core.testing import AbipyTest
-from abipy.eph.vpq import VpqFile
+from abipy.eph.vpq import VpqFile, VpqReader
 
 root = "/Users/giantomassi/git_repos/abinit/_build/tests/tutorespfn_teph4vpq_1-teph4vpq_2-teph4vpq_3-teph4vpq_4-teph4vpq_5-teph4vpq_6-teph4vpq_7-teph4vpq_8-teph4vpq_9-teph4vpq_10"
+
+
+class ArrayVariable:
+    """Minimal array-backed stand-in for a NetCDF variable."""
+
+    def __init__(self, values, dimensions):
+        self.values = values
+        self.dimensions = dimensions
+
+    def __getitem__(self, index):
+        return self.values[index]
+
+
+class ArrayReader:
+    """Minimal reader exposing one array-backed variable."""
+
+    def __init__(self, variable):
+        self.variable = variable
+
+    def read_variable(self, varname):
+        return self.variable
+
+
+def test_read_spin_scf_variable_with_optional_hop_dimension():
+    """The new hop axis is collapsed while legacy VPQ array shapes are preserved."""
+    spin = 1
+    variables = {
+        "cvflag_spin": ("nsppol", "nstates"),
+        "nstep2cv_spin": ("nsppol", "nstates"),
+        "scf_hist_spin": ("nsppol", "nstates", "nstep", "six"),
+    }
+
+    for dimensions in variables.values():
+        shape = tuple(range(2, 2 + len(dimensions)))
+        legacy_values = np.arange(np.prod(shape)).reshape(shape)
+        legacy_variable = ArrayVariable(legacy_values, dimensions)
+        actual = VpqReader.read_spin_scf_variable(ArrayReader(legacy_variable), "unused", spin)
+        np.testing.assert_array_equal(actual, legacy_values[spin])
+
+        hop_dimensions = ("nsppol", "hop_nstep", *dimensions[1:])
+        hop_shape = (shape[0], 3, *shape[1:])
+        hop_values = np.arange(np.prod(hop_shape)).reshape(hop_shape)
+        hop_variable = ArrayVariable(hop_values, hop_dimensions)
+        actual = VpqReader.read_spin_scf_variable(ArrayReader(hop_variable), "unused", spin)
+        np.testing.assert_array_equal(actual, hop_values[spin, -1])
 
 
 class VarpeqTest(AbipyTest):

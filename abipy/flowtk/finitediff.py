@@ -390,7 +390,7 @@ class _FdData(HasPickleIO):
         return zeffs_list
 
     def print_eff_charges(
-        self, elements: None | list[str] = None, iat_list: None | list[int] = None, file=sys.stdout, verbose: int = 0
+        self, elements: list[str] | None = None, iat_list: list[int] | None = None, file=sys.stdout, verbose: int = 0
     ) -> None:
         """
         Print effective charges to `file`.
@@ -447,7 +447,7 @@ class _FdData(HasPickleIO):
 
     @add_fig_kwargs
     def plot_forces(
-        self, elements: None | list[str] = None, iat_list: None | list[int] = None, fontsize=8, sharey=False, **kwargs
+        self, elements: list[str] | None = None, iat_list: list[int] | None = None, fontsize=8, sharey=False, **kwargs
     ) -> Figure:
         """
         Plot Cartesian forces as a function of the amplitude of the perturbation.
@@ -701,8 +701,8 @@ class _HasExternalField:
     def plot_forces_vs_field(
         self,
         field_cart_dir,
-        elements: None | list[str] = None,
-        iat_list: None | list[int] = None,
+        elements: list[str] | None = None,
+        iat_list: list[int] | None = None,
         fontsize=8,
         sharey=False,
         **kwargs,

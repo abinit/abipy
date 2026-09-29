@@ -9,6 +9,8 @@ import datetime
 import logging
 import os
 import shutil
+import signal
+import subprocess
 import time
 from functools import cached_property
 from io import StringIO
@@ -22,7 +24,7 @@ from monty.collections import AttrDict
 from monty.fnmatch import WildCard
 from monty.functools import return_none_if_raise
 from monty.json import MSONable
-from monty.string import is_string, list_strings
+from monty.string import list_strings
 from monty.termcolor import colored, cprint
 from pymatgen.core.units import Memory, UnitError
 
@@ -36,7 +38,7 @@ from . import abiinspect, events
 from . import qutils as qu
 from .abitimer import AbinitTimerParser
 from .nodes import FileNode, Node, NodeError, NodeResults, Status
-from .qadapters import QueueAdapter, QueueAdapterError, make_qadapter
+from .qadapters import QueueAdapter, QueueAdapterError, kill_process_group, make_qadapter
 
 # from abipy.abio.enums import GWR_TASK
 from .utils import Condition, Directory, File, FilepathFixer, SparseHistogram, abi_splitext, irdvars_for_ext
@@ -101,7 +103,7 @@ def nmltostring(nml: dict) -> str:
         for k, v in group.items():
             if isinstance(v, list) or isinstance(v, tuple):
                 namelist.append(k + " = " + ",".join(map(str, v)) + ",")
-            elif is_string(v):
+            elif isinstance(v, str):
                 namelist.append(k + " = '" + str(v) + "',")
             else:
                 namelist.append(k + " = " + str(v) + ",")
@@ -742,7 +744,7 @@ A minimalistic example of manager.yml for a laptop with the shell engine is repo
         if obj is None:
             return cls.from_user_config()
 
-        if is_string(obj):
+        if isinstance(obj, str):
             if os.path.exists(obj):
                 return cls.from_file(obj)
             return cls.from_string(obj)
@@ -1352,7 +1354,7 @@ class FakeProcess:
     def poll(self):
         return None
 
-    def wait(self):
+    def wait(self, timeout=None):
         raise RuntimeError("Cannot wait a FakeProcess")
 
     def communicate(self, input=None):
@@ -1851,9 +1853,28 @@ class Task(Node, metaclass=abc.ABCMeta):
 
         return self._returncode
 
-    def wait(self) -> int:
-        """Wait for child process to terminate. Set and return returncode attribute."""
-        self._returncode = self.process.wait()
+    def wait(self, timeout: float | None = None) -> int:
+        """
+        Wait for child process to terminate. Set and return returncode attribute.
+
+        Args:
+            timeout: Max time in seconds to wait. None means wait forever.
+                If the process does not terminate in time, the process tree is killed,
+                the task is set to S_ERROR and TaskError is raised.
+        """
+        try:
+            self._returncode = self.process.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            kill_process_group(self.process.pid)
+            self._returncode = self.process.wait()
+            msg = f"Task did not complete within {timeout} s. Process tree has been killed."
+            self.set_status(self.S_ERROR, msg)
+            raise self.Error(f"{self}: {msg}")
+        except KeyboardInterrupt:
+            # The process runs in its own session and would not receive SIGINT from the terminal.
+            kill_process_group(self.process.pid)
+            raise
+
         try:
             self.process.stderr.close()
         except Exception:
@@ -2103,16 +2124,40 @@ class Task(Node, metaclass=abc.ABCMeta):
         black_list = (self.S_LOCKED, self.S_ERROR)
         # if self.status in black_list: return self.status
 
-        # 2) Check the returncode of the job script
-        if self.returncode != 0:
-            msg = "job.sh return code: %s\nPerhaps the job was not submitted properly?" % self.returncode
-            return self.set_status(self.S_QCRITICAL, msg=msg)
+        # A frozen job killed by abipy stays in S_ERROR until the task is started again.
+        if self.status == self.S_ERROR and self.__dict__.get("_frozen_killed", False):
+            return self.status
+
+        # 2) Update the returncode of the job script.
+        # Poll the process so that we detect jobs that died without leaving a trace in the output files
+        # (e.g. segmentation fault or SIGKILL from the OOM killer). Without this check, the task stays in S_RUN
+        # until frozen_timeout, or forever if the output file has not been created.
+        # For resource managers such as Slurm, the process is the submission command.
+        # The process is not available if the task has been unpickled, in this case we rely on the files.
+        # The returncode is checked only after the analysis of the Abinit files so that
+        # errors reported by Abinit (S_ABICRITICAL) can be handled by the error handlers.
+        process = self.__dict__.get("_process")
+        if process is not None:
+            self._returncode = process.poll()
 
         # If we have an abort file produced by Abinit
         if self.mpiabort_file.exists:
             return self.set_status(
                 self.S_ABICRITICAL, msg="Found ABINIT MPI abort file. This means Abinit run aborted!"
             )
+
+        # Check if the log file contains "BAD TERMINATION" or "KILLED BY SIGNAL"
+        if self.log_file.exists:
+            log_content = self.log_file.read()
+            if "BAD TERMINATION" in log_content or "KILLED BY SIGNAL" in log_content:
+                msg = "Task terminated abnormally. Found 'BAD TERMINATION' or 'KILLED BY SIGNAL' in log file."
+                details = []
+                for line in log_content.splitlines():
+                    if "BAD TERMINATION" in line or "KILLED BY SIGNAL" in line:
+                        details.append(line.strip())
+                if details:
+                    msg += " Details: " + " | ".join(details)
+                return self.set_status(self.S_ERROR, msg=msg)
 
         # Analyze the stderr file for Fortran runtime errors.
         # getsize is 0 if the file is empty or it does not exist.
@@ -2170,6 +2215,14 @@ class Task(Node, metaclass=abc.ABCMeta):
                 msg = "\n".join(map(repr, report.errors))
                 return self.set_status(self.S_ABICRITICAL, msg=msg)
 
+            if self.returncode not in (0, None):
+                return self._set_status_from_returncode()
+
+            # Check for frozen jobs before step 5, else this check is never performed
+            # when the resource manager creates the qerr file (e.g. Slurm).
+            if self._is_frozen():
+                return self._set_frozen_status()
+
             # 5)
             if self.stderr_file.exists and not err_msg:
                 if self.qerr_file.exists and not qerr_info:
@@ -2178,6 +2231,9 @@ class Task(Node, metaclass=abc.ABCMeta):
                     return self.set_status(
                         self.S_RUN, msg="there is output and no errors: job still seems to be running"
                     )
+
+        if self.returncode not in (0, None):
+            return self._set_status_from_returncode()
 
         # 6)
         if not self.output_file.exists:
@@ -2240,11 +2296,8 @@ class Task(Node, metaclass=abc.ABCMeta):
         # print('the job still seems to be running maybe it is hanging without producing output... ')
 
         # Check time of last modification.
-        if self.output_file.exists and (
-            time.time() - self.output_file.get_stat().st_mtime > self.manager.policy.frozen_timeout
-        ):
-            msg = "Task seems to be frozen, last change more than %s [s] ago" % self.manager.policy.frozen_timeout
-            return self.set_status(self.S_ERROR, msg=msg)
+        if self._is_frozen():
+            return self._set_frozen_status()
 
         # Handle weird case in which either run.abo, or run.log have not been produced
         # if self.status not in (self.S_INIT, self.S_READY) and (not self.output.file.exists or not self.log_file.exits):
@@ -2252,6 +2305,61 @@ class Task(Node, metaclass=abc.ABCMeta):
         #    return self.set_status(self.S_ERROR, msg)
 
         return self.set_status(self.S_RUN, msg="final option: nothing seems to be wrong, the job must still be running")
+
+    def _is_frozen(self) -> bool:
+        """
+        True if the output file exists and neither the output file nor the log file
+        have been modified in the last `frozen_timeout` seconds.
+        """
+        if not self.output_file.exists:
+            return False
+        mtimes = [f.get_stat().st_mtime for f in (self.output_file, self.log_file) if f.exists]
+        return time.time() - max(mtimes) > self.manager.policy.frozen_timeout
+
+    def _set_frozen_status(self) -> Status:
+        """
+        Kill the job and set the status to S_ERROR for a frozen job.
+        Note that we don't use self.cancel as this method removes the output files needed for debugging.
+        """
+        msg = "Task seems to be frozen, last change of %s and %s more than %s [s] ago." % (
+            self.output_file.basename,
+            self.log_file.basename,
+            self.manager.policy.frozen_timeout,
+        )
+        if self.queue_id is not None:
+            exit_status = self.manager.cancel(self.queue_id)
+            msg += " Job %s cancelled, exit status: %s" % (self.queue_id, exit_status)
+
+        # Tell check_status to keep S_ERROR, else the non-zero returncode of the killed job would override it.
+        self._frozen_killed = True
+        return self.set_status(self.S_ERROR, msg=msg)
+
+    def _set_status_from_returncode(self) -> Status:
+        """
+        Set the status to S_QCRITICAL when the job script terminated with a non-zero returncode
+        but the Abinit files do not report any error.
+        """
+        rc = self.returncode
+        # Negative returncode: killed by signal -rc. Shells report 128 + signal number.
+        signum = -rc if rc < 0 else (rc - 128 if rc > 128 else None)
+        try:
+            signame = signal.Signals(signum).name if signum is not None else None
+        except ValueError:
+            signame = None
+
+        msg = f"Job script terminated with return code {rc}"
+        if signame is not None:
+            msg += f" (killed by {signame})"
+        msg += (
+            " but no error has been reported in the output files.\n"
+            "Perhaps the executable crashed (segmentation fault, out of memory ...) "
+            "or the job was not submitted properly."
+        )
+        if self.stderr_file.getsize() != 0:
+            err = self.stderr_file.read().splitlines()
+            msg += "\nLast lines of %s:\n%s" % (self.stderr_file.path, "\n".join(err[-10:]))
+
+        return self.set_status(self.S_QCRITICAL, msg=msg)
 
     def reduce_memory_demand(self):
         """
@@ -2686,6 +2794,7 @@ class Task(Node, metaclass=abc.ABCMeta):
                     return 0
 
         # Start the calculation in a subprocess and return.
+        self._frozen_killed = False
         self._process = self.manager.launch(self, **kwargs)
         return 1
 
@@ -2694,9 +2803,11 @@ class Task(Node, metaclass=abc.ABCMeta):
         Helper method to start the task and wait for completion.
 
         Mainly used when we are submitting the task via the shell without passing through a queue manager.
+        Accepts an optional `timeout` in seconds, see `wait`.
         """
+        timeout = kwargs.pop("timeout", None)
         self.start(*args, **kwargs)
-        retcode = self.wait()
+        retcode = self.wait(timeout=timeout)
         return retcode
 
     def get_graphviz(self, engine="automatic", graph_attr=None, node_attr=None, edge_attr=None):

@@ -39,6 +39,9 @@ jobs:
       PMG_MAPI_KEY: ${{ secrets.PMG_MAPI_KEY }}
       # This is used in the flow scripts to generate the graph with graphviz.
       READTHEDOCS: 1
+      # Restrict UCX (used by the conda-forge MPICH) to shared memory and TCP. Otherwise MPI_Init may fail
+      # on runners with Azure MANA NICs: "UCX ERROR mana_0: failed to create UD QP ... Operation not supported"
+      UCX_TLS: self,sm,tcp
 
     steps:
       - name: Check out Abipy repo

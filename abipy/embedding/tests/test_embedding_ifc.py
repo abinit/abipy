@@ -100,6 +100,7 @@ class Embedding_ifcTest(AbipyTest):
         ph_defect = phonopy.load(
             supercell_filename=abidata.ref_file("refs/embedding_ifc/SrCl2_Eu_POSCAR"),
             force_sets_filename=abidata.ref_file("refs/embedding_ifc/SrCl2_Eu_FORCE_SETS"),
+            primitive_matrix="P",
         )
 
         ########

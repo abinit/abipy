@@ -116,7 +116,7 @@ contains several output files that can be used for writing unit tests and exampl
 
 To install pytest with useful plugins, use::
 
-    pip install -r requirements-tests.txt
+    python -m pip install --editable ".[tests]"
 
 in the top-level directory of the package.
 To run the tests associated to the abio.inputs module, use::
@@ -128,4 +128,3 @@ or use::
     pytest -v 
 
 to run the entire test suite.
-

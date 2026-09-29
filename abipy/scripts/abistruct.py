@@ -980,7 +980,7 @@ def main():
 
         options.scaling_matrix = np.array(options.scaling_matrix)
         if len(options.scaling_matrix) == 9:
-            options.scaling_matrix.shape = (3, 3)
+            options.scaling_matrix = options.scaling_matrix.reshape((3, 3))
         if options.verbose:
             print("scaling matrix: ", options.scaling_matrix)
 

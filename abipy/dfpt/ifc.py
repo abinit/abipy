@@ -133,21 +133,21 @@ class InteratomicForceConstants(Has_Structure):
         return np.shape(self.neighbours_indices)[1]
 
     @cached_property
-    def ifc_cart_coord_ewald(self) -> None | np.ndarray:
+    def ifc_cart_coord_ewald(self) -> np.ndarray | None:
         """Ewald part of the IFCs in cartesian coordinates."""
         if self.ifc_cart_coord_short_range is None:
             return None
         return self.ifc_cart_coord - self.ifc_cart_coord_short_range
 
     @cached_property
-    def ifc_local_coord(self) -> None | np.ndarray:
+    def ifc_local_coord(self) -> np.ndarray | None:
         """IFCs in local coordinates."""
         if self.local_vectors is None:
             return None
         return np.einsum("ktli,ktij,ktuj->ktlu", self.local_vectors, self.ifc_cart_coord, self.local_vectors)
 
     @cached_property
-    def ifc_local_coord_short_range(self) -> None | np.ndarray:
+    def ifc_local_coord_short_range(self) -> np.ndarray | None:
         """Short range part of the IFCs in cartesian coordinates."""
         if self.local_vectors is None:
             return None

@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 from monty.collections import AttrDict
 from monty.inspect import all_subclasses
-from monty.string import is_string, marquee
+from monty.string import marquee
 from monty.termcolor import cprint
 from pymatgen.core.units import Ha_to_eV, bohr_to_angstrom
 
@@ -455,7 +455,7 @@ class _Field(Has_Structure):
             fontsize: legend and title fontsize
         """
         site = self.structure[site_index]
-        nn_list = self.structure.get_neighbors_old(site, radius, include_index=True)
+        nn_list = self.structure.get_neighbors(site, radius, include_index=True)
         if not nn_list:
             cprint("Zero neighbors found for radius %s Ang. Returning None." % radius, "yellow")
             return None
@@ -1116,10 +1116,10 @@ class Density(_DensityField):
         from pymatgen.io.vasp.inputs import Poscar
         from pymatgen.io.vasp.outputs import Chgcar
 
-        if is_string(chgcar):
+        if isinstance(chgcar, str):
             chgcar = Chgcar.from_file(chgcar)
-        if is_string(poscar):
-            poscar = Poscar.from_file(poscar, check_for_POTCAR=False, read_velocities=False)
+        if isinstance(poscar, str):
+            poscar = Poscar.from_file(poscar, check_for_potcar=False, read_velocities=False)
 
         nx, ny, nz = chgcar.dim
         nspinor = 1

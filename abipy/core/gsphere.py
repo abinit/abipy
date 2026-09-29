@@ -188,7 +188,7 @@ class GSphere(collections.abc.Sequence):
 
         if s0 == 1:
             # Reinstate input shape
-            arr_on_mesh.shape = mesh.shape
+            arr_on_mesh = arr_on_mesh.reshape(mesh.shape)
 
         return arr_on_mesh
 
@@ -226,7 +226,7 @@ class GSphere(collections.abc.Sequence):
 
         if s0 == 1 and indim == 1:
             # Reinstate input shape
-            arr_on_sphere.shape = self.npw
+            arr_on_sphere = arr_on_sphere.reshape(self.npw)
 
         return arr_on_sphere
 

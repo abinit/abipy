@@ -16,7 +16,7 @@ from shutil import which
 import pandas as pd
 from monty.collections import AttrDict
 from monty.io import get_open_fds
-from monty.string import boxed, is_string
+from monty.string import boxed
 from monty.termcolor import cprint
 
 from abipy.tools.iotools import ask_yesno, yaml_safe_load
@@ -64,7 +64,7 @@ class ScriptEditor:
         return self._shell
 
     def _add(self, text, pre="") -> None:
-        if is_string(text):
+        if isinstance(text, str):
             self._lines.append(pre + text)
         else:
             self._lines.extend([pre + t for t in text])
@@ -1335,7 +1335,7 @@ def sendmail(subject: str, text: str, mailto: str, sender: str | None = None) ->
     except OSError:
         sender = "abipyscheduler@youknowwhere"
 
-    if is_string(mailto):
+    if isinstance(mailto, str):
         mailto = [mailto]
 
     from email.mime.text import MIMEText

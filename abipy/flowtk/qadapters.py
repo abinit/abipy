@@ -20,18 +20,19 @@ import json
 import logging
 import math
 import os
+import signal
 import string
 import sys
 from collections import namedtuple
 from functools import cached_property
-from subprocess import PIPE, Popen
+from subprocess import DEVNULL, PIPE, Popen
 from typing import Any
 
 from monty.collections import AttrDict
 from monty.inspect import all_subclasses
 from monty.io import FileLock
 from monty.json import MSONable
-from monty.string import is_string, list_strings
+from monty.string import list_strings
 from pymatgen.core.units import Memory, UnitError
 
 from abipy.tools.iotools import AtomicFile
@@ -64,6 +65,22 @@ class SubmitResults(namedtuple("SubmitResult", "qid, out, err, process")):
     err: stdrr of the submission
     process: process object of the submission
     """
+
+
+def kill_process_group(pid: int, sig=signal.SIGKILL) -> int:
+    """
+    Send signal `sig` to the process group led by `pid` so that children (mpirun, abinit ...) are killed too.
+    Fall back to killing `pid` alone if the process is not a group leader, to avoid signaling our own group.
+    Return 0 if success, 1 if the process does not exist or cannot be signaled.
+    """
+    try:
+        if os.getpgid(pid) == pid:
+            os.killpg(pid, sig)
+        else:
+            os.kill(pid, sig)
+        return 0
+    except OSError:
+        return 1
 
 
 class MpiRunner:
@@ -691,7 +708,7 @@ limits:
 
     def _parse_job(self, d: dict) -> None:
         setup = d.pop("setup", None)
-        if is_string(setup):
+        if isinstance(setup, str):
             setup = [setup]
         self.setup = setup[:] if setup is not None else []
 
@@ -699,7 +716,7 @@ limits:
         self.omp_env = omp_env.copy() if omp_env is not None else {}
 
         modules = d.pop("modules", None)
-        if is_string(modules):
+        if isinstance(modules, str):
             modules = [modules]
         self.modules = modules[:] if modules is not None else []
 
@@ -717,12 +734,12 @@ limits:
             self.shell_runner = MpiRunner(self.shell_runner, options=shell_runner_options)
 
         pre_run = d.pop("pre_run", None)
-        if is_string(pre_run):
+        if isinstance(pre_run, str):
             pre_run = [pre_run]
         self.pre_run = pre_run[:] if pre_run is not None else []
 
         post_run = d.pop("post_run", None)
-        if is_string(post_run):
+        if isinstance(post_run, str):
             post_run = [post_run]
         self.post_run = post_run[:] if post_run is not None else []
 
@@ -1164,7 +1181,7 @@ limits:
             se.add_emptyline()
 
         # Construct the string to run the executable with MPI and mpi_procs.
-        if is_string(executable):
+        if isinstance(executable, str):
             line = self.mpi_runner.string_to_run(
                 self, executable, in_file=in_file, stdin=stdin, stdout=stdout, stderr=stderr, exec_args=exec_args
             )
@@ -1356,11 +1373,13 @@ $${qverbatim}
 """
 
     def cancel(self, job_id: int) -> int:
-        return os.system("kill -9 %d" % job_id)
+        return kill_process_group(job_id)
 
     def _submit_to_queue(self, script_file: str) -> SubmitResults:
         # Submit the job, return process and pid.
-        process = Popen(("/bin/bash", script_file), stderr=PIPE)
+        # stdin is closed so that an executable reading from stdin fails immediately instead of hanging.
+        # The job runs in a new session so that cancel can kill the whole process tree (mpirun, abinit ...).
+        process = Popen(("/bin/bash", script_file), stdin=DEVNULL, stderr=PIPE, start_new_session=True)
         return SubmitResults(
             qid=process.pid, out="no out in shell submission", err="no err in shell submission", process=process
         )

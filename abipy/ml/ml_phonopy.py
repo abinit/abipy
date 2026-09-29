@@ -43,7 +43,7 @@ def get_phonopy(
     supercell_matrix,
     calculator: Calculator,
     distance=0.01,
-    primitive_matrix=None,
+    primitive_matrix="P",
     remove_drift=True,
 ) -> Phonopy:
     """
@@ -54,7 +54,10 @@ def get_phonopy(
         supercell_matrix: Supercell matrix.
         calculator: ASE calculator to be attached to the atoms.
         distance: Distance of finite displacements in Angstrom.
-        primitive_matrix
+        primitive_matrix: Transformation matrix used to build the primitive
+            cell. The default ``"P"`` keeps the input unit cell, matching
+            phonopy 3 behavior. Pass ``"auto"`` to request phonopy 4's
+            automatic primitive-cell detection.
         remove_drift: True if the drift in the forces should be removed.
 
     Based on a similar implementation available at: https://github.com/modl-uclouvain/randomcarbon/blob/main/randomcarbon/run/phonon.py
@@ -82,7 +85,8 @@ def get_phonopy(
         forces_list.append(forces)
         print(f"\t{i + 1} of {nsc} completed ...")
 
-    phonon.produce_force_constants(forces_list)
+    phonon.forces = forces_list
+    phonon.produce_force_constants()
 
     return phonon
 
@@ -256,7 +260,7 @@ class MlPhonopyWithDDB(MlBase):
         # Include non-analytical term if dipoles are available in the DDB file.
         with Timer(header=f"Calling get_phonopy with {nn_name=}", footer=""):
             phonon = get_phonopy(
-                atoms, self.supercell, calculator, distance=self.distance, primitive_matrix=None, remove_drift=True
+                atoms, self.supercell, calculator, distance=self.distance, primitive_matrix="P", remove_drift=True
             )
             if self.abi_nac_params:
                 print("Including dipolar term in phonopy using BECS and eps_inf taken from DDB.")
@@ -463,7 +467,7 @@ class MlPhonopy(MlBase):
         # Include non-analytical term if dipoles are available in the DDB file.
         with Timer(header=f"Calling get_phonopy with {nn_name=}", footer=""):
             phonon = get_phonopy(
-                atoms, self.supercell, calculator, distance=self.distance, primitive_matrix=None, remove_drift=True
+                atoms, self.supercell, calculator, distance=self.distance, primitive_matrix="P", remove_drift=True
             )
 
         plt = phonon.auto_band_structure(
@@ -644,7 +648,7 @@ class MlVZSISAQHAPhonopy(MlBase):
                     self.supercell,
                     calculator,
                     distance=self.distance,
-                    primitive_matrix=None,
+                    primitive_matrix="P",
                     remove_drift=True,
                 )
 

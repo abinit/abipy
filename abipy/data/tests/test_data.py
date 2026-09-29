@@ -24,7 +24,7 @@ class DataModuleTest(AbipyTest):
         structure = abidata.structure_from_cif("gan2.cif")
         assert hasattr(structure, "to_abivars")
 
-        if self.test_mprester():
+        if self.require_mprester():
             structure = abidata.structure_from_mpid("mp-4820")
             assert hasattr(structure, "to_abivars")
             with self.assertRaises(KeyError):

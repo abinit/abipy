@@ -10,6 +10,7 @@ import pytest
 import abipy.data as abidata
 from abipy import abilab, flowtk
 from abipy.core.testing import has_matplotlib
+from abipy.integration_tests.helpers import assert_flow_ok, run_flow
 
 hostname = socket.gethostname()
 
@@ -21,8 +22,10 @@ skip_hosts = [
 def ion_relaxation(tvars, ntime=50):
     structure = abilab.Structure.from_file(abidata.cif_file("si.cif"))
 
-    # Perturb the structure (random perturbation of 0.1 Angstrom)
-    structure.perturb(distance=0.02)
+    # Perturb the structure (random displacement of 0.02 Angstrom).
+    # Use a fixed seed so that the test is reproducible: some random displacements
+    # trigger "Error in group closure" in the Abinit symmetry finder.
+    structure.perturb(distance=0.02, seed=42)
 
     global_vars = dict(
         ecut=6,
@@ -94,11 +97,7 @@ def itest_atomic_relaxation(fwp, tvars):
     final_structure = t0.get_final_structure()
     assert final_structure != unconverged_structure
 
-    flow.show_status()
-    assert all(work.finalized for work in flow)
-    if not flow.all_ok:
-        flow.debug()
-        raise RuntimeError
+    assert_flow_ok(flow)
 
     # post-processing tools
     if has_matplotlib():
@@ -180,13 +179,7 @@ def itest_relaxation_with_restart_from_den(fwp, tvars):
     relax_work = flowtk.RelaxWork(ion_input, ioncell_input)
     flow.register_work(relax_work)
 
-    assert flow.make_scheduler().start() == 0
-    flow.show_status()
-
-    assert all(work.finalized for work in flow)
-    if not flow.all_ok:
-        flow.debug()
-        raise RuntimeError
+    run_flow(flow)
 
     # we should have (0, 1) restarts and no WFK file in outdir.
     for i, task in enumerate(relax_work):
@@ -219,13 +212,7 @@ def itest_dilatmx_error_handler(fwp, tvars):
 
     flow.register_work(work)
     flow.allocate()
-    assert flow.make_scheduler().start() == 0
-    flow.show_status()
-
-    assert all(work.finalized for work in flow)
-    if not flow.all_ok:
-        flow.debug()
-        raise RuntimeError
+    run_flow(flow)
 
     # t0 should have reached S_OK, and we should have DilatmxError in the corrections.
     t0 = work[0]
@@ -249,13 +236,7 @@ def itest_relaxation_with_target_dilatmx(fwp, tvars):
     relax_work = flowtk.RelaxWork(ion_input, ioncell_input, target_dilatmx=target_dilatmx)
     flow.register_work(relax_work)
 
-    assert flow.make_scheduler().start() == 0
-    flow.show_status()
-
-    assert all(work.finalized for work in flow)
-    if not flow.all_ok:
-        flow.debug()
-        raise RuntimeError
+    run_flow(flow)
     # assert relax_work.last_dilatmx <= target_dilatmx
 
     # we should have (0, 1) restarts

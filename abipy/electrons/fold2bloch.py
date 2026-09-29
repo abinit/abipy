@@ -124,7 +124,7 @@ class Fold2BlochNcfile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBand
             app(self.uf_kpoints.to_string(verbose=verbose, title="Unfolded k-points"))
 
         if verbose > 2:
-            app(self.hdr.to_string(verbose=verbose, title="Abinit Header"))
+            app(self.hdr.to_str(verbose=verbose, title="Abinit Header"))
 
         return "\n".join(lines)
 

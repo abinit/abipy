@@ -15,7 +15,7 @@ from monty.os import makedirs_p
 from phonopy import Phonopy, load
 from phonopy.file_IO import parse_BORN, parse_FORCE_CONSTANTS, parse_FORCE_SETS, write_FORCE_CONSTANTS
 from phonopy.harmonic import force_constants
-from phonopy.interface.calculator import get_default_physical_units, get_force_constant_conversion_factor
+from phonopy.interface.calculator import get_calculator_physical_units, get_force_constant_conversion_factor
 from pymatgen.io.phonopy import get_phonopy_structure, get_pmg_structure
 from pymatgen.io.vasp.inputs import Poscar
 
@@ -334,8 +334,8 @@ def phonopy_to_abinit(
         pass
 
     if calculator:
-        units = get_default_physical_units(calculator)
-        fc_factor = get_force_constant_conversion_factor(units["force_constants_unit"], None)
+        units = get_calculator_physical_units(calculator)
+        fc_factor = get_force_constant_conversion_factor(units.force_constants_unit, None)
         phonon.force_constants = phonon.force_constants * fc_factor
 
     if pseudos is None:
@@ -488,7 +488,10 @@ def get_dm(phonon, qpt_list: list, structure: Structure) -> list:
         q_cart = rlatt.get_cartesian_coords(q)
         # the phase exp(-i * q.r)
         phase = np.exp(-1j * np.einsum("ijk,k", diff_coords, q_cart))
-        dm = phonon.get_dynamical_matrix_at_q(q).reshape(natom, 3, natom, 3)
+        phonon.run_qpoints([q], with_dynamical_matrices=True)
+        if phonon.qpoints is None or phonon.qpoints.dynamical_matrices is None:
+            raise RuntimeError(f"Phonopy did not produce a dynamical matrix at q-point {q}")
+        dm = phonon.qpoints.dynamical_matrices[0].reshape(natom, 3, natom, 3)
         # the following is rprim * dm[ipert1,:,ipert2,:] * rprim.T
         dm = np.einsum("ij,kjlm,nm->kiln", rprimd, dm, rprimd)
         dm = dm * mass_matrix / phase[:, None, :, None]

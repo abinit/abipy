@@ -255,7 +255,12 @@ class Embedded_phonons(Phonopy):
         Returns:
             phonons frequencies, phonon eigenvectors
         """
-        ph_freq_phonopy, ph_vec_phonopy = self.get_frequencies_with_eigenvectors(q=[0, 0, 0])
+        self.run_qpoints([[0, 0, 0]], with_eigenvectors=True)
+        if self.qpoints is None or self.qpoints.eigenvectors is None:
+            raise RuntimeError("Phonopy did not produce Gamma-point eigenvectors")
+
+        ph_freq_phonopy = self.qpoints.frequencies[0]
+        ph_vec_phonopy = self.qpoints.eigenvectors[0]
 
         ph_freq = ph_freq_phonopy / (eV_to_THz)  # put it in eV
         ph_vec = ph_vec_phonopy.transpose().reshape(3 * len(self.supercell), len(self.supercell), 3)

@@ -20,13 +20,12 @@ import pandas as pd
 from monty.fnmatch import WildCard
 from monty.inspect import all_subclasses
 from monty.json import MontyDecoder, MSONable
-from monty.string import indent, is_string, list_strings
+from monty.string import indent, list_strings
 from monty.termcolor import colored
 from pymatgen.core.structure import Structure
 from ruamel import yaml
 from ruamel.yaml import YAML, yaml_object
 
-from abipy.tools.iotools import yaml_unsafe_load
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, get_axarray_fig_plt, rotate_ticklabels, set_grid_legend
 from abipy.tools.serialization import pmg_serialize
 from abipy.tools.typing import Figure
@@ -47,7 +46,7 @@ __all__ = [
 ]
 
 
-_yaml = YAML()
+_yaml = YAML(typ="safe", pure=True)
 
 
 def straceback() -> str:
@@ -486,15 +485,8 @@ class EventsParser:
                     # print("got doc.tag", doc.tag,"--")
                     try:
                         doc.text = doc.text.replace("\n    \n", "\n")
-                        # print(doc.text)
-                        # OLD VERSION
-                        # event = yaml.load(doc.text)   # Can't use ruamel safe_load!
-
-                        # event = yaml_safe_load(doc.text)   # Can't use ruamel safe_load!
-                        event = yaml_unsafe_load(doc.text)  # Can't use ruamel safe_load!
-                        # FIXME: This new (recommend) API does not reproduce yaml.load behavior. bug in ruamel?
-                        # event = yaml.YAML(typ='unsafe', pure=True).load(dox.text)
-                        # print(event.yaml_tag, type(event))
+                        # Use the safe loader in which the event classes are registered via yaml_object.
+                        event = _yaml.load(doc.text)
                     except Exception:
                         # raise
                         # Wrong YAML doc. Check that doc tag and instantiate the proper event.
@@ -771,7 +763,7 @@ def as_event_class(obj):
     Convert obj into a subclass of AbinitEvent.
     obj can be either a class or a string with the class name or the YAML tag
     """
-    if is_string(obj):
+    if isinstance(obj, str):
         for c in all_subclasses(AbinitEvent):
             if c.__name__ == obj or c.yaml_tag == obj:
                 return c

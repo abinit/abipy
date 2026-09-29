@@ -32,6 +32,5 @@ Once you have satisfied the requirements detailed above, you can build abipy::
 
   cd abipy
   python setup.py build
-  python setup.py install
-
+  python -m pip install .
 

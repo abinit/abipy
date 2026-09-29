@@ -20,13 +20,18 @@ import abipy.data as abidata
 from typing import Optional
 from functools import wraps
 from shutil import which
-from monty.string import is_string
-from pymatgen.util.testing import PymatgenTest
+try:
+    from pymatgen.util.testing import MatSciTest
 
-# TODO
-# from pymatgen.util.testing import MatSciTest
+    _AbipyTestBases = (unittest.TestCase, MatSciTest)
+except ImportError:
+    # Old pymatgen versions without MatSciTest.
+    from pymatgen.util.testing import PymatgenTest
+
+    _AbipyTestBases = (PymatgenTest,)
 from abipy.core.structure import Structure
 from abipy.abio.inputs import AbinitInput, MultiDataset
+from abipy.tools.numtools import is_string
 
 root = os.path.dirname(__file__)
 
@@ -201,7 +206,7 @@ def input_equality_check(ref_file, input2, rtol=1e-05, atol=1e-08, equal_nan=Fal
             _error = check_int(v, w)
         elif isinstance(v, float):
             _error = check_float(v, w)
-        elif is_string(v):
+        elif isinstance(v, str):
             _error = check_str(v, w)
         return _error
 
@@ -327,8 +332,7 @@ def get_gsinput_alas_ngkpt(ngkpt, usepaw=0, as_task=False):
         return ScfTask(scf_input)
 
 
-# class AbipyTest(MatSciTest):
-class AbipyTest(PymatgenTest):
+class AbipyTest(*_AbipyTestBases):
     """
     Extends MatSciTest with Abinit-specific methods.
     Several helper functions are implemented as static methods so that we
@@ -354,8 +358,14 @@ class AbipyTest(PymatgenTest):
             raise unittest.SkipTest("This test requires Abinit version %s %s" % (op, version))
 
     @staticmethod
-    def test_mprester():
-        """Skip MP rester tests."""
+    def require_mprester() -> bool:
+        """
+        Skip the test that calls this method since the MPRester tests have been disabled.
+        Change the implementation to return True to re-enable them.
+
+        Note that the name must not start with `test_` else pytest collects this method
+        as a test in all the subclasses of AbipyTest.
+        """
         raise unittest.SkipTest("MPRester tests have been disabled")
         # return True
 

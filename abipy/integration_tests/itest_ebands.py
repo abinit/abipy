@@ -13,6 +13,7 @@ import pytest
 import abipy.data as abidata
 from abipy import abilab, flowtk
 from abipy.core.testing import has_matplotlib
+from abipy.integration_tests.helpers import assert_flow_ok
 
 hostname = socket.gethostname()
 
@@ -127,10 +128,7 @@ def itest_unconverged_scf(fwp, tvars):
     t1.check_status()
     assert t1.status == t1.S_OK
 
-    flow.show_status()
-    if not flow.all_ok:
-        flow.debug()
-        raise RuntimeError
+    assert_flow_ok(flow, check_finalized=False)
 
     assert flow.explain(verbose=1)
 
@@ -239,12 +237,7 @@ def itest_bandstructure_flow(fwp, tvars):
     # aequal(t1.status, t1.S_OK)
     # afalse(t1.can_run)
 
-    flow.show_status()
-    if not flow.all_ok:
-        flow.debug()
-        raise RuntimeError
-
-    assert all(work.finalized for work in flow)
+    assert_flow_ok(flow)
 
     for task in flow.iflat_tasks():
         assert len(task.outdir.list_filepaths(wildcard="*GSR.nc")) == 1
@@ -316,16 +309,9 @@ def itest_bandstructure_schedflow(fwp, tvars):
     with pytest.raises(fwp.scheduler.Error):
         fwp.scheduler.add_flow(flow)
 
-    assert fwp.scheduler.start() == 0
-    assert not fwp.scheduler.exceptions
+    fwp.scheduler.start()
+    assert_flow_ok(flow, fwp.scheduler)
     assert fwp.scheduler.nlaunch == 2
-
-    flow.show_status()
-    if not flow.all_ok:
-        flow.debug()
-        raise RuntimeError
-
-    assert all(work.finalized for work in flow)
 
     # The WFK files should have been removed because we called set_garbage_collector
     for task in flow[0]:
@@ -377,16 +363,9 @@ def itest_htc_bandstructure(fwp, tvars):
     flow.build_and_pickle_dump(abivalidate=True)
 
     fwp.scheduler.add_flow(flow)
-    assert fwp.scheduler.start() == 0
-    assert not fwp.scheduler.exceptions
+    fwp.scheduler.start()
+    assert_flow_ok(flow, fwp.scheduler)
     assert fwp.scheduler.nlaunch == 3
-
-    flow.show_status()
-    if not flow.all_ok:
-        flow.debug()
-        raise RuntimeError
-
-    assert all(work.finalized for work in flow)
 
     # Test if GSR files are produced and are readable.
     for i, task in enumerate(work):
@@ -442,12 +421,6 @@ def itest_metagga_ebands_flow(fwp, tvars):
     flow.build_and_pickle_dump(abivalidate=True)
 
     fwp.scheduler.add_flow(flow)
-    assert fwp.scheduler.start() == 0
-    assert not fwp.scheduler.exceptions
+    fwp.scheduler.start()
+    assert_flow_ok(flow, fwp.scheduler)
     # assert fwp.scheduler.nlaunch == 3
-
-    flow.show_status()
-    if not flow.all_ok:
-        flow.debug()
-        raise RuntimeError
-    assert all(work.finalized for work in flow)
