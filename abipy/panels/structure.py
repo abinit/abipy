@@ -63,35 +63,35 @@ class StructurePanel(PanelWithStructure):
 
         # Convert widgets.
         self.output_format = pnw.Select(
-            name="format", value="abinit", options="abinit,cif,xsf,poscar,qe,siesta,wannier90,cssr,json".split(",")
+            label="format", value="abinit", options="abinit,cif,xsf,poscar,qe,siesta,wannier90,cssr,json".split(",")
         )
 
         # Spglib widgets
-        self.spglib_symprec = pnw.Spinner(name="symprec", value=0.01, start=0.0, end=None, step=0.01)
-        self.spglib_angtol = pnw.Spinner(name="angtol", value=5, start=0.0, end=None, step=1)
+        self.spglib_symprec = pnw.Spinner(label="symprec", value=0.01, start=0.0, end=None, step=0.01)
+        self.spglib_angtol = pnw.Spinner(label="angtol", value=5, start=0.0, end=None, step=1)
 
         # Abisanitize widgets
-        self.abisanitize_btn = pnw.Button(name="Run abisanitize", button_type="primary")
+        self.abisanitize_btn = pnw.Button(label="Run abisanitize", color="primary")
         self.select_primitive = pnw.Select(
-            name="Select primitive", options=["primitive", "primitive_standard", "no_primitive"]
+            label="Select primitive", options=["primitive", "primitive_standard", "no_primitive"]
         )
 
         # K-path widgets
-        self.kpath_format = pnw.Select(name="format", value="abinit", options=["abinit", "siesta", "wannier90"])
-        self.line_density = pnw.Spinner(name="line density", value=10, step=5, start=0, end=None)
-        self.plot_kpath = pnw.Checkbox(name="Plot k-path", value=False)
+        self.kpath_format = pnw.Select(label="format", value="abinit", options=["abinit", "siesta", "wannier90"])
+        self.line_density = pnw.Spinner(label="line density", value=10, step=5, start=0, end=None)
+        self.plot_kpath = pnw.Checkbox(label="Plot k-path", value=False)
 
         # MP-match
-        self.mp_match_btn = pnw.Button(name="Connect to Materials Project", button_type="primary")
+        self.mp_match_btn = pnw.Button(label="Connect to Materials Project", color="primary")
 
         # MP-search
-        # mp_search_btn = pnw.Button(name="Connect to Materials Project", button_type='primary')
+        # mp_search_btn = pnw.Button(label="Connect to Materials Project", color='primary')
         # mp_api_key
 
         # Widgets to control the generation of input files.
-        self.kppra = pnw.Spinner(name="kppra", value=1000, step=500, start=0, end=None)
-        self.smearing_type = pnw.Select(name="Smearing type", value=None, options=[None, "gaussian", "fermi_dirac"])
-        self.tsmear = pnw.Spinner(name="tsmear (Ha)", value=0.01, step=0.002, start=0.0, end=None)
+        self.kppra = pnw.Spinner(label="kppra", value=1000, step=500, start=0, end=None)
+        self.smearing_type = pnw.Select(label="Smearing type", value=None, options=[None, "gaussian", "fermi_dirac"])
+        self.tsmear = pnw.Spinner(label="tsmear (Ha)", value=0.01, step=0.002, start=0.0, end=None)
 
         # TODO: nspinor 2 should trigger a check on the table.
         from abipy.flowtk.psrepos import get_installed_repos_and_root
@@ -100,22 +100,22 @@ class StructurePanel(PanelWithStructure):
         options = [repo.name for repo in installed_repos]
         default_repo = "ONCVPSP-PBE-SR-PDv0.4"
         default_repo = None if default_repo not in options else default_repo
-        self.repos_name = pnw.Select(name="PP repos", value=default_repo, options=options)
-        self.table_name = pnw.Select(name="Table name", value="standard", options=["standard", "stringent"])
+        self.repos_name = pnw.Select(label="PP repos", value=default_repo, options=options)
+        self.table_name = pnw.Select(label="Table name", value="standard", options=["standard", "stringent"])
 
         # widgets for GS input generator
-        self.gs_type = pnw.Select(name="GS type", value="scf", options=["scf", "relax"])
-        self.gs_input_btn = pnw.Button(name="Generate input", button_type="primary")
+        self.gs_type = pnw.Select(label="GS type", value="scf", options=["scf", "relax"])
+        self.gs_input_btn = pnw.Button(label="Generate input", color="primary")
 
         # widgets for e-bands input generator.
-        self.ebands_input_btn = pnw.Button(name="Generate input", button_type="primary")
-        self.edos_kppra = pnw.Spinner(name="edos_kppra", value=0, step=500, start=0, end=None)
+        self.ebands_input_btn = pnw.Button(label="Generate input", color="primary")
+        self.edos_kppra = pnw.Spinner(label="edos_kppra", value=0, step=500, start=0, end=None)
 
         # widgets for DFPT phonons input generator.
-        self.ph_input_btn = pnw.Button(name="Generate input", button_type="primary")
-        self.with_becs = pnw.Checkbox(name="BECS and epsilon_inf (semiconductors)", value=False)
-        # self.dfpt_ngqpt = pnw.LiteralInput(name='ngqpt (python list)', value=[None, None, None], type=list)
-        # self.dfpt_ngqpt = pnw.LiteralInput(name='ngqpt (python list)', value=[None, None, None], type=list)
+        self.ph_input_btn = pnw.Button(label="Generate input", color="primary")
+        self.with_becs = pnw.Checkbox(label="BECS and epsilon_inf (semiconductors)", value=False)
+        # self.dfpt_ngqpt = pnw.LiteralInput(label='ngqpt (python list)', value=[None, None, None], type=list)
+        # self.dfpt_ngqpt = pnw.LiteralInput(label='ngqpt (python list)', value=[None, None, None], type=list)
 
         self.label2mode = {
             "unpolarized": "unpolarized",
@@ -125,7 +125,7 @@ class StructurePanel(PanelWithStructure):
             "collinear anti-ferromagnetic": "afm",
         }
 
-        self.spin_mode = pnw.Select(name="SpinMode", value="unpolarized", options=list(self.label2mode.keys()))
+        self.spin_mode = pnw.Select(label="SpinMode", value="unpolarized", options=list(self.label2mode.keys()))
 
     @pn.depends("output_format.value")
     def convert(self):
@@ -631,8 +631,8 @@ or through the Materials Project identifier (*mp-id*).
         super().__init__(**params)
 
         # Spglib widgets
-        # self.spglib_symprec = pnw.Spinner(name="symprec", value=0.01, start=0.0, end=None, step=0.01)
-        # self.spglib_angtol = pnw.Spinner(name="angtol", value=5, start=0.0, end=None, step=1)
+        # self.spglib_symprec = pnw.Spinner(label="symprec", value=0.01, start=0.0, end=None, step=0.01)
+        # self.spglib_angtol = pnw.Spinner(label="angtol", value=5, start=0.0, end=None, step=1)
 
         help_md = pn.pane.Markdown(f"""
 ## Description
@@ -645,7 +645,7 @@ or through the Materials Project identifier (*mp-id*).
         self.file_input = pnw.FileInput(height=60, css_classes=["pnx-file-upload-area"])
         self.file_input.param.watch(self.on_file_input, "value")
 
-        self.mpid_input = pnw.TextInput(name="mp-id", placeholder="Enter e.g. mp-149 for Silicon and press ⏎")
+        self.mpid_input = pnw.TextInput(label="mp-id", placeholder="Enter e.g. mp-149 for Silicon and press ⏎")
         self.mpid_input.param.watch(self.on_mpid_input, "value")
         self.mpid_err_wdg = pn.pane.Markdown("")
 
