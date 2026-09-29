@@ -26,7 +26,7 @@ class AceViewer(Viewer):
         super().__init__(**params)
 
         basename = os.path.basename(filepath)
-        self.open_btn = pnw.Button(label=f"Open {basename}", color="primary")
+        self.open_btn = pnw.Button(name=f"Open {basename}", button_type="primary")
         self.open_btn.on_click(self.open_ace_editor)
 
         self.ace = pnw.CodeEditor(
@@ -49,7 +49,7 @@ class AceViewer(Viewer):
         """Callback to open and read the file into the ACE editor."""
         self.ace.visible = True
         self.ace.value = open(self.filepath).read()
-        self.open_btn.label = "Reopen %s" % os.path.basename(self.filepath)
+        self.open_btn.name = "Reopen %s" % os.path.basename(self.filepath)
 
     def __panel__(self):
         return self.layout

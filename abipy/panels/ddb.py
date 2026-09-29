@@ -102,18 +102,18 @@ class PanelWithAnaddbParams(param.Parameterized):
         """
         super().__init__(**params)
         # FIXME
-        self.nqsmall_list = pnw.LiteralInput(label="nqmall_list (python syntax)", value=[10, 20, 30], type=list)
-        # nqqpt = pnw.LiteralInput(label='nsmalls (list)', value=[10, 20, 30], type=list)
+        self.nqsmall_list = pnw.LiteralInput(name="nqmall_list (python syntax)", value=[10, 20, 30], type=list)
+        # nqqpt = pnw.LiteralInput(name='nsmalls (list)', value=[10, 20, 30], type=list)
 
         self.eps0_wrange = pnw.EditableRangeSlider(
-            label="Frequency range (eV)", value=(0.0, 0.1), start=0.0, end=1.0, step=0.01
+            name="Frequency range (eV)", value=(0.0, 0.1), start=0.0, end=1.0, step=0.01
         )
 
-        self.temp_range = pnw.EditableRangeSlider(label="T-range in K", value=(100.0, 400), start=0, end=1000, step=50)
+        self.temp_range = pnw.EditableRangeSlider(name="T-range in K", value=(100.0, 400), start=0, end=1000, step=50)
 
         # Base buttons
         self.plot_without_asr_dipdip_btn = pnw.Button(
-            label="Compute phonons with/wo ASR and DIPDIP", color="primary"
+            name="Compute phonons with/wo ASR and DIPDIP", button_type="primary"
         )
 
         # if self.has_remote_serve:
@@ -168,18 +168,18 @@ class DdbFilePanel(PanelWithStructure, PanelWithAnaddbParams):
         self.ddb = ddb
 
         # Add buttons
-        self.get_epsinf_btn = pnw.Button(label="Compute", color="primary")
-        self.plot_phbands_btn = pnw.Button(label="Plot Bands and DOS", color="primary")
-        self.plot_eps0w_btn = pnw.Button(label="Plot eps0(omega)", color="primary")
+        self.get_epsinf_btn = pnw.Button(name="Compute", button_type="primary")
+        self.plot_phbands_btn = pnw.Button(name="Plot Bands and DOS", button_type="primary")
+        self.plot_eps0w_btn = pnw.Button(name="Plot eps0(omega)", button_type="primary")
 
-        self.plot_vsound_btn = pnw.Button(label="Calculate speed of sound", color="primary")
-        self.plot_ifc_btn = pnw.Button(label="Compute IFC(R)", color="primary")
-        self.plot_phbands_quad_btn = pnw.Button(label="Plot PHbands with/without quadrupoles", color="primary")
-        self.plot_dos_vs_qmesh_btn = pnw.Button(label="Plot PHDos vs Qmesh", color="primary")
-        self.compute_elastic_btn = pnw.Button(label="Compute Elastic", color="primary")
+        self.plot_vsound_btn = pnw.Button(name="Calculate speed of sound", button_type="primary")
+        self.plot_ifc_btn = pnw.Button(name="Compute IFC(R)", button_type="primary")
+        self.plot_phbands_quad_btn = pnw.Button(name="Plot PHbands with/without quadrupoles", button_type="primary")
+        self.plot_dos_vs_qmesh_btn = pnw.Button(name="Plot PHDos vs Qmesh", button_type="primary")
+        self.compute_elastic_btn = pnw.Button(name="Compute Elastic", button_type="primary")
 
-        self.stacked_pjdos = pnw.Checkbox(label="Stacked PJDOS", value=True)
-        self.with_qpath = pnw.Checkbox(label="Show q-path with plotly", value=True)
+        self.stacked_pjdos = pnw.Checkbox(name="Stacked PJDOS", value=True)
+        self.with_qpath = pnw.Checkbox(name="Show q-path with plotly", value=True)
 
     def get_becs_view(self) -> pn.Row:
         """Returns the view for Born effective charges."""
@@ -769,10 +769,10 @@ Also, avoid uploading big files (size > XXX).
         self.file_input = pnw.FileInput(height=60, css_classes=["pnx-file-upload-area"])
         self.file_input.param.watch(self.on_file_input, "value")
 
-        self.mpid_input = pnw.TextInput(label="mp-id", placeholder="Enter e.g. mp-149 for Silicon and press ⏎")
+        self.mpid_input = pnw.TextInput(name="mp-id", placeholder="Enter e.g. mp-149 for Silicon and press ⏎")
         self.mpid_input.param.watch(self.on_mpid_input, "value")
         self.mpid_err_wdg = pn.pane.Markdown("")
-        # self.mp_progress = pn.indicators.Progress(label='Fetching data from the MP website', bar_color="warning",
+        # self.mp_progress = pn.indicators.Progress(name='Fetching data from the MP website', bar_color="warning",
         #                                          active=False, width=200, height=10, align="center")
 
     def on_file_input(self, event) -> None:
@@ -869,10 +869,10 @@ the results.
         self.file_input = pnw.FileInput(height=60, css_classes=["pnx-file-upload-area"])
         self.file_input.param.watch(self.on_file_input, "value")
 
-        self.mpid_input = pnw.TextInput(label="mp-id", placeholder="Enter e.g. mp-149 for Silicon and press ⏎")
+        self.mpid_input = pnw.TextInput(name="mp-id", placeholder="Enter e.g. mp-149 for Silicon and press ⏎")
         self.mpid_input.param.watch(self.on_mpid_input, "value")
         self.mpid_err_wdg = pn.pane.Markdown("")
-        # self.mp_progress = pn.indicators.Progress(label='Fetching data from the MP website', bar_color="warning",
+        # self.mp_progress = pn.indicators.Progress(name='Fetching data from the MP website', bar_color="warning",
         #                                          active=False, width=200, height=10, align="center")
 
     def on_file_input(self, event) -> None:
@@ -938,7 +938,7 @@ This app alllows users to upload a DDB file and compare it with the one availabl
         self.file_input.param.watch(self.on_file_input, "value")
 
         self.mp_progress = pn.indicators.Progress(
-            label="Fetching DDB from the MP website",
+            name="Fetching DDB from the MP website",
             bar_color="warning",
             active=False,
             width=100,
@@ -995,9 +995,9 @@ class DdbRobotPanel(BaseRobotPanel, PanelWithAnaddbParams):
         PanelWithAnaddbParams.__init__(self)
 
         # Buttons
-        self.plot_combiplot_btn = pnw.Button(label="Compute", color="primary")
+        self.plot_combiplot_btn = pnw.Button(name="Compute", button_type="primary")
         self.combiplot_check_btn = pnw.CheckButtonGroup(
-            label="Check Button Group", value=["combiplot"], options=["combiplot", "gridplot"]
+            name="Check Button Group", value=["combiplot"], options=["combiplot", "gridplot"]
         )
 
     def kwargs_for_anaget_phbst_and_phdos_files(self, **extra_kwargs) -> dict:
@@ -1131,7 +1131,7 @@ class DdbRobotPanel(BaseRobotPanel, PanelWithAnaddbParams):
     #        #ca(phdos.plot_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, **self.mpl_kwargs))
     #        ca(ply(phdos.plotly_harmonic_thermo(tstart=temps[0], tstop=temps[1], num=50, show=False)))
     #        #msqd_dos.plot_tensor(**self.mpl_kwargs)
-    #        #self.plot_phbands_btn.color = "primary"
+    #        #self.plot_phbands_btn.button_type = "primary"
 
     #        # Add HTML pane with input
     #        ca("## Anaddb input file")
@@ -1335,7 +1335,7 @@ a set of ABINIT output files of the same type.
         top = "/Users/gmatteo/git_repos/abipy/abipy/data/refs/mgb2_phonons_nkpt_tsmear"
         top = "~"
         self.file_selector = pnw.FileSelector(top)
-        self.robot_files_btn = pnw.Button(label="Load files", color="primary", sizing_mode="stretch_width")
+        self.robot_files_btn = pnw.Button(name="Load files", button_type="primary", sizing_mode="stretch_width")
         self.robot_files_btn.on_click(self.on_load_files)
 
     # @depends_on_btn_click("robot_files_btn")

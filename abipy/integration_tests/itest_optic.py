@@ -6,6 +6,7 @@ import pytest
 
 import abipy.data as abidata
 from abipy import abilab, flowtk
+from abipy.integration_tests.helpers import assert_flow_ok
 
 
 def make_inputs(tvars):
@@ -105,10 +106,7 @@ def itest_optic_flow(fwp, tvars):
         task.start_and_wait()
         assert task.status == task.S_DONE
 
-    flow.check_status(show=True)
-    if not flow.all_ok:
-        flow.debug()
-        raise RuntimeError
+    assert_flow_ok(flow, check_finalized=False)
 
     # Optic does not support MPI with ncores > 1 hence we have to construct a manager with mpi_procs==1
     shell_manager = fwp.manager.to_shell_manager(mpi_procs=1)
@@ -146,12 +144,7 @@ def itest_optic_flow(fwp, tvars):
     optic_task2.start_and_wait()
     assert optic_task2.status == optic_task2.S_DONE
 
-    flow.check_status(show=True)
-    if not flow.all_ok:
-        flow.debug()
-        raise RuntimeError
-
-    assert all(work.finalized for work in flow)
+    assert_flow_ok(flow)
 
     # assert flow.validate_json_schema()
 

@@ -9,6 +9,7 @@ import pytest
 import abipy.data as abidata
 from abipy import abilab
 from abipy.dfpt.ddb import DdbFile
+from abipy.integration_tests.helpers import assert_flow_ok
 
 hostname = socket.gethostname()
 
@@ -78,12 +79,8 @@ def itest_frohlich_zpr_flow(fwp, tvars):
     )
 
     scheduler = flow.make_scheduler()
-    assert scheduler.start() == 0
-    flow.check_status(show=True)
-    assert all(work.finalized for work in flow)
-    if not flow.all_ok:
-        flow.debug()
-        raise RuntimeError
+    scheduler.start()
+    assert_flow_ok(flow, scheduler)
     assert flow.on_all_ok_num_calls == 1
 
     # Reconstruct python objects from JSON file.

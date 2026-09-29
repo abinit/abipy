@@ -476,7 +476,7 @@ class DdbTest(AbipyTest):
 
     def test_ddb_from_mprester(self):
         """Test creation methods for DdbFile and DdbRobot from MP REST API."""
-        if self.test_mprester():
+        if self.require_mprester():
             with self.assertRaises(ValueError):
                 abilab.DdbFile.from_mpid("foobar")
 

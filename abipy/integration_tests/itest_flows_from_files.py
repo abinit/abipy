@@ -9,6 +9,7 @@ import os
 import abipy.data as abidata
 from abipy import abilab, flowtk
 from abipy.core.testing import AbipyTest
+from abipy.integration_tests.helpers import assert_flow_ok
 
 
 def make_scf_nscf_inputs(paral_kgb=1):
@@ -103,15 +104,9 @@ def itest_nscf_from_denfile(fwp, tvars):
     # Will remove output files (WFK)
     flow.set_garbage_collector()
     scheduler = flow.make_scheduler()
-    assert scheduler.start() == 0
-    assert not scheduler.exceptions
+    scheduler.start()
+    assert_flow_ok(flow, scheduler)
     assert scheduler.nlaunch == 1
-
-    flow.check_status(show=True)
-    if not flow.all_ok:
-        flow.debug()
-        raise RuntimeError
-    assert all(work.finalized for work in flow)
 
     # The WFK files should have been removed because we called set_garbage_collector
     # but the input DEN.nc should exist

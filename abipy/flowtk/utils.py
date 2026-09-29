@@ -13,7 +13,6 @@ from fnmatch import fnmatch
 import numpy as np
 from monty.collections import dict2namedtuple
 from monty.fnmatch import WildCard
-from monty.shutil import copy_r
 from monty.string import list_strings
 
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt
@@ -227,7 +226,7 @@ class Directory:
         """
         Implements a recursive copy function similar to Unix's "cp -r" command.
         """
-        return copy_r(self.path, dst)
+        shutil.copytree(self.path, dst, dirs_exist_ok=True)
 
     def clean(self) -> None:
         """Remove all files in the directory tree while preserving the directory"""

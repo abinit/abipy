@@ -20,11 +20,12 @@ import json
 import logging
 import math
 import os
+import signal
 import string
 import sys
 from collections import namedtuple
 from functools import cached_property
-from subprocess import PIPE, Popen
+from subprocess import DEVNULL, PIPE, Popen
 from typing import Any
 
 from monty.collections import AttrDict
@@ -64,6 +65,22 @@ class SubmitResults(namedtuple("SubmitResult", "qid, out, err, process")):
     err: stdrr of the submission
     process: process object of the submission
     """
+
+
+def kill_process_group(pid: int, sig=signal.SIGKILL) -> int:
+    """
+    Send signal `sig` to the process group led by `pid` so that children (mpirun, abinit ...) are killed too.
+    Fall back to killing `pid` alone if the process is not a group leader, to avoid signaling our own group.
+    Return 0 if success, 1 if the process does not exist or cannot be signaled.
+    """
+    try:
+        if os.getpgid(pid) == pid:
+            os.killpg(pid, sig)
+        else:
+            os.kill(pid, sig)
+        return 0
+    except OSError:
+        return 1
 
 
 class MpiRunner:
@@ -1356,11 +1373,13 @@ $${qverbatim}
 """
 
     def cancel(self, job_id: int) -> int:
-        return os.system("kill -9 %d" % job_id)
+        return kill_process_group(job_id)
 
     def _submit_to_queue(self, script_file: str) -> SubmitResults:
         # Submit the job, return process and pid.
-        process = Popen(("/bin/bash", script_file), stderr=PIPE)
+        # stdin is closed so that an executable reading from stdin fails immediately instead of hanging.
+        # The job runs in a new session so that cancel can kill the whole process tree (mpirun, abinit ...).
+        process = Popen(("/bin/bash", script_file), stdin=DEVNULL, stderr=PIPE, start_new_session=True)
         return SubmitResults(
             qid=process.pid, out="no out in shell submission", err="no err in shell submission", process=process
         )

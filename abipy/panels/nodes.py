@@ -84,23 +84,23 @@ class NodeParameterized(AbipyParameterized):
             raise ValueError(f"Don't know how to handle type: `{type(node)}`")
 
         self.engine = pnw.Select(
-            value="fdp", label="engine", options=["dot", "neato", "twopi", "circo", "fdp", "sfdp", "patchwork", "osage"]
+            value="fdp", name="engine", options=["dot", "neato", "twopi", "circo", "fdp", "sfdp", "patchwork", "osage"]
         )
-        self.dirtree = pnw.Checkbox(label="Dirtree", value=False)
-        self.graphviz_btn = pnw.Button(label="Show Graph", color="primary")
+        self.dirtree = pnw.Checkbox(name="Dirtree", value=False)
+        self.graphviz_btn = pnw.Button(name="Show Graph", button_type="primary")
 
-        self.status_btn = pnw.Button(label="Show Status", color="primary")
+        self.status_btn = pnw.Button(name="Show Status", button_type="primary")
 
-        self.history_btn = pnw.Button(label="Show history", color="primary")
-        self.debug_btn = pnw.Button(label="Debug", color="primary")
-        self.events_btn = pnw.Button(label="Show Events", color="primary")
-        self.corrections_btn = pnw.Button(label="Show Corrections", color="primary")
-        self.handlers_btn = pnw.Button(label="Show Handlers", color="primary")
+        self.history_btn = pnw.Button(name="Show history", button_type="primary")
+        self.debug_btn = pnw.Button(name="Debug", button_type="primary")
+        self.events_btn = pnw.Button(name="Show Events", button_type="primary")
+        self.corrections_btn = pnw.Button(name="Show Corrections", button_type="primary")
+        self.handlers_btn = pnw.Button(name="Show Handlers", button_type="primary")
         self.vars_text = pnw.TextInput(
-            label="Abivars", placeholder="Enter list of variables separated by comma e.g. `ecut, natom`"
+            name="Abivars", placeholder="Enter list of variables separated by comma e.g. `ecut, natom`"
         )
-        self.vars_btn = pnw.Button(label="Show Variables", color="primary")
-        # self.dims_btn = pnw.Button(label="Show Dimensions", color='primary')
+        self.vars_btn = pnw.Button(name="Show Variables", button_type="primary")
+        # self.dims_btn = pnw.Button(name="Show Dimensions", button_type='primary')
 
         self.workdir_fileselector = pnw.FileSelector(node.workdir, only_files=True)
         self.outdir_fileselector = pnw.FileSelector(node.outdir.path)
@@ -114,7 +114,7 @@ class NodeParameterized(AbipyParameterized):
         for where in ("indir", "outdir", "workdir"):
             directory = Directory(self.node.workdir) if where == "workdir" else getattr(self.node, where)
             filepaths = directory.list_filepaths()
-            self.filepath_select_dir[where] = FilePathSelect.from_filepaths(filepaths)  # , label=f"Files in {where}")
+            self.filepath_select_dir[where] = FilePathSelect.from_filepaths(filepaths)  # , name=f"Files in {where}")
 
     def get_status_view(self) -> pn.Column:
         """Return the status view panel."""
@@ -329,7 +329,7 @@ class NodeParameterized(AbipyParameterized):
         if not select:
             return None
 
-        btn = pnw.Button(label="Analyze", color="primary")
+        btn = pnw.Button(name="Analyze", button_type="primary")
         output_area = pn.Column(sizing_mode="stretch_width")
 
         from abipy.abilab import abiopen
@@ -450,9 +450,9 @@ class StatusCards(param.Parameterized):
         # Compute this card
         self.cards["## Task status histogram"].collapsed = False
 
-        open_btn = pnw.Button(label="Open all cards", color="primary")
+        open_btn = pnw.Button(name="Open all cards", button_type="primary")
         open_btn.on_click(self.open_all_cards)
-        close_btn = pnw.Button(label="Close all cards", color="primary")
+        close_btn = pnw.Button(name="Close all cards", button_type="primary")
         close_btn.on_click(self.close_all_cards)
 
         self.layout = pn.Column(pn.Row(open_btn, close_btn), *list(self.cards.values()), sizing_mode="stretch_width")

@@ -97,6 +97,7 @@ tests = [
     "pytest",
     "pytest-cov",
     "pytest-sugar",
+    "pytest-timeout",
     "pytest-xdist",
     "python-coveralls",
     "scripttest",
