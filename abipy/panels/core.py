@@ -384,7 +384,7 @@ so that AbiPy can authenticate your user on the chart studio portal before pushi
 If everything is properly configured, a new window is automatically created in your browser.
 """)
 
-        btn = pnw.Button(label="Upload figure to chart studio server")
+        btn = pnw.Button(name="Upload figure to chart studio server")
 
         def push_to_cs(event):
             with ButtonContext(btn):
@@ -507,7 +507,7 @@ def dfc(
         #    return file_download.callback()
 
         # FIXME: Menu button occupies less space but the upload does not work
-        # menu_btn = pnw.MenuButton(label='Export table', items=list(d.keys()))
+        # menu_btn = pnw.MenuButton(name='Export table', items=list(d.keys()))
         # menu_btn.on_click(download)
         # ca(menu_btn)
 
@@ -591,12 +591,12 @@ class ButtonContext:
             btn: The button to wrap with context.
         """
         self.btn = btn
-        self.prev_name, self.prev_type = btn.label, btn.color
+        self.prev_name, self.prev_type = btn.name, btn.button_type
 
     def __enter__(self):
         # Disable the button.
-        self.btn.label = "Running ..."
-        self.btn.color = "warning"
+        self.btn.name = "Running ..."
+        self.btn.button_type = "warning"
         self.btn.loading = True
         self.btn.disabled = True
         return self.btn
@@ -608,12 +608,12 @@ class ButtonContext:
 
         if exc_type:
             # Exception --> signal to the user that something went wrong for 2 seconds.
-            self.btn.label = str(exc_type)
-            self.btn.color = "danger"
+            self.btn.name = str(exc_type)
+            self.btn.button_type = "danger"
             time.sleep(2)
 
         # Back to the original button state.
-        self.btn.label, self.btn.color = self.prev_name, self.prev_type
+        self.btn.name, self.btn.button_type = self.prev_name, self.prev_type
 
 
 class Loading:
@@ -823,7 +823,7 @@ class AbipyParameterized(param.Parameterized):
         from abipy.abilab import extcls_supporting_panel
 
         exts = [e[0] for e in extcls_supporting_panel(as_table=False)]
-        return pnw.Select(label=name, options=exts)
+        return pnw.Select(name=name, options=exts)
 
     @staticmethod
     def html_with_clipboard_btn(html_str: str, **kwargs):
@@ -1069,7 +1069,7 @@ class PanelWithStructure(AbipyParameterized):
             # Change the list of allowed visualizers.
             self.param.structure_viewer.objects = ["jsmol", "crystalk", "ngl", "matplotlib", "plotly", "ase_atoms"]
 
-        self.view_structure_btn = pnw.Button(label="View structure", color="primary")
+        self.view_structure_btn = pnw.Button(name="View structure", button_type="primary")
 
     @depends_on_btn_click("view_structure_btn", show_shared_wdg_warning=False)
     def on_view_structure(self):
@@ -1224,7 +1224,7 @@ class NcFileViewer(AbipyParameterized):
         """
         super().__init__(**params)
         self.ncfile = ncfile
-        self.netcdf_info_btn = pnw.Button(label="Show info", color="primary")
+        self.netcdf_info_btn = pnw.Button(name="Show info", button_type="primary")
 
     def get_ncfile_view(self) -> pn.Column:
         """Return a view with netcdf file information."""
@@ -1241,7 +1241,7 @@ class NcFileViewer(AbipyParameterized):
         col = pn.Column(sizing_mode="stretch_width")
         ca = col.append
 
-        # nc_grpname = pnw.Select(label="nc group name", options=["/"])
+        # nc_grpname = pnw.Select(name="nc group name", options=["/"])
         input_string = self.ncfile.get_input_string()
         ca("## Input String")
         ca(bkw.PreText(text=input_string))
@@ -1337,26 +1337,26 @@ class PanelWithElectronBands(PanelWithStructure):
         PanelWithStructure.__init__(self, structure=ebands.structure, **params)
 
         # Create buttons
-        self.plot_ebands_btn = pnw.Button(label="Plot e-bands", color="primary")
-        self.plot_edos_btn = pnw.Button(label="Plot e-DOS", color="primary")
-        self.plot_skw_btn = pnw.Button(label="Plot SKW interpolant", color="primary")
+        self.plot_ebands_btn = pnw.Button(name="Plot e-bands", button_type="primary")
+        self.plot_edos_btn = pnw.Button(name="Plot e-DOS", button_type="primary")
+        self.plot_skw_btn = pnw.Button(name="Plot SKW interpolant", button_type="primary")
 
         # Fermi surface plotter.
         # objects = [None, "matplotlib", "xcrysden"]
         # if self.has_remote_server: objects = [None, "matplotlib"]
-        # self.plot_fs_viewer_btn = pnw.Button(label="Plot SKW interpolant", color='primary')
+        # self.plot_fs_viewer_btn = pnw.Button(name="Plot SKW interpolant", button_type='primary')
 
-        self.plot_ifermi_btn = pnw.Button(label="Plot Fermi surface", color="primary")
-        # self.ifermi_plane_normal = pnw.LiteralInput(label='Plane normal (list)', value=[0, 0, 0], type=list,
+        self.plot_ifermi_btn = pnw.Button(name="Plot Fermi surface", button_type="primary")
+        # self.ifermi_plane_normal = pnw.LiteralInput(name='Plane normal (list)', value=[0, 0, 0], type=list,
         #                                            placeholder="Enter normal in reduced coordinates")
         # self.ifermi_distance = pn.widgets.RangeSlider(
-        #        label='distance', start=0, end=2 * max(ebands.structure.reciprocal_lattice.abc),
+        #        name='distance', start=0, end=2 * max(ebands.structure.reciprocal_lattice.abc),
         #        value=(0, 0), step=0.01)
 
         # ebands_kpath_fileinput = pnw.FileInput(accept=".nc")
         # ebands_kmesh_fileinput = pnw.FileInput(accept=".nc")
 
-        self.plot_effmass_btn = pnw.Button(label="Plot effective masses", color="primary")
+        self.plot_effmass_btn = pnw.Button(name="Plot effective masses", button_type="primary")
         if ebands.nsppol != 2:
             self.param.effmass_spin.objects = [0]
 
@@ -1696,8 +1696,8 @@ class BaseRobotPanel(AbipyParameterized):
             params: Parameters passed to the parent class.
         """
         self.robot = robot
-        self.compare_params_btn = pnw.Button(label="Compare structures", color="primary")
-        self.transpose_params = pnw.Checkbox(label="Transpose table", value=True)
+        self.compare_params_btn = pnw.Button(name="Compare structures", button_type="primary")
+        self.transpose_params = pnw.Checkbox(name="Transpose table", value=True)
 
         super().__init__(**params)
 
@@ -1744,14 +1744,14 @@ class PanelWithEbandsRobot(BaseRobotPanel):
 
         # Widgets to plot ebands.
         self.ebands_plotter_mode = pnw.Select(
-            label="Plot Mode", value="gridplot", options=["gridplot", "combiplot", "boxplot", "combiboxplot"]
+            name="Plot Mode", value="gridplot", options=["gridplot", "combiplot", "boxplot", "combiboxplot"]
         )  # "animate",
-        self.ebands_plotter_btn = pnw.Button(label="Plot", color="primary")
-        self.ebands_df_checkbox = pnw.Checkbox(label="With Ebands DataFrame", value=False)
+        self.ebands_plotter_btn = pnw.Button(name="Plot", button_type="primary")
+        self.ebands_df_checkbox = pnw.Checkbox(name="With Ebands DataFrame", value=False)
 
         # Widgets to plot edos.
-        self.edos_plotter_mode = pnw.Select(label="Plot Mode", value="gridplot", options=["gridplot", "combiplot"])
-        self.edos_plotter_btn = pnw.Button(label="Plot", color="primary")
+        self.edos_plotter_mode = pnw.Select(name="Plot Mode", value="gridplot", options=["gridplot", "combiplot"])
+        self.edos_plotter_btn = pnw.Button(name="Plot", button_type="primary")
 
     def get_ebands_plotter_widgets(self) -> pn.Column:
         """Return a Column with widgets to plot electronic bands."""
