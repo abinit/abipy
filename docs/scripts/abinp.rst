@@ -4,14 +4,14 @@
 ``abinp.py``
 ^^^^^^^^^^^^
 
-This script provides a simplified interface to the AbiPy API for constructing input files.
-It is a useful tool especially for newcomers who are not familiar with the programmatic interface
-for building workflows.
-In this case, indeed, one can use ``abinp.py`` to generate automatically input files from 
-file providing the crystalline structure of the system and then customize the generated output.
+This script provides a simplified interface to the AbiPy API for building input files.
+It is especially useful for newcomers who are not yet familiar with the programmatic interface
+for building workflows:
+``abinp.py`` can automatically generate input files from any
+file that provides the crystalline structure of the system, and the generated output can then be customized.
 
-There are also commands operating on input files directly. 
-These options could be useful to get data directly from Abinit.
+Other commands operate directly on existing input files
+and can be used to get data directly from Abinit.
 
 .. argparse::
    :ref: abipy.scripts.abinp.get_parser

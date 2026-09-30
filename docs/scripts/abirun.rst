@@ -4,8 +4,8 @@
 ``abirun.py``
 ^^^^^^^^^^^^^
 
-This script allows the user to submit the calculations contained in the AbiPy Flow 
-(for further detail, consult the :ref:`taskmanager` documentation).
+This script submits the calculations contained in an AbiPy Flow
+(for more details, see the :ref:`taskmanager` documentation).
 
 .. command-output:: abirun.py --help
 
@@ -23,11 +23,11 @@ At the time of writing (|today|), AbiPy supports the following resource managers
 * sge_
 * torque_
 
-To obtain the list of options supported by a particular resource manager e.g. ``slurm``::
+To get the list of options supported by a particular resource manager, e.g. ``slurm``, use::
 
     abirun.py . doc_manager slurm
 
-Complete command line reference
+Complete command line reference:
 
 .. argparse::
    :ref: abipy.scripts.abirun.get_parser

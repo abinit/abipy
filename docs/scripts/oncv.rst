@@ -4,8 +4,8 @@
 ``oncv.py``
 ^^^^^^^^^^^
 
-Script to generate/analyze/plot ONCVPSP pseudopotentials.
+This script generates, analyzes and plots ONCVPSP pseudopotentials.
 
 .. argparse::
    :ref: abipy.scripts.oncv.get_parser
-   :prog: abips.py
+   :prog: oncv.py
