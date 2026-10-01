@@ -7,6 +7,7 @@ import pandas as pd
 from monty.collections import dict2namedtuple
 
 from abipy.tools import duck
+from abipy.tools.typing import Figure
 
 
 def print_stats_arr(arr: np.ndarray, take_abs=False) -> None:

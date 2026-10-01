@@ -25,7 +25,7 @@ class KmeshFile(AbinitNcFile, Has_Structure):
     """
 
     @classmethod
-    def from_ngkpt_shifts(cls, ncpath_with_structure, ngkpt, shifts, kptopt=3, chksymbreak=0, verbose=0) -> Kmesh:
+    def from_ngkpt_shifts(cls, ncpath_with_structure, ngkpt, shifts, kptopt=3, chksymbreak=0, verbose=0) -> KmeshFile:
         """
         Args:
             ncpath_with_structure:

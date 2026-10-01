@@ -1,4 +1,4 @@
-.. _abidoc.py:
+.. _abidoc-script:
 
 ^^^^^^^^^^^^^
 ``abidoc.py``

@@ -280,7 +280,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
 
     def get_qe_dataframe(self, kpoint) -> pd.DataFrame:
         """
-        Build and return a dataframe with |g(k,q)|^2 for the given k-point and all bands.
+        Build and return a dataframe with ``|g(k,q)|^2`` for the given k-point and all bands.
 
         Args:
             kpoint:
@@ -387,6 +387,7 @@ class GkqFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands, Notebo
         """
         Produce scatter plot and histogram to compare the gkq matrix elements stored in two files.
 
+        Args:
             other: other GkqFile instance.
             mode: "phonon" to plot eph matrix elements in the phonon representation,
                   "atom" for atomic representation.
@@ -568,7 +569,7 @@ class GkqRobot(Robot, RobotWithEbands):
         **kwargs,
     ) -> Figure:
         r"""
-        Plot the magnitude of the electron-phonon matrix elements <k+q, band_kq| Delta_{q\nu} V |k, band_k>
+        Plot the magnitude of the electron-phonon matrix elements ``<k+q, band_kq| Delta_{q\nu} V |k, band_k>``
         for a given set of (band_kq, band, k) as a function of the q-point.
 
         Args:

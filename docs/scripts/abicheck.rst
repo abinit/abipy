@@ -1,4 +1,4 @@
-.. _abicheck.py:
+.. _abicheck-script:
 
 ^^^^^^^^^^^^^^^
 ``abicheck.py``

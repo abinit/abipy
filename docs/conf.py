@@ -91,7 +91,11 @@ import matplotlib
 #        font='sans-serif', font_scale=1, color_codes=False, rc=None)
 
 
+# Local extensions (youtube directive)
+sys.path.insert(0, os.path.join(ABIPY_ROOT, "docs", "my_extensions"))
+
 extensions += [
+    "youtube",
     "IPython.sphinxext.ipython_directive",
     "IPython.sphinxext.ipython_console_highlighting",
     "matplotlib.sphinxext.plot_directive",
@@ -471,6 +475,9 @@ intersphinx_mapping = {
 # This is the right place to add substitutions that should be available in every file.
 with open("links.rst", "rt") as fh:
     rst_epilog = fh.read()
+
+# sphinx_gallery_conf contains functions and cannot be pickled: harmless, don't warn.
+suppress_warnings = ["config.cache"]
 
 # http://www.sphinx-doc.org/en/stable/ext/extlinks.html#confval-extlinks
 # :abivar:`ecut`

@@ -1,4 +1,4 @@
-.. _abistruct.py:
+.. _abistruct-script:
 
 ^^^^^^^^^^^^^^^^
 ``abistruct.py``

@@ -1,4 +1,4 @@
-.. _abips.py:
+.. _abips-script:
 
 ^^^^^^^^^^^^
 ``abips.py``

@@ -1,4 +1,4 @@
-.. _abicomp.py:
+.. _abicomp-script:
 
 ^^^^^^^^^^^^^^
 ``abicomp.py``

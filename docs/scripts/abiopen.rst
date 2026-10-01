@@ -1,4 +1,4 @@
-.. _abiopen.py:
+.. _abiopen-script:
 
 ^^^^^^^^^^^^^^
 ``abiopen.py``

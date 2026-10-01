@@ -41,7 +41,7 @@ from abipy.tools.plotting import (
     set_grid_legend,
     set_visible,
 )
-from abipy.tools.typing import Figure, KptSelect
+from abipy.tools.typing import Figure, KptSelect, VectorLike
 
 __all__ = [
     "QPState",

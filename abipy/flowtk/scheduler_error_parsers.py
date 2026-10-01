@@ -242,14 +242,14 @@ class AbstractErrorParser(metaclass=ABCMeta):
     program itself, i.e. segmentation faults.
 
     A concrete implementation of this class for a specific scheduler needs a class attribute ERRORS for containing a
-    dictionary specifying error:
+    dictionary specifying error::
 
-    ERRORS = {ErrorClass: {
-                'file_specifier' : {
-                    'string': "the string to be looked for",
-                    'meta_filter': "string specifing the regular expression to obtain the meta data"
+        ERRORS = {ErrorClass: {
+                    'file_specifier' : {
+                        'string': "the string to be looked for",
+                        'meta_filter': "string specifing the regular expression to obtain the meta data"
+                        }
                     }
-                }
 
     """
 

@@ -2030,28 +2030,31 @@ class ArrheniusPlotter:
     In the simplest case, one reads the data from external files in CSV format.
 
     Example:
-        from abipy.dynamics.analyzer import ArrheniusPlotter
 
-        key_path = {
-            "matgl-MD":  "diffusion_cLLZO-matgl.csv",
-            "m3gnet-MD": "diffusion_cLLZO-m3gnet.csv",
-        }
+        .. code-block:: python
 
-        mpl_style_key = {
-            "matgl-MD" : dict(c='blue'),
-            "m3gnet-MD": dict(c='purple'),
-        }
+            from abipy.dynamics.analyzer import ArrheniusPlotter
 
-        plotter = ArrheniusPlotter()
-        for key, path in key_path.items():
-            plotter.add_entry_from_file(path, key, mpl_style=mpl_style_key[key])
+            key_path = {
+                "matgl-MD":  "diffusion_cLLZO-matgl.csv",
+                "m3gnet-MD": "diffusion_cLLZO-m3gnet.csv",
+            }
 
-        # temperature grid refined
-        thinvt_arange = (0.6, 2.5, 0.01)
-        xlims, ylims = (0.5, 2.0), (-7, -4)
+            mpl_style_key = {
+                "matgl-MD" : dict(c='blue'),
+                "m3gnet-MD": dict(c='purple'),
+            }
 
-        plotter.plot(thinvt_arange=thinvt_arange,
-                     xlims=xlims, ylims=ylims, text='LLZO cubic', savefig=None)
+            plotter = ArrheniusPlotter()
+            for key, path in key_path.items():
+                plotter.add_entry_from_file(path, key, mpl_style=mpl_style_key[key])
+
+            # temperature grid refined
+            thinvt_arange = (0.6, 2.5, 0.01)
+            xlims, ylims = (0.5, 2.0), (-7, -4)
+
+            plotter.plot(thinvt_arange=thinvt_arange,
+                         xlims=xlims, ylims=ylims, text='LLZO cubic', savefig=None)
 
     """
 

@@ -1,4 +1,4 @@
-.. _abinp.py:
+.. _abinp-script:
 
 ^^^^^^^^^^^^
 ``abinp.py``

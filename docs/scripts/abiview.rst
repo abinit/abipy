@@ -1,4 +1,4 @@
-.. _abiview.py:
+.. _abiview-script:
 
 ^^^^^^^^^^^^^^
 ``abiview.py``

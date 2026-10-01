@@ -36,7 +36,7 @@ class ConvBecsEpsFlow(Flow):
         with_quad: bool = True,
         with_flexoe: bool = False,
         manager=None,
-    ) -> ConvBecsEpsinfFlow:
+    ) -> ConvBecsEpsFlow:
         """
         Build a flow for convergence studies wrt ngkpt from an |AbinitInput| representing a GS-SCF calculation.
 

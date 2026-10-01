@@ -30,13 +30,13 @@ class Pauli:
             An array of shape [..., 2, 2], where each trailing 2x2 subarray is a matrix
             to be projected onto the Pauli basis.
 
-        Returns:
+        Returns
         -------
         np.ndarray
             An array of shape [..., 4], where the last dimension contains the coefficients
             (a_0, a_x, a_y, a_z) for the identity matrix, sigma_x, sigma_y, and sigma_z, respectively.
 
-        Examples:
+        Examples
         --------
         >>> import numpy as np
         >>> mats = np.array([[[1, 0], [0, 1]], [[0, 1], [1, 0]]])  # Shape (2, 2, 2)
@@ -72,13 +72,13 @@ class Pauli:
             An array of shape [..., 4], where the last dimension contains the coefficients
             (a_0, a_x, a_y, a_z) for the identity matrix, sigma_x, sigma_y, and sigma_z, respectively.
 
-        Returns:
+        Returns
         -------
         np.ndarray
             An array of shape [..., 2, 2], where each trailing 2x2 matrix is reconstructed
             from the input coefficients.
 
-        Examples:
+        Examples
         --------
         >>> coefficients = np.array([[0.5, 0, 0, 0.5], [0, 0.5, 0, 0]])  # Shape (2, 4)
         >>> result = reconstruct_mats(coefficients)

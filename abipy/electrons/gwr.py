@@ -36,7 +36,7 @@ from abipy.tools.plotting import (
     set_grid_legend,
     set_visible,
 )
-from abipy.tools.typing import Figure, KptSelect
+from abipy.tools.typing import Figure, KptSelect, VectorLike
 
 __all__ = [
     "GwrFile",
@@ -2257,7 +2257,7 @@ class GwrRobot(Robot, RobotWithEbands):
         **kwargs,
     ) -> Figure:
         """
-        For each file in the GWR robot, plot one of the attributes of :class:`QpTempStat
+        For each file in the GWR robot, plot one of the attributes of :class:`QpTempStat`
         as a function of the KS energy.
 
         Args:

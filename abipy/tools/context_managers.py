@@ -56,7 +56,7 @@ def temporary_change_attributes(something, **kwargs):
     """
     https://stackoverflow.com/questions/38531851/how-to-assign-member-variables-temporarily/38532086
 
-    Usage:
+    Usage::
 
         class Something(object):
             def __init__(self, x, y):

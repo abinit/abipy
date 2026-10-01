@@ -1,4 +1,4 @@
-.. _abirun.py:
+.. _abirun-script:
 
 ^^^^^^^^^^^^^
 ``abirun.py``

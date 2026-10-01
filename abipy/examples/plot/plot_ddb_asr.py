@@ -43,7 +43,7 @@ plotter.combiplot()
 plotter.combiplotly()
 
 # %%
-# To disable the DOS computation, set ``nqsmall` to 0:
+# To disable the DOS computation, set ``nqsmall`` to 0:
 
 plotter = ddb.anacompare_asr(asr_list=(0, 2), nqsmall=0, ndivsm=10, dipdip=-1)
 
