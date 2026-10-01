@@ -11,6 +11,8 @@ import shutil
 
 
 # Remove matplotlib agg warnings from generated doc when using plt.show
+import logging
+import re
 import warnings
 
 # warnings.filterwarnings("ignore", category=UserWarning,
@@ -478,6 +480,24 @@ with open("links.rst", "rt") as fh:
 
 # sphinx_gallery_conf contains functions and cannot be pickled: harmless, don't warn.
 suppress_warnings = ["config.cache"]
+
+
+class _ThirdPartyForwardRefFilter(logging.Filter):
+    """
+    Drop sphinx_autodoc_typehints forward-reference warnings for objects defined in third-party
+    packages (e.g. numpy, pymatgen) that are imported in AbiPy modules.
+    These annotations cannot be fixed in AbiPy, while warnings for AbiPy code are kept.
+    """
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        msg = record.getMessage()
+        if "Cannot resolve forward reference" not in msg:
+            return True
+        m = re.search(r"\(module ([\w.]+)\)", msg)
+        return m is None or m.group(1).split(".")[0] == "abipy"
+
+
+logging.getLogger("sphinx.sphinx_autodoc_typehints").addFilter(_ThirdPartyForwardRefFilter())
 
 # http://www.sphinx-doc.org/en/stable/ext/extlinks.html#confval-extlinks
 # :abivar:`ecut`

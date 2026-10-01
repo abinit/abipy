@@ -4974,15 +4974,11 @@ class ElectronDos:
         Args:
             mesh: array-like object with the mesh points in eV.
             spin_dos: array-like object with the DOS for the different spins (even if spin-unpolarized calculation).
-                Shape is:
-                      (1, nw) if spin-unpolarized.
-                      (2, nw) if spin-polarized.
+                Shape is (1, nw) if spin-unpolarized, (2, nw) if spin-polarized.
             nelect: Number of electrons in the unit cell.
             fermie: Fermi level in eV. If None, fermie is obtained from the idos integral.
             spin_idos: array-like object with the IDOS for the different spins (even if spin-unpolarized calculation).
-                Shape is:
-                      (1, nw) if spin-unpolarized.
-                      (2, nw) if spin-polarized case.
+                Shape is (1, nw) if spin-unpolarized, (2, nw) if spin-polarized.
 
                 This argument is usually used when we have an IDOS computed with a more accurate method e.g.
                 tetrahedron integration so that we can use these values instead of integrating the input DOS.
