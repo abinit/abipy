@@ -28,23 +28,6 @@ class AnaddbNcFile(AbinitNcFile, Has_Structure, NotebookWriter):
     AnaddbNcFile provides a high-level interface to the data stored in the anaddb.nc file.
     This object is usually instantiated with `abiopen("anaddb.nc")`.
 
-    .. attribute:: structure
-
-        |Structure| object.
-
-    .. attribute:: epsinf
-
-        Macroscopic dielectric tensor. None if the file does not contain this information.
-
-    .. attribute:: becs
-
-        Born effective charges. None if the file does not contain this inf
-
-    .. attribute:: ifc
-
-        :class:`InteratomicForceConstants` object with the interatomic force constants calculated by anaddb.
-        None, if the netcdf file does not contain the IFCs.
-
     .. rubric:: Inheritance Diagram
     .. inheritance-diagram:: AnaddbNcFile
     """

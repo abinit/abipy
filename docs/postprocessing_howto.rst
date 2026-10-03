@@ -4,7 +4,7 @@
 Post-processing How-To
 ***********************
 
-This is a list of FAQs about the usage of the AbiPy scripts.
+This page collects frequently asked questions about the AbiPy scripts.
 Feel free to suggest new entries!
 
 .. contents::
@@ -14,9 +14,9 @@ Feel free to suggest new entries!
 Preliminary considerations
 ---------------------------
 
-The AbiPy scripts detect the file type by looking at the file extension
-so **don't change the file extension**.
-Also, remember that it is possible to get the documentation  by just adding
+The AbiPy scripts detect the file type from the file extension,
+so **do not change the file extension**.
+Remember also that you can get the documentation of any script simply by adding
 the ``--help`` option to the command line.
 For example:
 
@@ -24,13 +24,13 @@ For example:
 
     abistruct.py --help
 
-gives the documentation and usage examples for the abistruct.py_ script while:
+shows the documentation and usage examples for the abistruct.py_ script, while:
 
 .. code-block:: shell
 
     abistruct.py COMMAND --help
 
-prints the documentation and the options supported by ``COMMAND``
+prints the documentation and the options supported by ``COMMAND``.
 
 
 Get information about a generic ``FILE``
@@ -40,14 +40,14 @@ Use::
 
     abiopen.py FILE --print
 
-to print information about a file inside the terminal or
+to print information about a file in the terminal, or::
 
     abiopen.py FILE --expose
 
-to generate multiple matplotlib figures depending on FILE.
+to generate a set of matplotlib figures that depend on the type of FILE.
 
-Use ``--verbose`` or ``-v`` to increase verbosity level.
-The option can be can be supplied multiple times e.g. ``-vv``.
+Use ``--verbose`` or ``-v`` to increase the verbosity level.
+The option can be given multiple times, e.g. ``-vv``.
 
 Get all file extensions supported by ``abiopen.py``
 ---------------------------------------------------
@@ -66,47 +66,47 @@ Use::
 
     abistruct.py convert FILE
 
-to read the structure from ``FILE`` and generate a CIF_ file (default behaviour).
+to read the structure from ``FILE`` and generate a CIF_ file (the default behaviour).
 
-The majority of the netcdf_ files produced by Abinit contain structural information
-so this command can be used with netcdf output files as well as Abinit input/output
-files and all the other formats supported by pymatgen e.g. POSCAR files.
-Other formats can be specified with the ``-f`` option.
+Most of the netcdf_ files produced by Abinit contain structural information,
+so this command works with netcdf output files as well as with Abinit input/output
+files and all the other formats supported by pymatgen, e.g. POSCAR files.
+Other output formats can be selected with the ``-f`` option.
 For example::
 
     abistruct.py convert FILE -f abivars
 
-gives the Abinit input variables while::
+prints the Abinit input variables, while::
 
     abistruct.py convert FILE -f xsf > out.xsf
 
-exports the structure to the ``xsf`` format (xcrysden_) and save it to file.
+exports the structure in the ``xsf`` format (xcrysden_) and saves it to a file.
 
 Use::
 
     abistruct.py convert --help
 
-to list the formats supported.
+to list the supported formats.
 
 Check if my Abinit input file is OK
 -----------------------------------
 
-First of all, one can use::
+First of all, use::
 
     abiopen.py ../abipy/data/refs/si_ebands/run.abi -p
 
-to print the crystalline structure and find the space group with the spglib_ library.
+to print the crystalline structure and determine the space group with the spglib_ library.
 
-If the structure looks good, use the abinp.py_ script with the ``validate`` command as in::
+If the structure looks good, validate the input file with Abinit using the ``validate`` command of the abinp.py_ script::
 
     abinp.py validate run.abi
 
-to validate the input file with Abinit (requires ``manager.yml`` and, obviously, Abinit).
+This requires a ``manager.yml`` file and, of course, Abinit.
 
-The script provides other options to invoke Abinit
-to get space group information, the list of k-points in the IBZ.
+The script provides other commands that invoke Abinit
+to get space group information, the list of k-points in the IBZ,
 the list of atomic perturbations for phonons or the list of autoparal configurations.
-See ``abinp.py --help`` for further info.
+See ``abinp.py --help`` for more information.
 
 Print the warnings in the log file
 ----------------------------------
@@ -135,73 +135,73 @@ to get::
 
     num_errors: 0, num_warnings: 4, num_comments: 0, completed: True
 
-A similar interface is also available via::
+A similar interface is also available with::
 
     abiview.py log run.log
 
 
-Get a quick look to a file
+Get a quick look at a file
 --------------------------
 
-The abiview.py_ script is especially designed for this task.
-The syntax is ``abiview.py COMMAND FILE`` where ``COMMAND`` is either
-the Abinit file extension (without ``.nc``, if any) or the AbiPy object we want to visualize.
+The abiview.py_ script is designed specifically for this task.
+The syntax is ``abiview.py COMMAND FILE``, where ``COMMAND`` is either
+the Abinit file extension (without ``.nc``, if any) or the AbiPy object to visualize.
 
 To get a quick look at the DDB file, use::
 
     abiview.py ddb out_DDB
 
-This command invokes anaddb to compute phonon bands and DOS from the DDB and produces matplotlib_ plots.
+This command invokes anaddb to compute the phonon bands and DOS from the DDB and produces matplotlib_ plots.
 
 If ``FILE`` contains electronic band energies, use e.g.::
 
     abiview.py ebands out_GSR.nc
 
-to plot the KS eigenvalues (the same command works for other files such as ``WFK.nc``, ``DEN.nc`` etc.
+to plot the KS eigenvalues (the same command works for other files such as ``WFK.nc``, ``DEN.nc``, etc.).
 
-Note that abiview.py_ uses a predefined logic to visualize the data.
-There are options to tune some parameters and/or export data in different formats
-but exposing the AbiPy API from the command line is not easy.
+Note that abiview.py_ visualizes the data according to a predefined logic.
+Some options let you tune parameters or export the data in different formats,
+but exposing the full AbiPy API from the command line is not practical.
 
-For a more flexible interface, we suggest to use::
+For a more flexible interface, use::
 
     abiopen.py FILE
 
-to start an ipython_ shell that will allow you to interact with the python object directly.
+to start an ipython_ shell in which you can interact with the Python object directly.
 
-If you have installed jupyter_ on your machine/cluster and you have a web browser, use::
+If jupyter_ is installed on your machine/cluster and you have a web browser, use::
 
     abiopen.py FILE -nb
 
-to generate automatically a predefined jupyter notebook associated to the file type.
+to automatically generate a predefined jupyter notebook for that file type.
 
 Visualize a structure
 ---------------------
 
-The visualization of the structure is delegated to external graphical applications
+Structure visualization is delegated to external graphical applications
 that must be installed on your machine.
-AbiPy will extract the structure from ``FILE``, convert it to one of the formats
-supported by the graphical application and finally invoke the executable.
-If you have vesta_ installed in one of the standard
-locations of your machine, you can simply execute::
+AbiPy extracts the structure from ``FILE``, converts it to one of the formats
+supported by the graphical application and then invokes the executable.
+If vesta_ is installed in one of the standard
+locations on your machine, simply run::
 
     abistruct.py visualize FILE
 
-inside the terminal.
-Other applications can be specified with the ``--application`` option.
+in the terminal.
+Other applications can be selected with the ``--application`` option.
 At present, AbiPy supports vesta_, ovito_, xcrysden_, avogadro_, and v_sim_.
 
-To visualize the crystalline structure inside the jupyter_ notebook, you may want to
+To visualize the crystalline structure inside a jupyter_ notebook, you may want to
 try the nbjsmol_ jupyter extension.
 
 Get a high-symmetry kpath for a given structure
 -----------------------------------------------
 
-Use the `kpath` command and pass a FILE providing structural info::
+Use the `kpath` command with a FILE that provides structural information::
 
     abistruct.py kpath FILE
 
-to generate a template with the input variables defining the k-path
+to generate a template with the input variables that define the k-path:
 
 .. code-block:: shell
 
@@ -238,28 +238,28 @@ to generate a template with the input variables defining the k-path
         +0.50000  +0.00000  +0.50000 # X
 
 
-Re-symmetrize a structure when Abinit reports less symmetries than expected
----------------------------------------------------------------------------
+Re-symmetrize a structure when Abinit reports fewer symmetries than expected
+----------------------------------------------------------------------------
 
 Crystalline structures saved in text format (e.g. CIF files downloaded from
-the Materials Project websites) may not have enough significant digits
-and Abinit may not find the same spacegroup as the one reported by the source
-as the default tolerance for symmetry detection in Abinit is tight (tolsym = 1e-8).
+the Materials Project website) may not have enough significant digits.
+Since the default tolerance for symmetry detection in Abinit is tight (tolsym = 1e-8),
+Abinit may then find a different space group from the one reported by the source.
 
-In this case, one can use the `abispg` option of abistruct.py to compute the spacegroup
-with Abinit and a tolerance larger that the default value::
+In this case, use the `abispg` command of abistruct.py to compute the space group
+with Abinit using a tolerance larger than the default value::
 
     abistruct.py abispg problematic.cif --tolsym=1e-6
 
-Hopefully, the code will detect the correct spacegroup, will re-symmetrize
-the initial lattice vectors and atomic positions and print the new symmetrized structure to terminal.
+Hopefully, the code will detect the correct space group, re-symmetrize
+the initial lattice vectors and atomic positions, and print the new symmetrized structure to the terminal.
 
 
 Get neighbors for each atom in the unit cell out to a distance radius
 ---------------------------------------------------------------------
 
-If we are interested in the environment/nearest neighbours of the atoms in the unit cell,
-we can analyze the different coordinations with::
+To analyze the environment (nearest neighbours) of the atoms in the unit cell
+and their coordination, use::
 
     abistruct.py neighbors sic_relax_HIST.nc
 
@@ -287,11 +287,11 @@ Use::
 
     abistruct.py mp_search LiF
 
-to search on the `materials project`_ database for structures corresponding to a
-chemical system or formula e.g. ``Fe2O3`` or ``Li-Fe-O`` or
+to search the `materials project`_ database for structures matching a
+chemical system or formula, e.g. ``Fe2O3``, ``Li-Fe-O``, or
 ``Ir-O-*`` for wildcard pattern matching.
 
-The script prints the results to terminal in tabular form:
+The script prints the results to the terminal in tabular form:
 
 .. code-block:: bash
 
@@ -311,31 +311,31 @@ The script prints the results to terminal in tabular form:
 
 .. important::
 
-    The script will try to connect to the materials project server.
-    You need a ``~/.pmgrc.yaml`` configuration file inside your home directory
-    with the authentication token **PMG_MAPI_KEY**.
-    For further info please refer to the
+    The script connects to the Materials Project server,
+    so you need a ``~/.pmgrc.yaml`` configuration file in your home directory
+    containing the authentication token **PMG_MAPI_KEY**.
+    For more information, see the
     `pymatgen documentation <http://pymatgen.org/usage.html#pymatgen-matproj-rest-integration-with-the-materials-project-rest-api>`_
 
 The script provides other commands to get (experimental) structures from the COD_ database,
-find matching structures on the `materials project`_ website and generate phase diagrams.
+find matching structures on the `materials project`_ website, and generate phase diagrams.
 See ``abistruct.py --help`` for more examples.
 
 Compare my structure with the Materials Project database
 --------------------------------------------------------
 
-Let's assume we have performed a structural relaxation and we want
-to compare our results with the Materials Project data.
-One can use the abicomp.py_ structure to extract the structure from the HIST.nc_
-file and compare the data with the database::
+Suppose you have performed a structural relaxation and want
+to compare your results with the Materials Project data.
+Use the abicomp.py_ script to extract the structure from the HIST.nc_
+file and compare it with the database::
 
     abicomp.py mp_structure ../abipy/data/refs/sic_relax_HIST.nc
 
-It's also possible to select only the structures with the same space group number as the input structure with::
+To select only the structures with the same space group number as the input structure, use::
 
     abicomp.py mp_structure ../abipy/data/refs/sic_relax_HIST.nc --same-spgnum
 
-that produces
+which produces:
 
 .. code-block:: ipython
 
@@ -350,13 +350,13 @@ that produces
 
     Use --verbose to print atomic positions.
 
-Note that one can replace the HIST.nc_ file with any other file providing a structure object.
+The HIST.nc_ file can be replaced by any other file that provides a structure object.
 
 .. important::
 
-    The structures of the materials project have been obtained with the GGA-PBE functional
-    and they might include the U term in the Hamiltonian.
-    One should take into account these different settings when comparing structural relaxations.
+    The Materials Project structures have been obtained with the GGA-PBE functional
+    and may include a U term in the Hamiltonian.
+    Take these settings into account when comparing structural relaxations.
 
 
 Visualize the iterations of the SCF cycle
@@ -366,10 +366,10 @@ Use::
 
     abiview.py abo run.abo
 
-to plot the SCF iterations or the steps of the structural relaxations or the DFPT SCF cycles
-(depending on the content of run.abo).
+to plot the SCF iterations, the steps of a structural relaxation or the DFPT SCF cycles,
+depending on the content of run.abo.
 
-Note that one can also use::
+You can also use::
 
     abiview.py log run.log
 
@@ -386,7 +386,7 @@ For electrons, use::
 
 and::
 
-    abiview.py phbands out_PHBST.nc -xmgrace
+    abiview.py phbands out_PHBST.nc --xmgrace
 
 for phonons.
 
@@ -397,13 +397,14 @@ Use::
 
     abiview.py ebands out_GSR.nc --bxsf
 
-to export a set of band energies in BXSF format
-suitable for the visualization of the Fermi surface with xcrysden_.
+to export the band energies in BXSF format,
+which is suitable for visualizing the Fermi surface with xcrysden_.
 Then use::
 
     xcrysden --bxsf BXSF_FILE
 
-to visualize the Fermi surface with xcrysden_
+to visualize the Fermi surface.
+The same file can be produced from Python with:
 
 .. code-block:: ipython
 
@@ -411,55 +412,55 @@ to visualize the Fermi surface with xcrysden_
 
 .. important::
 
-    This option requires k-points in the irreducible wedge and a gamma-centered k-mesh.
+    This option requires k-points in the irreducible wedge and a Gamma-centered k-mesh.
 
 Visualize phonon displacements
 ------------------------------
 
-AbiPy is interfaced with the phononwebsite_ project
-If you have already installed the python package from `github <https://github.com/henriquemiranda/phononwebsite>`_
-it's possbile to export the ``PHBST.nc`` to JSON and then load the file via the web-interface.
-Alternatively, it's possible to automate the entire procedure with the abiview.py_ script.
+AbiPy is interfaced with the phononwebsite_ project.
+If you have installed the Python package from `GitHub <https://github.com/henriquemiranda/phononwebsite>`_,
+you can export the ``PHBST.nc`` file to JSON and then load it in the web interface.
+Alternatively, the entire procedure can be automated with the abiview.py_ script.
 
 Use::
 
     abiview.py phbands out_PHBST.nc -web
 
-to start a local web server and open the HTML page inside the default browser
-(the browser can be changed with the ``--browser`` option).
+to start a local web server and open the HTML page in the default browser
+(use the ``--browser`` option to select a different browser).
 
-It is also possible to visualize the phonon modes starting directly from a DDB_ file with::
+You can also visualize the phonon modes directly from a DDB_ file with::
 
-    abiview.py ddb -web
+    abiview.py ddb out_DDB -web
 
-In this case, AbiPy will invoke anaddb to produce the ``PHBST.nc`` file on an automatically
-generated q-path and then start the web server.
+In this case, AbiPy invokes anaddb to produce the ``PHBST.nc`` file along an automatically
+generated q-path and then starts the web server.
 
 Visualize the results of a structural relaxation
 ------------------------------------------------
 
 The quickest way is to use::
 
-    abiview hist out_HIST.nc
+    abiview.py hist out_HIST.nc
 
-to plot the results with matplotlib or::
+to plot the results with matplotlib, or::
 
     abiopen.py out_HIST.nc -p
 
-to print the most important results to terminal.
+to print the most important results to the terminal.
 
-Note that it's possible to generate a ``XDATCAR`` file with::
+You can also generate an ``XDATCAR`` file with::
 
-    abiview hist out_HIST.nc --xdatcar
+    abiview.py hist out_HIST.nc --xdatcar
 
-and visualize the crystalline structure with ovito_::
+and visualize the evolution of the crystalline structure with ovito_::
 
-    abiview hist out_HIST.nc -appname=ovito
+    abiview.py hist out_HIST.nc --appname=ovito
 
 .. important::
 
-    The XDATCAR format assumes a fixed unit cell so you won't be able
-    to visualize the modifications of the unit cell lattice vectors in ovito.
+    The XDATCAR format assumes a fixed unit cell, so changes in the
+    lattice vectors will not be visible in ovito.
 
 
 Plot results stored in a text file in tabular format
@@ -469,63 +470,63 @@ Use::
 
     abiview.py data FILE_WITH_COLUMNS
 
-to plot with matplotlib_ all the columns given in the file.
-By default, the first column is assumed to contain the values for the x-axis
-but it is possible to change this behaviour and use the row index with the `--use-index` option.
-Multiple datasets i.e. multiple sets of data separated by blank lines are supported.
+to plot all the columns in the file with matplotlib_.
+By default, the first column is used for the x-axis;
+use the `--use-index` option to use the row index instead.
+Multiple datasets, i.e. blocks of data separated by blank lines, are supported.
 
-To compare multiple files use::
+To compare multiple files, use::
 
     abicomp.py data FILE1 FILE2
 
-Obviously one can use standard tools such as gnuplot_ and xmgrace_ but
-the AbiPy scripts are quite handy for a quick analysis of the results.
+Standard tools such as gnuplot_ and xmgrace_ work as well, of course, but
+the AbiPy scripts are handy for a quick analysis of the results.
 
 Compare multiple files
 ----------------------
 
-The abicomp.py_ script is explicitly designed for this kind of task.
-It operates on multiple files (usually files with the same extension) and
-either produces matplotlib_ plots or creates AbiPy robots providing methods
+The abicomp.py_ script is designed specifically for this task.
+It operates on multiple files (usually with the same extension) and
+either produces matplotlib_ plots or creates AbiPy robots with methods
 to analyze the results, perform convergence studies and build pandas DataFrames_.
 
-The ``COMMAND`` defines the quantity to be compared, followed by a list of filenames.
+The ``COMMAND`` argument specifies the quantity to compare and is followed by a list of filenames.
 
-To compare e.g. the structure given in one Abinit input file with the structure
-coming from a GSR.nc_ file, use::
+For example, to compare the structure in an Abinit input file with the structure
+stored in a GSR.nc_ file, use::
 
     abicomp.py structure run.abi out_GSR.nc
 
 .. note::
 
-    In this example, we can use files of different type because they
-    both have a Structure object. This philosophy can be applied to other commands as well:
-    everything works as long as AbiPy is able to extract the quantity of interest from the file.
+    In this example, we can mix files of different types because
+    both provide a Structure object. The same philosophy applies to other commands as well:
+    everything works as long as AbiPy can extract the quantity of interest from the file.
 
 To plot multiple electronic structures on a grid, use::
 
     abicomp.py ebands *_GSR.nc out2_WFK.nc -p
 
-Remember that it is possible to use the shell syntax ``*_GSR.nc`` to select all files with a given extension.
-If you have nested directories, use unix ``find`` to scan the directory tree for files matching a given pattern
+Remember that you can use the shell syntax ``*_GSR.nc`` to select all files with a given extension.
+For nested directories, use the Unix ``find`` command to scan the directory tree for files matching a pattern.
 For example::
 
     abicomp.py ebands `find . -name *_GSR.nc`
 
-finds all ``GSR.nc`` files contained withing the current working directory.
-The output of ``find`` is then passed to the abicomp.py_ script.
+finds all the ``GSR.nc`` files in the current working directory and its subdirectories,
+and passes them to the abicomp.py_ script.
 
 .. note::
 
-    Note the `backticks syntax <https://unix.stackexchange.com/questions/27428/what-does-backquote-backtick-mean-in-commands>`_
+    Note the `backtick syntax <https://unix.stackexchange.com/questions/27428/what-does-backquote-backtick-mean-in-commands>`_
     used in the command.
 
 Profile the scripts
 -------------------
 
-All AbiPy script can be executed in profile mode by just prepending the ``prof`` keyword
-to the command line arguments.
-This option could be useful if the script seems to be slow and you need to understand what's happening.
+All AbiPy scripts can be run in profile mode by prepending the ``prof`` keyword
+to the command-line arguments.
+This is useful if a script seems slow and you want to understand why.
 
 Use::
 
@@ -548,17 +549,17 @@ Use::
 
 to print the official documentation for the ``ecut`` variable to the terminal.
 
-To list all the variables depending on the ``natom`` dimension, use::
+To list all the variables that depend on the ``natom`` dimension, use::
 
     abidoc.py withdim natom
 
-More options are available. See ``abidoc.py --help``.
+More options are available; see ``abidoc.py --help``.
 
-Avoid transfering files from the cluster to localhost just to use matplotlib
-----------------------------------------------------------------------------
+Avoid transferring files from the cluster to localhost just to use matplotlib
+-----------------------------------------------------------------------------
 
 Use `SSHFS <https://www.digitalocean.com/community/tutorials/how-to-use-sshfs-to-mount-remote-file-systems-over-ssh>`_
 to mount the remote file system over SSH.
-Now one can execute the AbiPy scripts in a terminal running on the local machine.
-to open/visualize the files stored on the cluster.
+You can then run the AbiPy scripts in a terminal on your local machine
+to open and visualize the files stored on the cluster.
 

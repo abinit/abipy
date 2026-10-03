@@ -500,7 +500,7 @@ class Polaron:
 
     def write_a2_bxsf(self, filepath: PathLike, fill_value: float = 0.0) -> None:
         r"""
-        Export \sum_n |A_{pnk}|^2 in BXSF format suitable for visualization with xcrysden (use ``xcrysden --bxsf FILE``).
+        Export ``\sum_n |A_{pnk}|^2`` in BXSF format suitable for visualization with xcrysden (use ``xcrysden --bxsf FILE``).
         Requires gamma-centered k-mesh.
 
         Args:
@@ -518,7 +518,7 @@ class Polaron:
 
     def write_b2_bxsf(self, filepath: PathLike, fill_value: float = 0.0) -> None:
         r"""
-        Export \sum_{\nu} |B_{q\nu}|^2 in BXSF format suitable for visualization with xcrysden (use ``xcrysden --bxsf FILE``).
+        Export ``\sum_{\nu} |B_{q\nu}|^2`` in BXSF format suitable for visualization with xcrysden (use ``xcrysden --bxsf FILE``).
 
         Args:
             filepath: BXSF filename.

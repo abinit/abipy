@@ -300,12 +300,12 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
             spin: spin index
             ax: |matplotlib-Axes| or None if a new figure should be created.
             hist_kwargs:
-            ratio_min: lower bound used to clip the ratio |g^GWPT|/|g^KS|
+            ratio_min: lower bound used to clip the ratio ``|g^GWPT|/|g^KS|``
                 before histogramming. Defaults to 0.0.
-            ratio_max: upper bound used to clip the ratio |g^GWPT|/|g^KS|
+            ratio_max: upper bound used to clip the ratio ``|g^GWPT|/|g^KS|``
                 before histogramming. Defaults to 3.0. Values outside
                 [ratio_min, ratio_max] are dropped (they are usually numerical
-                artifacts from |g^KS| being close to zero).
+                artifacts from ``|g^KS|`` being close to zero).
             fontsize: legend and label fontsize.
         """
         if not self.has_gwpt:
@@ -530,10 +530,10 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         **kwargs,
     ) -> Figure:
         """
-        Scatter plot of |g^GW| vs |g^KS| over all matrix elements for a given spin.
+        Scatter plot of ``|g^GW|`` vs ``|g^KS|`` over all matrix elements for a given spin.
 
         Each point is one (q, k, band_kq, perturbation, band_k) tuple. Points are
-        colored by the ratio |g^GW|/|g^KS|, and a linear least-squares fit is
+        colored by the ratio ``|g^GW|/|g^KS|``, and a linear least-squares fit is
         overlaid. An optional inset shows the full data range so outliers are
         visible without disturbing the zoomed main axes.
 
@@ -545,7 +545,7 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
             ratio_max: optional upper bound of the ratio window. Points with
                 ratio > ratio_max are dropped. If None (default), no upper
                 bound is applied.
-            ks_tol: |g^KS| values <= ks_tol are discarded to avoid huge
+            ks_tol: ``|g^KS|`` values <= ks_tol are discarded to avoid huge
                 ratios from a near-zero denominator. Default 1e-7.
             fit_intercept: if True, fit y = a*x + b; otherwise fit y = a*x
                 (forced through the origin).
@@ -554,7 +554,7 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
                 the 1st/99th percentile of the ratio distribution so a few
                 outliers don't wash out the rest of the colors.
             zoom_factor: the main axes go from 0 to
-                zoom_factor * max(median(|g^KS|), median(|g^GW|)) on both axes.
+                zoom_factor * max(median(``|g^KS|``), median(``|g^GW|``)) on both axes.
             with_inset: if True, add an inset showing the full data range
                 with a rectangle indicating the zoom window.
             inset_loc: matplotlib location string for the inset.
@@ -804,8 +804,8 @@ class Gqk:
 
     def get_dataframe(self, what: str = "g2") -> pd.DataFrame:
         """
-        Build and return a dataframe with all the |g(k,q)|^2 if what == "g2" or
-        all |v_nk|^2 if what == "v2".
+        Build and return a dataframe with all the ``|g(k,q)|^2`` if what == "g2" or
+        all ``|v_nk|^2`` if what == "v2".
         """
         if what == "g2":
             df = nparr_to_df("g2", self.g2, ["iq", "ik", "imode", "m_kq", "n_k"])
@@ -865,7 +865,7 @@ class Gqk:
         Return numpy array with e-ph matrix elements for the given (qpoint, kpoint) pair.
 
         Args:
-            what="g2" for |g(k,q)|^2, "g" for g(k,q)
+            what: "g2" for ``|g(k,q)|^2``, "g" for ``g(k,q)``.
         """
         # Find the internal indices of (qpoint, kpoint)
         iq_g, qpoint = self.gstore.r.find_iq_glob_qpoint(qpoint, self.spin)
@@ -880,10 +880,10 @@ class Gqk:
 
     def get_gdf_at_qpt_kpt(self, qpoint, kpoint, what="g2") -> pd.DataFrame:
         """
-        Build and return a dataframe with the |g(k,q)|^2 for the given (qpoint, kpoint) pair.
+        Build and return a dataframe with the ``|g(k,q)|^2`` for the given (qpoint, kpoint) pair.
 
         Args:
-            what="g2" for |g(k,q)|^2, "g" for g(k,q)
+            what: "g2" for ``|g(k,q)|^2``, "g" for ``g(k,q)``.
         """
         g2_slice = self.get_g_qpt_kpt(qpoint, kpoint, what)
         df = nparr_to_df(what, g2_slice, ["imode", "m_kq", "n_k"])
@@ -1200,12 +1200,12 @@ class GstoreRobot(Robot, RobotWithEbands):
         and then reconstructed by symmetry at the end of the run.
         The goal of this method is to check that both calculations produce the same results.
         by printing some statistics and producing, for each spin, a 2x2 grid of parity plots for
-        the e-ph matrix elements: |g| (top-left), phase of g in degrees (top-right), Re(g)
+        the e-ph matrix elements: ``|g|`` (top-left), phase of g in degrees (top-right), Re(g)
         (bottom-left), and Im(g) (bottom-right). A single complex matrix element can be wrong in
         different ways -- only in magnitude, only in phase, or in a way that's obvious in the
-        Cartesian (Re, Im) view but not in the polar (|g|, phase) one or vice versa (e.g. a small
-        |g| with a large phase error can still look fine in Re/Im if both components happen to
-        be small) -- so looking at |g1 - g2| alone, as the original version of this method did,
+        Cartesian (Re, Im) view but not in the polar (``|g|``, phase) one or vice versa (e.g. a small
+        ``|g|`` with a large phase error can still look fine in Re/Im if both components happen to
+        be small) -- so looking at ``|g1 - g2|`` alone, as the original version of this method did,
         cannot distinguish these failure modes; all four views are needed together.
 
         Only the (k, q) points that were actually reconstructed by symmetry in the first file
@@ -1216,22 +1216,22 @@ class GstoreRobot(Robot, RobotWithEbands):
         flattening the whole (glob_nq, glob_nk, natom3, nb_kq, nb_k) array, as done previously,
         buries the actual test: e.g. (k, q) points that reconstruct exactly (diff ~1e-15) get
         averaged together with (k, q) points that are completely wrong (diff ~O(1)) into a single
-        "mean |g1-g2|" scalar, and the parity plot is dominated by the many small-magnitude,
+        "mean ``|g1-g2|``" scalar, and the parity plot is dominated by the many small-magnitude,
         off-diagonal-like matrix elements shared by both categories, so a ~30/70 exact/wrong split
         can look like an innocuous scatter around y = x.
 
         All four plots share the same matched/mismatched classification, based on the full complex
         difference (magnitude AND phase), so a point that lands on the y = x diagonal in the
         magnitude plot but is colored "mismatched" is a pure phase error, and vice versa.
-        Matrix elements with |g| < mag_tol (in either file) are dropped from the phase plot only,
-        since the phase of a near-zero complex number is numerically meaningless (Re/Im and |g|
-        remain well-defined, and are informative, even when |g| is tiny, so they keep every
+        Matrix elements with ``|g|`` < mag_tol (in either file) are dropped from the phase plot only,
+        since the phase of a near-zero complex number is numerically meaningless (Re/Im and ``|g|``
+        remain well-defined, and are informative, even when ``|g|`` is tiny, so they keep every
         point). Because phase is an angle, two equal phases can be reported ~360 degrees apart
         across the +-180 degree branch cut; three parallel y = x, y = x - 360, y = x + 360
         reference lines are drawn so such wrapped points still show up "on the diagonal" instead
         of looking like large, spurious mismatches.
 
-        The worst matrix element(s) (largest |g1 - g2|, e.g. the "Max absolute difference"
+        The worst matrix element(s) (largest ``|g1 - g2|``, e.g. the "Max absolute difference"
         printed below) are marked with a black-edged star in ALL FOUR plots and their location
         (global q/k indices, perturbation, and bra/ket band) is printed, since with thousands of
         tiny (s=1, alpha=0.3) points a lone outlier is otherwise easy to miss by eye even though
@@ -1246,11 +1246,11 @@ class GstoreRobot(Robot, RobotWithEbands):
         like a huge disagreement in the reported slope/RMSE.
 
         Args:
-            tol: Tolerance on the per-(k, q) max |g1 - g2| used to classify a symmetrized point
+            tol: Tolerance on the per-(k, q) max ``|g1 - g2|`` used to classify a symmetrized point
                 as an exact match. Drives the color-coding in both the magnitude and phase plots.
-            mag_tol: Matrix elements with |g| below this threshold (in either file) are excluded
+            mag_tol: Matrix elements with ``|g|`` below this threshold (in either file) are excluded
                 from the phase parity plot only.
-            n_outliers: Number of worst matrix elements (by |g1 - g2|) to mark and print per spin.
+            n_outliers: Number of worst matrix elements (by ``|g1 - g2|``) to mark and print per spin.
             use_hexbin: If True, render the (typically large) matched-point cloud in each panel
                 as a density-colored hexbin plot instead of a scatter plot -- much faster and
                 more legible when there are many thousands of points. Mismatched points are

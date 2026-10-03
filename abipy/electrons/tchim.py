@@ -15,7 +15,7 @@ from monty.string import marquee  # , list_strings
 # import pandas as pd
 import abipy.core.abinit_units as abu
 
-# from abipy.core.kpoints import Kpoint, KpointList
+from abipy.core.kpoints import Kpoint
 from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Structure  # , NotebookWriter
 
 # from monty.termcolor import cprint
@@ -468,17 +468,20 @@ class TchimVsSus:
     produced by the legacy algorithm based on the Adler-Wiser expression.
 
     Example:
-        gpairs = [
-            ((0, 0, 0), (1, 0, 0)),
-            ((1, 0, 0), (0, 1, 0)),
-        ]
-        qpoint_list = [
-            [0, 0, 0],
-            [0.5, 0.5, 0],
-        ]
 
-        with TchimVsSus("runo_DS3_TCHIM.nc", "AW_CD/runo_DS3_SUS.nc") as o:
-            o.expose_qpoints_gpairs(qpoint_list, gpairs, exposer="mpl")
+        .. code-block:: python
+
+            gpairs = [
+                ((0, 0, 0), (1, 0, 0)),
+                ((1, 0, 0), (0, 1, 0)),
+            ]
+            qpoint_list = [
+                [0, 0, 0],
+                [0.5, 0.5, 0],
+            ]
+
+            with TchimVsSus("runo_DS3_TCHIM.nc", "AW_CD/runo_DS3_SUS.nc") as o:
+                o.expose_qpoints_gpairs(qpoint_list, gpairs, exposer="mpl")
     """
 
     def __init__(self, tchim_filepath: str, sus_filepath: str):

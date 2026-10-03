@@ -1,10 +1,10 @@
-.. _abips.py:
+.. _abips-script:
 
 ^^^^^^^^^^^^
 ``abips.py``
 ^^^^^^^^^^^^
 
-Script to download and install pseudopotential tables from the web.
+This script downloads and installs pseudopotential tables from the web.
 
 .. argparse::
    :ref: abipy.scripts.abips.get_parser

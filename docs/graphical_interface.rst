@@ -7,43 +7,42 @@ Graphical interface
    :maxdepth: 2
    :caption: Contents:
 
-AbiPy provides interactive dashboards that can be used either as a standalone web applications
-with the `bokeh server <http://docs.bokeh.org/>`_ or inside jupyter notebooks.
-This document explains how to install the required dependencies and how to
-generate dashboards either from the command line interface (CLI) or inside jupyter notebooks.
+AbiPy provides interactive dashboards that can be used either as standalone web applications
+served by the `bokeh server <http://docs.bokeh.org/>`_ or inside jupyter notebooks.
+This page explains how to install the required dependencies and how to
+generate dashboards from the command line interface (CLI) or inside jupyter notebooks.
 
 .. important::
 
-    Please note that one needs a **running python backend**
-    to execute the callbacks triggerered by the widgets in the HTML page.
-    This part, indeed, is implemented by HTML/CSS/JS code executed
-    by the frontend (i.e. **your browser**) that sends the signal
-    to the python server (the **backend**).
-    The python server is supposed to process the data
-    and send the results back to the frontend for visualization purposes
+    The callbacks triggered by the widgets in the HTML page require a **running Python backend**.
+    The widgets are implemented in HTML/CSS/JS code executed
+    by the frontend (i.e. **your browser**), which sends signals
+    to the Python server (the **backend**).
+    The server processes the data
+    and sends the results back to the frontend for visualization.
 
-    Don't be surprised if you start to click buttons and **nothing happens**!
-    The examples provided in this page are only meant to show how to build GUI
-    or dashboards with AbiPy.
+    This static page has no backend, so don't be surprised if **nothing happens** when you click the buttons!
+    The examples on this page are only meant to show how to build GUIs
+    and dashboards with AbiPy.
 
 
 Installation
 ------------
 
-Install the `panel <https://panel.pyviz.org/>`_  package either from pip with:
+Install the `panel <https://panel.pyviz.org/>`_ package with pip:
 
 .. code-block:: bash
 
     pip install panel
 
-or with conda (**recommended**) using:
+or with conda (**recommended**):
 
 .. code-block:: bash
 
     conda install panel -c conda-forge
 
-If you plan to use panel within JupyterLab, you will also need to install
-the PyViz JupyterLab extension and activate it with:
+If you plan to use panel within JupyterLab, you also need to install
+and activate the PyViz JupyterLab extension:
 
 .. code-block:: bash
 
@@ -54,10 +53,10 @@ the PyViz JupyterLab extension and activate it with:
 Basic Usage
 -----------
 
-Several AbiPy objects provide a ``get_panel`` method returning
-an object that can be served by a web browser or displayed inside the jupyter notebook.
-When running inside a jupyter notebook, remember to enable the integration 
-with the ``panel`` infrastructure by executing:
+Several AbiPy objects provide a ``get_panel`` method that returns
+an object that can be served to a web browser or displayed inside a jupyter notebook.
+When working in a jupyter notebook, remember to enable the integration
+with ``panel`` by executing:
 
 .. jupyter-execute::
 
@@ -68,9 +67,9 @@ with the ``panel`` infrastructure by executing:
 
 .. note::
 
-    The ``abipanel`` function is needed to load extensions and javascript packages
+    The ``abipanel`` function loads the extensions and javascript packages
     required by AbiPy.
-    This function is just a small wrapper around the panel API:
+    It is just a small wrapper around the panel API:
 
     .. code-block:: bash
 
@@ -78,9 +77,9 @@ with the ``panel`` infrastructure by executing:
         pn.extension()
 
 
-At this point, we can start to construct AbiPy objects.
-For our first example, we use the abiopen function to open a ``GSR`` file,
-then we call ``get_panel`` to build a set of widgets that allows us to interact
+We can now start building AbiPy objects.
+In our first example, we use the abiopen function to open a ``GSR`` file
+and then call ``get_panel`` to build a set of widgets for interacting
 with the |GsrFile|:
 
 .. jupyter-execute::
@@ -93,21 +92,21 @@ with the |GsrFile|:
 
     gsr.get_panel()
 
-The **Summary** tab provides a string representation of the file
-but there is no widget to interact with it.
-If you select the **e-Bands** tab, you will see several widgets and a button
-that activates the visualization of the KS band energies.
-Again, in this HTML page there is no python server running in background so
-if you click the **Plot e-bands** button nothing happens (this is not a bug!).
+The **Summary** tab shows a string representation of the file
+and has no interactive widgets.
+The **e-Bands** tab, on the other hand, contains several widgets and a button
+that plots the KS band energies.
+Since no Python server is running behind this HTML page,
+clicking the **Plot e-bands** button does nothing (this is not a bug!).
 
-The advantage of this notebook-based approach is that it is possible to mix
-the panel GUIs with python code that can be used to perform
+The advantage of the notebook-based approach is that you can mix
+the panel GUIs with Python code to perform
 more advanced tasks not supported by the GUI.
 
-Obviously it is possible to have multiple panels running in the same notebook.
-Calling ``get_panel`` with an AbiPy structure, for instance, creates a set of widgets
-to facilitate common operations such as exporting the structure to a different format or
-generating a basic Abinit input file for e.g. GS calculations:
+You can also have multiple panels in the same notebook.
+For instance, calling ``get_panel`` on an AbiPy structure creates a set of widgets
+for common operations such as exporting the structure to a different format or
+generating a basic Abinit input file, e.g. for GS calculations:
 
 .. jupyter-execute::
 
@@ -115,9 +114,9 @@ generating a basic Abinit input file for e.g. GS calculations:
 
 .. note::
 
-    At present, not all the AbiPy objects support the ``get_panel`` protocol
-    but we plan to gradually support more objects, especially the most important
-    netcdf files produced by Abinit
+    Not all AbiPy objects support the ``get_panel`` protocol yet,
+    but we plan to gradually extend it to more objects, starting from the most important
+    netcdf files produced by Abinit.
 
 To generate a notebook from the command line, use the abiopen.py_ script:
 
@@ -125,17 +124,17 @@ To generate a notebook from the command line, use the abiopen.py_ script:
 
     abiopen.py si_nscf_GSR.nc -nb  # short for --notebook
 
-that will automatically open the notebook inside jupyterlab.
-If you prefer classic jupyter notebooks, use the ``-nb --classic-notebook`` options
+which automatically opens the notebook in JupyterLab.
+If you prefer the classic jupyter notebook, use the ``-nb --classic-notebook`` options.
 
-If you do not need to execute python code, you may want to generate a panel dashboard with:
+If you do not need to execute Python code, you can generate a panel dashboard instead with:
 
 .. code-block:: bash
 
     abiopen.py si_nscf_GSR.nc -pn  # short for --panel
 
-The same approach can be used with a ``DDB`` file.
-In this case, we get more tabs and options because one can use the GUI
+The same approach works with a ``DDB`` file.
+In this case, there are more tabs and options, since the GUI can be used
 to set the input parameters, invoke ``anaddb`` and visualize the results:
 
 .. jupyter-execute::
@@ -144,16 +143,16 @@ to set the input parameters, invoke ``anaddb`` and visualize the results:
     ddb_path = abidata.ref_file("mp-1009129-9x9x10q_ebecs_DDB")
     abilab.abiopen(ddb_path).get_panel()
 
-The same result can be obtained from the CLI with
+The same result can be obtained from the CLI with:
 
 .. code-block:: bash
 
     abiopen.py mp-1009129-9x9x10q_ebecs_DDB -nb
 
-There are, however, cases in which you don't need the interactive environment provided
-by jupyter notebooks as you are mainly interested in the visualization of the results.
-In this case, it is possible to use the command line interface to automatically generate
-a dashboard with widgets without having to start a notebook.
+Sometimes, however, you do not need the interactive environment provided
+by jupyter notebooks because you are mainly interested in visualizing the results.
+In this case, you can use the command line interface to generate
+a dashboard with widgets without starting a notebook.
 
 To build a dashboard for a |Structure| object extracted from ``FILE``, use:
 
@@ -161,29 +160,29 @@ To build a dashboard for a |Structure| object extracted from ``FILE``, use:
 
     abistruct.py panel FILE
 
-where ``FILE`` is **any** file providing a ``Structure`` object
-e.g. netcdf files, cif files, abi, abo files etc.
+where ``FILE`` is **any** file that provides a ``Structure`` object,
+e.g. netcdf files, CIF files, abi and abo files, etc.
 
-To build a dashboard associated to one of the AbiPy file, use the syntax:
+To build a dashboard for one of the files supported by AbiPy, use:
 
 .. code-block:: bash
 
     abiopen.py FILE --panel
 
-where ``FILE`` is one of the Abinit files supported by ``abiopen.py``.
-For instance, one can create a dashboard to interact with a ``DDB`` file with:
+where ``FILE`` is any Abinit file supported by ``abiopen.py``.
+For instance, to create a dashboard for a ``DDB`` file, use:
 
 .. code-block:: bash
 
     abiopen.py out_DDB --panel
 
-To build a dashboard for an AbiPy Flow use:
+To build a dashboard for an AbiPy Flow, use:
 
 .. code-block:: bash
 
         abirun.py FLOWDIR panel
 
-or alternatively:
+or, equivalently:
 
 .. code-block:: bash
 
@@ -192,76 +191,78 @@ or alternatively:
 Serving dashboards from a remote server
 ---------------------------------------
 
-inspired to https://ljvmiranda921.github.io/notebook/2018/01/31/running-a-jupyter-notebook/
+In all the examples so far, we assumed that AbiPy and the web browser
+run on the same machine.
+Calculations, however, are often performed on clusters where a web browser
+is not available or where the connection is too slow to use one.
+You could copy the files from the cluster to your local machine with scp
+or mount the remote file system with sshfs, but neither approach is ideal.
+Ideally, we would like to run AbiPy and Abinit on the remote cluster
+and visualize the results directly on our local machine.
 
-In all the examples presented so far we assumed that both AbiPy and the web browser 
-are running on the same machine.
-In many cases, however, calculations are performed on clusters in which web browsers are
-not always available or, even if the browser is installed, the connection may be too slow..
-Obviously, one can always copy files from the remote cluster to the local machine with scp
-or mount the remote file system with sshfs but both approaches are far from optimal.
-In principle, we would like to be able to execute AbiPy and Abinit on the remote cluster 
-and visualize the results directly in our local machine.
+This section explains how to start a web server on the remote cluster and
+connect to it from your local machine.
+The procedure is inspired by `this blog post
+<https://ljvmiranda921.github.io/notebook/2018/01/31/running-a-jupyter-notebook/>`_.
 
-In this section, we discuss how to start a web server on the remote cluster and how 
-to connect to it from our local machine.
+In what follows, ``localuser`` and ``localhost`` denote the local user and host,
+while ``remoteuser`` and ``remotehost`` denote the remote user and host.
+Make sure that AbiPy and all its dependencies are installed on ``remotehost``,
+including the ``manager.yml`` configuration file.
 
-Before starting, let us introduce some notation. 
-Let us define the local user and host as ``localuser`` and ``localhost``, respectively. 
-Similarly, let us define the remote user and remote host as ``remoteuser`` and ``remotehost``. 
-Needless to say, make sure that Abipy and all its dependencies are installed on the remotehost,
-including the `taskmanager.yml` configuration file.
+**Step 1: Start the server on the remote machine**
 
-Step 1: Start the server on the remote machine
-
-Log-in to the remote machine via ssh as usual with ``ssh remoteuser@remotehost``.
-Now use:
+Log in to the remote machine via ssh as usual with ``ssh remoteuser@remotehost``, then run:
 
 .. code-block:: bash
 
     abiopen.py FILE --panel --no-browser --port 49412
 
-to start the server without opening the browser (``--no-browser`` option).
-The server will be listening on port 49412 of the remotehost 
-If the port is occupied, use another one but remember that ports below 1023 are 
+The ``--no-browser`` option starts the server without opening a browser.
+The server listens on port 49412 of ``remotehost``.
+If this port is already in use, choose another one, but remember that ports below 1024 are
 reserved.
 
-Step 2: 
+**Step 2: Forward the remote port to your local machine**
 
-Forward port XXXX to YYYY and listen to it
-In your remote host, the notebook is now running at the port XXXX that you specified. 
-What you’ll do next is forward this to port YYYY of your machine so that you can listen 
-and run it from your browser. 
-To achieve this, we use the following command:
+The server is now running on port ``REMOTE_PORT`` (49412 in our example) of the remote host.
+Next, forward this port to a port ``LOCAL_PORT`` of your local machine so that you can
+connect to the server from your browser.
+On your local machine, run:
 
 .. code-block:: bash
 
-    localuser@localhost: ssh -N -f -L localhost:YYYY:localhost:XXXX remoteuser@remotehost
+    localuser@localhost: ssh -N -f -L localhost:LOCAL_PORT:localhost:REMOTE_PORT remoteuser@remotehost
 
--N: Suppresses the execution of a remote command. Pretty much used in port forwarding.
--f: Requests the ssh command to go to background before execution.
--L: this argument requires an input in the form of local_socket:remote_socket. 
+where the options have the following meaning:
 
-Here, we’re specifying our port as YYYY which will be binded to the port XXXX 
-from your remote connection.
+- ``-N``: do not execute a remote command (typically used for port forwarding).
+- ``-f``: send ssh to the background before executing the command.
+- ``-L``: bind ``LOCAL_PORT`` on the local machine to ``REMOTE_PORT`` on the remote machine.
+  The argument has the form ``local_socket:remote_socket``.
 
-Step 3: Fire-up Jupyter Notebook
-To open up the Jupyter notebook from your remote machine, 
-At this point, you can simply start your web browser on your local machine 
-and type the following in the address bar::
+**Step 3: Open the dashboard in your local browser**
 
-    localhost:YYYY
+Start the web browser on your local machine and type the following in the address bar::
 
-If you’re successful, you should see the typical Jupyter Notebook home screen in the directory 
-where you ran the command in Step 1. At the same time, if you look in your remote terminal, 
-you should see some log actions happening as you perform some tasks.
+    localhost:LOCAL_PORT
 
-Closing all connections
-To close connections, I usually stop my notebook from remote via CTRL + C then Y, and kill the process on YYYY via:
+If everything worked, you should see the dashboard.
+At the same time, the terminal on the remote machine should show log messages
+as you interact with the page.
 
-localuser@localhost: sudo netstat -lpn |grep :YYYY
+**Closing the connections**
 
-# This will show the process ID (PID), e.g. ABCDEF of the one running in YYYY,
-# you can kill it by simply typing
+To close the connections, stop the server on the remote machine with ``CTRL + C``,
+then find the ssh process listening on ``LOCAL_PORT`` on your local machine:
 
-localuser@localhost: kill ABCDEF
+.. code-block:: bash
+
+    localuser@localhost: sudo netstat -lpn | grep :LOCAL_PORT
+
+This command shows the process ID (PID) of the process bound to ``LOCAL_PORT``.
+Kill it with:
+
+.. code-block:: bash
+
+    localuser@localhost: kill PID

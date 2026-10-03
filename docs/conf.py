@@ -11,6 +11,8 @@ import shutil
 
 
 # Remove matplotlib agg warnings from generated doc when using plt.show
+import logging
+import re
 import warnings
 
 # warnings.filterwarnings("ignore", category=UserWarning,
@@ -91,7 +93,11 @@ import matplotlib
 #        font='sans-serif', font_scale=1, color_codes=False, rc=None)
 
 
+# Local extensions (youtube directive)
+sys.path.insert(0, os.path.join(ABIPY_ROOT, "docs", "my_extensions"))
+
 extensions += [
+    "youtube",
     "IPython.sphinxext.ipython_directive",
     "IPython.sphinxext.ipython_console_highlighting",
     "matplotlib.sphinxext.plot_directive",
@@ -471,6 +477,27 @@ intersphinx_mapping = {
 # This is the right place to add substitutions that should be available in every file.
 with open("links.rst", "rt") as fh:
     rst_epilog = fh.read()
+
+# sphinx_gallery_conf contains functions and cannot be pickled: harmless, don't warn.
+suppress_warnings = ["config.cache"]
+
+
+class _ThirdPartyForwardRefFilter(logging.Filter):
+    """
+    Drop sphinx_autodoc_typehints forward-reference warnings for objects defined in third-party
+    packages (e.g. numpy, pymatgen) that are imported in AbiPy modules.
+    These annotations cannot be fixed in AbiPy, while warnings for AbiPy code are kept.
+    """
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        msg = record.getMessage()
+        if "Cannot resolve forward reference" not in msg:
+            return True
+        m = re.search(r"\(module ([\w.]+)\)", msg)
+        return m is None or m.group(1).split(".")[0] == "abipy"
+
+
+logging.getLogger("sphinx.sphinx_autodoc_typehints").addFilter(_ThirdPartyForwardRefFilter())
 
 # http://www.sphinx-doc.org/en/stable/ext/extlinks.html#confval-extlinks
 # :abivar:`ecut`

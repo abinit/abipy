@@ -50,17 +50,14 @@ def submodules(ctx):
 def make_doc(ctx):
     """Build the website"""
     with cd(DOCS_DIR):
-        ctx.run("touch api/index.rst", warn=True)
+        # --no-toc: don't write modules.rst, index.rst below is the root of the API tree.
         ctx.run(
-            "sphinx-apidoc --implicit-namespaces -M -d 1 -o api -f ../abipy ../**/tests/* ../abipy/benchmarks ../abipy/data ../abipy/integration_tests ../abipy/test_files ../abipy/examples"
+            "sphinx-apidoc --implicit-namespaces --no-toc -M -d 1 -o api -f ../abipy ../**/tests/* ../abipy/benchmarks ../abipy/data ../abipy/integration_tests ../abipy/test_files ../abipy/examples"
         )
 
-        rst_files = sorted(
-            [f for f in os.listdir(os.path.join(DOCS_DIR, "api")) if f.endswith(".rst") and f != "modules.rst"]
-        )
-        rst_files = [3 * " " + f for f in rst_files]
-        # print(rst_files)
-
+        # abipy.rst already includes the subpackages (which include their own subpackages)
+        # so we only need to reference the top-level package here.
+        # Listing all the rst files would put each page in multiple toctrees.
         header = """\
 .. _api-index:
 
@@ -69,9 +66,10 @@ API documentation
 =================
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
-""" + "\n".join(rst_files)
+   abipy
+"""
 
         with open(os.path.join(DOCS_DIR, "api", "index.rst"), "wt") as fh:
             fh.write(header)

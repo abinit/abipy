@@ -690,9 +690,8 @@ class RtaRobot(Robot, RobotWithEbands):
         Args:
             eh: 0 for electrons, 1 for holes.
             bte: list of transport formalism to plot (serta, mrta, ibte)
-            mode: mode for the convergence plot. 'full': normal plot of the mobility
-                                                 'relative': plot of the mobility relative to
-                                                             the value obtained with the densest grid
+            mode: mode for the convergence plot. 'full' for the normal plot of the mobility,
+                'relative' to plot the mobility relative to the value obtained with the densest grid.
             component: Cartesian component to plot ('xx', 'xy', ...)
             itemp: temperature index.
             spin: Spin index.

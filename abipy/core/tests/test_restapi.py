@@ -43,6 +43,7 @@ class TestMpRestApi(AbipyTest):
         if self.has_nbformat():
             mp.write_notebook(nbpath=self.get_tmpname(text=True))
 
+    @pytest.mark.skip(reason="connection with COD is not very stable")
     def test_cod(self):
         """Testing COD interface."""
         self.skip_if_not_executable("mysql")

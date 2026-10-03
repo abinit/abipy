@@ -392,17 +392,17 @@ class Mrgdvdb(ExecWrapper):
                               group=None, min_mag_frac=1e-6, bins=200, **kwargs) -> Figure:
         """
         Run :meth:`test_ftinterp` and produce a two-panel parity plot comparing ab-initio and
-        Fourier-interpolated V1(r): |V1(r)| (log-log) and arg(V1(r)) (radians), both ab-initio
+        Fourier-interpolated V1(r): ``|V1(r)|`` (log-log) and arg(V1(r)) (radians), both ab-initio
         (x-axis) vs interpolated (y-axis), as density-colored hexbins with a y=x reference line.
 
         Args:
-            dvdb_path, ngqpt, workdir, coarse_ngqpt, ddb_path, dvdb_add_lr, rspace_cell,
-                symv1scf, qdamp, potfile: See :meth:`test_ftinterp`.
+            dvdb_path, ngqpt, workdir, coarse_ngqpt, ddb_path, dvdb_add_lr, rspace_cell, symv1scf, qdamp, potfile:
+                See :meth:`test_ftinterp`.
             group: "self" (native-mesh round-trip) or "coarse" (the real accuracy test,
                 requires ``coarse_ngqpt``). If None, defaults to "coarse" if ``coarse_ngqpt``
                 is given, else "self".
-            min_mag_frac: Both panels exclude points with |V1_abinitio| below this fraction of
-                max|V1_abinitio|: such points are dominated by FFT/roundoff noise rather than
+            min_mag_frac: Both panels exclude points with ``|V1_abinitio|`` below this fraction of
+                ``max|V1_abinitio|``: such points are dominated by FFT/roundoff noise rather than
                 real signal, and phase is meaningless there.
             bins: hexbin grid resolution.
 
@@ -539,17 +539,17 @@ class Mrgdvdb(ExecWrapper):
                               rspace_cell=0, symv1scf=0, qdamp=0.1, potfile=None,
                               min_mag_frac=1e-6, bins=200, **kwargs) -> Figure:
         """
-        Run :meth:`test_symcheck` and produce a two-panel parity plot: |V1(r)| (log-log) and
+        Run :meth:`test_symcheck` and produce a two-panel parity plot: ``|V1(r)|`` (log-log) and
         arg(V1(r)) (radians), independently-interpolated target (x-axis) vs the
         `v1phq_rotate`-predicted value from the source q-point (y-axis), pooled over every
         symmetry operation and both signs of time reversal, as density-colored hexbins with
         a y=x reference line.
 
         Args:
-            dvdb_path, ngqpt, qpt, workdir, ddb_path, dvdb_add_lr, rspace_cell, symv1scf,
-                qdamp, potfile: See :meth:`test_symcheck`.
-            min_mag_frac: Both panels exclude points with |V1_target| below this fraction of
-                max|V1_target|: such points are dominated by FFT/roundoff noise rather than
+            dvdb_path, ngqpt, qpt, workdir, ddb_path, dvdb_add_lr, rspace_cell, symv1scf, qdamp, potfile:
+                See :meth:`test_symcheck`.
+            min_mag_frac: Both panels exclude points with ``|V1_target|`` below this fraction of
+                ``max|V1_target|``: such points are dominated by FFT/roundoff noise rather than
                 real signal, and phase is meaningless there.
             bins: hexbin grid resolution.
 
