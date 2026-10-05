@@ -36,7 +36,7 @@ from abipy.tools.plotting import (
     set_grid_legend,
     set_visible,
 )
-from abipy.tools.typing import Figure, KptSelect, VectorLike
+from abipy.tools.typing import Figure, KptSelect
 
 __all__ = [
     "GwrFile",

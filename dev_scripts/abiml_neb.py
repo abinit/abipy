@@ -1,10 +1,10 @@
-from pathlib import Path
-import sys
-import os
 import json
+import os
+import sys
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-
 from monty.os.path import find_exts
 
 from abipy.flowtk.qutils import SlurmJobArray
@@ -55,7 +55,7 @@ Performing NEB calculations with the following parameters:
             workdir = dirpath / nn_name
             ini_vasp = str(dirpath / "ini.vasp")
             fin_vasp = str(dirpath / "fin.vasp")
-            opts = f"{ini_vasp} {fin_vasp} --nn-name {nn_name} -w {str(workdir)}"
+            opts = f"{ini_vasp} {fin_vasp} --nn-name {nn_name} -w {workdir!s}"
             arr_options.append(opts)
 
     command = "abiml.py neb"
@@ -75,7 +75,7 @@ def process():
         path_index = int(path_index.replace("path", ""))
         if VERBOSE:
             print(parts, "\n", path_index, nn_name)
-        with open(path, "rt") as fh:
+        with open(path) as fh:
             d = json.load(fh)
             d["path"] = path_index
             d["nn_name"] = nn_name

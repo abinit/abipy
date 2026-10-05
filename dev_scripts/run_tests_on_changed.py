@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 """Git pre-commit hook script that runs tests only for the modified Python files using pytest."""
 
+import os
 import subprocess
 import sys
-import os
 
 
 def get_changed_files():

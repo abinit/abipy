@@ -14,8 +14,6 @@ from monty.string import marquee  # , list_strings
 
 # import pandas as pd
 import abipy.core.abinit_units as abu
-
-from abipy.core.kpoints import Kpoint
 from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Structure  # , NotebookWriter
 
 # from monty.termcolor import cprint

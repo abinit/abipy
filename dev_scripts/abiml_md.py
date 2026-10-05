@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-import sys
-import os
 
 from abipy.flowtk.qutils import SlurmJobArray
 

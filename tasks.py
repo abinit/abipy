@@ -5,20 +5,16 @@ Use invoke --list to get list of tasks
 
 from __future__ import annotations
 
-import shutil
-import json
-import sys
 import os
-import re
+import shutil
 import subprocess
+import sys
 import webbrowser
-
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING
+
 from invoke import task
 from monty.os import cd
-
 
 if TYPE_CHECKING:
     from invoke import Context
@@ -71,7 +67,7 @@ API documentation
    abipy
 """
 
-        with open(os.path.join(DOCS_DIR, "api", "index.rst"), "wt") as fh:
+        with open(os.path.join(DOCS_DIR, "api", "index.rst"), "w") as fh:
             fh.write(header)
 
         ctx.run("make clean")
@@ -82,8 +78,6 @@ API documentation
 @task
 def open_doc(ctx):
     """Open the index.html in docs/_build/html/."""
-    import webbrowser
-
     webbrowser.open_new_tab("file://" + os.path.join(ABIPY_ROOTDIR, "docs/_build/html/index.html"))
 
 
@@ -177,10 +171,10 @@ def update_vars(ctx, abinit_repo_path):
 
 @task
 def pyclean(ctx):
-    """remove all pyc files and all __pycache__ directory."""
+    """Remove all pyc files and all __pycache__ directory."""
 
     def rm_pycaches(top: str) -> None:
-        """remove __pycache__ directory."""
+        """Remove __pycache__ directory."""
         count = 0
         for dirpath, dirnames, filenames in os.walk(top):
             for d in dirnames:
@@ -194,7 +188,7 @@ def pyclean(ctx):
         print(f"Removed {count} __pycache__ directories")
 
     def rm_pycfiles(top: str) -> int:
-        """remove all pyc files."""
+        """Remove all pyc files."""
         count = 0
         for dirpath, dirnames, filenames in os.walk(top):
             for f in filenames:
@@ -315,8 +309,9 @@ def large_files(ctx, top_dir=None, size_threshold_mb=10):
 @task
 def system(ctx):
     """Show System Info as a Table"""
-    import psutil
     import platform
+
+    import psutil
     from tabulate import tabulate
 
     info = []
