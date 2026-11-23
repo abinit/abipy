@@ -7,8 +7,6 @@ from __future__ import annotations
 
 import dataclasses
 import itertools
-
-# import abipy.core.abinit_units as abu
 from functools import cached_property, lru_cache
 
 import numpy as np
@@ -16,6 +14,7 @@ import pandas as pd
 from monty.string import marquee  # , list_strings
 from monty.termcolor import cprint
 
+import abipy.core.abinit_units as abu
 from abipy.abio.robots import Robot
 from abipy.core.kpoints import kpoints_indices
 from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Header, Has_Structure  # , NotebookWriter
@@ -216,6 +215,7 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         app(f"kzone: {self.r.kzone}")
         app(f"kfilter: {self.r.kfilter}")
         app(f"gtype: {self.r.gtype}")
+        app(f"gmode: {self.r.gmode}")
         app(f"qzone: {self.r.qzone}")
         app(f"with_vk: {self.r.with_vk}")
         app(f"kptopt: {self.r.kptopt}")
@@ -232,21 +232,41 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
 
         return "\n".join(lines)
 
-    def check_unfilled_entries_in_gvals(self):
-        """ """
-        r = self.r
-        for spin in range(self.nsppol):
-            # nctkarr_t("gvals", "dp", "gstore_cplex, nb_kq, nb_k, natom3, glob_nk, glob_nq)
-            variable = r.read_variable("gvals", path=f"gqk_spin{spin + 1}")
-            fill_value = variable._FillValue
-            # Read the data
-            data = variable[:]
-            missing_entries = np.where(data == fill_value)
-            # Print the indices of missing entries
-            print("Missing entries found at indices:", missing_entries)
+    def check_unfilled_entries_in_gvals(self) -> list[np.ndarray]:
+        """
+        Find the (iq_glob, ik_glob) entries of gvals that have not been computed.
 
-            if self.r.kfilter == "none":
-                raise ValueError("when kfilter == 'none' all the entries in gvals should have been written!")
+        Return a list with one array of shape (n_missing, 2) per spin.
+        Use the gstore_glob_state_kqs table if available. Legacy files without this table can only be checked
+        when kfilter == "none": the fill value is -huge in this case, while with a filter it is zero
+        and missing entries cannot be told apart from computed zeros.
+
+        Raises:
+            ValueError if kfilter == "none" and entries are missing, as all of them should have been computed.
+        """
+        r = self.r
+        state_kqs = r.glob_state_kqs
+        missing_spin = []
+        for spin in range(self.nsppol):
+            gqk = self.gqk_spin[spin]
+            if state_kqs is not None:
+                state = state_kqs[spin, :gqk.glob_nq, :gqk.glob_nk]
+                missing = np.argwhere(state == GSTORE_KQ_MISSING)
+            elif r.kfilter == "none":
+                # nctkarr_t("gvals", "dp", "gstore_cplex, nb_kq, nb_k, natom3, glob_nk, glob_nq)
+                variable = r.read_variable("gvals", path=f"gqk_spin{spin + 1}")
+                variable.set_auto_mask(False)
+                data = variable[:]
+                is_fill = np.all(data.reshape(gqk.glob_nq, gqk.glob_nk, -1) == variable._FillValue, axis=-1)
+                missing = np.argwhere(is_fill)
+            else:
+                raise ValueError(f"Cannot detect missing entries in legacy file with {r.kfilter=}")
+
+            if r.kfilter == "none" and len(missing):
+                raise ValueError(f"{len(missing)} (q, k) entries are missing for {spin=} although kfilter == 'none'!")
+            missing_spin.append(missing)
+
+        return missing_spin
 
     @lru_cache
     def get_gwpt_label_data(self, what: str, spin: int) -> tuple[str, np.array]:
@@ -444,7 +464,7 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         xs = list(range(len(p.ikfound)))
         for iat, idir in itertools.product(range(natom), range(3)):
             ax = ax_mat[iat, idir]
-            ipert = iat + idir
+            ipert = idir + 3 * iat
             # (glob_nq, nb_kq) --> (nb_kq, glob_nq).
             gwpt_bq, ks_bq = g_qpm[:, ipert, :].T.copy(), gks_qpm[:, ipert, :].T.copy()
 
@@ -495,7 +515,7 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
 
         for iat, idir in itertools.product(range(natom), range(3)):
             ax = ax_mat[iat, idir]
-            ipert = iat + idir
+            ipert = idir + 3 * iat
             # (glob_nq, nb_kq)
             gwpt_ys, ks_ys = g_qpm[:, ipert, :], gks_qpm[:, ipert, :]
 
@@ -743,10 +763,10 @@ class Gqk:
             vk_cart_ibz = ncr.read_value("vk_cart_ibz", path=path)
 
         if ncr.with_vk == 2:
-            # Full (nb_k x nb_k) matrix.
-            # Have to transpose (nb_kq, nb_k) submatrix written by Fortran.
-            # nctk_def_arrays(spin_ncid, nctkarr_t("vkmat_cart_ibz", "dp", "two, three, nb_k, nb_k, gstore_nkibz"))
-            vkmat_cart_ibz = ncr.read_value("vkmat_cart_ibz", path=path).transpose(0, 1, 3, 2, 4).copy()
+            # Full (nb_k x nb_k) matrix. Note the name on disk (vnk_mat_cart_ibz).
+            # nctk_def_arrays(spin_ncid, nctkarr_t("vnk_mat_cart_ibz", "dp", "two, three, nb_k, nb_k, gstore_nkibz"))
+            # Python shape: (nkibz, nb_k, nb_k, 3, 2). Swap the band axes to have [ik, m, n, idir].
+            vkmat_cart_ibz = ncr.read_value("vnk_mat_cart_ibz", path=path).transpose(0, 2, 1, 3, 4).copy()
             vkmat_cart_ibz = vkmat_cart_ibz[..., 0] + 1j * vkmat_cart_ibz[..., 1]
 
         # Note conversion between Fortran and python indexing.
@@ -821,7 +841,8 @@ class Gqk:
             raise ValueError(f"Invalid {what=}")
 
         # Shift band indices.
-        df["m_kq"] += self.bstart_kq
+        if "m_kq" in df:
+            df["m_kq"] += self.bstart_kq
         df["n_k"] += self.bstart_k
 
         return df
@@ -838,21 +859,24 @@ class Gqk:
         # Find the index of the kpoint.
         ik_g, kpoint = r.find_ik_glob_kpoint(kpoint, self.spin)
 
-        # Compute indices of qpoints in the ngqpt mesh.
+        # The interpolator requires g on the full q-mesh.
         ngqpt, shifts = r.ngqpt, [0, 0, 0]
-        q_indices = kpoints_indices(r.qbz, ngqpt, shifts, check_mesh=check_mesh)
+        if r.qzone != "bz" or self.glob_nq != np.prod(ngqpt):
+            raise ValueError(f"Interpolation requires all the q-points in the BZ but {r.qzone=}, "
+                             f"{self.glob_nq=}, {ngqpt=}")
+
+        # Compute indices in the ngqpt mesh of the q-points in gvals.
+        qpts = r.qbz[r.qglob2bz[self.spin, :self.glob_nq]]
+        q_indices = kpoints_indices(qpts, ngqpt, shifts, check_mesh=check_mesh)
 
         natom3 = 3 * len(self.structure)
-        nb_k = self.nb_k
-        nb_kq = self.nb_kq
         nx, ny, nz = ngqpt
-        assert nb_k == nb_kq
 
         # (glob_nq, glob_nk, natom3, m_kq, n_k)
         g2_qph_mn = self.g2[:, ik_g]
 
         # Insert g2 in g2_grid
-        g2_grid = np.empty((nb_k, nb_kq, natom3, nx, ny, nz))
+        g2_grid = np.empty((self.nb_kq, self.nb_k, natom3, nx, ny, nz))
         for nu in range(natom3):
             for g2_mn, q_inds in zip(g2_qph_mn[:, nu], q_indices, strict=False):
                 ix, iy, iz = q_inds
@@ -935,6 +959,10 @@ class Gqk:
             if not _allclose("gvals", self.gvals, other.gvals, **kws):
                 ierr += 1
 
+        if self.gvals_ks is not None:
+            if other.gvals_ks is None or not _allclose("gvals_ks", self.gvals_ks, other.gvals_ks, **kws):
+                ierr += 1
+
         return ierr
 
     # @add_fig_kwargs
@@ -986,8 +1014,10 @@ class GstoreReader(BaseEphReader):
         self.qzone = self.read_string("gstore_qzone")
         self.kfilter = self.read_string("gstore_kfilter")
         self.gtype = self.read_string("gstore_gtype")
+        # "atom" or "phonon". Older files may not have this variable.
+        self.gmode = self.read_string("gstore_gmode") if "gstore_gmode" in self.rootgrp.variables else "atom"
 
-        # Note conversion Fortran --> C for the isym index.
+        # Band ranges as [start, stop) Python slices: Fortran [start, stop] 1-based --> 0-based start.
         self.brange_k_spin = self.read_value("gstore_brange_k_spin")
         self.brange_k_spin[:, 0] -= 1
         self.brange_kq_spin = self.read_value("gstore_brange_kq_spin")
@@ -1026,6 +1056,16 @@ class GstoreReader(BaseEphReader):
 
         self.use_lgk = self.read_value("gstore_use_lgk")
         self.use_lgq = self.read_value("gstore_use_lgq")
+
+    @cached_property
+    def glob_state_kqs(self) -> np.ndarray | None:
+        """
+        Array of shape (nsppol, max_nq, max_nk) with the state of each (spin, iq_glob, ik_glob) entry:
+        GSTORE_KQ_MISSING, GSTORE_KQ_COMPUTED or GSTORE_KQ_SYMMETRIZED. None for legacy files without this variable.
+        """
+        if "gstore_glob_state_kqs" not in self.rootgrp.variables:
+            return None
+        return self.read_value("gstore_glob_state_kqs")
 
     def find_iq_glob_qpoint(self, qpoint, spin: int) -> tuple:
         """
@@ -1114,17 +1154,25 @@ class GstoreRobot(Robot, RobotWithEbands):
                 continue
             print("Comparing: ", ref_gstore.basename, " with: ", other_gstore.basename)
             try:
-                ierr += self._neq_two_gstores(ref_gstore, other_gstore, verbose)
-                cprint("EQUAL", color="green")
+                this_ierr = self._neq_two_gstores(ref_gstore, other_gstore, verbose)
             except Exception as exc:
-                exc_list.append(str(exc))
+                # An exception means that the files cannot be compared and counts as a failure.
+                this_ierr = 1
+                exc_list.append(f"{other_gstore.basename}: {exc}")
+
+            ierr += this_ierr
+            if this_ierr == 0:
+                cprint("EQUAL", color="green")
+            else:
+                cprint("DIFFERENT", color="red")
 
         for exc in exc_list:
             cprint(exc, color="red")
 
         return ierr
 
-    def _neq_two_gstores(self: GstoreRobot, gstore2: GstoreRobot, verbose: int) -> int:
+    @staticmethod
+    def _neq_two_gstores(gstore1: GstoreFile, gstore2: GstoreFile, verbose: int) -> int:
         """
         Helper function to compare two GSTORE files.
         """
@@ -1140,6 +1188,8 @@ class GstoreRobot(Robot, RobotWithEbands):
             "kzone",
             "qzone",
             "kfilter",
+            "gtype",
+            "gmode",
             "brange_k_spin",
             "brange_kq_spin",
             "erange_spin",
@@ -1148,12 +1198,12 @@ class GstoreRobot(Robot, RobotWithEbands):
         ]
 
         for aname in aname_list:
-            self._compare_attr_name(aname, self, gstore2)
+            Robot._compare_attr_name(aname, gstore1, gstore2)
 
         # Now compare the gkq objects for each spin.
         ierr = 0
-        for spin in range(self.nsppol):
-            gqk1, gqk2 = self.gqk_spin[spin], gstore2.gqk_spin[spin]
+        for spin in range(gstore1.nsppol):
+            gqk1, gqk2 = gstore1.gqk_spin[spin], gstore2.gqk_spin[spin]
             ierr += gqk1.neq(gqk2, verbose)
 
         return ierr
@@ -1562,7 +1612,7 @@ class GstoreRobot(Robot, RobotWithEbands):
                 continue
 
             r = g1.r
-            eigens_ibz = r.read_value("eigenvalues") * 27.211386245988  # Ha --> eV, indexed like r.kibz.
+            eigens_ibz = r.read_value("eigenvalues") * abu.Ha_eV  # Ha --> eV, indexed like r.kibz.
             bstart_k, nb_k = gqk1.bstart_k, gqk1.nb_k
             bstart_kq, nb_kq = gqk1.bstart_kq, gqk1.nb_kq
 
