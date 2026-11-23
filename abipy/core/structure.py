@@ -831,8 +831,9 @@ class Structure(pmg_Structure, NotebookWriter):
         Returns a dictionary with the ABINIT variables.
 
         Args:
-            enforce_znucl[ntypat] = Enforce this value for znucl.
-            enforce_typat[natom] = Fortran conventions. Start to count from 1.
+            enforce_znucl: Array of shape (ntypat,). Enforce this value for znucl.
+            enforce_typat: Array of shape (natom,). Enforce this value for typat.
+                Fortran conventions i.e. start to count from 1.
         """
         from abipy.flowtk.abiobjects import structure_to_abivars
 

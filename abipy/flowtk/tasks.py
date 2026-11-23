@@ -485,11 +485,11 @@ class TaskPolicy:
     @classmethod
     def as_policy(cls, obj: Any) -> TaskPolicy:
         """
-        Converts an object obj into a `:class:`TaskPolicy. Accepts:
+        Converts an object obj into a :class:`TaskPolicy`. Accepts:
 
-            * None
-            * TaskPolicy
-            * dict-like object
+        * None
+        * TaskPolicy
+        * dict-like object
         """
         if obj is None:
             # Use default policy.

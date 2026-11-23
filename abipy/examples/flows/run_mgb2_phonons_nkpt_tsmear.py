@@ -103,7 +103,7 @@ if __name__ == "__main__":
 #
 # .. code-block:: shell
 #
-# abicomp.py ddb flow_mgb2_phonons_nkpt_tsmear/w*/outdata/*_DDB -ipy
+#    abicomp.py ddb flow_mgb2_phonons_nkpt_tsmear/w*/outdata/*_DDB -ipy
 #
 # to build a robot from the output DDB files and start the ipython shell.
 #

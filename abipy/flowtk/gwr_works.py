@@ -127,7 +127,7 @@ class GWRChiCompareWork(_BaseGWRWork):
     so that one can compare the two quantities.
 
     .. rubric:: Inheritance Diagram
-    .. inheritance-diagram:: GWRChiCompareConvWork
+    .. inheritance-diagram:: GWRChiCompareWork
     """
 
     @classmethod

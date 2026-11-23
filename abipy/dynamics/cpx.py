@@ -40,7 +40,7 @@ from abipy.tools.typing import Figure, PathLike
 
 def parse_file_with_blocks(filepath: PathLike, block_len: int) -> tuple[int, np.ndarray, list]:
     """
-    Parse a QE file whose format is:
+    Parse a QE file whose format is::
 
           20    0.00241888
          0.31882936800000E+01     0.14832370390000E+02     0.12288296100000E+01
@@ -116,12 +116,12 @@ class EvpFile(TextFile, NotebookWriter):
     """
     The evp file is a file that contains the electronic and ionic energies and pressures
     for each time step of a CP simulation.
-    The evp file has the following format:
+    The evp file has the following format::
 
-    # nfi tps(ps) ekinc Tcell(K) Tion(K) etot enthal econs
-          0            0          300   -2099.0164    7.4066063   -2091.6098    19363.353    2188.2406    5.0978969
-          10         0.01    557.43004   -2105.3429    13.762216   -2091.5807    16917.626    2188.2406    5.0978969
-    ...
+        # nfi tps(ps) ekinc Tcell(K) Tion(K) etot enthal econs
+              0            0          300   -2099.0164    7.4066063   -2091.6098    19363.353    2188.2406    5.0978969
+              10         0.01    557.43004   -2105.3429    13.762216   -2091.5807    16917.626    2188.2406    5.0978969
+        ...
 
     NB: Energies are in Hartree and not in Ry.
 

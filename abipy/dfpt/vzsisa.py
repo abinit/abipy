@@ -14,8 +14,8 @@ import abipy.core.abinit_units as abu
 from abipy.core.func1d import Function1D
 from abipy.core.structure import Structure
 from abipy.dfpt.ddb import DdbFile
-from abipy.dfpt.phonons import PhdosFile, PhononDos, PhononDosPlotter
-from abipy.electrons.ebands import ElectronDosPlotter
+from abipy.dfpt.phonons import PhdosFile, PhononBandsPlotter, PhononDos, PhononDosPlotter
+from abipy.electrons.ebands import ElectronBandsPlotter, ElectronDosPlotter
 from abipy.electrons.gsr import GsrFile
 from abipy.tools.plotting import add_fig_kwargs, get_ax_fig_plt, set_grid_legend  # , get_axarray_fig_plt
 from abipy.tools.serialization import HasPickleIO
@@ -662,13 +662,13 @@ class Vzsisa(HasPickleIO):
             plotter.add_edos(f"V={volume:.2f} Å³", edos)
         return plotter
 
-    def get_ebands_plotter(self) -> ElectronBandPlotter:
+    def get_ebands_plotter(self) -> ElectronBandsPlotter:
         """Build and return a ElectronBandsPlotter with electron bands indexed by volume"""
         if self.ebands_list is None:
             raise ValueError("ebands_list is not available")
         plotter = ElectronBandsPlotter()
         for volume, ebands in zip(self.ph_volumes, self.ebands_list, strict=True):
-            plotter.add_edos(f"V={volume:.2f} Å³", ebands)
+            plotter.add_ebands(f"V={volume:.2f} Å³", ebands)
         return plotter
 
     def _add_lines_to_ax(self, ax, x_or_y: str, what="volume"):

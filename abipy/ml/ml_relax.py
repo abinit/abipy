@@ -9,7 +9,7 @@ from typing import Any
 import numpy as np
 from ase.atoms import Atoms
 from ase.calculators.abinit import Abinit, AbinitProfile
-from ase.constraints import ExpCellFilter
+from ase.filters import ExpCellFilter
 from ase.stress import voigt_6_to_full_3x3_stress
 from monty.collections import dict2namedtuple
 

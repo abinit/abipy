@@ -512,31 +512,31 @@ class OncvGui(AbipyParameterized):
 
     qcut_num = param.Integer(2, bounds=(1, None))
     qcut_step = param.Number(1, bounds=(0, None))
-    qcut_dir = param.Selector(["centered", ">", "<"])
+    qcut_dir = param.Selector(objects=["centered", ">", "<"])
 
     rc_num = param.Integer(2, bounds=(1, None))
     rc_step = param.Number(0.1, bounds=(0, None))
-    rc_dir = param.Selector(["centered", ">", "<"])
+    rc_dir = param.Selector(objects=["centered", ">", "<"])
 
     debl_num = param.Integer(2, bounds=(1, None))
     debl_step = param.Number(1.0, bounds=(0, None))
-    debl_dir = param.Selector(["centered", ">", "<"])
+    debl_dir = param.Selector(objects=["centered", ">", "<"])
 
     rc5_num = param.Integer(2, bounds=(1, None))
     rc5_step = param.Number(0.1, bounds=(0, None))
-    rc5_dir = param.Selector(["<", "centered", ">"])
+    rc5_dir = param.Selector(objects=["<", "centered", ">"])
 
     dvloc0_num = param.Integer(2, bounds=(1, None))
     dvloc0_step = param.Number(0.5, bounds=(0, None))
-    dvloc0_dir = param.Selector(["centered", "<", ">"])
+    dvloc0_dir = param.Selector(objects=["centered", "<", ">"])
 
     fcfact_num = param.Integer(1, bounds=(1, None))
     fcfact_step = param.Number(0.2, bounds=(0, None))
-    fcfact_dir = param.Selector(["centered", ">", "<"])
+    fcfact_dir = param.Selector(objects=["centered", ">", "<"])
 
     rcfact_num = param.Integer(1, bounds=(1, None))
     rcfact_step = param.Number(0.2, bounds=(0, None))
-    rcfact_dir = param.Selector(["centered", ">", "<"])
+    rcfact_dir = param.Selector(objects=["centered", ">", "<"])
 
     ace_theme = param.ObjectSelector(
         default="chrome", objects=pnw.CodeEditor.param.theme.objects, doc="Theme of the editor"

@@ -7,8 +7,6 @@ from __future__ import annotations
 
 import dataclasses
 import itertools
-
-# import abipy.core.abinit_units as abu
 from functools import cached_property, lru_cache
 
 import numpy as np
@@ -16,6 +14,7 @@ import pandas as pd
 from monty.string import marquee  # , list_strings
 from monty.termcolor import cprint
 
+import abipy.core.abinit_units as abu
 from abipy.abio.robots import Robot
 from abipy.core.kpoints import kpoints_indices
 from abipy.core.mixins import AbinitNcFile, Has_ElectronBands, Has_Header, Has_Structure  # , NotebookWriter
@@ -216,6 +215,7 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         app(f"kzone: {self.r.kzone}")
         app(f"kfilter: {self.r.kfilter}")
         app(f"gtype: {self.r.gtype}")
+        app(f"gmode: {self.r.gmode}")
         app(f"qzone: {self.r.qzone}")
         app(f"with_vk: {self.r.with_vk}")
         app(f"kptopt: {self.r.kptopt}")
@@ -232,21 +232,41 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
 
         return "\n".join(lines)
 
-    def check_unfilled_entries_in_gvals(self):
-        """ """
-        r = self.r
-        for spin in range(self.nsppol):
-            # nctkarr_t("gvals", "dp", "gstore_cplex, nb_kq, nb_k, natom3, glob_nk, glob_nq)
-            variable = r.read_variable("gvals", path=f"gqk_spin{spin + 1}")
-            fill_value = variable._FillValue
-            # Read the data
-            data = variable[:]
-            missing_entries = np.where(data == fill_value)
-            # Print the indices of missing entries
-            print("Missing entries found at indices:", missing_entries)
+    def check_unfilled_entries_in_gvals(self) -> list[np.ndarray]:
+        """
+        Find the (iq_glob, ik_glob) entries of gvals that have not been computed.
 
-            if self.r.kfilter == "none":
-                raise ValueError("when kfilter == 'none' all the entries in gvals should have been written!")
+        Return a list with one array of shape (n_missing, 2) per spin.
+        Use the gstore_glob_state_kqs table if available. Legacy files without this table can only be checked
+        when kfilter == "none": the fill value is -huge in this case, while with a filter it is zero
+        and missing entries cannot be told apart from computed zeros.
+
+        Raises:
+            ValueError if kfilter == "none" and entries are missing, as all of them should have been computed.
+        """
+        r = self.r
+        state_kqs = r.glob_state_kqs
+        missing_spin = []
+        for spin in range(self.nsppol):
+            gqk = self.gqk_spin[spin]
+            if state_kqs is not None:
+                state = state_kqs[spin, :gqk.glob_nq, :gqk.glob_nk]
+                missing = np.argwhere(state == GSTORE_KQ_MISSING)
+            elif r.kfilter == "none":
+                # nctkarr_t("gvals", "dp", "gstore_cplex, nb_kq, nb_k, natom3, glob_nk, glob_nq)
+                variable = r.read_variable("gvals", path=f"gqk_spin{spin + 1}")
+                variable.set_auto_mask(False)
+                data = variable[:]
+                is_fill = np.all(data.reshape(gqk.glob_nq, gqk.glob_nk, -1) == variable._FillValue, axis=-1)
+                missing = np.argwhere(is_fill)
+            else:
+                raise ValueError(f"Cannot detect missing entries in legacy file with {r.kfilter=}")
+
+            if r.kfilter == "none" and len(missing):
+                raise ValueError(f"{len(missing)} (q, k) entries are missing for {spin=} although kfilter == 'none'!")
+            missing_spin.append(missing)
+
+        return missing_spin
 
     @lru_cache
     def get_gwpt_label_data(self, what: str, spin: int) -> tuple[str, np.array]:
@@ -300,12 +320,12 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
             spin: spin index
             ax: |matplotlib-Axes| or None if a new figure should be created.
             hist_kwargs:
-            ratio_min: lower bound used to clip the ratio |g^GWPT|/|g^KS|
+            ratio_min: lower bound used to clip the ratio ``|g^GWPT|/|g^KS|``
                 before histogramming. Defaults to 0.0.
-            ratio_max: upper bound used to clip the ratio |g^GWPT|/|g^KS|
+            ratio_max: upper bound used to clip the ratio ``|g^GWPT|/|g^KS|``
                 before histogramming. Defaults to 3.0. Values outside
                 [ratio_min, ratio_max] are dropped (they are usually numerical
-                artifacts from |g^KS| being close to zero).
+                artifacts from ``|g^KS|`` being close to zero).
             fontsize: legend and label fontsize.
         """
         if not self.has_gwpt:
@@ -444,7 +464,7 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         xs = list(range(len(p.ikfound)))
         for iat, idir in itertools.product(range(natom), range(3)):
             ax = ax_mat[iat, idir]
-            ipert = iat + idir
+            ipert = idir + 3 * iat
             # (glob_nq, nb_kq) --> (nb_kq, glob_nq).
             gwpt_bq, ks_bq = g_qpm[:, ipert, :].T.copy(), gks_qpm[:, ipert, :].T.copy()
 
@@ -495,7 +515,7 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
 
         for iat, idir in itertools.product(range(natom), range(3)):
             ax = ax_mat[iat, idir]
-            ipert = iat + idir
+            ipert = idir + 3 * iat
             # (glob_nq, nb_kq)
             gwpt_ys, ks_ys = g_qpm[:, ipert, :], gks_qpm[:, ipert, :]
 
@@ -530,10 +550,10 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
         **kwargs,
     ) -> Figure:
         """
-        Scatter plot of |g^GW| vs |g^KS| over all matrix elements for a given spin.
+        Scatter plot of ``|g^GW|`` vs ``|g^KS|`` over all matrix elements for a given spin.
 
         Each point is one (q, k, band_kq, perturbation, band_k) tuple. Points are
-        colored by the ratio |g^GW|/|g^KS|, and a linear least-squares fit is
+        colored by the ratio ``|g^GW|/|g^KS|``, and a linear least-squares fit is
         overlaid. An optional inset shows the full data range so outliers are
         visible without disturbing the zoomed main axes.
 
@@ -545,7 +565,7 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
             ratio_max: optional upper bound of the ratio window. Points with
                 ratio > ratio_max are dropped. If None (default), no upper
                 bound is applied.
-            ks_tol: |g^KS| values <= ks_tol are discarded to avoid huge
+            ks_tol: ``|g^KS|`` values <= ks_tol are discarded to avoid huge
                 ratios from a near-zero denominator. Default 1e-7.
             fit_intercept: if True, fit y = a*x + b; otherwise fit y = a*x
                 (forced through the origin).
@@ -554,7 +574,7 @@ class GstoreFile(AbinitNcFile, Has_Header, Has_Structure, Has_ElectronBands):
                 the 1st/99th percentile of the ratio distribution so a few
                 outliers don't wash out the rest of the colors.
             zoom_factor: the main axes go from 0 to
-                zoom_factor * max(median(|g^KS|), median(|g^GW|)) on both axes.
+                zoom_factor * max(median(``|g^KS|``), median(``|g^GW|``)) on both axes.
             with_inset: if True, add an inset showing the full data range
                 with a rectangle indicating the zoom window.
             inset_loc: matplotlib location string for the inset.
@@ -743,10 +763,10 @@ class Gqk:
             vk_cart_ibz = ncr.read_value("vk_cart_ibz", path=path)
 
         if ncr.with_vk == 2:
-            # Full (nb_k x nb_k) matrix.
-            # Have to transpose (nb_kq, nb_k) submatrix written by Fortran.
-            # nctk_def_arrays(spin_ncid, nctkarr_t("vkmat_cart_ibz", "dp", "two, three, nb_k, nb_k, gstore_nkibz"))
-            vkmat_cart_ibz = ncr.read_value("vkmat_cart_ibz", path=path).transpose(0, 1, 3, 2, 4).copy()
+            # Full (nb_k x nb_k) matrix. Note the name on disk (vnk_mat_cart_ibz).
+            # nctk_def_arrays(spin_ncid, nctkarr_t("vnk_mat_cart_ibz", "dp", "two, three, nb_k, nb_k, gstore_nkibz"))
+            # Python shape: (nkibz, nb_k, nb_k, 3, 2). Swap the band axes to have [ik, m, n, idir].
+            vkmat_cart_ibz = ncr.read_value("vnk_mat_cart_ibz", path=path).transpose(0, 2, 1, 3, 4).copy()
             vkmat_cart_ibz = vkmat_cart_ibz[..., 0] + 1j * vkmat_cart_ibz[..., 1]
 
         # Note conversion between Fortran and python indexing.
@@ -804,8 +824,8 @@ class Gqk:
 
     def get_dataframe(self, what: str = "g2") -> pd.DataFrame:
         """
-        Build and return a dataframe with all the |g(k,q)|^2 if what == "g2" or
-        all |v_nk|^2 if what == "v2".
+        Build and return a dataframe with all the ``|g(k,q)|^2`` if what == "g2" or
+        all ``|v_nk|^2`` if what == "v2".
         """
         if what == "g2":
             df = nparr_to_df("g2", self.g2, ["iq", "ik", "imode", "m_kq", "n_k"])
@@ -821,7 +841,8 @@ class Gqk:
             raise ValueError(f"Invalid {what=}")
 
         # Shift band indices.
-        df["m_kq"] += self.bstart_kq
+        if "m_kq" in df:
+            df["m_kq"] += self.bstart_kq
         df["n_k"] += self.bstart_k
 
         return df
@@ -838,21 +859,24 @@ class Gqk:
         # Find the index of the kpoint.
         ik_g, kpoint = r.find_ik_glob_kpoint(kpoint, self.spin)
 
-        # Compute indices of qpoints in the ngqpt mesh.
+        # The interpolator requires g on the full q-mesh.
         ngqpt, shifts = r.ngqpt, [0, 0, 0]
-        q_indices = kpoints_indices(r.qbz, ngqpt, shifts, check_mesh=check_mesh)
+        if r.qzone != "bz" or self.glob_nq != np.prod(ngqpt):
+            raise ValueError(f"Interpolation requires all the q-points in the BZ but {r.qzone=}, "
+                             f"{self.glob_nq=}, {ngqpt=}")
+
+        # Compute indices in the ngqpt mesh of the q-points in gvals.
+        qpts = r.qbz[r.qglob2bz[self.spin, :self.glob_nq]]
+        q_indices = kpoints_indices(qpts, ngqpt, shifts, check_mesh=check_mesh)
 
         natom3 = 3 * len(self.structure)
-        nb_k = self.nb_k
-        nb_kq = self.nb_kq
         nx, ny, nz = ngqpt
-        assert nb_k == nb_kq
 
         # (glob_nq, glob_nk, natom3, m_kq, n_k)
         g2_qph_mn = self.g2[:, ik_g]
 
         # Insert g2 in g2_grid
-        g2_grid = np.empty((nb_k, nb_kq, natom3, nx, ny, nz))
+        g2_grid = np.empty((self.nb_kq, self.nb_k, natom3, nx, ny, nz))
         for nu in range(natom3):
             for g2_mn, q_inds in zip(g2_qph_mn[:, nu], q_indices, strict=False):
                 ix, iy, iz = q_inds
@@ -865,7 +889,7 @@ class Gqk:
         Return numpy array with e-ph matrix elements for the given (qpoint, kpoint) pair.
 
         Args:
-            what="g2" for |g(k,q)|^2, "g" for g(k,q)
+            what: "g2" for ``|g(k,q)|^2``, "g" for ``g(k,q)``.
         """
         # Find the internal indices of (qpoint, kpoint)
         iq_g, qpoint = self.gstore.r.find_iq_glob_qpoint(qpoint, self.spin)
@@ -880,10 +904,10 @@ class Gqk:
 
     def get_gdf_at_qpt_kpt(self, qpoint, kpoint, what="g2") -> pd.DataFrame:
         """
-        Build and return a dataframe with the |g(k,q)|^2 for the given (qpoint, kpoint) pair.
+        Build and return a dataframe with the ``|g(k,q)|^2`` for the given (qpoint, kpoint) pair.
 
         Args:
-            what="g2" for |g(k,q)|^2, "g" for g(k,q)
+            what: "g2" for ``|g(k,q)|^2``, "g" for ``g(k,q)``.
         """
         g2_slice = self.get_g_qpt_kpt(qpoint, kpoint, what)
         df = nparr_to_df(what, g2_slice, ["imode", "m_kq", "n_k"])
@@ -933,6 +957,10 @@ class Gqk:
 
         if self.gvals is not None:
             if not _allclose("gvals", self.gvals, other.gvals, **kws):
+                ierr += 1
+
+        if self.gvals_ks is not None:
+            if other.gvals_ks is None or not _allclose("gvals_ks", self.gvals_ks, other.gvals_ks, **kws):
                 ierr += 1
 
         return ierr
@@ -986,8 +1014,10 @@ class GstoreReader(BaseEphReader):
         self.qzone = self.read_string("gstore_qzone")
         self.kfilter = self.read_string("gstore_kfilter")
         self.gtype = self.read_string("gstore_gtype")
+        # "atom" or "phonon". Older files may not have this variable.
+        self.gmode = self.read_string("gstore_gmode") if "gstore_gmode" in self.rootgrp.variables else "atom"
 
-        # Note conversion Fortran --> C for the isym index.
+        # Band ranges as [start, stop) Python slices: Fortran [start, stop] 1-based --> 0-based start.
         self.brange_k_spin = self.read_value("gstore_brange_k_spin")
         self.brange_k_spin[:, 0] -= 1
         self.brange_kq_spin = self.read_value("gstore_brange_kq_spin")
@@ -1026,6 +1056,16 @@ class GstoreReader(BaseEphReader):
 
         self.use_lgk = self.read_value("gstore_use_lgk")
         self.use_lgq = self.read_value("gstore_use_lgq")
+
+    @cached_property
+    def glob_state_kqs(self) -> np.ndarray | None:
+        """
+        Array of shape (nsppol, max_nq, max_nk) with the state of each (spin, iq_glob, ik_glob) entry:
+        GSTORE_KQ_MISSING, GSTORE_KQ_COMPUTED or GSTORE_KQ_SYMMETRIZED. None for legacy files without this variable.
+        """
+        if "gstore_glob_state_kqs" not in self.rootgrp.variables:
+            return None
+        return self.read_value("gstore_glob_state_kqs")
 
     def find_iq_glob_qpoint(self, qpoint, spin: int) -> tuple:
         """
@@ -1114,17 +1154,25 @@ class GstoreRobot(Robot, RobotWithEbands):
                 continue
             print("Comparing: ", ref_gstore.basename, " with: ", other_gstore.basename)
             try:
-                ierr += self._neq_two_gstores(ref_gstore, other_gstore, verbose)
-                cprint("EQUAL", color="green")
+                this_ierr = self._neq_two_gstores(ref_gstore, other_gstore, verbose)
             except Exception as exc:
-                exc_list.append(str(exc))
+                # An exception means that the files cannot be compared and counts as a failure.
+                this_ierr = 1
+                exc_list.append(f"{other_gstore.basename}: {exc}")
+
+            ierr += this_ierr
+            if this_ierr == 0:
+                cprint("EQUAL", color="green")
+            else:
+                cprint("DIFFERENT", color="red")
 
         for exc in exc_list:
             cprint(exc, color="red")
 
         return ierr
 
-    def _neq_two_gstores(self: GstoreRobot, gstore2: GstoreRobot, verbose: int) -> int:
+    @staticmethod
+    def _neq_two_gstores(gstore1: GstoreFile, gstore2: GstoreFile, verbose: int) -> int:
         """
         Helper function to compare two GSTORE files.
         """
@@ -1140,6 +1188,8 @@ class GstoreRobot(Robot, RobotWithEbands):
             "kzone",
             "qzone",
             "kfilter",
+            "gtype",
+            "gmode",
             "brange_k_spin",
             "brange_kq_spin",
             "erange_spin",
@@ -1148,12 +1198,12 @@ class GstoreRobot(Robot, RobotWithEbands):
         ]
 
         for aname in aname_list:
-            self._compare_attr_name(aname, self, gstore2)
+            Robot._compare_attr_name(aname, gstore1, gstore2)
 
         # Now compare the gkq objects for each spin.
         ierr = 0
-        for spin in range(self.nsppol):
-            gqk1, gqk2 = self.gqk_spin[spin], gstore2.gqk_spin[spin]
+        for spin in range(gstore1.nsppol):
+            gqk1, gqk2 = gstore1.gqk_spin[spin], gstore2.gqk_spin[spin]
             ierr += gqk1.neq(gqk2, verbose)
 
         return ierr
@@ -1200,12 +1250,12 @@ class GstoreRobot(Robot, RobotWithEbands):
         and then reconstructed by symmetry at the end of the run.
         The goal of this method is to check that both calculations produce the same results.
         by printing some statistics and producing, for each spin, a 2x2 grid of parity plots for
-        the e-ph matrix elements: |g| (top-left), phase of g in degrees (top-right), Re(g)
+        the e-ph matrix elements: ``|g|`` (top-left), phase of g in degrees (top-right), Re(g)
         (bottom-left), and Im(g) (bottom-right). A single complex matrix element can be wrong in
         different ways -- only in magnitude, only in phase, or in a way that's obvious in the
-        Cartesian (Re, Im) view but not in the polar (|g|, phase) one or vice versa (e.g. a small
-        |g| with a large phase error can still look fine in Re/Im if both components happen to
-        be small) -- so looking at |g1 - g2| alone, as the original version of this method did,
+        Cartesian (Re, Im) view but not in the polar (``|g|``, phase) one or vice versa (e.g. a small
+        ``|g|`` with a large phase error can still look fine in Re/Im if both components happen to
+        be small) -- so looking at ``|g1 - g2|`` alone, as the original version of this method did,
         cannot distinguish these failure modes; all four views are needed together.
 
         Only the (k, q) points that were actually reconstructed by symmetry in the first file
@@ -1216,22 +1266,22 @@ class GstoreRobot(Robot, RobotWithEbands):
         flattening the whole (glob_nq, glob_nk, natom3, nb_kq, nb_k) array, as done previously,
         buries the actual test: e.g. (k, q) points that reconstruct exactly (diff ~1e-15) get
         averaged together with (k, q) points that are completely wrong (diff ~O(1)) into a single
-        "mean |g1-g2|" scalar, and the parity plot is dominated by the many small-magnitude,
+        "mean ``|g1-g2|``" scalar, and the parity plot is dominated by the many small-magnitude,
         off-diagonal-like matrix elements shared by both categories, so a ~30/70 exact/wrong split
         can look like an innocuous scatter around y = x.
 
         All four plots share the same matched/mismatched classification, based on the full complex
         difference (magnitude AND phase), so a point that lands on the y = x diagonal in the
         magnitude plot but is colored "mismatched" is a pure phase error, and vice versa.
-        Matrix elements with |g| < mag_tol (in either file) are dropped from the phase plot only,
-        since the phase of a near-zero complex number is numerically meaningless (Re/Im and |g|
-        remain well-defined, and are informative, even when |g| is tiny, so they keep every
+        Matrix elements with ``|g|`` < mag_tol (in either file) are dropped from the phase plot only,
+        since the phase of a near-zero complex number is numerically meaningless (Re/Im and ``|g|``
+        remain well-defined, and are informative, even when ``|g|`` is tiny, so they keep every
         point). Because phase is an angle, two equal phases can be reported ~360 degrees apart
         across the +-180 degree branch cut; three parallel y = x, y = x - 360, y = x + 360
         reference lines are drawn so such wrapped points still show up "on the diagonal" instead
         of looking like large, spurious mismatches.
 
-        The worst matrix element(s) (largest |g1 - g2|, e.g. the "Max absolute difference"
+        The worst matrix element(s) (largest ``|g1 - g2|``, e.g. the "Max absolute difference"
         printed below) are marked with a black-edged star in ALL FOUR plots and their location
         (global q/k indices, perturbation, and bra/ket band) is printed, since with thousands of
         tiny (s=1, alpha=0.3) points a lone outlier is otherwise easy to miss by eye even though
@@ -1246,11 +1296,11 @@ class GstoreRobot(Robot, RobotWithEbands):
         like a huge disagreement in the reported slope/RMSE.
 
         Args:
-            tol: Tolerance on the per-(k, q) max |g1 - g2| used to classify a symmetrized point
+            tol: Tolerance on the per-(k, q) max ``|g1 - g2|`` used to classify a symmetrized point
                 as an exact match. Drives the color-coding in both the magnitude and phase plots.
-            mag_tol: Matrix elements with |g| below this threshold (in either file) are excluded
+            mag_tol: Matrix elements with ``|g|`` below this threshold (in either file) are excluded
                 from the phase parity plot only.
-            n_outliers: Number of worst matrix elements (by |g1 - g2|) to mark and print per spin.
+            n_outliers: Number of worst matrix elements (by ``|g1 - g2|``) to mark and print per spin.
             use_hexbin: If True, render the (typically large) matched-point cloud in each panel
                 as a density-colored hexbin plot instead of a scatter plot -- much faster and
                 more legible when there are many thousands of points. Mismatched points are
@@ -1562,7 +1612,7 @@ class GstoreRobot(Robot, RobotWithEbands):
                 continue
 
             r = g1.r
-            eigens_ibz = r.read_value("eigenvalues") * 27.211386245988  # Ha --> eV, indexed like r.kibz.
+            eigens_ibz = r.read_value("eigenvalues") * abu.Ha_eV  # Ha --> eV, indexed like r.kibz.
             bstart_k, nb_k = gqk1.bstart_k, gqk1.nb_k
             bstart_kq, nb_kq = gqk1.bstart_kq, gqk1.nb_kq
 

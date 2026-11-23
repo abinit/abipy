@@ -45,7 +45,8 @@ ZsisaResults.json:
     JSON file with the location of the different files (GSR.nc, DDB) on the filesystem.
     To reconstruct a python object from file, use:
 
-```
+    .. code-block:: python
+
         from abipy.zsisa import ZsisaResults
         data = ZsisaResults.json_load("ABSPATH_TO_FILE")
 
@@ -53,7 +54,6 @@ ZsisaResults.json:
         data.get_dataframe()
         data.plot_lattice_vs_temp()
         data.plot_thermal_expansion()
-```
 """
 
 import os

@@ -83,6 +83,7 @@ def find_package_data():
             "alas_nl_dfpt/*",
             "alas_phonons/*",
             # "diamond_sigeph/*",
+            "diamond_gwpt_gstore/*",
             "gaas_optic/*",
             "mgb2_fatbands/*",
             "ni_ebands/*",

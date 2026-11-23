@@ -31,7 +31,7 @@ AxList = list[Axes]
 # Abipy objects
 KptLike = Union["Kpoint", VectorLike]
 
-KptSelect = Union[int, "Kpoint", "VectorLike"]
+KptSelect = Union[int, "Kpoint", VectorLike]
 
 GvecSelect = Union[int, IVectorLike]
 

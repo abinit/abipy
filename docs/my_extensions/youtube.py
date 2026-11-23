@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # Taken from https://github.com/sphinx-contrib/youtube
 
-from __future__ import division
 
 import re
+
 from docutils import nodes
 from docutils.parsers.rst import directives
 
@@ -19,7 +18,7 @@ CONTROL_HEIGHT = 30
 def get_size(d, key):
     if key not in d:
         return None
-    m = re.match("(\d+)(|%|px)$", d[key])
+    m = re.match(r"(\d+)(|%|px)$", d[key])
     if not m:
         raise ValueError("invalid size %r" % d[key])
     return int(m.group(1)), m.group(2) or "px"
@@ -102,7 +101,7 @@ class YouTube(Directive):
     def run(self):
         if "aspect" in self.options:
             aspect = self.options.get("aspect")
-            m = re.match("(\d+):(\d+)", aspect)
+            m = re.match(r"(\d+):(\d+)", aspect)
             if m is None:
                 raise ValueError("invalid aspect ratio %r" % aspect)
             aspect = tuple(int(x) for x in m.groups())

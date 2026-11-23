@@ -15,10 +15,6 @@ class BaseParser(metaclass=abc.ABCMeta):
     Abstract class defining the interface that must be provided
     by the parsers used to extract results from the output file of
     a pseudopotential generator a.k.a. ppgen
-
-    Attributes:
-        errors: List of strings with errors reported by the pp generator
-        warnings: List of strings with the warnings reported by the pp generator.
     """
 
     Error = ParserError
@@ -41,7 +37,7 @@ class BaseParser(metaclass=abc.ABCMeta):
 
     @property
     def warnings(self) -> list[str]:
-        """List of strings with possible errors reported by the generator at run-time."""
+        """List of strings with possible warnings reported by the generator at run-time."""
         return self._warnings
 
     @abc.abstractmethod

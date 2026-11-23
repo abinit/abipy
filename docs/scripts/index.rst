@@ -6,25 +6,25 @@
 Scripts
 =======
 
-This page documents the usage of the AbiPy scripts,
-the subcommands available and the options supported by each subcommand.
+This page documents the AbiPy scripts,
+their subcommands and the options supported by each subcommand.
 
-To analyze the cystalline structure stored in FILE, use ``abistruct.py``.
+To analyze the crystalline structure stored in FILE, use ``abistruct.py``.
 To operate on a **single** FILE, use ``abiopen.py``.
-To compare **multiple** FILES of the same type, use the ``abicomp.py`` script.
-If the analysis requires the execution of additional logic
-(e.g. the computation of phonons with anaddb from the DDB file), use ``abiview.py``.
-To generate a minimalist input file for Abinit, use ``abinp.py``.
+To compare **multiple** FILES of the same type, use ``abicomp.py``.
+If the analysis requires additional steps
+(e.g. computing phonons with anaddb from a DDB file), use ``abiview.py``.
+To generate a minimal Abinit input file, use ``abinp.py``.
 For a command line interface to the Abinit documentation, use ``abidoc.py``.
 
-Finally, use ``abicheck.py`` to validate your AbiPy + Abinit installation **before running** AbiPy flows
-and use ``abirun.py`` to launch Abinit calculations.
+Finally, use ``abicheck.py`` to validate your AbiPy + Abinit installation **before running** AbiPy flows,
+and ``abirun.py`` to launch Abinit calculations.
 
 .. important::
 
-    Each script provides a ``--help`` option that documents all the commands available
-    and provides a list of typical examples.
-    To list of the options supported by **COMMAND** use e.g. `abicomp.py COMMAND --help`.
+    Each script provides a ``--help`` option that documents all the available commands
+    and gives a list of typical examples.
+    To list the options supported by a **COMMAND**, use e.g. `abicomp.py COMMAND --help`.
 
 
 .. toctree::

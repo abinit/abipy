@@ -9,51 +9,49 @@ Getting AbiPy
 Stable version
 --------------
 
-The version at the `Python Package Index <https://pypi.org/project/abipy/>`_ (PyPI) is always
-the latest **stable** release that can be installed in user mode with::
+The version on the `Python Package Index <https://pypi.org/project/abipy/>`_ (PyPI) is always
+the latest **stable** release. You can install it in user mode with::
 
     pip install abipy --user
 
-Note that you may need to install some optional dependencies manually.
-In this case, please consult the detailed installation instructions provided in the
-`pymatgen howto <https://pymatgen.org/installation.html>`_ to install these optional packages.
+You may need to install some optional dependencies manually.
+If so, follow the detailed installation instructions in the
+`pymatgen howto <https://pymatgen.org/installation.html>`_.
 
-The installation process is greatly simplified if you install the required
+Installation is much simpler if you get the required
 packages through the Anaconda_ distribution.
-We routinely use conda_ to test new developments with multiple Python versions and multiple virtual environments.
-The anaconda distribution already provides the most critical dependencies (numpy_, scipy_, matplotlib_, netcdf4-python_)
-in the form of pre-compiled packages that can be easily installed with e.g.::
+We routinely use conda_ to test new developments with multiple Python versions and virtual environments.
+Anaconda already provides the most critical dependencies (numpy_, scipy_, matplotlib_, netcdf4-python_)
+as pre-compiled packages that can be installed with, for example::
 
     conda install numpy scipy netcdf4
 
-Additional information on the steps required to install AbiPy with anaconda
-are available in the :ref:`anaconda_howto` howto as well as in the
-`conda-based-install <http://pymatgen.org/installation.html#conda-based-install>`_
+For more details on installing AbiPy with Anaconda, see the :ref:`anaconda_howto` section
+and the `conda-based-install <http://pymatgen.org/installation.html#conda-based-install>`_
 section of the pymatgen_ documentation.
 
 We are also working with the spack_ community
-to provide packages for AbiPy and Abinit in order to facilitate the installation on large supercomputing centers.
+to provide AbiPy and Abinit packages that make installation easier on large supercomputing centers.
 
-Advanced users who need to compile a local version of the python interpreter and install the AbiPy dependencies
-manually can consult the :ref:`howto_compile_python_and_bootstrap_pip` document.
+Advanced users who need to compile their own Python interpreter and install the AbiPy dependencies
+manually can consult the :ref:`howto_compile_python_and_bootstrap_pip` section.
 
 ---------------------
 Optional dependencies
 ---------------------
 
-Optional libraries that are required if you need certain features:
+The following libraries are needed only for certain features:
 
 ipython_
 
-    Required to interact with the AbiPy/Pymatgen objects in the ipython shell
+    Required to interact with AbiPy/pymatgen objects in the ipython shell
     (strongly recommended, already provided by conda_).
 
 jupyter_ and nbformat_
 
-    Required to generate jupyter notebooks.
-    Install these two packages with ``conda install jupyter nbformat`` or use pip_.
-    To use ``jupyter`` you will also need a web browser to open the notebook.
-    (recommended)
+    Required to generate jupyter notebooks (recommended).
+    Install both packages with ``conda install jupyter nbformat`` or with pip_.
+    You will also need a web browser to open the notebooks.
 
 .. _anaconda_howto:
 
@@ -61,41 +59,39 @@ jupyter_ and nbformat_
 Anaconda Howto
 --------------
 
-Download the anaconda installer from the `official web-site <https://www.continuum.io/downloads>`_.
-by choosing the version that matches your OS.
-You may want to use the ``wget`` utility to download the anaconda script directly from the terminal
-(useful if you are installing anaconda on a cluster).
+Download the Anaconda installer for your OS from the `official website <https://www.continuum.io/downloads>`_.
+If you are installing Anaconda on a cluster, you may find it convenient to download the installer
+directly from the terminal with ``wget``.
 
 Run the bash script in the terminal and follow the instructions on screen.
-By default, the installer creates the ``anaconda`` directory in your home.
-Anaconda will add one line to your ``.bashrc`` to enable access to the anaconda executables.
-Once the installation is completed, execute::
+By default, the installer creates an ``anaconda`` directory in your home
+and adds a line to your ``.bashrc`` to make the Anaconda executables available.
+Once the installation is complete, activate the ``base`` environment with::
 
     source ~/anaconda/bin/activate base
 
-to activate the ``base`` environment.
-The output of ``which python`` should show that you are using the python interpreter provided by anaconda.
+The output of ``which python`` should now show that you are using the Python interpreter provided by Anaconda.
 
-Use the conda_ command-line interface to install the packages not included in the official distribution.
+Use the conda_ command-line interface to install packages that are not included in the official distribution.
 For example, you can install ``pyyaml`` and ``netcdf4`` with::
 
     conda install pyyaml netcdf4
 
-Remember that if a package is not available in the official conda repository, you can always
-download the package from one of the conda channels or use ``pip install`` if no conda package is available.
+If a package is not available in the official conda repository, you can
+download it from one of the conda channels, or fall back to ``pip install`` if no conda package exists.
 
-Fortunately there are conda channels providing all dependencies needed by AbiPy.
-Now add ``conda-forge`` to your conda channels with::
+Fortunately, some conda channels provide all the dependencies needed by AbiPy.
+Add ``conda-forge`` to your channels with::
 
     conda config --add channels conda-forge
 
-This is the channel from which we will download pymatgen, abipy and abinit.
+This is the channel from which pymatgen, AbiPy and Abinit will be downloaded.
 
 Finally, install AbiPy with::
 
     conda install abipy
 
-Once you have completed the installation of AbiPy and pymatgen, open the ipython_ shell and type::
+To check the installation, open the ipython_ shell and type::
 
     # make sure spglib library works
     import spglib
@@ -105,12 +101,10 @@ Once you have completed the installation of AbiPy and pymatgen, open the ipython
 
     from abipy import abilab
 
-to check the installation.
-
-Note that one can use conda_ to create different environments with different
-versions of the python interpreter or different libraries.
-Further information are available on the `conda official website <http://conda.pydata.org/docs/test-drive.html>`_.
-Using different environments is very useful to keep different versions and branches separate.
+conda_ can also create separate environments with different
+versions of the Python interpreter or of other libraries.
+This is very useful for keeping different versions and branches apart.
+More information is available on the `official conda website <http://conda.pydata.org/docs/test-drive.html>`_.
 
 .. _developmental_version:
 
@@ -119,53 +113,51 @@ Developmental version
 ---------------------
 
 Getting the developmental version of AbiPy is easy.
-You can clone it from our  `github repository <https://github.com/abinit/abipy>`_ using::
+Clone it from our `GitHub repository <https://github.com/abinit/abipy>`_ with::
 
     git clone https://github.com/abinit/abipy
 
-After cloning the repository, type::
+then, inside the repository, type::
 
     python -m pip install .
 
-or alternately::
+or, to install the package in development (editable) mode::
 
     python -m pip install --editable .
 
-to install the package in developmental mode
-(Develop mode is the recommended approach if you are planning to implement new features.
-In this case you may also opt to first fork AbiPy on Git and then clone your own fork.
-This will allow you to push any changes to you own fork and also get them merged in the main branch).
+Development mode is the recommended approach if you plan to implement new features.
+In this case, you may prefer to fork AbiPy on GitHub first and then clone your fork,
+so that you can push changes to your fork and later get them merged into the main branch.
 
-The documentation of the **developmental** version is hosted on `github pages <http://abinit.github.io/abipy>`_.
+The documentation of the **developmental** version is hosted on `GitHub Pages <http://abinit.github.io/abipy>`_.
 
-The Github version include test files for complete unit testing.
-To run the suite of unit tests, make sure you have pytest_ installed and issue::
+The GitHub version includes the test files needed for complete unit testing.
+To run the test suite, make sure pytest_ is installed and run::
 
     pytest
 
 in the AbiPy root directory.
 
-Note that several unit tests check the integration between AbiPy and Abinit.
-In order to run the tests, you need a working set of Abinit executables and
+Several unit tests check the integration between AbiPy and Abinit.
+To run them, you need a working set of Abinit executables and
 a ``manager.yml`` configuration file.
-For further information on the syntax of the configuration file, please consult the :ref:`taskmanager` section.
+For the syntax of the configuration file, see the :ref:`taskmanager` section.
 
-A pre-compiled sequential version of Abinit for Linux and OSx can be installed directly from the abinit-channel_ with::
+A pre-compiled sequential version of Abinit for Linux and macOS can be installed from the abinit-channel_ with::
 
     conda install abinit -c conda-forge
 
-Examples of configuration files to configure and compile Abinit on clusters can be found
+Examples of configuration files for compiling Abinit on clusters are available
 in the abiconfig_ package.
 
-Contributing to AbiPy is relatively easy.
-Just send us a `pull request <https://help.github.com/articles/using-pull-requests/>`_.
-When you send your request, make ``develop`` the destination branch on the repository
-AbiPy uses the `Git Flow <http://nvie.com/posts/a-successful-git-branching-model/>`_ branching model.
-The ``develop`` branch contains the latest contributions, and ``master`` is always tagged and points
+Contributing to AbiPy is easy: just send us a `pull request <https://help.github.com/articles/using-pull-requests/>`_.
+When you open the request, choose ``develop`` as the destination branch.
+AbiPy uses the `Git Flow <http://nvie.com/posts/a-successful-git-branching-model/>`_ branching model:
+the ``develop`` branch contains the latest contributions, while ``master`` is always tagged and points
 to the latest stable release.
 
-If you choose to share your developments please take some time to develop some unit tests of at least the
-basic functionalities of your code
+If you share your developments, please take the time to write unit tests that cover at least
+the basic functionality of your code.
 
 .. _installing_without_internet_access:
 
@@ -173,51 +165,55 @@ basic functionalities of your code
 Installing without internet access
 ----------------------------------
 
-Here, it is described how to set up a virtual environment with AbiPy on a cluster that cannot reach out to the internet.
-One first creates a virtual environment with AbiPy on a cluster/computer with access, then ports the required files
-to the cluster without access, and performs an offline installation.
-We use Conda for the Python installation and pip for the packages, as the former reduces the odds that incompatibilities arise,
-while the latter provides convenient syntax for offline package installation.
+This section explains how to set up a virtual environment with AbiPy on a cluster that cannot access the internet.
+The idea is to create a virtual environment with AbiPy on a machine with internet access, copy the required files
+to the offline cluster, and then perform an offline installation there.
+We use Conda for the Python installation, since it reduces the risk of incompatibilities,
+and pip for the packages, since it offers a convenient syntax for offline installation.
 
-One first needs Conda on the cluster with access.
-If not available by default, follow the :ref:`instructions for installing Conda <anaconda_howto>`.
-Next, set up a conda virtual environment with a designated Python version, for example 3.12::
+First, you need Conda on the machine with internet access.
+If it is not available by default, follow the :ref:`instructions for installing Conda <anaconda_howto>`.
+Then create a conda virtual environment with a given Python version, for example 3.12::
 
     conda create --name abienv python=3.12
     conda activate abienv
 
-We then install AbiPy in this virtual environment, followed by creating requirements.txt, and creating
-a folder packages/ containing all the wheels (.whl format)::
+Install AbiPy in this environment, write the list of installed packages to ``requirements.txt``,
+and download all the wheels (``.whl`` files) into a ``packages/`` folder::
 
     pip install abipy
     pip list --format=freeze > requirements.txt
     pip download -r requirements.txt -d packages/
 
-Next, the .txt file, the folder, and the miniconda installer must be forwarded to the cluster without internet access.
-You may have to use a computer that has access to both locations with the scp command.
-If the offline cluster does not have Conda preinstalled, the Miniconda executable must be ported so that
-an offline Conda installation can be performed.
-Thus, from a computer that can access both locations, execute::
+Next, copy ``requirements.txt``, the ``packages/`` folder and the Miniconda installer to the offline cluster.
+You may need to use ``scp`` from a computer that can reach both machines.
+The Miniconda installer is needed only if Conda is not already available on the offline cluster.
+From a computer that can access both locations, run::
 
     scp -r connected_cluster:/file/and/folder/location/* .
     wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
     scp -r requirements.txt packages/ Miniconda3-latest-Linux-x86_64.sh disconnected_cluster:/desired/location/
 
-If conda is not available on the cluster that cannot access the internet, 
-follow the :ref:`Conda installation instructions <anaconda_howto>` once more.
-Next, one can set up an **offline** virtual environment on the cluster without internet access::
+If Conda is not available on the offline cluster,
+follow the :ref:`Conda installation instructions <anaconda_howto>` there as well.
+Then create an **offline** virtual environment on the offline cluster::
 
     conda create --name abienv --offline python=3.12
     conda activate abienv
 
-At this step, AbiPy might fail to install due to missing/incompatible packages.
-Some of these issues may be solved by repeating the above steps (excluding the environment creation) 
-for packages that are listed as missing/incompatible during the installation procedure, by updating the requirements.txt and packages/ and trying to install again.
-Upon reading::
+and install the packages from the local folder with::
+
+    pip install --no-index --find-links=packages/ -r requirements.txt
+
+At this step, the installation may fail because of missing or incompatible packages.
+Some of these issues can be solved by repeating the steps above (except for the environment creation)
+for the packages reported as missing or incompatible, updating ``requirements.txt`` and ``packages/``,
+and trying again.
+Once you see::
 
         Successfully installed abipy-x.y.z
 
-You can quickly test your installation by running ``python`` followed by ``import abipy``.
+you can quickly test the installation by running ``python`` followed by ``import abipy``.
 
 
 .. _howto_compile_python_and_bootstrap_pip:
@@ -230,28 +226,28 @@ Troubleshooting
 unknown locale: UTF-8
 ^^^^^^^^^^^^^^^^^^^^^
 
-If python stops with the error message::
+If Python stops with the error message::
 
     "ValueError: unknown locale: UTF-8"
 
-add the following line to your ``.bashrc`` file inside your ``$HOME`` (``.profile`` if MacOSx)::
+add the following line to the ``.bashrc`` file in your ``$HOME`` (``.profile`` on macOS)::
 
     export LC_ALL=C
 
-reload the environment with ``source ~/.bashrc`` and rerun the code.
+then reload the environment with ``source ~/.bashrc`` and run the code again.
 
 ^^^^^^^^^^^^^^^^^^^^
 netcdf does not work
 ^^^^^^^^^^^^^^^^^^^^
 
-The version of hdf5 installed by conda may not be compatible with python netcdf.
-Try the hdf5/netcdf4 libraries provided by conda forge::
+The version of hdf5 installed by conda may not be compatible with python-netcdf.
+Try the hdf5/netcdf4 libraries provided by conda-forge::
 
     conda uninstall hdf4 hdf5
     conda config --add channels conda-forge
     conda install netcdf4
 
-These packages are known to work on MacOsX::
+These packages are known to work on macOS::
 
     conda list hdf4
     hdf4                      4.2.12                        0    conda-forge
@@ -264,8 +260,8 @@ These packages are known to work on MacOsX::
 UnicodeDecodeError
 ^^^^^^^^^^^^^^^^^^^
 
-Python2.7 raises an `UnicodeDecodeError: 'ascii' codec can't decode byte ...`
-when trying to open files with abiopen. Add
+If Python 2.7 raises `UnicodeDecodeError: 'ascii' codec can't decode byte ...`
+when opening files with abiopen, add
 
 .. code-block:: python
 

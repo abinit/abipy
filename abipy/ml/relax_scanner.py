@@ -14,6 +14,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from ase import Atoms
 from ase.io.vasp import write_vasp  # write_vasp_xdatcar,
 from pymatgen.core.lattice import Lattice
 from pymatgen.util.coord import pbc_shortest_vectors

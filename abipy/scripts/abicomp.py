@@ -16,19 +16,19 @@ Main Categories:
 
 Examples:
     Compare lattice parameters for a list of CIF/netcdf files:
-        $ abicomp.py structure *.cif
+        ``$ abicomp.py structure *.cif``
 
     Compare electron band structures from two GSR files:
-        $ abicomp.py ebands run1_GSR.nc run2_GSR.nc
+        ``$ abicomp.py ebands run1_GSR.nc run2_GSR.nc``
 
     Group structures by similarity (using pymatgen's StructureMatcher):
-        $ abicomp.py structure --group *.poscar
+        ``$ abicomp.py structure --group *.poscar``
 
     Compare space group recognition between Abinit and spglib:
-        $ abicomp.py spg out_GSR.nc
+        ``$ abicomp.py spg out_GSR.nc``
 
     Batch compare results from all GSR files in a directory:
-        $ abicomp.py gsr .
+        ``$ abicomp.py gsr .``
 """
 
 from __future__ import annotations

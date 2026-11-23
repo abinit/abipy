@@ -74,6 +74,7 @@
 .. _abicomp.py: https://abinit.github.io/abipy/scripts/abicomp.html
 .. _abinp.py: https://abinit.github.io/abipy/scripts/abinp.html
 .. _abicheck.py: https://abinit.github.io/abipy/scripts/abicheck.html
+.. _abirun.py: https://abinit.github.io/abipy/scripts/abirun.html
 .. _abips.py: https://abinit.github.io/abipy/scripts/abips.html
 .. _oncv.py: https://abinit.github.io/abipy/scripts/oncv.html
 
@@ -107,6 +108,13 @@
 .. |SkwInterpolator| replace:: :class:`abipy.core.skw.SkwInterpolator`
 .. |ElectronDos| replace:: :class:`abipy.electrons.ebands.ElectronDos`
 .. |ElectronDosPlotter| replace:: :class:`abipy.electrons.ebands.ElectronDosPlotter`
+.. |ElectronBands3D| replace:: :class:`abipy.electrons.ebands.ElectronBands3D`
+.. |Gqk| replace:: :class:`abipy.eph.gstore.Gqk`
+.. |EventHandler| replace:: :class:`abipy.flowtk.events.EventHandler`
+.. |NodeResults| replace:: :class:`abipy.flowtk.nodes.NodeResults`
+.. |WorkResults| replace:: :class:`abipy.flowtk.works.WorkResults`
+.. |AtdepTask| replace:: :class:`abipy.flowtk.tasks.AtdepTask`
+.. |abiopen| replace:: :func:`abipy.abilab.abiopen`
 .. |PhononBands| replace:: :class:`abipy.dfpt.phonons.PhononBands`
 .. |Node| replace:: :class:`abipy.flowtk.nodes.Node`
 .. |Task| replace:: :class:`abipy.flowtk.tasks.Task`
@@ -154,6 +162,8 @@
 .. |numpy-array| replace:: :class:`numpy.ndarray`
 .. |plotly.graph_objects.Figure| replace:: :class:`plotly.graph_objects.Figure`
 .. |plotly-Figure| replace:: :class:`plotly.graph_objects.Figure`
+.. |plotly.graph_objects.scatter| replace:: :class:`plotly.graph_objects.Scatter`
+.. |plotly.graph_objects.scatter.Line| replace:: :class:`plotly.graph_objects.scatter.Line`
 
 .. Badges
 .. |pypi-version| image:: https://badge.fury.io/py/abipy.svg

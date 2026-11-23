@@ -9,24 +9,24 @@ Coding guide
 Committing changes
 ------------------
 
-When committing changes to AbiPy, there are a few things to bear in mind.
+When committing changes to AbiPy, keep the following points in mind:
 
-* if your changes are non-trivial, please make an entry in the :file:`CHANGELOG.rst`
-  Note that the changelog is written following the format employed by the 
+* If your changes are non-trivial, add an entry to :file:`CHANGELOG.rst`.
+  The changelog follows the format used by the
   `releases <https://github.com/bitprophet/releases>`_ Sphinx extension.
 
-* if you change the API, please document the modifications in the docstring with the ``versionadded`` role::
+* If you change the API, document the modifications in the docstring with the ``versionadded`` role::
 
     .. versionadded:: 0.2
        Add new argument ``foobar``
 
-* Can you pass the automatic tests? 
+* Do your changes pass the automatic tests?
 
-* Can you add a test to test your changes?
+* Can you add a test for your changes?
 
 * If you have added new files or directories, or reorganized existing
-  ones, are the new files included in the match patterns in :file:`MANIFEST.in`.  
-  This file determines what goes into the source distribution of the build.
+  ones, are the new files matched by the patterns in :file:`MANIFEST.in`?
+  This file determines what goes into the source distribution.
 
 Importing and name spaces
 -------------------------
@@ -36,19 +36,19 @@ For numpy_, use::
   import numpy as np
   a = np.array([1,2,3])
 
-For matplotlib_, **avoid** using the high-level interface such as in::
+For matplotlib_, **avoid** the high-level interface, as in::
 
   import matplotlib.pyplot as plt
   plt.plot(x, y)
 
-and use the object-oriented API provided by |matplotlib-Axes|::
+and use the object-oriented API provided by |matplotlib-Axes| instead::
 
     from abipy.tools.plotting import get_ax_fig_plt
     ax, fig, plt = get_ax_fig_plt(ax=None)
     ax.plot(x, y)
 
-It is recommended to pass the Axes ``ax`` to the plotting method and 
-use the decorator ``add_fig_kwargs``::
+Plotting methods should accept an Axes ``ax`` argument and
+use the ``add_fig_kwargs`` decorator::
 
     @add_fig_kwargs
     def plot(self, ax=None, **kwargs):
@@ -67,64 +67,64 @@ use the decorator ``add_fig_kwargs``::
 Naming, spacing, and formatting conventions
 -------------------------------------------
 
-In general, we want to stay as closely as possible to the standard
-coding guidelines for python written by Guido van Rossum in `PEP0008 <https://www.python.org/dev/peps/pep-0008>`_.
+In general, we try to follow as closely as possible the standard
+Python coding guidelines written by Guido van Rossum in `PEP0008 <https://www.python.org/dev/peps/pep-0008>`_.
 
 * functions and class methods: ``lower`` or ``lower_underscore_separated``
-* attributes and variables: ``lower`` 
+* attributes and variables: ``lower``
 * classes: ``Upper`` or ``MixedCase``
 
 Prefer the shortest names that are still readable.
 
-Configure your editor to use spaces, not hard tabs. 
-The standard indentation unit is always four spaces; 
-if there is a file with tabs or a different number of spaces it is a bug -- please fix it.
+Configure your editor to use spaces, not hard tabs.
+The standard indentation unit is always four spaces;
+a file with tabs or a different number of spaces is a bug, so please fix it.
 
-Keep docstrings uniformly indented as in the example below, with nothing to the left of the triple quotes.  
+Keep docstrings uniformly indented as in the example above, with nothing to the left of the triple quotes.
 
-Limit line length to (around) 90 characters. 
-If you wonder why we are violating pep8 that specifies a maximum line length of 79 characters,
+Limit line length to around 90 characters.
+If you wonder why we deviate from PEP8, which specifies a maximum line length of 79 characters,
 check out this video by Raymond Hettinger:
 
 .. youtube:: wf-BqAjZb8M
 
-If a logical line needs to be longer, use parentheses to break it; do not use an escaped newline.
-It may be preferable to use a temporary variable to replace a single
-long line with two shorter and more readable lines.
+If a logical line needs to be longer, break it using parentheses rather than an escaped newline.
+Sometimes it is better to introduce a temporary variable and replace a single
+long line with two shorter, more readable ones.
 
-Please do not commit lines with trailing white space, as it causes noise in diffs.  
+Please do not commit lines with trailing whitespace, as they add noise to diffs.
 
 Writing examples
 ----------------
 
-We have examples in subdirectories of :file:`abipy/examples`, and these are automatically
-generated when the website is built to show up both in the :file:`examples`
-and :file:`gallery` sections of the website.  
+The examples live in subdirectories of :file:`abipy/examples` and are automatically
+run when the website is built, so that they appear in both the :file:`examples`
+and :file:`gallery` sections of the website.
 
-Many people find these examples from the website, and do not have ready access to the 
-:file:`examples` directory in which they reside.  
-Thus any example data that is required for the example should be added to the :file:`abipy/data` directory
+Many people find these examples on the website and do not have easy access to the
+:file:`examples` directory itself.
+Any data required by an example should therefore be added to the :file:`abipy/data` directory.
 
 Testing
 -------
 
-Abipy has a testing infrastructure based on :mod:`unittest` and pytest_.
+AbiPy has a testing infrastructure based on :mod:`unittest` and pytest_.
 
-Common test support is provided by :mod:`abipy.core.testing`, 
-data files are stored in :file:`abipy/data`, in particular in :file:`abipy/data/refs` that
-contains several output files that can be used for writing unit tests and examples.
+Common test support is provided by :mod:`abipy.core.testing`.
+Data files are stored in :file:`abipy/data`; in particular, :file:`abipy/data/refs`
+contains several output files that can be used to write unit tests and examples.
 
-To install pytest with useful plugins, use::
+To install pytest together with useful plugins, run::
 
     python -m pip install --editable ".[tests]"
 
 in the top-level directory of the package.
-To run the tests associated to the abio.inputs module, use::
+To run the tests of the abio.inputs module, use::
 
     pytest -v abio/tests/test_inputs.py
 
-or use::
+while::
 
-    pytest -v 
+    pytest -v
 
-to run the entire test suite.
+runs the entire test suite.
